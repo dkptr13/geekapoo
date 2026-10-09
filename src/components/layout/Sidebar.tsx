@@ -4,8 +4,8 @@ import { useCommunity } from '../../context/CommunityContext';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { NewsWidget } from '../home/NewsWidget';
+import { encuadre } from '../../utils/safeData';
 import { Thread } from '../../types';
-
 interface SidebarProps {
   onSelectCategory?: (catId: string) => void;
   onSelectThread?: (thread: Thread) => void;
@@ -218,6 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 alt={featuredAnime.title}
                 containerClassName="h-full w-full"
                 className="h-full w-full object-cover"
+                imgStyle={encuadre(featuredAnime.coverFocus)}
                 badgeClassName="top-2 right-2"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent" />
@@ -259,12 +260,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {weeklyWorks.map((work) => (
                 <li key={work.id}>
                   {work.imageUrl ? (
-                    <img
-                      src={work.imageUrl}
-                      alt={work.title}
-                      className="mb-2 w-full rounded-xl border border-zinc-800 object-cover"
-                      loading="lazy"
-                    />
+                    /* Una caja con proporción, y no solo `w-full` + `object-cover`.
+                       Sin la caja, `object-fit` no hace NADA: la altura la
+                       marcaba la propia imagen, así que una portada
+                       vertical se convertía en un póster gigante dentro
+                       de una columna estrecha de 300 px. */
+                    <div className="mb-2 aspect-[3/4] w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+                      <img
+                        src={work.imageUrl}
+                        alt={work.title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
                   ) : null}
 
                   <div className="flex items-start justify-between gap-2">

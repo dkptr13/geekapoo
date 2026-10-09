@@ -1,0 +1,42 @@
+/**
+ * El recorte de verdad, con `sharp`.
+ *
+ * El rectángulo NO se calcula aquí: lo da `rectanguloDeRecorte`, que
+ * es la misma función que usa el navegador. Es lo único que garantiza
+ * que lo que se sube es lo que el admin vio en el panel.
+ */
+async function recortar(bytes, ajustes, ratio, maximo, tipoOriginal) {
+  const meta = await sharp(bytes).metadata();
+
+  const caja = cajaDe(ratio, maximo);
+
+  const r = rectanguloDeRecorte(meta.width ?? 0, meta.height ?? 0, caja.ancho, caja.alto, {
+    aspectRatio: ratio,
+    zoom: 1,
+    x: ajustes.x,
+    y: ajustes.y,
+  });
+
+  if (r.width < 1 || r.height < 1) {
+    throw new Error('el recorte ha salido vacío');
+  }
+
+  // Un PNG con canal alfa se queda en PNG: guardado como WebP perdería
+  // la transparencia y saldría con fondo negro. El resto, a WebP, que
+  // pesa menos y es lo que ya se sirve en la web.
+  const tipo = tipoOriginal?.includes('png') ? 'png' : 'webp';
+
+  const tuberia = sharp(bytes).extract({
+    left: r.left,
+    top: r.top,
+    width: r.width,
+    height: r.height,
+  });
+
+  const salida =
+    tipo === 'png'
+      ? await tuberia.png({ compressionLevel: 9 }).toBuffer()
+      : await tuberia.webp({ quality: 90 }).toBuffer();
+
+  return { bytes: salida, tipo: tipo === 'png' ? 'image/png' : 'image/webp' };
+}

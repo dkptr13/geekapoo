@@ -1,0 +1,1 @@
+alturas[0].y > alturas[1].y && alturas[1].y > alturas[2].y,

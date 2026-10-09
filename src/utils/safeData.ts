@@ -1,6 +1,7 @@
 // ======================================================
 // TEXTO Y LISTAS QUE NUNCA FALLAN
 // ======================================================
+//
 // Los documentos de Firestore llegan sin validar. Un personaje
 // creado desde el panel no tenía campo de etiquetas, y un anime
 // viejo puede no tener género o categoría.
@@ -66,4 +67,33 @@ export function puntoEncuadre(value: unknown): PuntoEncuadre {
   const y = num(v.y);
 
   return { x: x ?? CENTRO.x, y: y ?? CENTRO.y };
+}
+
+/**
+ * El `object-position` de una imagen, a partir de su punto de enfoque.
+ *
+ * ── POR QUÉ VIVE AQUÍ Y NO DULPLICADO ──────────────────────────────
+ *
+ * Estaba copiado literalmente en `AnimeWiki` y en `ProfileView`, y por
+ * eso cuatro sitios más se quedaron sin él: el navegador del catálogo,
+ * la barra lateral y los dos buscadores pintaban la portada sin
+ * encuadre, mientras la ficha del wiki sí lo aplicaba. El mismo dato,
+ * aplicado en un sitio y no en el otro según dónde mires.
+ *
+ * Aquí está una vez, junto a `puntoEncuadre`, que es de donde sale.
+ *
+ * ── PARA QUÉ SIGUE VALIENDO CON EL EDITOR DE RECORTE ──────────────
+ *
+ * Para las imágenes que ya estaban subidas SIN recortar, que son las
+ * que todavía necesitan esto. Las nuevas se guardan ya recortadas a la
+ * proporción de su sitio, y entonces no hay nada que recortar, así que
+ * el `object-position` no llega a hacer nada. No estorba.
+ *
+ * Por eso display y editor no se pisan: este solo mueve una imagen que
+ * sigue siendo más grande que su caja.
+ */
+export function encuadre(focus: unknown): React.CSSProperties {
+  const p = puntoEncuadre(focus);
+
+  return { objectPosition: `${p.x * 100}% ${p.y * 100}%` };
 }

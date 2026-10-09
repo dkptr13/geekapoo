@@ -1,0 +1,19 @@
+// Los umbrales justos, que es donde un redondeo cambia de grupo, y
+  // dos casos que se confunden a ojo:
+  //
+  //   · 1200x600 es 2:1, que ya es PANORÁMICA, no horizontal.
+  //   · 16:9 es 1.78, que todavía no llega a panorámica.
+  assert.equal(clasificarProporcion(1200, 700), 'horizontal', '1200x700 es 1.71, horizontal');
+  assert.equal(clasificarProporcion(1200, 600), 'panoramica', '1200x600 es 2:1, ya es panorámica');
+  assert.equal(clasificarProporcion(1100, 1000), 'horizontal', '1.1 exacto es horizontal');
+  assert.equal(clasificarProporcion(1000, 1100), 'vertical', '0.9 exacto, medido al revés');
+  assert.equal(
+    clasificarProporcion(1900, 1000),
+    'horizontal',
+    '1.9 exacto NO es panorámica todavía',
+  );
+  assert.equal(
+    clasificarProporcion(1901, 1000),
+    'panoramica',
+    'pasado el umbral, sí',
+  );

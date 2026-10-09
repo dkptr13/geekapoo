@@ -6,6 +6,8 @@ import { useProgression } from '../../context/ProgressionContext';
 import { uploadCommunityImage, deleteReplacedImage } from '../../services/imageUpload';
 import { validarEditable } from '../../utils/profile';
 import { ESTILO_RAREZA } from '../gamification/MedalCard';
+import { CropEditor } from '../common/CropEditor';
+import type { ImageCropSettings } from '../../services/imageCrop';
 import type { PerfilEditable } from '../../types/profile';
 
 /**
@@ -66,9 +68,24 @@ export const EditProfileModal: React.FC<{
     displayName: currentUser?.displayName || '',
     bio: currentUser?.bio || '',
     avatarUrl: currentUser?.avatarUrl || '',
+    avatarCrop: currentUser?.avatarCrop ?? null,
     favoriteAnime: currentUser?.favoriteAnime || '',
     equippedTitle: currentUser?.equippedTitle ?? null,
   });
+
+  /**
+   * El fichero recién elegido, todavía SIN recortar.
+   *
+   * While is set, the crop editor is open. It stays in state (and not
+   * just in a variable) because it is what triggers the modal to
+   * render: as long as there is a file, it is shown.
+   *
+   * It is not the URL, it is the `File` as it came out. That is what
+   * `cargarImagen` needs, and it avoids having to go back and forth
+   * through Storage just to crop something that has not been saved
+   * yet.
+   */
+  const [avatarSinRecortar, setAvatarSinRecortar] = useState<File | null>(null);
 
   const [errores, setErrores] = useState<Partial<Record<keyof PerfilEditable, string>>>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
@@ -101,14 +118,23 @@ export const EditProfileModal: React.FC<{
     });
   };
 
-  const alSubirAvatar = async (file: File | undefined) => {
+  const alElegirAvatar = (file: File | undefined) => {
     if (!file) return;
 
+    // No se sube todavía: primero se recorta. La razón de que el
+    // avatar salga con la cara cortada es que antes la foto iba
+    // entera a Storage y el `object-cover` de cada sitio decidía por
+    // su cuenta qué parte se veía, y cada sitio lo hacía de una
+    // manera.
+    setAvatarSinRecortar(file);
+  };
+
+  const alSubirAvatar = async (recortada: File, ajustes: ImageCropSettings) => {
     setSubiendo(true);
     setErrorGeneral(null);
 
     try {
-      const url = await uploadCommunityImage(file, currentUser.uid);
+      const url = await uploadCommunityImage(recortada, currentUser.uid);
 
       // El avatar es una imagen de la comunidad como cualquier
       // otra: mismo servicio, misma carpeta, mismas reglas de
@@ -124,10 +150,14 @@ export const EditProfileModal: React.FC<{
       // quedaría con la URL del avatar viejo apuntando a un archivo
       // que ya no está.
       cambiar('avatarUrl', url);
-
-      } catch (e) {
+      cambiar('avatarCrop', ajustes);
+      setAvatarSinRecortar(null);
+    } catch (e) {
       console.error('[Perfil] No se pudo subir el avatar:', e);
       setErrorGeneral(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
+      // El editor se cierra igual: si se deja abierto con el error
+      // detrás, la única forma de salir es volver a elegir la foto.
+      setAvatarSinRecortar(null);
     } finally {
       setSubiendo(false);
     }
@@ -151,6 +181,14 @@ export const EditProfileModal: React.FC<{
         displayName: datos.displayName.trim(),
         bio: datos.bio.trim(),
         avatarUrl: avatarNuevo,
+        // El encuadre va junto a la URL. Sin él la foto se vería
+        // recortada al centro, que es lo que pasaba antes; con él se
+        // puede volver a abrir el editor donde estaba.
+        //
+        // Se mandan los dos juntos a propósito: si se guardara la URL
+        // y fallara el ajuste, o al revés, la foto y su encuadre
+        // quedarían descolocados.
+        avatarCrop: datos.avatarCrop ?? null,
         favoriteAnime: datos.favoriteAnime.trim(),
       });
 
@@ -183,11 +221,31 @@ export const EditProfileModal: React.FC<{
     }
   };
 
+  // El editor va al final, FUERA del `div` del modal. Si estuviera
+  // dentro, el clic en el fondo para cerrar este seguiría llegando al
+  // de los dos modales, y cerrar el editor cerraría también el
+  // formulario de golpe.
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
-      onClick={guardando || subiendo ? undefined : onCerrar}
-    >
+    <>
+      {avatarSinRecortar && (
+        <CropEditor
+          file={avatarSinRecortar}
+          // Cuadrado y con vista previa circular, que es como se ve
+          // el avatar en casi toda la web.
+          aspectRatio={1}
+          forma="circular"
+          maximo={512}
+          titulo="Recortar tu avatar"
+          initial={datos.avatarCrop ?? undefined}
+          onCancelar={() => setAvatarSinRecortar(null)}
+          onGuardar={(fichero, ajustes) => alSubirAvatar(fichero, ajustes)}
+        />
+      )}
+
+      <div
+        className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
+        onClick={guardando || subiendo ? undefined : onCerrar}
+      >
       <div
         role="dialog"
         aria-modal="true"
@@ -245,12 +303,21 @@ export const EditProfileModal: React.FC<{
                   type="file"
                   accept="image/*"
                   className="sr-only"
-                  onChange={(e) => void alSubirAvatar(e.target.files?.[0])}
+                  onChange={(e) => {
+                    const elegido = e.target.files?.[0];
+
+                    alElegirAvatar(elegido);
+
+                    // Se vacía para poder volver a elegir el MISMO
+                    // archivo: sin esto, el evento `change` no se
+                    // dispara la segunda vez y parece que el botón no
+                    // hace nada.
+                    e.target.value = '';
+                  }}
                 />
               </label>
 
-              <p className="mt-1.5 text-[10px] text-zinc-500">
-                JPG, PNG, WebP, GIF o AVIF. Máximo 5 MB.
+              <p className="mt-1 text-[10px] text-zinc-500">
               </p>
             </div>
           </div>
@@ -483,6 +550,6 @@ export const EditProfileModal: React.FC<{
         </div>
       </div>
     </div>
+    </>
   );
 };
-

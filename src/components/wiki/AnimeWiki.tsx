@@ -30,20 +30,11 @@ import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories } from '../../data/animeCategories';
 import CatalogBrowser from './CatalogBrowser';
 import CatalogSearch, { type SearchFilter } from './CatalogSearch';
-import { listHas, puntoEncuadre, toTextList } from '../../utils/safeData';
+import { encuadre, listHas, toTextList } from '../../utils/safeData';
 import { fichaDe, personajeEnTemporada } from '../../utils/seasonData';
 import { TAG_DESTACADOS } from '../../utils/tags';
 import { ALTURA_CARD_PERSONAJE } from '../../utils/layout';
 
-/**
- * A qué parte de la foto se ancla el recorte, en porcentajes CSS.
- * El punto se elige en el panel; si el documento no lo tiene, sale
- * el centro.
- */
-const encuadre = (focus: unknown): React.CSSProperties => {
-  const p = puntoEncuadre(focus);
-  return { objectPosition: `${p.x * 100}% ${p.y * 100}%` };
-};
 import { Anime, Character, Episode, Season, Thread } from '../../types';
 
 interface AnimeWikiProps {
@@ -514,7 +505,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                     src={propia}
                     alt=""
                     aria-hidden="true"
-                    className="h-4 w-3 flex-shrink-0 rounded object-cover"
+                    className="h-5 w-4 flex-shrink-0 rounded object-cover"
                     style={encuadre(s.posterUrl ? s.posterFocus : s.bannerFocus)}
                   />
                 )}
@@ -562,7 +553,26 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             alt={currentAnime.title}
             containerClassName="h-full w-full"
             className="h-full w-full object-cover"
-            imgStyle={encuadre(ficha.bannerFocus)}
+            /* ── EL ENCUADRE POR DEFECTO DEL BANNER ────────────────
+               Esta caja es MUCHO más alta que ancha (544 px contra el
+               ancho de la pantalla), y el banner es panorámico. A esa
+               diferencia le sale un recorte de cerca del 78% de la
+               altura, y sin decir nada cae SIEMPRE en el centro
+               vertical, que es donde no están ni la cara ni el
+               logotipo de la serie.
+
+               `encuadre()` devuelve `50% 50%` cuando no hay nada
+               guardado, así que aquí se sustituye por `50% 30%`: sale
+               más cielo y título, que es lo que se quiere ver en un
+               banner.
+
+               Es un parche para lo que YA está subido sin recortar.
+               Lo definitivo es que el banner se guarde ya en esta
+               proporción, y desde que el editor del panel recorta a
+               16:9, las imágenes nuevas ya no necesitan nada de esto:
+               al estar en la proporción correcta, `object-position` no
+               tiene margen sobre el que actuar. */
+            imgStyle={ficha.bannerFocus ? encuadre(ficha.bannerFocus) : { objectPosition: '50% 30%' }}
             badgeClassName="top-1/2 right-3 -translate-y-1/2"
             empty={
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-950 via-zinc-900 to-zinc-900">
@@ -650,7 +660,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                 src={ficha.coverUrl}
                 alt={currentAnime.title}
                 containerClassName="hidden sm:block shrink-0"
-                className="h-32 w-24 rounded-2xl object-cover ring-4 ring-zinc-900 shadow-2xl"
+                className="w-24 h-32 rounded-2xl object-cover ring-4 ring-zinc-900 shadow-2xl"
                 imgStyle={encuadre(ficha.coverFocus)}
 
                 badgeClassName="-top-2 -right-2"

@@ -1,0 +1,46 @@
+// Una HORIZONTAL 2000x1000 en un cuadrado 800x800: el alto queda
+  // ceñido a la caja, así que en vertical NO hay recorrido y la
+  // posición se ignora. En horizontal sí lo hay, porque sobran 800 px.
+  const caja = { w: 800, h: 800 };
+
+  const arriba = calcularEncuadre(2000, 1000, caja.w, caja.h, {
+    aspectRatio: 1,
+    zoom: 1,
+    x: 0.5,
+    y: 0,
+  });
+
+  const abajo = calcularEncuadre(2000, 1000, caja.w, caja.h, {
+    aspectRatio: 1,
+    zoom: 1,
+    x: 0.5,
+    y: 1,
+  });
+
+  assert.ok(
+    Math.abs(arriba.y - abajo.y) < 0.001,
+    'sin recorrido vertical, da igual dónde se ponga',
+  );
+  assert.ok(
+    Math.abs(arriba.alto - caja.h) < 0.001,
+    'porque con zoom 1 el alto es justo la caja y no hay por dónde mover',
+  );
+
+  // Y el eje con recorrido sí responde, que es lo contrario de lo
+  // mismo: una casilla vacía no debe ignorar el arrastre.
+  const izquierda = calcularEncuadre(2000, 1000, caja.w, caja.h, {
+    aspectRatio: 1,
+    zoom: 1,
+    x: 0,
+    y: 0.5,
+  });
+
+  const derecha = calcularEncuadre(2000, 1000, caja.w, caja.h, {
+    aspectRatio: 1,
+    zoom: 1,
+    x: 1,
+    y: 0.5,
+  });
+
+  assert.ok(derecha.x > izquierda.x, 'en horizontal, con recorrido, sí se mueve');
+}

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useCommunity } from '../../context/CommunityContext';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
-import { anyMatches, matchesText as matches, toText } from '../../utils/safeData';
+import { anyMatches, encuadre, matchesText as matches, toText } from '../../utils/safeData';
 import { Anime, Character, Episode, Thread } from '../../types';
 
 interface GlobalSearchProps {
@@ -200,7 +200,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                       src={a.coverUrl}
                       alt={a.title}
                       containerClassName="shrink-0"
-                      className="h-20 w-16 rounded-xl object-cover"
+                      className="w-16 h-20 rounded-xl object-cover"
+                    imgStyle={encuadre(a.coverFocus)}
                       badgeClassName="-top-1 -right-1"
                     />
                     <div className="flex-1 min-w-0">

@@ -1,0 +1,9 @@
+// El valor del umbral pertenece a la banda ANCHA, porque la
+  // comparación es estricta ("mayor que 1.1", no "desde 1.1"). No es
+  // un descuido: una imagen justo en 1.1 se parece más a un cuadrado
+  // que a un panorama, y una justo en 0.9 también.
+  assert.equal(clasificarProporcion(1100, 1000), 'cuadrada', '1.1 exacto sigue siendo cuadrada');
+  assert.equal(clasificarProporcion(1101, 1000), 'horizontal', 'pasado el 1.1, sí es horizontal');
+  assert.equal(clasificarProporcion(1000, 1100), 'cuadrada', 'y 0.9 exacto, también cuadrada');
+  assert.equal(clasificarProporcion(1000, 1101), 'vertical', 'pasado el 0.9, vertical');
+}

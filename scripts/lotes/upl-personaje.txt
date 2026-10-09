@@ -1,0 +1,15 @@
+<ImageUploader
+            label="Imagen"
+            currentUrl={asStr(character.imageUrl)}
+            section={'characters' as CatalogSection}
+            itemId={character.id}
+            field="imageUrl"
+            provider={provider}
+            // 2:3, que es la proporción de la tarjeta de personaje de
+            // la wiki. Es la que más sufria: una ficha de personaje
+            // es casi siempre vertical y la tarjeta la recortaba por
+            // el centro, que es justo donde no está la cara.
+            aspectRatio={2 / 3}
+            maximo={900}
+            onSaved={(url) => updateFields('characters', character.id, { imageUrl: url })}
+          />

@@ -1,0 +1,26 @@
+{
+  const caja = { w: 800, h: 800 };
+
+  const centro = calcularEncuadre(2000, 3000, caja.w, caja.h, ajustesIniciales(1));
+
+  const sobraX = centro.ancho - caja.w;
+  const sobraY = centro.alto - caja.h;
+
+  // Centrado quiere decir que lo que se recorta por un lado es igual
+  // que por el otro. Con el desplazamiento NEGATIVO, el centro está
+  // en menos la mitad del recorrido, no en más.
+  assert.ok(
+    Math.abs(centro.x + sobraX / 2) < 0.001,
+    'centrado en horizontal deja lo mismo a cada lado',
+  );
+  assert.ok(
+    Math.abs(centro.y + sobraY / 2) < 0.001,
+    'centrado en vertical deja lo mismo arriba y abajo',
+  );
+
+  // Y la imagen, siendo más alta que la caja, tiene que empezar por
+  // ENCIMA de la caja. Si empezara por debajo, los primeros píxeles
+  // se quedarían vacíos, que es el fallo que se vio al pintar.
+  assert.ok(centro.y < 0, 'la imagen empieza por encima de la caja');
+  assert.ok(centro.y + centro.alto > caja.h, 'y termina por debajo');
+}

@@ -703,7 +703,7 @@ const WorkForm: FC<{
                             <img
                               src={a.coverUrl}
                               alt=""
-                              className="h-10 w-7 flex-shrink-0 rounded border border-zinc-700 object-cover"
+                              className="w-7 h-10 flex-shrink-0 rounded border border-zinc-700 object-cover"
                             />
                           ) : (
                             <span className="flex h-10 w-7 flex-shrink-0 items-center justify-center rounded border border-zinc-800 text-[9px] text-zinc-600">

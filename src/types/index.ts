@@ -1,5 +1,7 @@
 import type { Timestamp } from 'firebase/firestore';
 
+import type { ImageCropSettings } from '../services/imageCrop';
+
 export type UserRole = 'user' | 'moderator' | 'admin';
 
 // ======================================================
@@ -239,6 +241,21 @@ export interface User {
   profileVisibility?: 'public' | 'private';
   allowChatRequests?: boolean;
   showActivity?: boolean;
+
+  // ── Encuadre del avatar ──────────────────────────────
+  //
+  // Cómo se eligió el trozo de la foto que se ve. Lo escribe el
+  // editor de recorte y lo puede volver a abrir.
+  //
+  // Opcional a propósito: las cuentas que ya tienen avatar no lo
+  // tienen, y se ven igual. Sin él se usa el recorte por defecto, que
+  // es "cubrir la caja centrado", exactamente lo que hacía
+  // `object-fit: cover` antes.
+  //
+  // Son CUATRO NÚMEROS, no una imagen: la foto recortada va a
+  // Storage como siempre y aquí solo queda el encuadre. Ver
+  // `services/imageCrop.ts`.
+  avatarCrop?: ImageCropSettings | null;
 
   // ── Gamificación (ver `types/gamification.ts`) ──────
   // Los escribe la Cloud Function con el Admin SDK. Son

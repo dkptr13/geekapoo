@@ -1,0 +1,13 @@
+// `metadata()` solo lee la cabecera, no decodifica los píxeles, así
+      // que no hace falta descargar la imagen entera para saber cuánto
+      // mide.
+      //
+      // NO se usa `limitInputPixels`: no es "leer solo la cabecera", es
+      // un LÍMITE, y con 1 rechaza cualquier imagen de más de un píxel.
+      // Con eso, este script no encontraba ni una y parecía que no había
+      // nada que migrar, cuando la simulación decía 110.
+      const r = await fetch(url);
+
+      if (!r.ok) continue;
+
+      const meta = await sharp(Buffer.from(await r.arrayBuffer())).metadata();

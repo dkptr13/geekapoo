@@ -1,0 +1,72 @@
+// UNA IMAGEN VERTICAL: LA CABEZA Y LOS PIES, Y CÓMO SE ELIGE
+// ═══════════════════════════════════════════════════════════
+//
+// Este es el caso que motiva el encargo, y conviene dejarlo escrito
+// con su verdad:
+//
+// Una vertical estrecha en una caja cuadrada, con zoom 1, se ve
+// ENTERA DE ANCHO pero se le recorta arriba y abajo. Al revés de lo
+// que se suele suponer. Y no es un fallo del ajuste: es lo que
+// significa "cubrir la caja". La altura de la imagen es varias veces
+// la caja, así que algo tiene que sobrar.
+//
+// Lo que decide la diferencia entre "se ve la cabeza" y "se ven los
+// pies" es DÓNDE se sitúa el recorte, y eso no lo puede decidir el
+// CSS por sí solo. De ahí el editor: los dos ajustes de arriba y
+// abajo son el control.
+
+{
+  const caja = 400;
+
+  const e = calcularEncuadre(600, 1600, caja, caja, ajustesIniciales(1));
+
+  // El ancho se ve ENTERO: 600 de la caja son justo el ancho de la
+  // imagen a esta escala, así que no se pierde nada de los lados.
+  assert.ok(
+    Math.abs(e.ancho - caja) < 0.001,
+    `una vertical en un cuadrado con zoom 1 tiene que verse entera de ancho, y mide ${e.ancho}`,
+  );
+
+  // Y la altura desborda con creces: eso es lo que se recorta.
+  assert.ok(
+    e.alto > caja * 2,
+    `la altura tiene que desbordar, y mide ${e.alto} en una caja de ${caja}`,
+  );
+}
+
+{
+  // El desplazamiento vertical SÍ mueve el recorte, y a los dos
+  // topes. Esto es lo que le da al usuario la cabeza o los pies.
+  const caja = { w: 400, h: 400 };
+
+  const opciones: Array<[string, number]> = [
+    ['arriba', 0],
+    ['centro', 0.5],
+    ['abajo', 1],
+  ];
+
+  const alturas = opciones.map(([nombre, y]) => {
+    const e = calcularEncuadre(600, 1600, caja.w, caja.h, {
+      aspectRatio: 1,
+      zoom: 1,
+      x: 0.5,
+      y,
+    });
+
+    return { nombre, y: e.y };
+  });
+
+  assert.ok(
+    alturas[0].y < alturas[1].y && alturas[1].y < alturas[2].y,
+    `las tres posiciones tienen que ser distintas: ${JSON.stringify(alturas)}`,
+  );
+
+  // Y los dos topes tocan el borde de la imagen, sin dejarla suelta.
+  const recorrido = alturas[2].y - alturas[0].y;
+  const altoPintado = calcularEncuadre(600, 1600, caja.w, caja.h, ajustesIniciales(1)).alto;
+
+  assert.ok(
+    Math.abs(recorrido - (altoPintado - caja.h)) < 0.001,
+    'el recorrido va de un borde al otro de la imagen',
+  );
+}

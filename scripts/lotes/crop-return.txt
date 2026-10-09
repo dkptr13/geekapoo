@@ -1,0 +1,1 @@
+return { escala, ancho, alto, x, y };

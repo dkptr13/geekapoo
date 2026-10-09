@@ -4,8 +4,8 @@ import { Sparkles, Play, Star, Calendar, Shuffle, Layers } from 'lucide-react';
 
 import { ALL_ANIME_CATEGORIES, animeCategories, normalize } from '../../data/animeCategories';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
+import { encuadre } from '../../utils/safeData';
 import type { Anime } from '../../types';
-
 // ======================================================
 // VISTA DE CATÁLOGO
 // ======================================================
@@ -235,6 +235,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                     alt={anime.title}
                     containerClassName="h-full w-full"
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    imgStyle={encuadre(anime.coverFocus)}
                     badgeClassName="top-1.5 right-1.5"
                   />
 

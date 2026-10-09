@@ -1,0 +1,42 @@
+/**
+ * Elige a qué parte de la imagen se ancla el recorte.
+ *
+ * ── ESTO ESTÁ A MEDIAS DE RETIRARSE. LÉELO ANTES DE USARLO ────────
+ *
+ * Existía antes que el editor de recorte (`components/common/CropEditor.tsx`)
+ * y hacía lo mismo con menos: guardar un `object-position` para que el
+ * CSS decidiera, al pintar, qué parte se veía. No había ni movimiento
+ * libre ni zoom.
+ *
+ * El editor nuevo hace el trabajo mejor y hornea el recorte en el
+ * archivo, así que para imágenes nuevas esto ya no hace falta: la
+ * proporción de la imagen ES la del destino, y un `object-position`
+ * sobre una imagen que no hay que recortar no tiene nada que mover.
+ *
+ * ── LO QUE QUEDA POR QUÉ ──────────────────────────────────────────
+ *
+ * El catálogo entero tiene imágenes subidas con el sistema viejo, sin
+ * recortar. Esas sí necesitan esto, porque siguen siendo más grandes
+ * que la caja donde se pintan.
+ *
+ * ── CÓMO SE MIGRAN ────────────────────────────────────────────────
+ *
+ * Subiendo la imagen otra vez por el editor de recorte. Entonces se
+ * guarda ya con la proporción correcta y este `*Focus` sobra y se
+ * puede borrar.
+ *
+ * ── POR QUÉ HAY QUE DEJAR ESTO FUNCIONANDO ────────────────────────
+ *
+ * Porque si se quita sin más, las imágenes viejas se quedan congeladas
+ * en el centro, que es como estaban antes de que existiera nada de
+ * esto: no pierden nada, pero tampoco se arreglan. Con esto se pueden
+ * arreglar una a una.
+ *
+ * ── Y SI SE USA PARA UNA IMAGEN NUEVA, NO HACE NADA ───────────────
+ *
+ * El `object-position` se aplica sobre una imagen que ya está
+ * recortada a la medida de la caja. Si la imagen cabe justa, el
+ * estilo no tiene recorrido. No rompe nada; simplemente no se nota.
+ * Ese es el motivo de que sea mejor una cosa que otra y no las dos.
+ */
+export const FocalField: FC<FocalFieldProps> = ({

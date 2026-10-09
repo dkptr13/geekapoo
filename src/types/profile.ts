@@ -1,5 +1,6 @@
 import type { Comment, Thread } from './index';
 import type { Medal } from './gamification';
+import type { ImageCropSettings } from '../services/imageCrop';
 
 // ======================================================
 // TIPOS DEL PERFIL
@@ -158,6 +159,17 @@ export interface PerfilEditable {
   displayName: string;
   bio: string;
   avatarUrl: string;
+  /**
+   * El encuadre que eligió el usuario con el editor de recorte.
+   *
+   * Opcional porque las cuentas que ya tenían avatar no lo tienen: se
+   * ven igual, con el recorte por defecto.
+   *
+   * `null` significa "sin encuadre elegido", que NO es lo mismo que
+   * "vaciar el ajuste": con `null` el avatar se muestra como siempre,
+   * y con un ajuste se reabre el editor donde estaba.
+   */
+  avatarCrop?: ImageCropSettings | null;
   favoriteAnime: string;
   equippedTitle: string | null;
 }

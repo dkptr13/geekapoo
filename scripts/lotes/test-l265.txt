@@ -1,0 +1,1 @@
+'mover abajo tiene que desplazar el recorte',

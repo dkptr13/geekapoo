@@ -1,0 +1,15 @@
+<ImageUploader
+            label="Portada de la temporada"
+            currentUrl={asStr(doc[campoPortada])}
+            section={esTemporada ? 'seasons' : 'animes'}
+            itemId={seasonId || animeId}
+            field={campoPortada}
+            provider={provider}
+            // 3:4, que es la proporción de la tarjeta del catálogo y
+            // del póster de la wiki. Es la que hay que recortar: si se
+            // subiera sin recortar, cada uno de esos sitios decidiría
+            // por su cuenta qué parte se ve.
+            aspectRatio={3 / 4}
+            maximo={900}
+            onSaved={(url) => guardar({ [campoPortada]: url })}
+          />

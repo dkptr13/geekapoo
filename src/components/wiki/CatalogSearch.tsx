@@ -4,7 +4,7 @@ import { Tv, Users, Film, MessageSquare, SearchX } from 'lucide-react';
 
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories } from '../../data/animeCategories';
-import { anyMatches, matchesText as matches, toText } from '../../utils/safeData';
+import { anyMatches, encuadre, matchesText as matches, toText } from '../../utils/safeData';
 import type { Anime, Character, Episode, Thread } from '../../types';
 
 // ======================================================
@@ -154,7 +154,8 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
                       src={a.coverUrl}
                       alt={a.title}
                       containerClassName="shrink-0"
-                      className="h-20 w-14 rounded-lg object-cover"
+                      className="w-14 h-20 rounded-lg object-cover"
+                    imgStyle={encuadre(a.coverFocus)}
                       badgeClassName="-top-1 -right-1"
                     />
 

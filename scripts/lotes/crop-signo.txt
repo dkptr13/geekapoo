@@ -1,0 +1,5 @@
+// No se vio con los números porque el TAMAÑO siempre fue el
+  // correcto: la comprobación de que la imagen cubría la caja pasaba
+  // igual. Lo que se veía mal era la posición, y solo se veía mirando
+  // la imagen, con una franja del color del fondo donde debería estar
+  // la foto.

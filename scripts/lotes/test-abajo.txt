@@ -1,0 +1,35 @@
+// Con el desplazamiento negativo, "abajo" es la posición MÁS
+  // NEGATIVA: la imagen se sube tanto que su borde inferior toca el
+  // borde inferior de la caja. Y ahí es donde se ve la parte de ABAJO
+  // de la foto.
+  assert.ok(
+    arriba.y > centro.y && centro.y > abajo.y,
+    `mover abajo tiene que subir más la imagen: ${arriba.y}, ${centro.y}, ${abajo.y}`,
+  );
+
+  // Y los dos topes tocan justo el borde de la imagen, sin pasarse.
+  const recorrido = abajo.alto - caja.h;
+
+  assert.ok(
+    Math.abs(abajo.y + recorrido) < 0.001,
+    'al tope, el borde inferior de la imagen toca el de la caja',
+  );
+  assert.ok(Math.abs(arriba.y) < 0.001, 'al otro tope, la imagen empieza en el borde');
+
+  // Y en NINGÚN punto la imagen deja hueco, que es lo que fallaba.
+  for (let i = 0; i <= 20; i++) {
+    const y = i / 20;
+    const e = calcularEncuadre(900, 3000, caja.w, caja.h, {
+      aspectRatio: caja.w / caja.h,
+      zoom: 1,
+      x: 0.5,
+      y,
+    });
+
+    assert.ok(e.y <= 0.001, `con y=${y.toFixed(2)} la imagen no puede empezar abajo`);
+    assert.ok(
+      e.y + e.alto >= caja.h - 0.001,
+      `con y=${y.toFixed(2)} la imagen tiene que llegar al final`,
+    );
+  }
+}

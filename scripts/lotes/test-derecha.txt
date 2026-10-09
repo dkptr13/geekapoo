@@ -1,0 +1,27 @@
+// Y el eje con recorrido sí responde, que es lo contrario de lo
+  // mismo: una casilla vacía no debe ignorar el arrastre.
+  //
+  // Ojo al signo: con x=0 la imagen está en su sitio (0) y con x=1
+  // se desplaza a la IZQUIERDA, un valor NEGATIVO. Por eso aquí se
+  // compara al revés de lo natural: "más a la derecha" es un número
+  // MÁS PEQUEÑO, porque es lo que se ve a la izquierda de la foto.
+  const izquierda = calcularEncuadre(2000, 1000, caja.w, caja.h, {
+    aspectRatio: 1,
+    zoom: 1,
+    x: 0,
+    y: 0.5,
+  });
+
+  const derecha = calcularEncuadre(2000, 1000, caja.w, caja.h, {
+    aspectRatio: 1,
+    zoom: 1,
+    x: 1,
+    y: 0.5,
+  });
+
+  assert.ok(
+    izquierda.x > derecha.x,
+    'en horizontal, con recorrido, mover a la derecha SÍ cambia el encuadre',
+  );
+  assert.ok(Math.abs(izquierda.x) < 0.001, 'x=0 deja la imagen en su sitio');
+}

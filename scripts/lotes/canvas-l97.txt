@@ -1,0 +1,5 @@
+// Que NO se ponga el `crossOrigin` por defecto, para poder pintar
+    // imágenes de fuera: si se pone, las de Storage que no lo admiten
+    // dejan de cargar. El único sitio donde hace falta exportarlas a
+    // canvas es `recortarImagen`, y ahí se avisa con claridad si el
+    // navegador no lo permite.

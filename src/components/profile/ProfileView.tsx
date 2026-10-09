@@ -21,7 +21,7 @@ import { formatearNumero } from '../../utils/follows';
 import { calcularStats } from '../../utils/profile';
 import { CATALOGO_MEDALLAS } from '../../utils/progression';
 import { readPrivacy } from '../../services/accountSettings';
-import { puntoEncuadre } from '../../utils/safeData';
+import { encuadre } from '../../utils/safeData';
 
 import { ProfileHeader } from './ProfileHeader';
 import { ProfileStats } from './ProfileStats';
@@ -71,12 +71,6 @@ interface ProfileViewProps {
    */
   userId?: string;
 }
-
-/** A qué parte de la portada se ancla el recorte. Ver `Character.imageFocus`. */
-const encuadre = (focus: unknown): React.CSSProperties => {
-  const p = puntoEncuadre(focus);
-  return { objectPosition: `${p.x * 100}% ${p.y * 100}%` };
-};
 
 export const ProfileView: React.FC<ProfileViewProps> = (props) => {
   const { currentUser, usersList } = useAuth();

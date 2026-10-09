@@ -1,0 +1,7 @@
+/**
+ * Las proporciones que se ofrecen, para donde el usuario elija.
+ *
+ * Se exporta porque hay sitios donde el usuario tiene que elegir (el
+ * panel para las imágenes de una temporada, por ejemplo) y no tiene
+ * sentido repetir el `<select>` en cada uno.
+ */

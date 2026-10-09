@@ -1477,13 +1477,19 @@ const SeasonDataForm: FC<{
           wiki sigue enseñando el de la serie. */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
-          <ImageUploader
+<ImageUploader
             label="Portada de la temporada"
             currentUrl={asStr(doc[campoPortada])}
             section={esTemporada ? 'seasons' : 'animes'}
             itemId={seasonId || animeId}
             field={campoPortada}
             provider={provider}
+            // 3:4, que es la proporción de la tarjeta del catálogo y
+            // del póster de la wiki. Es la que hay que recortar: si se
+            // subiera sin recortar, cada uno de esos sitios decidiría
+            // por su cuenta qué parte se ve.
+            aspectRatio={3 / 4}
+            maximo={900}
             onSaved={(url) => guardar({ [campoPortada]: url })}
           />
           <FocalField
@@ -1497,13 +1503,18 @@ const SeasonDataForm: FC<{
         </div>
 
         <div className="space-y-2">
-          <ImageUploader
+<ImageUploader
             label="Banner de la temporada"
             currentUrl={asStr(doc.bannerUrl)}
             section={esTemporada ? 'seasons' : 'animes'}
             itemId={seasonId || animeId}
             field="bannerUrl"
             provider={provider}
+            // 16:9, que es la proporción del banner del detalle. Es
+            // el caso donde más se nota: una imagen vertical aquí
+            // perdía más de la mitad, y siempre por el centro.
+            aspectRatio={16 / 9}
+            maximo={1600}
             onSaved={(url) => guardar({ bannerUrl: url })}
           />
           <FocalField
@@ -2107,6 +2118,11 @@ const EpisodeRow: FC<{
             itemId={episode.id}
             field="thumbnailUrl"
             provider={provider}
+            // 16:9, que es como se ven las miniaturas en la lista de
+            // capítulos. Recortadas aquí, no se pierde el centro de la
+            // imagen al pintar cada fila.
+            aspectRatio={16 / 9}
+            maximo={800}
             onSaved={(url) => updateFields('episodes', episode.id, { thumbnailUrl: url })}
           />
 
@@ -2492,6 +2508,12 @@ const CharacterEditor: FC<{
             itemId={character.id}
             field="imageUrl"
             provider={provider}
+            // 2:3, que es la proporción de la tarjeta de personaje de
+            // la wiki. Es la que más sufria: una ficha de personaje
+            // es casi siempre vertical y la tarjeta la recortaba por
+            // el centro, que es justo donde no está la cara.
+            aspectRatio={2 / 3}
+            maximo={900}
             onSaved={(url) => updateFields('characters', character.id, { imageUrl: url })}
           />
 

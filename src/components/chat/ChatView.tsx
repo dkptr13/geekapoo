@@ -1529,11 +1529,17 @@ export const ChatView: React.FC = () => {
                               rel="noopener noreferrer"
                               className="mt-1.5 block overflow-hidden rounded-xl border border-zinc-700 transition-opacity hover:opacity-90"
                             >
+                              {/* `object-contain` y sin `w-full` forzado: con `w-full object-cover`
+                                en una caja sin proporción, `cover` no hacía nada
+                                y una captura de pantalla o un cartel se perdían
+                                enteros. Ahora se ve la foto COMPLETA, limitada por
+                                `max-h`, y el `<a>` de arriba la abre a tamaño
+                                real para cuando haga falta verla bien. */}
                               <img
                                 src={msg.imageUrl}
                                 alt={msg.senderName ? `Foto de ${msg.senderName}` : 'Foto adjunta'}
                                 loading="lazy"
-                                className="max-h-72 w-full object-cover"
+                                className="block h-auto max-h-72 max-w-full object-contain"
                               />
                             </a>
                           )}

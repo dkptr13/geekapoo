@@ -333,10 +333,16 @@ export default function Navbar({
               si no, se dibuja la "G" de siempre. */}
           {settings.logoUrl ? (
             <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-lg shadow-violet-600/30 transition-transform group-hover:scale-105">
+              {/* `object-contain` y NO `object-cover`, a propósito: un
+                  logo casi nunca es cuadrado, y con `cover` se le
+                  cortaban los laterales y quedaba ilegible. Con
+                  `contain` se ve entero, aunque sobre fondo. Por eso
+                  el contenedor es `bg-transparent` y no un color
+                  sólido detrás. */}
               <img
                 src={settings.logoUrl}
                 alt="Logo de geekapoo"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             </div>
           ) : (

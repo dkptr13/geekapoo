@@ -1,0 +1,12 @@
+label="Miniatura"
+            section={'episodes' as CatalogSection}
+            itemId={episode.id}
+            field="thumbnailUrl"
+            provider={provider}
+            // 16:9, que es como se ven las miniaturas en la lista de
+            // capítulos. Recortadas aquí, no se pierde el centro de la
+            // imagen al pintar cada fila.
+            aspectRatio={16 / 9}
+            maximo={800}
+            onSaved={(url) => updateFields('episodes', episode.id, { thumbnailUrl: url })}
+          />

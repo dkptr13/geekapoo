@@ -1,0 +1,39 @@
+// ═══════════════════════════════════════════════════════════
+// ZOOM 1 ES "LA IMAGEN JUSTA"
+// ═══════════════════════════════════════════════════════════
+//
+// Ni una muesca más: por debajo aparecería fondo, y por encima se
+// recorta de más sin que el usuario lo haya pedido.
+//
+// Y atención a QUÉ lado queda ceñido, porque es la mitad del problema
+// de las imágenes verticales:
+//
+//   · Una VERTICAL en una caja cuadrada NO se ve entera de alto. El
+//     ancho se ajusta a la caja y la altura desborda, así que se
+//     recortan la cabeza y los pies. No hay forma de evitarlo con
+//     `cover`: es la geometría, no un fallo. Por eso existe el editor.
+//
+//   · Una HORIZONTAL en una caja cuadrada, en cambio, sí se ve entera
+//     de alto: el alto se ajusta y lo que sobra son los lados.
+
+{
+  // Vertical 600x1200 en cuadrado 512x512: el ANCHO queda ceñido.
+  const e = calcularEncuadre(600, 1200, 512, 512, ajustesIniciales(1));
+
+  assert.ok(
+    Math.abs(e.ancho - 512) < 0.001,
+    `con zoom 1 el ancho tiene que ser justo la caja, y es ${e.ancho}`,
+  );
+  assert.ok(e.alto > 512, 'y la altura desborda, que es lo que se recorta');
+}
+
+{
+  // Horizontal 1200x600 en cuadrado 512x512: el ALTO queda ceñido.
+  const e = calcularEncuadre(1200, 600, 512, 512, ajustesIniciales(1));
+
+  assert.ok(
+    Math.abs(e.alto - 512) < 0.001,
+    `con zoom 1 el alto tiene que ser justo la caja, y es ${e.alto}`,
+  );
+  assert.ok(e.ancho > 512, 'y el ancho desborda');
+}

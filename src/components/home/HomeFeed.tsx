@@ -1089,15 +1089,39 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                               <CommentGif gif={comment.gif} className="pl-8" />
                             )}
 
-                            {/* Imagen adjunta al comentario */}
-                            {comment.imageUrl && (
-                              <img
-                                src={comment.imageUrl}
-                                alt="Imagen adjunta al comentario"
-                                className="mt-1 max-h-72 rounded-xl border border-zinc-800 object-cover pl-8"
-                                loading="lazy"
-                              />
-                            )}
+                            {/* Imagen adjunta al comentario.
+
+                                  El `object-cover` de aquí no hacía
+                                  NADA: sin un contenedor con
+                                  proporción, la caja de la imagen
+                                  es la propia imagen, y `cover` solo
+                                  se nota cuando altura y anchura
+                                  están fijadas. Una captura de
+                                  pantalla o un cartel se perdían.
+
+                                  Por eso aquí NO se recorta: la
+                                  imagen se ve ENTERA, con su
+                                  proporción, limitada por
+                                  `max-h` para que no coma el
+                                  comentario entero. Si hay que
+                                  ampliar, se abre en otra pestaña
+                                  pulsando, que es lo que hace el
+                                  contenedor `<a>` de arriba.
+
+                                  Y nada de `pl-8` como espaciado:
+                                  eso empujaba 32 px de hueco
+                                  DENTRO de la caja de la imagen y
+                                  la imagen se salía de la tarjeta en
+                                  móvil. El hueco va con `ml`, que no
+                                  toca la caja. */}
+                              {comment.imageUrl && (
+                                <img
+                                  src={comment.imageUrl}
+                                  alt="Imagen adjunta al comentario"
+                                  className="mt-1 ml-8 block h-auto max-h-72 max-w-full rounded-xl border border-zinc-800 object-contain"
+                                  loading="lazy"
+                                />
+                              )}
 
                             <div className="flex flex-wrap items-center gap-3 pl-8 pt-1 text-[11px]">
                               <button

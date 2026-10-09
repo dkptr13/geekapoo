@@ -4,6 +4,7 @@ import { Link2, Loader2, Check, X, Upload, Trash2 } from 'lucide-react';
 
 import { uploadImage, deleteReplacedImage, type UploadProvider } from '../../services/imageUpload';
 import { setField, type CatalogSection } from '../../services/catalogAdmin';
+import { CropEditor } from '../common/CropEditor';
 
 const PLACEHOLDER =
   'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80';
@@ -15,6 +16,26 @@ interface ImageUploaderProps {
   itemId: string;
   field: string;
   provider: UploadProvider;
+  /**
+   * La proporción que tiene que tener ESTA imagen.
+   *
+   * No es un adorno: cada sitio donde se ve la imagen tiene una forma
+   * distinta. Una portada es vertical (3:4), un banner es panorámico
+   * (16:9), una miniatura casi cuadrada. Si la imagen se sube sin
+   * recortar, cada uno de esos sitios recorta por su cuenta y siempre
+   * por el centro, que es como una cara acaba cortada.
+   *
+   * Con el editor, la imagen se guarda YA con esa proporción y los
+   * sitios dedisplay no tienen que recortar nada.
+   *
+   * Si no se pasa, se usa 1 (cuadrada), que es lo que se ha estado
+   * haciendo siempre y no rompe lo que ya está subido.
+   */
+  aspectRatio?: number;
+  /** Vista previa circular, para avatares y logos. */
+  circular?: boolean;
+  /** Lado mayor del resultado, en píxeles. */
+  maximo?: number;
   /** Se avisa con la URL ya guardada, para refrescar la vista. */
   onSaved?: (url: string) => void;
 }
@@ -26,6 +47,9 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   itemId,
   field,
   provider,
+  aspectRatio = 1,
+  circular = false,
+  maximo,
   onSaved,
 }) => {
   const [url, setUrl] = useState(currentUrl);
@@ -35,6 +59,41 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   const [errorMsg, setErrorMsg] = useState('');
   const [useUrl, setUseUrl] = useState(false);
   const [dragging, setDragging] = useState(false);
+  // La imagen recién elegida, a la espera de que el usuario la recorte.
+  const [elegida, setElegida] = useState<File | null>(null);
+
+  /**
+   * Sube la imagen YA recortada.
+   *
+   * El recorte ocurre antes de subir, no después. Al revés sería más
+   * fácil de escribir (subir, y luego recortar en el sitio), pero
+   * dejaría la versión sin recortar en Storage para siempre y
+   * obligaría a que cada sitio de la web volviera a recortar por su
+   * cuenta: que es exactamente el problema que se está arreglando.
+   */
+  const subirRecortada = async (recortada: File) => {
+    setUploading(true);
+    setStatus('idle');
+    setErrorMsg('');
+
+    try {
+      const { url: newUrl } = await uploadImage(recortada, {
+        provider,
+        collectionName: section,
+        itemId,
+        field,
+      });
+
+      setUrl(newUrl);
+      await persist(newUrl);
+    } catch (e: unknown) {
+      setStatus('error');
+      setErrorMsg(messageOf(e, 'Error desconocido'));
+    } finally {
+      setUploading(false);
+      setElegida(null);
+    }
+  };
 
   // Si el documento cambia desde fuera (otro admin), el campo
   // refleja el valor guardado y no lo que quedó a medias aquí.
@@ -69,24 +128,9 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   };
 
   const handleFile = async (file: File) => {
-    setUploading(true);
-    setStatus('idle');
-    setErrorMsg('');
-    try {
-      const { url: newUrl } = await uploadImage(file, {
-        provider,
-        collectionName: section,
-        itemId,
-        field,
-      });
-      setUrl(newUrl);
-      await persist(newUrl);
-    } catch (e: unknown) {
-      setStatus('error');
-      setErrorMsg(messageOf(e, 'Error desconocido'));
-    } finally {
-      setUploading(false);
-    }
+    // La imagen elegida, SIN recortar todavía. El editor aparece
+    // encima y es él quien decide si se sube esta u otra.
+    setElegida(file);
   };
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -100,7 +144,23 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   const providerLabel = provider === 'storage' ? 'Firebase Storage' : 'ImgBB';
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+    <>
+      {/* El editor va fuera del `div` del uploader, por el mismo
+          motivo que en el perfil: si estuviera dentro, al cerrarlo se
+          cerraría también el formulario del panel. */}
+      {elegida && (
+        <CropEditor
+          file={elegida}
+          aspectRatio={aspectRatio}
+          forma={circular ? 'circular' : 'rectangular'}
+          maximo={maximo ?? 1200}
+          titulo={`Recortar: ${label}`}
+          onCancelar={() => setElegida(null)}
+          onGuardar={(fichero) => subirRecortada(fichero)}
+        />
+      )}
+
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
           {label}
@@ -122,7 +182,17 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
         )}
       </div>
 
-      <div className="h-28 w-full overflow-hidden rounded-lg border border-zinc-700 bg-zinc-800">
+      {/* La vista previa usa la proporción REAL de la imagen, no una
+          franja fija de 112 px para todo. Con una franja fija, un
+          póster vertical y un banner panorámico se veían igual aquí,
+          y el admin recortaba a ciegas: lo que preparaba no se
+          parecía a lo que salía después en la web. */}
+      <div
+        className={`w-full overflow-hidden border border-zinc-700 bg-zinc-800 ${
+          circular ? 'rounded-full' : 'rounded-lg'
+        }`}
+        style={{ aspectRatio: String(aspectRatio) }}
+      >
         <img
           src={url || PLACEHOLDER}
           alt={label}
@@ -226,10 +296,10 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           <span className="break-words">{errorMsg}</span>
         </p>
       )}
-    </div>
+      </div>
+    </>
   );
 };
-
 function messageOf(e: unknown, fallback: string): string {
   if (e instanceof Error) {
     if (e.message.includes('permission-denied')) {

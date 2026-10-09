@@ -1,0 +1,4 @@
+* 'circular' es para avatares, que se ven redondos casi en todas
+   * partes. Mostrar la caja cuadrada mientras se recorta y luego
+   * enseñar un círculo es el momento en que la gente se da cuenta de
+   * que ha elegido mal, y es mejor que se lo vea antes.

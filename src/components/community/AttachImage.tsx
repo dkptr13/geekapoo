@@ -66,11 +66,16 @@ export const AttachImage: FC<AttachImageProps> = ({
   if (value) {
     return (
       <div className="relative inline-block">
+        /* `object-contain` y NO `object-cover` en el modo grande: sin un
+           contenedor con proporción, la caja de la imagen es la propia
+           imagen y `cover` no hace nada. Con `contain` y sin ancho
+           fijo, lo que se ve es la imagen ENTERA y con su proporción,
+           limitada por `max-h` para que no se coma el hilo entero. */
         <img
           src={value}
           alt="Imagen adjunta"
-          className={`rounded-xl border border-zinc-800 object-cover ${
-            size === 'md' ? 'max-h-72 max-w-full' : 'h-16 w-24'
+          className={`rounded-xl border border-zinc-800 ${
+            size === 'md' ? 'block h-auto max-h-72 max-w-full object-contain' : 'h-16 w-24 object-cover'
           }`}
         />
         <button
