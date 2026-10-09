@@ -165,6 +165,54 @@ export function ubicacionPlausible(u: {
 }
 
 /**
+ * El enlace a Google Maps, en un punto exacto.
+ *
+ * ── PARA QUÉ ESTE, SI `enlaceMapa` YA ABRE UN MAPA ───────────────
+ *
+ * Porque son dos cosas distintas y quien recibe el mensaje a veces
+ * quiere una y a veces la otra. OpenStreetMap se ve mejor para
+ * callejear y para ver las etiquetas de la calle; Google Maps es el que
+ * la gente tiene en el móvil ya instalado y en el que sabe llegar.
+ *
+ * Abrir Google Maps NO mete a Google en el selector: las coordenadas
+ * salen de OpenStreetMap o del navegador, como hasta ahora, y aqui solo
+ * se arma una URL. No hay clave de API, no se le pide nada a Google hasta
+ * que el usuario pulsa, y el mapa de la aplicacion sigue siendo
+ * OpenStreetMap con sus teseras y su atribucion.
+ *
+ * ── POR QUÉ DEVUELVE `null` Y NO UNA CADENA ──────────────────────
+ *
+ * Porque una URL es lo que va en el atributo `href`, y una URL con un
+ * `NaN` dentro es un enlace que el navegador no avisa de que esta mal:
+ * abre Google Maps y le pasa lo que le salga. Devolver `null` obliga a
+ * quien lo llama a decidir, que aqui es esconder el boton.
+ *
+ * La validacion es la de `ubicacionPlausible`, y no una copia: si las
+ * dos se desincronizasen, un boton que se ve acabaria llevando a un
+ * sitio que las reglas de Firestore ni siquiera permiten guardar.
+ *
+ * ── CINCO DECIMALES, IGUAL QUE EN OpenStreetMap ──────────────────
+ *
+ * Un grado son unos 111 km y el quinto decimal es del orden de un
+ * metro. Con menos, el enlace abriría en la calle de al lado. Es el
+ * mismo redondeo que hace `enlaceMapa`, y por el mismo motivo.
+ *
+ * @param {number} lat
+ * @param {number} lng
+ * @returns {string | null} la URL, o `null` si las coordenadas no valen
+ */
+export function enlaceGoogleMaps(lat: number, lng: number): string | null {
+  if (!ubicacionPlausible({ lat, lng })) return null;
+
+  // La coma va escapada porque Google Maps la espera como separador de
+  // los dos numeros, y en una query sin escapar pasaria a ser el
+  // separador de parametros: `query=40.4` y `-3.7` por separado.
+  const punto = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(punto)}`;
+}
+
+/**
  * El enlace al mapa.
  *
  * Cinco decimales: un grado son unos 111 km y el quinto decimal es del
@@ -174,6 +222,8 @@ export function ubicacionPlausible(u: {
  * Va a OpenStreetMap y no a Google Maps porque no pide clave de API, no
  * manda la peticion a un tercero con la direccion de quien la pide, y
  * el mapa abre sin publicidad de por medio.
+ *
+ * El boton de Google Maps lo pone `enlaceGoogleMaps`, que va al lado.
  */
 export function enlaceMapa(lat: number, lng: number): string {
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;

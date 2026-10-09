@@ -51,6 +51,26 @@ const ENV = (import.meta.env ?? {}) as Record<string, string | undefined>;
 const TILE_URL = ENV.VITE_TILE_URL ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 /**
+ * La atribución que va en el mapa.
+ *
+ * ── POR QUÉ DICE "CONTRIBUTORS" Y NO SOLO "OpenStreetMap" ─────────
+ *
+ * Porque es lo que pide la política de uso de las teselas de
+ * OpenStreetMap: la atribución tiene que decir "© OpenStreetMap
+ * contributors" y apuntar a la página de copyright. Se puede usar otra
+ * redacción si además se nombra al proveedor de teselas, pero eso solo
+ * es necesario cuando `VITE_TILE_URL` apunta a otro sitio, y por defecto
+ * son las de OSM.
+ *
+ * Va como `L.control.attribution`, que Leaflet pinta en la esquina del
+ * mapa y enlaza. No se quita con `attributionControl: false` ni se
+ * esconde con CSS: si la atribucion no se ve, el uso de las teselas no
+ * cumple la licencia.
+ */
+const ATRIBUCION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>';
+
+/**
  * Cuánto se espera a que se pare la escritura antes de buscarse.
  *
  * Milisegundos y medio. Es el mismo criterio que el buscador de GIFs,
@@ -273,8 +293,7 @@ export const LocationPicker: FC<Props> = ({ inicial = null, onConfirmar, onCance
 
       L.tileLayer(TILE_URL, {
         maxZoom: 19,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: ATRIBUCION,
       }).addTo(mapa);
 
       mapaRef.current = mapa;

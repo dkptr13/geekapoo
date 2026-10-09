@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FC } from 'react';
-import { Map, MapPin, Loader2, Crosshair, AlertCircle, X } from 'lucide-react';
+import { Map, MapPin, Loader2, Crosshair, AlertCircle, X, ExternalLink } from 'lucide-react';
 
 import type { LocationAttachment } from '../../types';
-import { enlaceMapa } from '../../services/ubicacion';
+import { enlaceGoogleMaps, enlaceMapa } from '../../services/ubicacion';
 import { pedirPosicion } from '../../services/geolocacion';
 
 // ======================================================
@@ -223,27 +223,51 @@ export const LocationMenu: FC<MenuProps> = ({
 // tarjeta con el icono, el sitio y un botón, que es lo que se ve en el
 // móvil y lo que menos estorba.
 //
-// El botón es un enlace de verdad, no un manejador de clic que abra una
-// pestaña: se puede abrir en otra pestaña con el botón derecho y con el
-// medio, que es lo que se espera de un enlace. La URL la arma
-// `enlaceMapa`, que vive junto a la validación para que los cinco
-// decimales y los rangos cuadren entre los dos.
+// ── POR QUÉ HAY DOS BOTONES Y NO UNO ──────────────────────────
+//
+// Porque el destino de un enlace no es lo mismo para todo el mundo.
+// OpenStreetMap va bien para mirar el mapa y callejear; Google Maps es
+// el que la gente tiene en el móvil y por el que sabe llegar. Los dos
+// se generan desde las MISMAS coordenadas, que vienen de OpenStreetMap
+// o del navegador. A Google no se le pide nada mas.
+//
+// ── POR QUÉ LA TARJETA ES UN DIV Y NO UN ENLACE ───────────────
+//
+// Porque antes toda la tarjeta era un `<a>` y ahora lleva dos enlaces
+// dentro. Un enlace dentro de otro enlace es HTML invalido y cada
+// navegador lo arregla como puede: o el segundo deja de funcionar, o el
+// primero se come el clic entero. Con un `div` los dos enlaces son
+// hermanos y cada uno hace lo suyo.
+//
+// Los enlaces son de verdad, no manejadores de clic que abren una
+// pestaña: se pueden abrir con el boton derecho y con el del medio,
+// que es lo que se espera de un enlace.
+//
+// ── LO QUE NO SE HACE ──────────────────────────────────────────
+//
+// No se copian las coordenadas al portapapeles: se enseñan en la
+// tarjeta, que es como se consulta un dato y no como se copia uno.
+// No se pide permiso de geolocalizacion para nada de esto, porque las
+// coordenadas ya estan en el mensaje.
+//
+// El mapa de elegir sitio sigue siendo OpenStreetMap, con sus teselas
+// de OSM y su atribucion. Abrir Google Maps desde la tarjeta no cambia
+// de donde salen las coordenadas ni de que se dibuja el mapa.
 
 export const LocationCard: FC<{ ubicacion: LocationAttachment }> = ({ ubicacion }) => {
   const { lat, lng, accuracy, place } = ubicacion;
 
-  const url = enlaceMapa(lat, lng);
+  const urlOsm = enlaceMapa(lat, lng);
+
+  // Viene en `null` si las coordenadas no pasan la validacion. El boton
+  // no se enseña en ese caso: es mejor un boton menos que un enlace que
+  // lleva a un sitio imposible.
+  const urlGoogle = enlaceGoogleMaps(lat, lng);
 
   const coordenadas = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      title="Abrir en OpenStreetMap"
-      className="my-1 block overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 transition-colors hover:border-violet-500/60"
-    >
+    <div className="my-1 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 transition-colors hover:border-violet-500/60">
       <div className="relative flex h-24 items-center justify-center bg-gradient-to-br from-violet-950 via-zinc-900 to-emerald-950">
         {/* Baliza: el punto que se movería en un mapa. */}
         <div className="relative flex items-center justify-center">
@@ -280,11 +304,35 @@ export const LocationCard: FC<{ ubicacion: LocationAttachment }> = ({ ubicacion 
         )}
       </div>
 
-      <div className="flex items-center justify-center gap-1.5 border-t border-zinc-800 py-2 text-[10px] font-semibold text-violet-300">
-        <Map size={11} />
-        Abrir en el mapa
+      {/* ── Los dos enlaces ──────────────────────────────
+          Son hermanos dentro de un `div`, no enlaces anidados. Ver la
+          nota de arriba: era un error meter un `<a>` dentro de otro. */}
+      <div className="flex divide-x divide-zinc-800 border-t border-zinc-800">
+        <a
+          href={urlOsm}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Abrir en OpenStreetMap"
+          className="flex flex-1 items-center justify-center gap-1.5 py-2 text-[10px] font-semibold text-violet-300 transition-colors hover:bg-zinc-800/60"
+        >
+          <Map size={11} />
+          Abrir en OpenStreetMap
+        </a>
+
+        {urlGoogle && (
+          <a
+            href={urlGoogle}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Abrir en Google Maps"
+            className="flex flex-1 items-center justify-center gap-1.5 py-2 text-[10px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-800/60"
+          >
+            <ExternalLink size={11} />
+            Abrir en Google Maps
+          </a>
+        )}
       </div>
-    </a>
+    </div>
   );
 };
 
