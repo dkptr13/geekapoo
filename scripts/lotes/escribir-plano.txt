@@ -1,0 +1,26 @@
+console.log('');
+for (const c of aArreglar) {
+  // ── EL CUERPO VA PLANO, CON EL NOMBRE COMPLETO ──────────
+  //
+  // Con la mascara en `stats.threadsCreated`, el cuerpo NO puede
+  // llevar `{ stats: { threadsCreated: ... } }`. La API responde:
+  //
+  //     Unknown name "threadsCreated" at 'document.fields[0].value':
+  //     Cannot find field.
+  //
+  // porque la mascara dice que lo que se escribe son cuatro hojas
+  // concretas, y un mapa dentro no es una hoja. O se manda el mapa
+  // entero y la mascara es `stats`, o se mandan las cuatro hojas con
+  // el punto en el nombre y la mascara tambien. Aqui se manda lo
+  // segundo, que es lo que deja el resto de `stats` intacto.
+  const cuerpo = {};
+
+  for (const campo of MASCARA) {
+    const nombre = campo.slice('stats.'.length);
+    cuerpo[campo] = { integerValue: String(c.despues[nombre]) };
+  }
+
+  await escribir('users', c.id, cuerpo, MASCARA);
+
+  console.log(`  escrito ${nombreDe(c.id).slice(0, 20)}`);
+}

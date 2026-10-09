@@ -1,0 +1,78 @@
+/**
+ * Los motivos del libro mayor que cuentan como "Me gusta recibido".
+ *
+ * Son cinco, porque un "Me gusta" y una reacción son dos caminos
+ * distintos al mismo contador: el botón de corazón escribe en el
+ * documento (y el trigger lo ve), y la reacción escribe su propio
+ * documento en `reactions/`. Los dos acaban pagando a QUIEN HA
+ * ESCRITO, no a quien ha pulsado.
+ *
+ * Los dos de reacción están juntos porque `procesarReaccion` usa un
+ * solo motivo para comentarios y para mensajes de chat: el contador
+ * es el mismo y separarlos no aportaría nada.
+ */
+const MOTIVOS_DE_LIKE = new Set([
+  'thread_like_received',
+  'comment_like_received',
+  'thread_reaction_received',
+  'comment_reaction_received',
+]);
+
+/**
+ * Cuenta las entradas del libro mayor cuyo motivo está en el conjunto.
+ *
+ * ── POR QUÉ EL LIBRO MAYOR Y NO EL CONTENIDO ────────────────────────
+ *
+ * Porque `likesReceived` no se puede contar desde el contenido sin
+ * dejar cosas fuera: los "Me gusta" sí están en `likedBy`, pero las
+ * reacciones viven en `reactions/`, y las de los mensajes de chat
+ * apuntan a `chats/{id}/messages/{id}`, que es una colección anidada
+ * dentro de un chat concreto. Para contarlas harían falta los uids
+ * de todos los chats de todas las personas, y en cada mensaje.
+ *
+ * El libro mayor ya lo tiene resuelto: una entrada por cada reaction
+ * pagada, y se borra cuando la reacción se quita. Es exactamente el
+ * mismo conjunto de hechos que el contador quiere, escrito una vez y
+ * en el sitio donde ya vive.
+ *
+ * ── POR QUÉ SE CUENTA AL FINAL DEL RECÁLCULO ───────────────────────
+ *
+ * Porque antes de pagar lo que faltaba, el libro está incompleto: un
+ * "Me gusta" antiguo que nadie ha vuelto a tocar no tiene entrada, y
+ * el propio recálculo se la va a crear. Contar aquí dentro lo daría
+ * por debajo. Se cuenta cuando el recorrido ya ha pagado todo.
+ *
+ * @param uid      Whose ledger to count.
+ * @param motivos  Which reasons to count.
+ * @returns how many entries of those reasons exist.
+ */
+async function contarMotivosDelLibro(
+  uid: string,
+  motivos: Set<string>,
+): Promise<number> {
+  const coleccion = db.doc(`${USERS}/${uid}`).collection(LEDGER);
+
+  let total = 0;
+  let ultimaPagina: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+
+  // Por páginas de 500, por lo mismo que la lectura de ids de arriba:
+  // un usuario con mucho contenido puede tener miles de entradas, y
+  // traerlas todas de una vez se pasa del límite de 1 MB.
+  for (;;) {
+    let consulta = coleccion.orderBy(FieldPath.documentId()).limit(500);
+    if (ultimaPagina) consulta = consulta.startAfter(ultimaPagina);
+
+    const page = await consulta.get();
+
+    page.docs.forEach((d) => {
+      const motivo = (d.data() as { reason?: unknown }).reason;
+
+      if (typeof motivo === 'string' && motivos.has(motivo)) total += 1;
+    });
+
+    if (page.docs.length < 500) break;
+    ultimaPagina = page.docs[page.docs.length - 1];
+  }
+
+  return total;
+}

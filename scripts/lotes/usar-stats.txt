@@ -1,0 +1,19 @@
+// ── Estadísticas ───────────────────────────────────────
+    //
+    // Se aplican en tres grupos y en tres procedimientos distintos,
+    // porque son tres cosas distintas. Ver `stats.ts`, donde está
+    // el porqué de cada uno.
+    let est = leerEstadisticas(data);
+
+    // 1. Los contadores de contenido SUMAN. Los triggers pasan `1` o
+    //    `-1` y no saben cuántos había, así que esto no puede ser un
+    //    "ponte 1": con "ponte" el segundo comentario reescribía 1
+    //    encima del 1 anterior y el contador se quedaba en 1 para
+    //    siempre. Ninguna medalla de "N comentarios" se completaba
+    //    nunca, porque N no pasaba de 1.
+    est = sumarContadores(est, stats);
+
+    // 2. Los de la trivia PONEN el total, porque el trigger de la
+    //    trivia lee el documento antes de escribir. Con incrementos,
+    //    dos trivias simultáneas darían un número de menos.
+    est = ponerTotales(est, stats);

@@ -1,0 +1,30 @@
+const likesReceived = await contarMotivosDelLibro(uid, MOTIVOS_DE_LIKE);
+
+  // ── CON RUTAS DE CAMPO, Y NO CON EL MAPA ENTERO ─────────
+  //
+  // Esto parece un detalle y no lo es. Si se escribiera
+  // `update({ stats: { ...recuento, likesReceived } })`, el resultado
+  // dependeria de como interpreta la API los mapas anidados en un
+  // `update`: si los MERGEA, se pierde lo de al lado; si los REEMPLAZA,
+  // desaparecen `animeXp`, los cuatro contadores de trivia y
+  // `followersReceived`, y el admin que pulsa "recalcular" le acaba de
+  // borrar el progreso a un usuario sin que salga ningun aviso.
+  //
+  // Con rutas de campo no hay interpretacion que discutir: se
+  // escriben esas cuatro hojas y punto. Lo demas se queda como estaba,
+  // que es lo unico aceptable en un boton que el panel presenta como
+  // "recalcular lo que ya tienes".
+  await db.doc(`${USERS}/${uid}`).update({
+    'stats.threadsCreated': recuento.threadsCreated,
+    'stats.commentsCreated': recuento.commentsCreated,
+    'stats.commentsInThreads': recuento.commentsInThreads,
+    'stats.likesReceived': likesReceived,
+  });
+
+  logger.info('Contadores recalculados desde el contenido', {
+    objetivo: uid,
+    ...recuento,
+    likesReceived,
+  });
+
+  logger.info('Recalculo terminado', { objetivo: uid, concedidas, omitidas });

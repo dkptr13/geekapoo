@@ -1,0 +1,28 @@
+// ── Estadísticas de contenido: SUMAN ────────────────────
+    //
+    // Los triggers pasan `1` o `-1`, NO el total. Asignar en vez de
+    // sumar dejaba los cuatro contadores clavados en 1 para siempre:
+    // al segundo comentario se escribía 1 otra vez encima del 1 que
+    // ya había, y alguien con veinte comentarios seguía figurando
+    // con uno. Ninguna medalla de "N comentarios" se podía llegar a
+    // sacar, porque N era siempre 1.
+    //
+    // Que sume es seguro porque todo esto va dentro de la transacción
+    // de arriba: si dos comentarios entran a la vez, Firestore
+    // reintenta la transacción con el valor ya actualizado y no se
+    // pierde ninguna. Por eso no hace falta un `increment` de campo,
+    // que además no serviría aquí: el suelo en cero es un cálculo
+    // con lo que ya había escrito, y un incremento no puede decidir
+    // un total a cero.
+    if (stats.threadsCreated !== undefined) {
+      est.threadsCreated = Math.max(0, est.threadsCreated + stats.threadsCreated);
+    }
+    if (stats.commentsCreated !== undefined) {
+      est.commentsCreated = Math.max(0, est.commentsCreated + stats.commentsCreated);
+    }
+    if (stats.commentsInThreads !== undefined) {
+      est.commentsInThreads = Math.max(0, est.commentsInThreads + stats.commentsInThreads);
+    }
+    if (stats.likesReceived !== undefined) {
+      est.likesReceived = Math.max(0, est.likesReceived + stats.likesReceived);
+    }

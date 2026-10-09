@@ -1,0 +1,22 @@
+* ── IDEMPOTENTE ────────────────────────────────────────────────────
+ *
+ * Se puede ejecutar las veces que haga falta sin que duplique nada,
+ * porque el id sale del enlace: el mismo enlace da siempre el mismo
+ * documento. Antes de escribir se lee cuáles de esos ya existen y solo
+ * se escriben los que faltan, así que ni se duplica ni se pisa un
+ * titular que ya estaba.
+ *
+ * Sigue escribiendo con `create` y no con `set`: si el documento ya
+ * existe la escritura falla y no se toca nada. Es una segunda barrera,
+ * por si el filtro de arriba se quedara corto, y hace que un titular
+ * existente no se pueda sobrescribir por accidente.
+ *
+ * ── LO QUE PASÓ ANTES ──────────────────────────────────────────────
+ *
+ * Se escribía el lote entero a pelo, sin mirar qué había ya. Un
+ * `create` falla si el documento existe y el commit de un lote es
+ * atómico, así que en cuanto el feed traía un solo enlace repetido, y
+ * siempre trae, el lote entero no se guardaba. La sincronización
+ * escribía la primera vez y luego se quedaba sin hacer nada para
+ * siempre, con el widget congelado en las noticias de aquel día.
+ *

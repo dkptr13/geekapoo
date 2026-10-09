@@ -1,0 +1,13 @@
+est = ponerTotales(est, stats);
+
+    // 3. El de seguidores es un MAXIMO, ni suma ni total: viene el
+    //    numero de ahora y lo que importa es el mas alto que haya
+    //    tenido, para que la medalla no retroceda si alguien le
+    //    deja de seguir.
+    if (stats.followersReceived !== undefined) {
+      est = subirTecho(est, stats.followersReceived);
+    }
+
+    if (r.animeId && cantidad > 0) {
+      est.animeXp[r.animeId] = num(est.animeXp[r.animeId]) + cantidad;
+    }

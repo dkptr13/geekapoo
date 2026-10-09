@@ -64,7 +64,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   onClearCategoryFilter,
   focusTarget,
 }) => {
-  const { currentUser, requireAuth, openAuth, isModerator, isAdmin } = useAuth();
+  // `usersList` es el directorio de usuarios vivo, con un
+  // `onSnapshot` encima. Se necesita para el avatar y el nombre de
+  // quien escribió: están copiados en el hilo y en el comentario, pero
+  // esa copia es de la foto que tenía el día que publicó. Ver los
+  // ayudantes de abajo.
+  const { currentUser, requireAuth, openAuth, isModerator, isAdmin, usersList } = useAuth();
   // Moderar = borrar y gestionar lo que hay en la cola. El rol
   // sale del documento del usuario, no de nada que se pueda
   // falsear desde el cliente, y las reglas lo comprueban otra
@@ -88,6 +93,62 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   } = useCommunity();
   const { settings } = useSiteContent();
   const goToProfile = useGoToProfile();
+
+  // ══════════════════════════════════════════════════════════════════
+  // QUIÉN ES EL AUTOR, LEÍDO AHORA Y NO EN EL MOMENTO DE PUBLICAR
+  // ══════════════════════════════════════════════════════════════════
+  //
+  // ── EL FALLO QUE ARREGLA ESTO ───────────────────────────────────────
+  //
+  // Al publicar se copia el nombre y el avatar al documento del hilo o
+  // del comentario:
+  //
+  //     authorName:   nameOf(currentUser),
+  //     authorAvatar: currentUser.avatarUrl,
+  //
+  // Esa copia está para que el texto siga siendo legible aunque el
+  // usuario se borre. El problema es que también es lo ÚNICO que se
+  // pintaba, así que cambiarte la foto no cambiaba nada en lo que ya
+  // habías publicado: los hilos y comentarios seguían con la foto
+  // vieja, para siempre.
+  //
+  // ── POR QUÉ NO SE CAMBIA EL FORMA DEL DOCUMENTO ───────────────────
+  //
+  // Porque hay documentos ya escritos. Si se deja de copiar el avatar
+  // al escribir, los hilos antiguos se quedan sin él y hay que
+  // recorrerlos todos para arreglarlo. Con este enfoque da igual:
+  //
+  //   · lo nuevo tiene copia y copia buena;
+  //   · lo viejo tiene copia, que puede estar caducada;
+  //   · y en los dos casos se pinta la de ahora.
+  //
+  // ── POR QUÉ LA COPIA SIGUE SIENDO EL RESPALDO ────────────────────
+  //
+  // Para el visitante que no ha iniciado sesión, `usersList` está
+  // vacía a propósito (no se descarga el directorio de usuarios sin
+  // sesión). Y también para un hilo de alguien que ya no está en el
+  // directorio, o cuya cuenta se borró: sin la copia, ahí no habría
+  // nada que enseñar. Por eso el orden es "el de ahora, y si no hay,
+  // el de entonces", nunca al revés.
+  //
+  // Es el mismo criterio que aplica el chat desde el principio, en
+  // `ChatView` (`liveUserOf`): primero el documento del usuario y
+  // después la copia del mensaje.
+  const autorDe = useCallback(
+    (uid: string) => usersList.find((u) => u.uid === uid),
+    [usersList],
+  );
+
+  const avatarDe = (
+    uid: string,
+    respaldo: string,
+  ): string => autorDe(uid)?.avatarUrl || respaldo;
+
+  const nombreDe = (uid: string, respaldo: string): string => {
+    const vivo = autorDe(uid);
+
+    return vivo?.displayName || vivo?.username || respaldo;
+  };
 
   // Create thread form state
   const [showCreateThread, setShowCreateThread] = useState(false);
@@ -702,12 +763,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   <button
                     type="button"
                     onClick={() => goToProfile(thread.authorId)}
-                    aria-label={`Ver el perfil de ${thread.authorName}`}
+                    aria-label={`Ver el perfil de ${nombreDe(thread.authorId, thread.authorName)}`}
                     title="Ver su perfil"
                     className="flex-shrink-0 rounded-2xl transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                   >
                     <img
-                      src={thread.authorAvatar}
+                      src={avatarDe(thread.authorId, thread.authorAvatar)}
                       alt=""
                       className="h-10 w-10 rounded-2xl object-cover ring-2 ring-violet-500/20"
                     />
@@ -720,7 +781,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       <div className="min-w-0 flex-1">
                         <AuthorBadge
                           authorId={thread.authorId}
-                          nombre={thread.authorName}
+                          nombre={nombreDe(thread.authorId, thread.authorName)}
                         />
                       </div>
 
@@ -997,12 +1058,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => goToProfile(comment.authorId)}
-                                  aria-label={`Ver el perfil de ${comment.authorName}`}
+                                  aria-label={`Ver el perfil de ${nombreDe(comment.authorId, comment.authorName)}`}
                                   title="Ver su perfil"
                                   className="flex-shrink-0 rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                                 >
                                   <img
-                                    src={comment.authorAvatar}
+                                    src={avatarDe(comment.authorId, comment.authorAvatar)}
                                     alt=""
                                     className="h-6 w-6 rounded-full object-cover"
                                   />
@@ -1010,7 +1071,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                 <div className="min-w-0 flex-1">
                                   <AuthorBadge
                                     authorId={comment.authorId}
-                                    nombre={`@${comment.authorName}`}
+                                    nombre={`@${nombreDe(comment.authorId, comment.authorName)}`}
                                   />
                                 </div>
                               </div>
@@ -1184,12 +1245,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                            <button
                                              type="button"
                                              onClick={() => goToProfile(reply.authorId)}
-                                             aria-label={`Ver el perfil de ${reply.authorName}`}
+                                             aria-label={`Ver el perfil de ${nombreDe(reply.authorId, reply.authorName)}`}
                                              title="Ver su perfil"
                                              className="flex-shrink-0 rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                                            >
                                              <img
-                                               src={reply.authorAvatar}
+                                               src={avatarDe(reply.authorId, reply.authorAvatar)}
                                                alt=""
                                                className="h-5 w-5 rounded-full object-cover"
                                              />
@@ -1201,7 +1262,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                            <div className="min-w-0 flex-1">
                                              <AuthorBadge
                                                authorId={reply.authorId}
-                                               nombre={`@${reply.authorName}`}
+                                               nombre={`@${nombreDe(reply.authorId, reply.authorName)}`}
                                                tamano="sm"
                                              />
                                            </div>

@@ -1,0 +1,32 @@
+// ── Recontar los contadores ─────────────────────────────
+  //
+  // Esta es la parte que arregla de verdad el fallo. El recorrido
+  // anterior paga lo que falta, pero los contadores que se habían
+  // quedado clavados no se arreglan reproduciéndolo: los hechos que
+  // los dejaron en 1 ya están en el libro mayor, así que el recorrido
+  // se los salta y nunca vuelven a pasar por la línea que los suma.
+  //
+  // Por eso aquí no se vuelve a conceder nada: se escribe el número
+  // que sale de contar el contenido. Es un valor ABSOLUTO, no un
+  // incremento, y por eso va directo al documento y no por
+  // `concederXP`, que lo sumaría encima de lo que ya hubiera.
+  //
+  // Que se escriba siempre, y no solo cuando ha cambiado, es a
+  // propósito: el botón de recalcular del panel tiene que servir
+  // también para esto, y no solo para pagar lo que faltaba.
+  const likesReceived = await contarMotivosDelLibro(uid, MOTIVOS_DE_LIKE);
+
+  await db.doc(`${USERS}/${uid}`).update({
+    stats: {
+      ...recuento,
+      likesReceived,
+    },
+  });
+
+  logger.info('Contadores recalculados desde el contenido', {
+    objetivo: uid,
+    ...recuento,
+    likesReceived,
+  });
+
+  logger.info('Recalculo terminado', { objetivo: uid, concedidas, omitidas });

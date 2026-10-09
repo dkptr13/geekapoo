@@ -1,0 +1,36 @@
+console.log('');
+for (const c of aArreglar) {
+  // ── SE REESCRIBE EL MAPA ENTERO, Y SE LEE ANTES ────────
+  //
+  // Se probo de las dos formas que parecen razonables y las dos
+  // hacen cosas distintas de lo que dicen:
+  //
+  //   1. Mascara `stats.threadsCreated` y cuerpo con el mapa
+  //      anidado -> la API contesta "Unknown name
+  //      threadsCreated ... Cannot find field".
+  //
+  //   2. Mascara `stats.threadsCreated` y cuerpo plano con el
+  //      nombre con punto -> NO da error, que es lo peor: borra
+  //      las cuatro hojas. Se probo de verdad y desaparecieron del
+  //      documento.
+  //
+  // La 2 es la que hace falta contar: un PATCH que responde "OK" y
+  // sin embargo se lleva los datos. Por eso aqui no se usa ninguna
+  // de las dos.
+  //
+  // Lo que se hace es lo unico que no admite interpretacion: se lee
+  // el mapa `stats` entero, se cambian los cuatro numeros y se
+  // escribe el mapa entero con la mascara `stats`. Como lo que se
+  // manda es el mapa completo que se acaba de leer, `animeXp`, los
+  // cuatro de trivia y `followersReceived` no se pueden perder: van
+  // dentro.
+  const campos = { ...(c.statsCrudo ?? {}) };
+
+  for (const nombre of NOMBRES) {
+    campos[nombre] = { integerValue: String(c.despues[nombre]) };
+  }
+
+  await escribir('users', c.id, { stats: { mapValue: { fields: campos } } }, ['stats']);
+
+  console.log(`  escrito ${nombreDe(c.id).slice(0, 20)}`);
+}

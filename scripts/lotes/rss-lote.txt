@@ -1,0 +1,72 @@
+// Por lotes, porque escribir documento a documento un feed de 137
+    // items son 137 viajes de ida y vuelta a Firestore. Con lotes de
+    // 400 caben todos en uno, o en un par.
+    //
+    // ── POR QUÉ HAY QUE FILTRAR LO QUE YA ESTÁ ANTES DE ESCRIBIR ──
+    //
+    // Un `create` falla si el documento ya existe, y el commit de un
+    // lote es atómico: si UN item del lote está repetido, el lote
+    // entero no se guarda. Y un feed trae siempre casi todo lo que se
+    // guardó la vez anterior.
+    //
+    // Eso significa que el lote falla SIEMPRE a partir de la segunda
+    // pasada, y que por lo tanto no se guarda ni una sola noticia
+    // nueva. No es que se pierdan algunas: es que en cuanto se ejecuta
+    // dos veces, el widget se queda congelado con lo que había.
+    //
+    // Lo que había antes era exactamente eso: `create` a pelo y, si el
+    // lote fallaba, contar cero y decir "ya se guardará en la
+    // siguiente". No se guardaba nunca, porque el enlace seguía en el
+    // feed y volvía a hacer fallar el lote.
+    //
+    // El arreglo es quitar del lote lo que ya está, y eso es una
+    // lectura: un `getAll` con los ids del trozo, en una sola llamada,
+    // y un Set con los que existen. Lo que no esté en el Set se
+    // escribe, y como ya no puede haber repetidos, el `create` ya no
+    // puede fallar por eso.
+    for (let i = 0; i < noticias.length; i += LOTE) {
+      const trozo = noticias.slice(i, i + LOTE);
+      const ids = trozo.map((n) => idDeNoticia(fuente.nombre, n.enlace));
+
+      // Una lectura para el trozo entero. `getAll` no trae los que no
+      // existen, pero se filtra por `exists` igual: si otra versión del
+      // SDK los devolviera todos con `exists` en falso, el filtro lo
+      // salvaría y no dependería de ese detalle.
+      const yaGuardadas = new Set(
+        (await db.getAll(...ids.map((id) => db.collection(NEWS).doc(id))))
+          .filter((d) => d.exists)
+          .map((d) => d.id),
+      );
+
+      const nuevas = trozo.filter((_, k) => !yaGuardadas.has(ids[k]));
+
+      if (nuevas.length === 0) continue;
+
+      const lote = db.batch();
+
+      for (const noticia of nuevas) {
+        lote.create(db.collection(NEWS).doc(idDeNoticia(fuente.nombre, noticia.enlace)), {
+          title: noticia.titulo,
+          snippet: noticia.resumen,
+          link: noticia.enlace,
+          sourceName: noticia.fuente,
+          pubDate: noticia.fecha,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      }
+
+      try {
+        await lote.commit();
+
+        guardadas += nuevas.length;
+      } catch (e) {
+        // Con el filtro de arriba no debería llegar nada repetido al
+        // lote, así que un fallo aquí es otra cosa: cuota, una regla, o
+        // la red. Se cuenta el lote como fallido y se sigue con el
+        // siguiente, que como mucho son unos minutos de retraso.
+        logger.warn(
+          `Lote de ${nuevas.length} items no guardado`,
+          e instanceof Error ? e.message : e,
+        );
+      }
+    }

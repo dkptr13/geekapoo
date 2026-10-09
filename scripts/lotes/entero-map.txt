@@ -1,0 +1,35 @@
+/**
+ * Lee un entero de un objeto de campos de Firestore.
+ *
+ * @param {object|undefined} campos  Los campos, ya desenvueltos.
+ * @param {string} nombre            El campo.
+ */
+function entero(campos, nombre) {
+  const v = campos?.[nombre];
+  if (v === undefined || v === null) return 0;
+  const n = Number(v.integerValue ?? v.doubleValue ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * Saca los campos de un campo que es un MAPA.
+ *
+ * En REST un mapa no es `{ threadsCreated: 1 }` sino
+ * `{ mapValue: { fields: { threadsCreated: { integerValue: '1' } } } }`,
+ * con dos envoltorios de mas. Sin esto, leer un contador de `stats`
+ * devuelve 0 siempre, y el script creeria que no hay nada que
+ * arreglar justo en los casos en los que mas falta hace.
+ *
+ * @param {object|undefined} campos  Los campos del documento.
+ * @param {string} nombre            El campo mapa, `stats` normalmente.
+ * @returns {object|undefined} sus campos, o `undefined` si no hay mapa
+ */
+function mapaDe(campos, nombre) {
+  const v = campos?.[nombre];
+
+  if (v === undefined || v === null) return undefined;
+  if ('mapValue' in v) return v.mapValue?.fields ?? {};
+
+  // Si el mapa llega sin el envoltorio, se devuelve tal cual.
+  return v;
+}

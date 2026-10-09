@@ -47,6 +47,15 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
 
+import {
+  leerEstadisticas,
+  num,
+  ponerTotales,
+  sumarContadores,
+  subirTecho,
+  type Estadisticas,
+} from './stats';
+
 // `rss-parser` y `createHash` viven en `functions/src/rss.ts`, que es
 // donde se usan. Aquí no hacen falta: lo que se importa de `./rss` son
 // las funciones y las constantes, y lo demás vive en su sitio.
@@ -259,68 +268,6 @@ type Requisito =
   | { tipo: 'aciertosTrivia'; valor: number }
   | { tipo: 'triviasPerfectas'; valor: number }
   | { tipo: 'rachaTrivia'; valor: number };
-
-interface Estadisticas {
-  threadsCreated: number;
-  commentsCreated: number;
-  /** Comentarios publicados DENTRO de hilos, que son los debates. */
-  commentsInThreads: number;
-  likesReceived: number;
-  animeXp: Record<string, number>;
-  /** Contadores de la trivia diaria. Los pone `onTriviaResultCreated`. */
-  triviaCompleted: number;
-  triviaCorrect: number;
-  triviaPerfect: number;
-  triviaStreakBest: number;
-  /**
-   * MAXIMO de seguidores que ha tenido, no el numero vivo.
-   *
-   * Es deliberadamente distinto de `users/{uid}.followersCount`
-   * (que si es el numero de ahora): las medallas de comunidad no
-   * se pierden al dejar de seguirte. Ver `medal_primer_fan` en la
-   * lista de arriba.
-   */
-  followersReceived: number;
-}
-
-const ESTADISTICAS_VACIAS: Estadisticas = {
-  threadsCreated: 0,
-  commentsCreated: 0,
-  commentsInThreads: 0,
-  likesReceived: 0,
-  animeXp: {},
-  triviaCompleted: 0,
-  triviaCorrect: 0,
-  triviaPerfect: 0,
-  triviaStreakBest: 0,
-  followersReceived: 0,
-};
-
-/** Lee las estadísticas del documento del usuario. */
-function leerEstadisticas(data: Record<string, any> | undefined): Estadisticas {
-  const s = data?.stats;
-  if (!s || typeof s !== 'object') return { ...ESTADISTICAS_VACIAS };
-  return {
-    threadsCreated: num(s.threadsCreated),
-    commentsCreated: num(s.commentsCreated),
-    commentsInThreads: num(s.commentsInThreads),
-    likesReceived: num(s.likesReceived),
-    animeXp:
-      s.animeXp && typeof s.animeXp === 'object'
-        ? (s.animeXp as Record<string, number>)
-        : {},
-    triviaCompleted: num(s.triviaCompleted),
-    triviaCorrect: num(s.triviaCorrect),
-    triviaPerfect: num(s.triviaPerfect),
-    triviaStreakBest: num(s.triviaStreakBest),
-    followersReceived: num(s.followersReceived),
-  };
-}
-
-function num(v: unknown): number {
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
 
 /** ¿Se cumple este requisito con las estadísticas de este usuario? */
 function cumpleRequisito(
@@ -884,49 +831,34 @@ async function concederXP(
       nivelesMaximos: config.nivelesMaximos,
     });
 
-    // ── Estadisticas ───────────────────────────────────────
-    const est = leerEstadisticas(data);
+// ── Estadísticas ───────────────────────────────────────
+    //
+    // Se aplican en tres grupos y en tres procedimientos distintos,
+    // porque son tres cosas distintas. Ver `stats.ts`, donde está
+    // el porqué de cada uno.
+    let est = leerEstadisticas(data);
 
-    if (stats.threadsCreated !== undefined) {
-      est.threadsCreated = Math.max(0, stats.threadsCreated);
-    }
-    if (stats.commentsCreated !== undefined) {
-      est.commentsCreated = Math.max(0, stats.commentsCreated);
-    }
-    if (stats.commentsInThreads !== undefined) {
-      est.commentsInThreads = Math.max(0, stats.commentsInThreads);
-    }
-    if (stats.likesReceived !== undefined) {
-      est.likesReceived = Math.max(0, stats.likesReceived);
-    }
-    // ── Trivia ─────────────────────────────────────────────
-    //
-    // Estos cuatro vienen con valores ABSOLUTOS, no con
-    // incrementos: el trigger de la trivia ya ha leído el
-    // documento del usuario y sabe cuántos tenía. Es lo mismo que
-    // hace el ajuste del administrador, y evita que dos trivias
-    // simultáneas se pisen el contador.
-    if (stats.triviaCompleted !== undefined) {
-      est.triviaCompleted = Math.max(0, stats.triviaCompleted);
-    }
-    if (stats.triviaCorrect !== undefined) {
-      est.triviaCorrect = Math.max(0, stats.triviaCorrect);
-    }
-    if (stats.triviaPerfect !== undefined) {
-      est.triviaPerfect = Math.max(0, stats.triviaPerfect);
-    }
-    if (stats.triviaStreakBest !== undefined) {
-      est.triviaStreakBest = Math.max(0, stats.triviaStreakBest);
-    }
-    // ── Comunidad ────────────────────────────────────────────
-    //
-    // Viene con un valor ABSOLUTO y es un MAXIMO, asi que se usa
-    // `Math.max` en vez de asignar: si la funcion que llama lo pasa
-    // con un numero menor que el que ya habia (porque alguien le
-    // dejo de seguir), la medalla no debe retroceder.
+    // 1. Los contadores de contenido SUMAN. Los triggers pasan `1` o
+    //    `-1` y no saben cuántos había, así que esto no puede ser un
+    //    "ponte 1": con "ponte" el segundo comentario reescribía 1
+    //    encima del 1 anterior y el contador se quedaba en 1 para
+    //    siempre. Ninguna medalla de "N comentarios" se completaba
+    //    nunca, porque N no pasaba de 1.
+    est = sumarContadores(est, stats);
+
+    // 2. Los de la trivia PONEN el total, porque el trigger de la
+    //    trivia lee el documento antes de escribir. Con incrementos,
+    //    dos trivias simultáneas darían un número de menos.
+est = ponerTotales(est, stats);
+
+    // 3. El de seguidores es un MAXIMO, ni suma ni total: viene el
+    //    numero de ahora y lo que importa es el mas alto que haya
+    //    tenido, para que la medalla no retroceda si alguien le
+    //    deja de seguir.
     if (stats.followersReceived !== undefined) {
-      est.followersReceived = Math.max(est.followersReceived, stats.followersReceived);
+      est = subirTecho(est, stats.followersReceived);
     }
+
     if (r.animeId && cantidad > 0) {
       est.animeXp[r.animeId] = num(est.animeXp[r.animeId]) + cantidad;
     }
@@ -2817,7 +2749,84 @@ export const concederMedalla = onCall(async (request) => {
 
   return { ok: true };
 });
+/**
+ * Los motivos del libro mayor que cuentan como "Me gusta recibido".
+ *
+ * Son cinco, porque un "Me gusta" y una reacción son dos caminos
+ * distintos al mismo contador: el botón de corazón escribe en el
+ * documento (y el trigger lo ve), y la reacción escribe su propio
+ * documento en `reactions/`. Los dos acaban pagando a QUIEN HA
+ * ESCRITO, no a quien ha pulsado.
+ *
+ * Los dos de reacción están juntos porque `procesarReaccion` usa un
+ * solo motivo para comentarios y para mensajes de chat: el contador
+ * es el mismo y separarlos no aportaría nada.
+ */
+const MOTIVOS_DE_LIKE = new Set([
+  'thread_like_received',
+  'comment_like_received',
+  'thread_reaction_received',
+  'comment_reaction_received',
+]);
 
+/**
+ * Cuenta las entradas del libro mayor cuyo motivo está en el conjunto.
+ *
+ * ── POR QUÉ EL LIBRO MAYOR Y NO EL CONTENIDO ────────────────────────
+ *
+ * Porque `likesReceived` no se puede contar desde el contenido sin
+ * dejar cosas fuera: los "Me gusta" sí están en `likedBy`, pero las
+ * reacciones viven en `reactions/`, y las de los mensajes de chat
+ * apuntan a `chats/{id}/messages/{id}`, que es una colección anidada
+ * dentro de un chat concreto. Para contarlas harían falta los uids
+ * de todos los chats de todas las personas, y en cada mensaje.
+ *
+ * El libro mayor ya lo tiene resuelto: una entrada por cada reaction
+ * pagada, y se borra cuando la reacción se quita. Es exactamente el
+ * mismo conjunto de hechos que el contador quiere, escrito una vez y
+ * en el sitio donde ya vive.
+ *
+ * ── POR QUÉ SE CUENTA AL FINAL DEL RECÁLCULO ───────────────────────
+ *
+ * Porque antes de pagar lo que faltaba, el libro está incompleto: un
+ * "Me gusta" antiguo que nadie ha vuelto a tocar no tiene entrada, y
+ * el propio recálculo se la va a crear. Contar aquí dentro lo daría
+ * por debajo. Se cuenta cuando el recorrido ya ha pagado todo.
+ *
+ * @param uid      Whose ledger to count.
+ * @param motivos  Which reasons to count.
+ * @returns how many entries of those reasons exist.
+ */
+async function contarMotivosDelLibro(
+  uid: string,
+  motivos: Set<string>,
+): Promise<number> {
+  const coleccion = db.doc(`${USERS}/${uid}`).collection(LEDGER);
+
+  let total = 0;
+  let ultimaPagina: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+
+  // Por páginas de 500, por lo mismo que la lectura de ids de arriba:
+  // un usuario con mucho contenido puede tener miles de entradas, y
+  // traerlas todas de una vez se pasa del límite de 1 MB.
+  for (;;) {
+    let consulta = coleccion.orderBy(FieldPath.documentId()).limit(500);
+    if (ultimaPagina) consulta = consulta.startAfter(ultimaPagina);
+
+    const page = await consulta.get();
+
+    page.docs.forEach((d) => {
+      const motivo = (d.data() as { reason?: unknown }).reason;
+
+      if (typeof motivo === 'string' && motivos.has(motivo)) total += 1;
+    });
+
+    if (page.docs.length < 500) break;
+    ultimaPagina = page.docs[page.docs.length - 1];
+  }
+
+  return total;
+}
 /**
  * Recalcula el progreso de un usuario a partir del contenido que ya
  * existe en Firestore.
@@ -2884,6 +2893,25 @@ export const recalcularUsuario = onCall(async (request) => {
   let concedidas = 0;
   let omitidas = 0;
 
+  // ── El recuento, que es otra cosa ─────────────────────
+  //
+  // `concedidas` y `omitidas` cuentan lo que este recorrido ha
+  // pagado. Esto cuenta otra cosa: cuantos hilos, comentarios y
+  // comentarios en debates tiene la persona DE VERDAD, lean o no
+  // lean lo que ya estaba pagado.
+  //
+  // La diferencia es justo el fallo que se arregla aquí. Los
+  // contadores de `stats` se quedaban clavados en 1 porque al
+  // concederse una recompensa se asignaba el incremento en vez de
+  // sumarlo, y por eso reproducir el recorrido (que se salta lo ya
+  // pagado) NO los arregla: los eventos que los subieron ya están
+  // en el libro mayor, asi que aqui no volverian a pasar.
+  //
+  // Por eso se cuentan sin mirar el libro mayor. Se cuentan ANTES de
+  // comprobar si la recompensa estaba pagada, porque el contenido
+  // cuenta exista o no exista su premio.
+  const recuento = { threadsCreated: 0, commentsCreated: 0, commentsInThreads: 0 };
+
   const anotar = (res: { aplicado: boolean }) => {
     if (res.aplicado) concedidas += 1;
     else omitidas += 1;
@@ -2892,6 +2920,10 @@ export const recalcularUsuario = onCall(async (request) => {
   // ── Hilos ─────────────────────────────────────────────
   const hilos = await db.collection(THREADS).where('authorId', '==', uid).get();
   for (const doc of hilos.docs) {
+    // Antes de mirar el libro mayor: el hilo cuenta aunque su XP ya
+    // estuviera pagado hace meses.
+    recuento.threadsCreated += 1;
+
     const id = `thread_created_${doc.id}`;
     if (concedidos.has(id)) {
       omitidas += 1;
@@ -2921,6 +2953,12 @@ export const recalcularUsuario = onCall(async (request) => {
 
   for (const doc of comentarios.docs) {
     const d = doc.data();
+
+    // Igual que en los hilos: se cuenta antes de mirar si el XP ya
+    // estaba pagado.
+    recuento.commentsCreated += 1;
+    if (d.targetType === 'thread') recuento.commentsInThreads += 1;
+
     const id = `comment_created_${doc.id}`;
     if (concedidos.has(id)) {
       omitidas += 1;
@@ -3040,6 +3078,51 @@ export const recalcularUsuario = onCall(async (request) => {
       );
     }
   }
+
+  // ── Recontar los contadores ─────────────────────────────
+  //
+  // Esta es la parte que arregla de verdad el fallo. El recorrido
+  // anterior paga lo que falta, pero los contadores que se habían
+  // quedado clavados no se arreglan reproduciéndolo: los hechos que
+  // los dejaron en 1 ya están en el libro mayor, así que el recorrido
+  // se los salta y nunca vuelven a pasar por la línea que los suma.
+  //
+  // Por eso aquí no se vuelve a conceder nada: se escribe el número
+  // que sale de contar el contenido. Es un valor ABSOLUTO, no un
+  // incremento, y por eso va directo al documento y no por
+  // `concederXP`, que lo sumaría encima de lo que ya hubiera.
+  //
+  // Que se escriba siempre, y no solo cuando ha cambiado, es a
+  // propósito: el botón de recalcular del panel tiene que servir
+  // también para esto, y no solo para pagar lo que faltaba.
+  const likesReceived = await contarMotivosDelLibro(uid, MOTIVOS_DE_LIKE);
+
+  // ── CON RUTAS DE CAMPO, Y NO CON EL MAPA ENTERO ─────────
+  //
+  // Esto parece un detalle y no lo es. Si se escribiera
+  // `update({ stats: { ...recuento, likesReceived } })`, el resultado
+  // dependeria de como interpreta la API los mapas anidados en un
+  // `update`: si los MERGEA, se pierde lo de al lado; si los REEMPLAZA,
+  // desaparecen `animeXp`, los cuatro contadores de trivia y
+  // `followersReceived`, y el admin que pulsa "recalcular" le acaba de
+  // borrar el progreso a un usuario sin que salga ningun aviso.
+  //
+  // Con rutas de campo no hay interpretacion que discutir: se
+  // escriben esas cuatro hojas y punto. Lo demas se queda como estaba,
+  // que es lo unico aceptable en un boton que el panel presenta como
+  // "recalcular lo que ya tienes".
+  await db.doc(`${USERS}/${uid}`).update({
+    'stats.threadsCreated': recuento.threadsCreated,
+    'stats.commentsCreated': recuento.commentsCreated,
+    'stats.commentsInThreads': recuento.commentsInThreads,
+    'stats.likesReceived': likesReceived,
+  });
+
+  logger.info('Contadores recalculados desde el contenido', {
+    objetivo: uid,
+    ...recuento,
+    likesReceived,
+  });
 
   logger.info('Recalculo terminado', { objetivo: uid, concedidas, omitidas });
 
@@ -3780,12 +3863,24 @@ async function podar(): Promise<number> {
  *
  * Se puede ejecutar las veces que haga falta sin que duplique nada,
  * porque el id sale del enlace: el mismo enlace da siempre el mismo
- * documento, y escribir encima actualiza en lugar de crear otro.
+ * documento. Antes de escribir se lee cuáles de esos ya existen y solo
+ * se escriben los que faltan, así que ni se duplica ni se pisa un
+ * titular que ya estaba.
  *
- * De todas formas escribe con `create` y no con `set`: si el documento
- * ya existe, la escritura falla y no se toca nada. Así no se pisa un
- * titular por error, y una escritura que falla no cuenta como
- * documento nuevo.
+ * Sigue escribiendo con `create` y no con `set`: si el documento ya
+ * existe la escritura falla y no se toca nada. Es una segunda barrera,
+ * por si el filtro de arriba se quedara corto, y hace que un titular
+ * existente no se pueda sobrescribir por accidente.
+ *
+ * ── LO QUE PASÓ ANTES ──────────────────────────────────────────────
+ *
+ * Se escribía el lote entero a pelo, sin mirar qué había ya. Un
+ * `create` falla si el documento existe y el commit de un lote es
+ * atómico, así que en cuanto el feed traía un solo enlace repetido, y
+ * siempre trae, el lote entero no se guardaba. La sincronización
+ * escribía la primera vez y luego se quedaba sin hacer nada para
+ * siempre, con el widget congelado en las noticias de aquel día.
+ *
  *
  * @param {'programada' | 'manual'} origen quién la ha llamado
  * @returns {Promise<ResultadoSincronizacion>}
@@ -3821,11 +3916,50 @@ async function sincronizar(
     // Por lotes, porque escribir documento a documento un feed de 137
     // items son 137 viajes de ida y vuelta a Firestore. Con lotes de
     // 400 caben todos en uno, o en un par.
+    //
+    // ── POR QUÉ HAY QUE FILTRAR LO QUE YA ESTÁ ANTES DE ESCRIBIR ──
+    //
+    // Un `create` falla si el documento ya existe, y el commit de un
+    // lote es atómico: si UN item del lote está repetido, el lote
+    // entero no se guarda. Y un feed trae siempre casi todo lo que se
+    // guardó la vez anterior.
+    //
+    // Eso significa que el lote falla SIEMPRE a partir de la segunda
+    // pasada, y que por lo tanto no se guarda ni una sola noticia
+    // nueva. No es que se pierdan algunas: es que en cuanto se ejecuta
+    // dos veces, el widget se queda congelado con lo que había.
+    //
+    // Lo que había antes era exactamente eso: `create` a pelo y, si el
+    // lote fallaba, contar cero y decir "ya se guardará en la
+    // siguiente". No se guardaba nunca, porque el enlace seguía en el
+    // feed y volvía a hacer fallar el lote.
+    //
+    // El arreglo es quitar del lote lo que ya está, y eso es una
+    // lectura: un `getAll` con los ids del trozo, en una sola llamada,
+    // y un Set con los que existen. Lo que no esté en el Set se
+    // escribe, y como ya no puede haber repetidos, el `create` ya no
+    // puede fallar por eso.
     for (let i = 0; i < noticias.length; i += LOTE) {
       const trozo = noticias.slice(i, i + LOTE);
+      const ids = trozo.map((n) => idDeNoticia(fuente.nombre, n.enlace));
+
+      // Una lectura para el trozo entero. `getAll` no trae los que no
+      // existen, pero se filtra por `exists` igual: si otra versión del
+      // SDK los devolviera todos con `exists` en falso, el filtro lo
+      // salvaría y no dependería de ese detalle.
+      const yaGuardadas = new Set(
+        (await db.getAll(...ids.map((id) => db.collection(NEWS).doc(id))))
+          .filter((d) => d.exists)
+          .map((d) => d.id),
+      );
+
+      const nuevas = trozo.filter((_, k) => !yaGuardadas.has(ids[k]));
+
+      if (nuevas.length === 0) continue;
+
       const lote = db.batch();
 
-      for (const noticia of trozo) {
+      for (const noticia of nuevas) {
         lote.create(db.collection(NEWS).doc(idDeNoticia(fuente.nombre, noticia.enlace)), {
           title: noticia.titulo,
           snippet: noticia.resumen,
@@ -3839,20 +3973,14 @@ async function sincronizar(
       try {
         await lote.commit();
 
-        guardadas += trozo.length;
+        guardadas += nuevas.length;
       } catch (e) {
-        // Un lote con un documento que ya existe falla entero, porque
-        // el commit es atómico. Y eso es lo que pasa en cuanto se ha
-        // ejecutado una vez: todos los items menos los nuevos.
-        //
-        // Se podría escribir de uno en uno para contar los que hay,
-        // pero serían 137 viajes en cada una de las doce ejecuciones
-        // diarias, unas 1600 escrituras al día que no hacen nada. Por
-        // eso se cuenta el lote como fallido y se sigue: lo que no se
-        // guarde en esta pasada se guardará en la siguiente, porque el
-        // enlace sigue estando en el feed.
+        // Con el filtro de arriba no debería llegar nada repetido al
+        // lote, así que un fallo aquí es otra cosa: cuota, una regla, o
+        // la red. Se cuenta el lote como fallido y se sigue con el
+        // siguiente, que como mucho son unos minutos de retraso.
         logger.warn(
-          `Lote de ${trozo.length} items no guardado`,
+          `Lote de ${nuevas.length} items no guardado`,
           e instanceof Error ? e.message : e,
         );
       }
