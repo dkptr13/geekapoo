@@ -316,11 +316,54 @@ export const CropEditor: FC<CropEditorProps> = ({
     }
   };
   // ── Rueda del ratón, como atajo del zoom ───────────────────────
-  const onWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-    setAjustes((prev) => ({
-      ...prev,
-      zoom: limitarZoom(prev.zoom + (e.deltaY < 0 ? 0.08 : -0.08)),
-    }));
+  //
+  // En NATIVO y no con `onWheel` de React. React escucha la rueda
+  // como pasiva en la raíz, así que `preventDefault` dentro de
+  // `onWheel` no frena nada: la ampliación funcionaba, pero la
+  // página de detrás subía a la vez. Con `passive: false` la rueda
+  // sobre la caja solo acerca y no mueve nada más.
+  //
+  // Si la imagen aún no está lista, se deja pasar: en pantallas
+  // cortas el modal necesita ese gesto para desplazarse.
+  const estadoRueda = useRef({ lista: false });
+
+  estadoRueda.current.lista = !!imagen && !ocupado;
+
+  useEffect(() => {
+    const caja = cajaRef.current;
+    if (!caja) return;
+
+    const alRodar = (e: WheelEvent) => {
+      if (!estadoRueda.current.lista) return;
+
+      e.preventDefault();
+      setAjustes((prev) => ({
+        ...prev,
+        zoom: limitarZoom(prev.zoom + (e.deltaY < 0 ? 0.08 : -0.08)),
+      }));
+    };
+
+    caja.addEventListener('wheel', alRodar, { passive: false });
+
+    return () => {
+      caja.removeEventListener('wheel', alRodar);
+    };
+  }, []);
+
+  // ── La página de detrás, quieta ────────────────────────────────
+  //
+  // Mientras el editor está abierto, el fondo no se desplaza ni con
+  // la rueda fuera de la caja ni con el dedo: sin esto, ampliar con
+  // la rueda movía la foto Y la página a la vez.
+  useEffect(() => {
+    const cuerpo = document.body;
+    const anterior = cuerpo.style.overflow;
+
+    cuerpo.style.overflow = 'hidden';
+
+    return () => {
+      cuerpo.style.overflow = anterior;
+    };
   }, []);
 
   // ── Guardar ────────────────────────────────────────────────────
@@ -398,7 +441,6 @@ export const CropEditor: FC<CropEditorProps> = ({
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
-            onWheel={onWheel}
             onKeyDown={onTecla}
             tabIndex={imagen && !ocupado ? 0 : -1}
             aria-label="Encuadre: pulsa las flechas del teclado para mover la imagen al píxel"

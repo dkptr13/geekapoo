@@ -816,12 +816,28 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   {thread.body}
                 </p>
 
-                {/* Imagen adjunta al hilo */}
+                {/* Imagen adjunta al hilo.
+                    Se enseña ENTERA y con su proporción, sea la que
+                    sea (vertical, cuadrada, panorámica o recortada
+                    por el usuario en el editor): `h-auto` calcula la
+                    altura desde la proporción real, y sin `max-h` ni
+                    contenedor con altura no hay nada que recorte.
+
+                    Antes llevaba `w-full max-h-96 object-cover`: con
+                    la altura capada a 24rem y `cover`, una vertical se
+                    convertía en una franja horizontal mostrando solo
+                    el centro. Por eso NO se vuelve a poner ni altura
+                    fija, ni `max-h`, ni `cover` aquí.
+
+                    Sin `w-full` a propósito: con `max-w-full` las
+                    grandes llenan el ancho igualmente, y las pequeñas
+                    se quedan a su tamaño en vez de estirarse borrosas
+                    hasta el borde. */}
                 {thread.imageUrl && (
                   <img
                     src={thread.imageUrl}
                     alt="Imagen adjunta al hilo"
-                    className="mt-3 max-h-96 w-full rounded-2xl border border-zinc-800 object-cover"
+                    className="mt-3 block h-auto max-w-full rounded-2xl border border-zinc-800 object-contain"
                     loading="lazy"
                   />
                 )}
