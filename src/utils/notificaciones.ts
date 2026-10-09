@@ -29,6 +29,7 @@ import { emojiDeReaccion } from '../services/reactionLogic';
  */
 type Icono =
   | 'comment'
+  | 'chat'
   | 'at'
   | 'follow'
   | 'heart'
@@ -49,12 +50,15 @@ const ESTILO: Record<NotificationType, { icono: Icono }> = {
   level_up: { icono: 'level' },
   achievement: { icono: 'medal' },
   trivia: { icono: 'trivia' },
+  chat_message: { icono: 'chat' },
 };
 
 export function iconoDe(n: Pick<AppNotification, 'type' | 'reaction'>): string {
   switch (ESTILO[n.type]?.icono) {
     case 'comment':
       return '💬';
+    case 'chat':
+      return '📩';
     case 'at':
       return '🏷️';
     case 'follow':
@@ -119,6 +123,8 @@ export function textoDe(
       return `Has desbloqueado la medalla "${n.medalName ?? 'desconocida'}"`;
     case 'trivia':
       return `Trivia completada: ${n.triviaCorrect ?? 0} de ${n.triviaTotal ?? 0}`;
+    case 'chat_message':
+      return `${quien} te ha enviado un mensaje`;
     default:
       return 'Tienes actividad en la comunidad';
   }
@@ -313,6 +319,22 @@ export function destinoDeNotificacion(n: AppNotification): DestinoNotificacion {
       };
     }
     return { search: `?tab=perfil&usuario=${encodeURIComponent(n.targetId)}` };
+  }
+
+  // Un mensaje del chat abre ESA conversación, no la lista.
+  //
+  // Va antes que `threadId` a propósito: un aviso de chat no trae
+  // `threadId`, pero si algún día trajera campos de otro tipo por
+  // error, el chat tiene prioridad porque es lo que el usuario
+  // espera abrir al pulsar "te ha enviado un mensaje".
+  //
+  // Sin `chatId` se abre la lista igualmente: la conversación puede
+  // haberse borrado, y la lista es mejor destino que ningún sitio.
+  if (n.type === 'chat_message') {
+    if (!n.chatId) {
+      return { search: '?tab=chats' };
+    }
+    return { search: `?tab=chats&chat=${encodeURIComponent(n.chatId)}` };
   }
 
   // Un comentario en un hilo: al hilo, y al comentario resaltado.

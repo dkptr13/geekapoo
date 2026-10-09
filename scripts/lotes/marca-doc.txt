@@ -1,0 +1,13 @@
+ * ── LA MARCA PUEDE NO LLEGAR ──────────────────────────────────────
+ *
+ * La marca viene de Firestore como texto, pero no hay ninguna
+ * garantía de que siga siendo una fecha: puede haber quedado a medias
+ * una escritura, o un documento antiguo con otro formato.
+ *
+ * Por eso hay que distinguir TRES estados y no dos. Con dos, la marca
+ * rota se confundía con "no hay marca" y toda la conversación salía
+ * como nueva, en una conversación que el usuario lleva leyendo
+ * semanas. Con tres, la marca rota se trata como leída y la barra no
+ * sale: es lo prudente, porque inventarse un historial de "nuevos"
+ * es peor que no avisar de uno.
+ */

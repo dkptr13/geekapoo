@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { Fragment, useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   MessageCircle,
   Users,
@@ -27,7 +28,10 @@ import {
   Smile,
   ImagePlus,
   Camera,
+  ArrowDown,
 } from 'lucide-react';
+
+import { textoDeNuevos } from '../../utils/chatLectura';
 import { useAuth } from '../../context/AuthContext';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useChat } from '../../context/ChatContext';
@@ -67,6 +71,7 @@ export const ChatView: React.FC = () => {
     isReadByEveryone,
     setChatOpen,
     unreadRoomIds,
+    corteNuevos,
     removeConversation,
     clearConversation,
     addMember,
@@ -269,10 +274,105 @@ export const ChatView: React.FC = () => {
     return () => setChatOpen(false);
   }, [setChatOpen]);
 
-  // Auto scroll to bottom of active messages
+  // ═══════════════════════════════════════════════════════════
+  // SCROLL
+  // ═══════════════════════════════════════════════════════════
+  //
+  // Antes este efecto bajaba al último mensaje SIEMPRE que cambiase
+  // la lista, con `behavior: 'smooth'`. Eso es lo que hace que la
+  // barra de "mensajes nuevos" no sirva de nada: abres una
+  // conversación con cinco mensajes nuevos, la barra se pinta
+  // encima de ellos y el scroll te lleva directamente al final,
+  // donde no se ve.
+  //
+  // Ahora solo baja al final cuando el usuario NO está leyendo
+  // historia vieja. Si ha subido a mirar algo anterior, se queda
+  // donde está y la barra le dice cuántos mensajes se ha perdido,
+  // que es justo para lo que sirve.
+  //
+  // El salto al final también es instantáneo y no suave: al abrir
+  // una conversación, un scroll suave de varios cientos de píxeles
+  // tarda tanto que la barra aparece y se va sola.
+  const [lejosDelFinal, setLejosDelFinal] = useState(false);
+
+  const listaRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Si el usuario está leyendo hacia arriba.
+   *
+   * ── POR QUÉ NO BASTA CON COMPARAR `scrollTop` ────────────────────
+   *
+   * Porque la altura del contenido cambia con cada mensaje que llega
+   * y con la barra de nuevos, así que el "final" no es un número
+   * fijo. Se mide contra la posición real del final: cuánto queda
+   * por debajo.
+   *
+   * El margen es de 120 px a propósito. Con menos, tocar el scroll
+   * teniendo el cursor sobre el último mensaje lo contaría como
+   * "estoy arriba" y dejaría de pegar los mensajes nuevos, que es
+   * justo cuando más molestaría.
+   */
+  const MARGEN_ABAJO = 120;
+
+  const alDesplazar = useCallback(() => {
+    const el = listaRef.current;
+    if (!el) return;
+
+    const queda = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+    // `> MARGEN_ABAJO` y no `>=`: en el final exacto, con la barra de
+    // desplazamiento contra el borde, queda un píxel o dos de más y
+    // se leía como "arriba" sin serlo.
+    setLejosDelFinal(queda > MARGEN_ABAJO);
+  }, []);
+
+  /**
+   * Vuelve abajo dejando que los mensajes nuevos se peguen otra vez.
+   *
+   * Es el botón que aparece cuando se está leyendo historia y llegan
+   * mensajes nuevos: en lugar de saltar solo, baja al final y reactiva
+   * el pegado automático.
+   */
+  const irAlFinal = useCallback(() => {
+    setLejosDelFinal(false);
+
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, []);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeRoomId]);
+    if (lejosDelFinal) return;
+
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+  }, [messages, activeRoomId, lejosDelFinal]);
+
+  // Al cambiar de conversación se vuelve abajo. Si no, abrir la
+  // tercera con la segunda a medias dejaría el scroll donde estaba,
+  // en un sitio que no significa nada en la nueva.
+  useEffect(() => {
+    setLejosDelFinal(false);
+  }, [activeRoomId]);
+
+  // Abrir la conversación que pide la URL (`?tab=chats&chat=...`).
+  //
+  // Es lo que escriben los avisos de la campana al pulsar "te ha
+  // enviado un mensaje": sin esto, el aviso abría la lista y la
+  // conversación activa seguía siendo la primera, no la del mensaje.
+  //
+  // Va DESPUÉS del efecto que elige la primera conversación por
+  // defecto (en `ChatContext`): ese solo toca si no hay ninguna
+  // activa, así que si la URL pide una que existe, esta la impone.
+  // Y si la URL pide una que ya no existe (chat borrado), no se
+  // toca nada: mejor la lista que un panel vacío.
+  const [params] = useSearchParams();
+  const chatPedido = params.get('chat') ?? '';
+
+  useEffect(() => {
+    if (!chatPedido) return;
+    if (activeRoomId === chatPedido) return;
+    if (!rooms.some((r) => r.id === chatPedido)) return;
+
+    setActiveRoomId(chatPedido);
+  }, [chatPedido, rooms, activeRoomId, setActiveRoomId]);
 
   // ── Reacciones de los mensajes de esta conversación ────
   //
@@ -1246,7 +1346,7 @@ export const ChatView: React.FC = () => {
         <div
           className={`${
             activeRoomId ? 'flex' : 'hidden'
-          } lg:flex lg:col-span-8 2xl:col-span-9 min-h-0 flex-col bg-zinc-900/90`}
+          } lg:flex lg:col-span-8 2xl:col-span-9 relative min-h-0 flex-col bg-zinc-900/90`}
         >
           {activeRoom ? (
             <>
@@ -1449,7 +1549,11 @@ export const ChatView: React.FC = () => {
               )}
 
               {/* Messages Body */}
-              <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div
+                ref={listaRef}
+                onScroll={alDesplazar}
+                className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 space-y-4"
+              >
                 {activeMessages.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center text-center p-8 text-zinc-500">
                     <Sparkles size={24} className="text-violet-400 mb-2" />
@@ -1461,14 +1565,35 @@ export const ChatView: React.FC = () => {
                     </p>
                   </div>
                 ) : (
-                  activeMessages.map((msg) => {
+                  activeMessages.map((msg, posicion) => {
                     const isMe = msg.senderId === currentUser.uid;
 
                     return (
-                      <div
-                        key={msg.id}
-                        className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
-                      >
+                      <Fragment key={msg.id}>
+                        {/* LA BARRA DE "MENSAJES NUEVOS"
+
+                            Va justo ANTES del primer mensaje nuevo, no
+                            encima de la lista: lo de debajo de la
+                            barra es lo nuevo, que es lo que se pidió.
+
+                            `key` con el id del mensaje para que la barra
+                            no se monte y desmonte al recalcularse el
+                            corte: si fuera una posición, al llegar un
+                            mensaje nuevo se recolocaría sola y parpadearía.
+                        */}
+                        {posicion === corteNuevos.indice && corteNuevos.total > 0 && (
+                          <div className="flex items-center gap-3 py-1">
+                            <div className="h-px flex-1 bg-violet-500/40" />
+                            <span className="shrink-0 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1 text-[11px] font-bold text-violet-300">
+                              {textoDeNuevos(corteNuevos.total)}
+                            </span>
+                            <div className="h-px flex-1 bg-violet-500/40" />
+                          </div>
+                        )}
+
+                        <div
+                          className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                        >
                         {!isMe && (
                           <button
                             type="button"
@@ -1594,12 +1719,40 @@ export const ChatView: React.FC = () => {
                               ))}
                           </div>
                         </div>
-                      </div>
+                        </div>
+                      </Fragment>
                     );
                   })
                 )}
                 <div ref={messagesEndRef} />
               </div>
+
+              {/* BAJAR A LOS NUEVOS
+
+                  Solo aparece si el usuario está leyendo historia.
+                  No es adorno: sin él, si has subido a mirar un
+                  mensaje viejo y te contesta alguien, no hay forma de
+                  bajar sin arrastrar la barra de scroll a ciegas, y
+                  el mensaje nuevo se queda escondido abajo del todo.
+
+                  Va fuera de la caja con scroll, y pegado al borde
+                  inferior, para que quede por encima del campo de
+                  escribir en lugar de taparlo.
+              */}
+              {lejosDelFinal && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={irAlFinal}
+                    className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-violet-500/40 bg-zinc-900/95 px-3.5 py-1.5 text-[11px] font-bold text-violet-300 shadow-lg backdrop-blur transition-colors hover:border-violet-400/70 hover:text-violet-200"
+                  >
+                    <ArrowDown size={13} strokeWidth={2.5} />
+                    {corteNuevos.total > 0
+                      ? `Bajar a los ${corteNuevos.total} nuevos`
+                      : 'Bajar al final'}
+                  </button>
+                </div>
+              )}
 
               {/* PANEL DE MIEMBROS (solo grupos) */}
               {showMembers && activeRoom?.type === 'group' && (

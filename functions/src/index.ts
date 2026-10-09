@@ -458,6 +458,8 @@ interface Aviso {
   commentId?: string | null;
   /** Serie a la que pertenece, para abrir la wiki. Ver `Aviso`. */
   animeId?: string | null;
+  /** Conversación del chat, para abrirla desde la campana. Solo `chat_message`. */
+  chatId?: string | null;
   snippet?: string | null;
   reaction?: string | null;
 
@@ -496,8 +498,7 @@ async function notificar(a: Aviso): Promise<void> {
     if (!a.recipientId || !a.actorId) return;
     if (a.recipientId === a.actorId) return;
 
-    const ref = db.doc(`
-{USERS}/${a.recipientId}/${NOTIFICACIONES}/${a.id}`);
+    const ref = db.doc(`${USERS}/${a.recipientId}/${NOTIFICACIONES}/${a.id}`);
 
     const datos: Record<string, unknown> = {
       type: a.type,
@@ -518,6 +519,7 @@ async function notificar(a: Aviso): Promise<void> {
       targetId: a.targetId,
       commentId: a.commentId,
       animeId: a.animeId,
+      chatId: a.chatId,
       snippet: a.snippet ? recortar(a.snippet) : undefined,
       reaction: a.reaction,
       level: a.level,
@@ -1555,6 +1557,110 @@ export const onCommentLikesChanged = onDocumentWritten(
       );
     } catch (e) {
       logger.error('Fallo procesando likes de un comentario', { error: e });
+    }
+  },
+);
+
+// ── Aviso de mensaje de chat ─────────────────────────────────────
+//
+// Antes no existía: los mensajes solo movían el punto de "sin leer"
+// dentro de la sección de chats, y la campana no se enteraba. Por
+// eso "no salen en notificaciones los mensajes que te envían".
+//
+// Se dispara al crearse el documento del mensaje, no al actualizar
+// la vista previa del chat (`lastMessageAt`): la vista previa se
+// escribe en una segunda escritura separada y puede fallar sin que
+// el mensaje se pierda, y el aviso debe salir aunque eso pase.
+//
+// El id es `chat_${messageId}`: el mismo para todos los
+// destinatarios porque cada uno vive en su propia subcolección
+// (`users/{uid}/notifications/{id}`), y `create()` hace que un
+// reintento del trigger no duplique el aviso.
+export const onChatMessageCreated = onDocumentCreated(
+  `${CHATS}/{chatId}/messages/{messageId}`,
+  async (event) => {
+    try {
+      const data = event.data?.data();
+      if (!data) return;
+
+      const senderId = typeof data.senderId === 'string' ? data.senderId : '';
+      if (!senderId) {
+        logger.warn('Mensaje de chat sin emisor; no se avisa', {
+          chatId: event.params['chatId'],
+          messageId: event.params['messageId'],
+        });
+        return;
+      }
+
+      const chatId = event.params['chatId'];
+      const messageId = event.params['messageId'];
+
+      const chatSnap = await db.doc(`${CHATS}/${chatId}`).get();
+      if (!chatSnap.exists) {
+        logger.warn('Aviso de chat: la conversación ya no existe', { chatId, messageId });
+        return;
+      }
+
+      const miembros = chatSnap.data()?.memberIds;
+      if (!Array.isArray(miembros)) {
+        logger.warn('Aviso de chat: la conversación no tiene miembros', { chatId, messageId });
+        return;
+      }
+
+      const destinatarios = miembros.filter(
+        (id): id is string => typeof id === 'string' && !!id && id !== senderId,
+      );
+      if (destinatarios.length === 0) {
+        logger.info('Aviso de chat: nadie a quien avisar', { chatId, messageId, senderId });
+        return;
+      }
+
+      logger.info('Aviso de chat: avisando', {
+        chatId,
+        messageId,
+        senderId,
+        destinatarios: destinatarios.length,
+      });
+
+      const tipoMensaje = typeof data.type === 'string' ? data.type : 'text';
+      const cuerpo = typeof data.body === 'string' ? data.body.trim() : '';
+
+      // Sin texto no hay cita que enseñar, pero el aviso tiene que
+      // decir algo: un aviso sin `snippet` sale con el texto
+      // genérico y parece vacío.
+      const snippet =
+        cuerpo ||
+        (tipoMensaje === 'gif'
+          ? 'GIF'
+          : tipoMensaje === 'image'
+            ? 'Foto'
+            : tipoMensaje === 'location'
+              ? 'Ubicación'
+              : '');
+
+      const actorName = typeof data.senderName === 'string' ? data.senderName : '';
+      const actorAvatar = typeof data.senderAvatar === 'string' ? data.senderAvatar : '';
+
+      await Promise.all(
+        destinatarios.map((recipientId) =>
+          notificar({
+            id: `chat_${messageId}`,
+            type: 'chat_message',
+            recipientId,
+            actorId: senderId,
+            actorName,
+            actorAvatar,
+            chatId,
+            snippet: snippet || null,
+          }),
+        ),
+      );
+    } catch (e) {
+      logger.error('Fallo notificando mensaje de chat', {
+        chatId: event.params['chatId'],
+        messageId: event.params['messageId'],
+        error: e,
+      });
     }
   },
 );

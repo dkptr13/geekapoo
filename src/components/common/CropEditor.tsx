@@ -269,7 +269,15 @@ export const CropEditor: FC<CropEditorProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      // `z-[200]`, por encima del modal de perfil (`z-[100]`).
+      //
+      // El editor se abre DESDE el modal de perfil: el fichero se
+      // elige dentro y el editor se pinta fuera, antes en el DOM. Con
+      // el mismo `z-[100]`, el que va después pinta encima, así que el
+      // editor quedaba DETRÁS del formulario: el fondo se oscurecía
+      // (su propio `bg-black/80` sí se sumaba) pero el diálogo no se
+      // veía ni recibía clics, y parecía que el botón no hacía nada.
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label={titulo ?? 'Recortar imagen'}

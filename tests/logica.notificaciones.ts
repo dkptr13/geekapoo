@@ -53,6 +53,7 @@ const TIPOS: NotificationType[] = [
   'level_up',
   'achievement',
   'trivia',
+  'chat_message',
 ];
 
 // Si la unión crece, esto falla y obliga a añadir el tipo a la lista
@@ -172,6 +173,7 @@ for (const tipo of [
   'post_reaction',
   'comment_like',
   'comment_reaction',
+  'chat_message',
 ] as NotificationType[]) {
   assert.equal(
     esNotificacionImportante(aviso({ type: tipo })),
@@ -289,6 +291,31 @@ assert.equal(query({ type: 'trivia', triviaCorrect: 3, triviaTotal: 5 }).get('ta
 // más se pincha en los tests porque es el único sin contenido.
 assert.equal(textoDe(aviso({ type: 'follow' })), 'Ana ahora te sigue');
 assert.equal(iconoDe(aviso({ type: 'follow' })), '👥');
+
+// El mensaje del chat: texto propio, icono propio y destino a ESA
+// conversación, no a la lista. Es el aviso que faltaba: los mensajes
+// no salían en la campana.
+assert.equal(
+  textoDe(aviso({ type: 'chat_message' })),
+  'Ana te ha enviado un mensaje',
+  'el aviso de chat debe decir quién escribió',
+);
+assert.equal(iconoDe(aviso({ type: 'chat_message' })), '📩');
+assert.equal(
+  query({ type: 'chat_message', chatId: 'c9' }).get('chat'),
+  'c9',
+  'un mensaje del chat debe abrir ESA conversación',
+);
+assert.equal(
+  query({ type: 'chat_message', chatId: 'c9' }).get('tab'),
+  'chats',
+  'y esa conversación está en la pestaña de chats',
+);
+assert.equal(
+  query({ type: 'chat_message' }).get('tab'),
+  'chats',
+  'sin chatId se abre la lista, no ningún sitio',
+);
 
 // Un "Me gusta" a un hilo: `threadId` está, así que entra por la
 // rama del hilo, no por la de gamificación.

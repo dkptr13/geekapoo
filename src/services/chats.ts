@@ -612,28 +612,57 @@ export async function removeGroupMember(
 // ────────────────────────────────────────────────────────
 
 /**
- * Avanza la marca de lectura de una persona en una conversación.
+ * Marca la conversación como leída HASTA el momento de ahora.
  *
- * Se lee, se modifica y se escribe el MAPA ENTERO dentro de una
- * transacción, en vez de usar notación de punto ("readAt.<uid>").
+ * ── POR QUÉ YA NO PASA LA FECHA DEL MENSAJE ──────────────────────
  *
- * No es purismo: la regla de seguridad comprueba
- * diff().affectedKeys().hasOnly([...]) y, con rutas anidadas,
- * affectedKeys() devuelve la hoja ("readAt.<uid>") en lugar del
- * campo de primer nivel. La comparación fallaba y la escritura
- * se rechazaba con permission-denied. Escribiendo el mapa
- * completo la diferencia aparece en "readAt", que sí está en la
- * lista, y la transacción evita que dos personas que leen a la
- * vez se pisen y pierdan una marca.
+ * Antes esta función escribía la fecha del último mensaje visto, y
+ * con eso el punto de "sin leer" no se quitaba nunca. No era un fallo
+ * del cálculo sino de los datos, y hay que ver los números para
+ * entenderlo.
+ *
+ * Enviar un mensaje son DOS escrituras separadas:
+ *
+ *   1º `setDoc` del mensaje   → `createdAt`     = 16:21:24.634
+ *   2º `updateDoc` del chat   → `lastMessageAt` = 16:21:24.853
+ *
+ * Las dos usan `serverTimestamp()`, pero son dos viajes de red, así
+ * que el servidor les da dos instantes distintos. La marca de lectura
+ * guardaba la primera (`.634`) y el cálculo de sin leer compara
+ * `lastMessageAt <= readAt`, o sea `853 <= 634`, que es FALSO. El
+ * punto se quedaba.
+ *
+ * Lo único que lo quitaba era la regla que ignora las conversaciones
+ * cuyo último mensaje es tuyo, es decir: contestar. Por eso el punto
+ * solo se iba si respondías.
+ *
+ * ── EL ARREGLO ────────────────────────────────────────────────────
+ *
+ * Se escribe `serverTimestamp()`: la hora del servidor en el momento
+ * de la lectura. Siempre es posterior a cualquier mensaje que ya
+ * había llegado, y no depende del reloj del dispositivo, que puede
+ * ir adelantado o atrasado y volver a dejar la marca antes que el
+ * mensaje.
+ *
+ * El doble tick sigue funcionando: `isReadByEveryone` compara con un
+ * margen de 2 s, y ahora la marca es posterior al mensaje, que es lo
+ * que significa "lo ha leído".
+ *
+ * ── LO QUE PIERDE ESTO ───────────────────────────────────────────
+ *
+ * La marca ya no dice "hasta qué mensaje leí", sino "cuándo lo leí".
+ * Es una diferencia real y hay que tenerla presente: la barra de
+ * mensajes nuevos NO puede calcularse con el `readAt` actual, porque
+ * en cuanto se marca, esa marca avanza y la barra se calcularía
+ * contra sí misma. Por eso `ChatContext` congela la marca de lectura
+ * DEL MOMENTO EN QUE SE ABRE LA CONVERSACIÓN, antes de marcar nada.
+ *
+ * Sigue escribiéndose el mapa entero y no `readAt.<uid>` por el
+ * motivo de las reglas que se explica arriba: con rutas anidadas,
+ * `affectedKeys()` devuelve la hoja y la comparación del `hasOnly`
+ * falla.
  */
-export async function markChatRead(
-  chatId: string,
-  uid: string,
-  readAt: string,
-): Promise<void> {
-  const at = toDate(readAt);
-  if (!at) return;
-
+export async function markChatRead(chatId: string, uid: string): Promise<void> {
   const ref = doc(db, CHATS, chatId);
 
   await runTransaction(db, async (tx) => {
@@ -641,7 +670,13 @@ export async function markChatRead(
     if (!snap.exists()) return;
 
     const current = (snap.data()?.readAt ?? {}) as Record<string, unknown>;
-    tx.update(ref, { readAt: { ...current, [uid]: Timestamp.fromDate(at) } });
+
+    // Aquí no se comprueba si la marca estaba al día: eso lo decide
+    // timestamps que confunden leído de no leído.
+    // último mensaje. Comprobarlo aquí exigiría volver a interpretarla
+    // dentro de la transacción, y se volvería a caer en la cuenta de
+    // timestamps que différencia "leído" de "no leído".
+    tx.update(ref, { readAt: { ...current, [uid]: serverTimestamp() } });
   });
 }
 

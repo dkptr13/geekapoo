@@ -55,7 +55,9 @@ export type NotificationType =
   | 'comment_reaction'
   | 'level_up'
   | 'achievement'
-  | 'trivia';
+  | 'trivia'
+  /** Alguien te ha escrito en el chat. Lleva `chatId` para abrir la conversación. */
+  | 'chat_message';
 
 /**
  * Un aviso en la campana.
@@ -96,6 +98,15 @@ export interface AppNotification {
   targetId?: string;
   /** Comentario concreto: el que se resalta al llegar. */
   commentId?: string;
+
+  /**
+   * Conversación del chat a la que pertenece el aviso.
+   *
+   * Solo lo trae `chat_message`. Con esto el panel abre ESA
+   * conversación y no la primera de la lista, que es lo que pasaba
+   * si solo se navegaba a `?tab=chats` con varios chats abiertos.
+   */
+  chatId?: string;
 
   /**
    * Anime al que pertenece el contenido del aviso.

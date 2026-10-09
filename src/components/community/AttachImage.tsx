@@ -3,6 +3,8 @@ import type { FC } from 'react';
 import { ImagePlus, X, Loader2, AlertCircle } from 'lucide-react';
 
 import { uploadCommunityImage } from '../../services/imageUpload';
+import { cargarImagen } from '../../services/imageCanvas';
+import { CropEditor } from '../common/CropEditor';
 
 // ======================================================
 // ADJUNTAR UNA IMAGEN A UN HILO O COMENTARIO
@@ -11,6 +13,16 @@ import { uploadCommunityImage } from '../../services/imageUpload';
 // guarda nada en Firestore: solo sube el archivo a Storage y
 // entrega la URL. Quien lo usa la guarda en su estado y la
 // escribe al publicar.
+//
+// Antes de subir, la imagen pasa por el editor de recorte:
+// mover y ampliar, viendo lo que va a quedar. La caja usa la
+// proporción de la propia foto, así que recortar aquí no
+// obliga a ningún formato: solo encuadra.
+//
+// Los GIF se suben tal cual, SIN pasar por el editor: el
+// recorte redibuja en un canvas y el resultado es una imagen
+// fija, así que editar un GIF lo dejaría sin animación en
+// silencio.
 //
 // Una sola imagen por publicación, no un álbum: es lo que
 // encaja con un foro y evita que alguien llene su comentario
@@ -35,6 +47,25 @@ export const AttachImage: FC<AttachImageProps> = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  // La foto elegida, esperando a que se recorte. Mientras hay una,
+  // se enseña el editor en vez del botón de elegir.
+  const [pendiente, setPendiente] = useState<{ file: File; ratio: number } | null>(null);
+
+  const subir = async (file: File): Promise<boolean> => {
+    setUploading(true);
+    try {
+      const url = await uploadCommunityImage(file, uid ?? '');
+      onChange(url);
+      return true;
+    } catch (e: unknown) {
+      setError(
+        e instanceof Error ? e.message : 'No se pudo subir la imagen.',
+      );
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleFile = async (file: File) => {
     setError('');
@@ -50,18 +81,52 @@ export const AttachImage: FC<AttachImageProps> = ({
       return;
     }
 
-    setUploading(true);
+    // El GIF no se puede recortar sin matarlo: se sube directo.
+    if (file.type === 'image/gif') {
+      await subir(file);
+      return;
+    }
+
+    // La proporción de la caja es la de la propia foto. Así el
+    // editor deja mover y ampliar sin imponer ningún formato: lo
+    // que se ve en la vista previa es lo que se publica.
     try {
-      const url = await uploadCommunityImage(file, uid ?? '');
-      onChange(url);
-    } catch (e: unknown) {
-      setError(
-        e instanceof Error ? e.message : 'No se pudo subir la imagen.',
-      );
-    } finally {
-      setUploading(false);
+      const img = await cargarImagen(file);
+      const ratio = img.naturalWidth / img.naturalHeight;
+
+      if (!Number.isFinite(ratio) || ratio <= 0) {
+        setError('Esa imagen no se puede abrir.');
+        return;
+      }
+
+      setPendiente({ file, ratio });
+    } catch {
+      setError('Esa imagen no se puede abrir.');
     }
   };
+
+  // Lo que sale del editor ya va recortado: se sube tal cual. Solo
+  // se cierra si la subida va bien; si falla, el editor se queda
+  // abierto y el aviso sale debajo del botón, para reintentar sin
+  // volver a elegir el archivo.
+  const guardarRecorte = async (recortada: File) => {
+    const ok = await subir(recortada);
+    if (ok) setPendiente(null);
+    else throw new Error('No se pudo subir la imagen recortada.');
+  };
+
+  if (pendiente) {
+    return (
+      <CropEditor
+        file={pendiente.file}
+        aspectRatio={pendiente.ratio}
+        maximo={1600}
+        titulo="Ajustar imagen"
+        onCancelar={() => setPendiente(null)}
+        onGuardar={guardarRecorte}
+      />
+    );
+  }
 
   if (value) {
     return (

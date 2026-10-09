@@ -46,8 +46,8 @@ import {
   LocationAttachment,
   User,
 } from '../types';
+import { SIN_NUEVOS, corteDeNuevos, type CorteNuevos } from '../utils/chatLectura';
 import { useAuth } from './AuthContext';
-
 // ======================================================
 // CHATS SOBRE FIRESTORE, CON SOLICITUDES
 // ======================================================
@@ -132,6 +132,14 @@ interface ChatContextType {
   setChatOpen: (open: boolean) => void;
   unreadRoomIds: string[];
   hasUnread: boolean;
+
+  /**
+   * Dónde va la barra de "mensajes nuevos" en la conversación abierta.
+   *
+   * `{ indice: -1, total: 0 }` significa que no hay barra: no hay
+   * mensajes nuevos, o la conversación todavía no ha cargado.
+   */
+  corteNuevos: CorteNuevos;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -263,6 +271,26 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const activeRoom = rooms.find((r) => r.id === activeRoomId) || null;
 
+  /**
+   * Dónde poner la barra de "mensajes nuevos" en cada conversación.
+   *
+   * ── POR QUÉ ESTÁ EN UN MAPA Y NO SE CALCULA AL RENDERIZAR ───────
+   *
+   * Porque al abrir la conversación se marca como leída de
+   * inmediato, y la marca pasa a ser la hora del servidor. Si la
+   * barra se calculara en el render con la marca actual, en cuanto
+   * se marcara todos los mensajes serían "anteriores a la marca" y la
+   * barra desaparecería. Se calcularía contra sí misma.
+   *
+   * Así que se congela una vez, al abrir, y no vuelve a cambiar
+   * hasta que se vuelva a abrir la conversación.
+   *
+   * Es un `Map` en estado, y no un `ref`, porque la barra se pinta
+   * durante el render y tiene que provocar un repintado cuando se
+   * calcula.
+   */
+  const [cortePorChat, setCortePorChat] = useState<Record<string, CorteNuevos>>({});
+
   // Marca de "vaciar conversación" del usuario actual. Se declara
   // aquí, ANTES del efecto de mensajes, porque hace falta para
   // saber qué mensajes se le enseñan.
@@ -346,7 +374,29 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .map((room) => room.id);
   }, [rooms, currentUser, activeRoomId, chatOpen]);
 
+  // ── La barra se recalcula al cambiar de conversación ──
+  //
+  // Sin esto, salir de un chat y volver a entrar enseñaría la barra
+  // vieja: `cortePorChat` seguiría guardando la frontera de la
+  // primera apertura, aunque ya esté todo leído.
+  //
+  // Va ANTES del efecto que marca como leído para que, en el mismo
+  // cambio de conversación, primero se borre y después se calcule
+  // la frontera nueva con la marca de lectura actual.
+  useEffect(() => {
+    setCortePorChat({});
+  }, [activeRoomId]);
+
   // ── Marcar como leídos los mensajes que llegan ───────
+  //
+  // La frontera de la barra de "mensajes nuevos" se guarda ANTES de
+  // marcar, y esto no es un detalle de orden: al marcar, la marca de
+  // lectura pasa a ser la hora del servidor, y la barra se calcularía
+  // contra sí misma. Es decir, la barra desaparecería en el mismo
+  // instante en que debería aparecer, y nunca se vería.
+  //
+  // Por eso `marcarComoLeidos` fija primero `cortePorChat`, que ya
+  // no vuelve a cambiar aunque la marca de lectura avance.
   useEffect(() => {
     if (!activeRoomId || !currentUser) return;
     if (!chatOpen || !tabVisible) return;
@@ -360,9 +410,27 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const room = rooms.find((r) => r.id === activeRoomId);
     const mine = room?.readAt?.[currentUser.uid];
+
+    // La conversación abierta se marca leída SIEMPRE que se mire,
+    // incluso si el scroll está arriba leyendo historia vieja. Es lo
+    // que hace el resto de la mensajería: abrir es leer. Si no, el
+    // punto se quedaría puesto mientras estás dentro, que es peor:
+    // el aviso seguiría ahí con la conversación abierta delante.
     if (mine && Date.parse(mine) >= newestAt) return;
 
-    markChatRead(activeRoomId, currentUser.uid, newest.createdAt).catch((e: unknown) =>
+    // La frontera se congela solo la primera vez que se abre la
+    // conversación. Si ya estaba guardada, el usuario ya vio la barra
+    // y no tiene sentido volver a ponerla entre los mismos mensajes.
+    setCortePorChat((prev) => {
+      if (prev[activeRoomId]) return prev;
+
+      return {
+        ...prev,
+        [activeRoomId]: corteDeNuevos(list, mine, currentUser.uid),
+      };
+    });
+
+    markChatRead(activeRoomId, currentUser.uid).catch((e: unknown) =>
       console.error('[Chats] No se pudo actualizar el recibo de lectura:', e),
     );
   }, [activeRoomId, currentUser, messages, rooms, chatOpen, tabVisible]);
@@ -800,6 +868,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setChatOpen,
         unreadRoomIds,
         hasUnread: unreadRoomIds.length > 0,
+        corteNuevos: activeRoomId
+          ? (cortePorChat[activeRoomId] ?? SIN_NUEVOS)
+          : SIN_NUEVOS,
       }}
     >
       {children}
