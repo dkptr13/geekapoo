@@ -1,0 +1,20 @@
+// ── Catalogo ───────────────────────────────────────────────────────
+//
+// Con `--rehacer` se recomputan capitulos que ya tienen imagen, y esa
+// imagen esta en `usadas`. Si `usadas` se usara tal cual, el propio
+// emparejador rechazaria cada capitulo por tener su URL ya puesta, y no
+// pondria ninguno.
+//
+// Por eso, al rehacer, `usadas` se arma con las URLs de los capitulos
+// que NO se estan recalculando. Asi el filtro de duplicados sigue
+// impidiendo que dos capitulos distintos acaben con la misma foto, que
+// es lo que hacia falta en su momento.
+const REHACER = args.includes('--rehacer');
+
+const animes = await coleccion('animes');
+const capitulos = await coleccion('episodes');
+
+const sinImagen = new Map();
+
+for (const c of capitulos) {
+  if (str(c.f, 'thumbnailUrl') && !REHACER) continue;

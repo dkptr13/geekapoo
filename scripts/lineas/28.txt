@@ -1,0 +1,3 @@
+['punto japones', 'el plan se tuerce', 'el plan se tuerce。Dicho', true],
+  ['palabra pegada', 'la playa', 'la queibi playa', false],
+];

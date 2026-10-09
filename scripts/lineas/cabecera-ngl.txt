@@ -1,0 +1,71 @@
+// PERSONAJES - No Game No Life
+//
+// Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
+//
+// Veinte. La wiki en japones da dieciocho con voz y AniList lista
+// veintinueve entre las dos obras, contando el relleno que solo aparece
+// una vez. Aqui va la parte con voz comprobada y un papel que la
+// historia sostenga, y se dejan fuera los cargos sin nombre y las
+// apariciones de un minuto.
+//
+// ── LOS SEIYUU ────────────────────────────────────────────────────
+//
+// De la seccion de personajes de la wiki en japones, que los da en
+// prosa con el nombre en su linea y el seiyuu en la siguiente. Esa
+// pagina los escribe de dos maneras distintas: a veces la voz va en la
+// misma linea que el nombre y a veces en la linea siguiente, y un
+// extractor que solo cubre un caso devuelve la mitad del reparto sin
+// avisar. Los dos casos estan cubiertos aqui.
+//
+// Las lecturas:
+//
+//   空（そら）              Sora      松岡禎丞   Yoshitsugu Matsuoka
+//   白（しろ）              Shiro     茅野愛衣   Ai Kayano
+//   ステファニー・ドーラ     Stephanie 日笠陽子   Yōko Hikasa
+//   クラミー・ツェル         Chlammy   井口裕香   Yūka Iguchi
+//   初瀬いづな               Izuna     沢城みゆき  Miyuki Sawashiro
+//   初瀬いの                 Ino       麦人       Hitoshi Myōjin
+//   先王                     el viejo   福島潤     Jun Fukushima
+//   リク・ドーラ             Riku      松岡禎丞   Yoshitsugu Matsuoka
+//   コローネ・ドーラ         Couronna  日笠陽子   Yōko Hikasa
+//   シュヴィ・ドーラ        Schwi     茅野愛衣   Ai Kayano
+//   ノンナ・ツェル           Nonna     井口裕香   Yūka Iguchi
+//   イワン・ツェル           Ivan      大川透     Tōru Ōkawa
+//   アレイ                   Arrei     興津和幸   Kazuyoshi Okitsu
+//   ジブリール              Jibril    田村ゆかり  Yukari Tamura
+//   アズリール              Azriel    堀江由衣   Yū Horie
+//   フィール・ニルヴァレン   Fiel      能登麻美子  Mami Noto
+//   シンク・ニルヴァレン     Think     能登麻美子  Mami Noto
+//   アインツィヒ            Einzig    諏訪部順一  Junichi Suwabe
+//   テト                    Tet       釘宮理恵   Rie Kugimiya
+//   アルトシュ               Artosh    竹内良太   Ryōta Takeuchi
+//
+// Ojo con tres cosas:
+//
+//   · Fiel y Think son el mismo ser en dos formas, y por eso tienen la
+//     misma voz. AniList los cuenta como dos personajes distintos y aqui
+//     tambien, porque en pantalla lo son.
+//
+//   · Artosh sale en la wiki con un nombre escrito en katakana y en
+//     AniList con otro en kanji. Es el mismo personaje con dos
+//     escrituras; aqui va el de AniList, que es contra el que se
+//     comparan las imagenes.
+//
+//   · Los dos hermanos Hatsuse estan en la lista de arriba porque la
+//     pagina los escribe con un espacio entre el apellido y el nombre
+//     de pila, y hay que buscarlos aparte del resto.
+//
+// ── LAS TEMPORADAS ────────────────────────────────────────────────
+//
+// De la lista de personajes de cada uno de los dos titulos de AniList.
+// La T1 es la serie de 2014 y la T2 la pelicula de 2017, en el mismo
+// orden que en el catalogo.
+//
+// Tres son solo de la serie: Chlammy, Fiel e Ino. Seis son solo de la
+// pelicula: Riku, Couronna, Schwi, Nonna, Einzig e Ivan. Mahakoht es de
+// la serie, aunque su historia se cuente en la pelicula. Los demas salen
+// en las dos, y ese reparto es el que hace que la pelicula se pueda
+// colocar despues de la serie sin que parezca suelta.
+//
+// Ni Riku ni Couronna salen en la serie, y eso no es un descuido: en la
+// serie de 2014 los dos ya han muerto, y es la serie quien lo dice.

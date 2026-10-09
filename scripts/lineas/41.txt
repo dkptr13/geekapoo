@@ -1,0 +1,2 @@
+import { elegirTemporadas } from './temporadas-anilist.mjs';
+import { comoBuscar } from './busquedas-anime.mjs';

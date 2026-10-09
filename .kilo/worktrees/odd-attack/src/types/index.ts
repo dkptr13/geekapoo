@@ -1,0 +1,693 @@
+import type { Timestamp } from 'firebase/firestore';
+
+export type UserRole = 'user' | 'moderator' | 'admin';
+
+// ======================================================
+// REACCIONES MÚLTIPLES
+// ======================================================
+//
+// El "Me gusta" de siempre NO se toca: sigue viviendo en
+// `likedBy`/`likesCount` de cada documento, con su propio botón y
+// su propio contador. Las reacciones son un sistema NUEVO y
+// paralelo, para que los "me gusta" que ya tienen miles de
+// personas no se pierdan al migrarlos.
+//
+// Cada reacción es un documento suelto en la colección
+// `reactions`, con un id DETERMINISTA que se compone del
+// objetivo y de quien reacciona (`reac_<tipo>_<id>_<uid>`). Eso
+// es lo que hace imposible tener dos reacciones del mismo tipo a
+// la vez, y que cambiar de 🔥 a 😂 sea el mismo documento
+// editado en vez de uno nuevo creado.
+//
+// Los contadores agregados (`reactionCounts` en el hilo o el
+// comentario) los escribe SOLO la Cloud Function, con el Admin
+// SDK. El cliente nunca los toca: las reglas de Firestore lo
+// prohíben.
+
+/**
+ * Clave de una reacción: NO es el emoji, sino su nombre en el
+ * catálogo (`fire`, `heart`, `thumbs_up`...).
+ *
+ * Se guarda la clave y no el emoji por dos razones: el texto
+ * plano depende de la fuente de cada sistema y ocupa cuatro
+ * bytes, y una lista de doscientos emojis en las reglas de
+ * seguridad sería ilegible. El catálogo está en
+ * `src/data/emojis.ts`; las reglas solo comprueban el formato
+ * (`^[a-z0-9_]{1,24}$`), que es lo único que pueden saber.
+ *
+ * Antes eran cinco valores fijos; ahora es una clave del
+ * catálogo, así que añadir una reacción es añadir un emoji.
+ */
+export type ReactionType = string;
+
+/** Qué se puede reaccionar: hilos, comentarios y mensajes de chat. */
+export type ReactionTargetType = 'thread' | 'comment' | 'chat_message';
+
+/** Recuento por reacción: clave → número de personas. */
+export type ReactionCounts = Record<string, number>;
+
+/** Un documento de la colección `reactions`. */
+export interface UserReaction {
+  userId: string;
+  targetType: ReactionTargetType;
+  targetId: string;
+  type: ReactionType;
+  /** Nombre con el que reaccionó, para poder listar quién lo usó. */
+  userName?: string;
+  /**
+   * Solo para `targetType: 'chat_message'`: en qué chat está el
+   * mensaje. Sin esto, las reglas no pueden comprobar que quien
+   * reacciona sea miembro de ese chat ni que el mensaje exista.
+   */
+  chatId?: string;
+  /** Texto ISO: `withId` convierte los Timestamp de la interfaz. */
+  createdAt: string;
+}
+
+// ======================================================
+// ENCUESTAS
+// ======================================================
+//
+// La CONFIGURACIÓN de la encuesta vive dentro del propio hilo
+// (`threads/{id}.poll`), sin contadores: solo lo que escribió el
+// autor al publicarlo. El autoincremento de los votos no puede
+// living ahí, porque las reglas de Firestore no saben
+// comprobar que el número enviado corresponda con el voto que se
+// está creando.
+//
+// Los votos van en `threads/{id}/pollVotes/{uid}`: un documento
+// por persona, y como el id es el uid, las reglas SOLO permiten
+// crearlo una vez (no hay borrado). Ahí están los contadores de
+// verdad, que se leen en tiempo real tal cual.
+//
+// El resumen agregado (`pollStats/{threadId}`) lo escribe la
+// Cloud Function y sirve para estadísticas y para el panel de
+// administración: es una caché, no la fuente de verdad.
+
+export interface PollOption {
+  /**
+   * Id estable de la opción (`o1`, `o2`...).
+   *
+   * Lo compone el cliente al crear la encuesta y no cambia
+   * nunca: los votos guardan este id, no el texto, para que
+   * reordenar o retocar las opciones no rompa lo ya votado.
+   */
+  id: string;
+  text: string;
+}
+
+export interface Poll {
+  question: string;
+  /**
+   * Las opciones, como MAPA id → texto, y no como lista.
+   *
+   * No es una manía del orden: es lo único que las reglas de
+   * Firestore saben comprobar. Con una lista, el cliente
+   * tendría que escribir el número de votos de cada opción (y las
+   * reglas no pueden contrastarlo con el voto que se está
+   * creando), mientras que con un mapa el servidor sí puede
+   * exigir que el id exista:
+   * `request.resource.data.optionId in poll.options`.
+   *
+   * La interfaz lo convierte en lista con `opcionesDePoll`, que
+   * las ordena por número (`o2` antes que `o10`).
+   */
+  options: Record<string, string>;
+  /** Cuándo se cierra sola. `null` = sin fecha. */
+  expiresAt: Timestamp | null;
+  /** Cerrada a mano por el autor o por el equipo. */
+  isClosed: boolean;
+  /** Si es `true`, quien ya votó puede cambiar de opción. */
+  allowChangeVote: boolean;
+}
+
+/** Borrador de encuesta que envía el formulario de "Publicar Nuevo Hilo". */
+export interface NewPollInput {
+  question: string;
+  options: string[];
+  /** Duración elegida en el formulario: 1h, 12h, 1d, 3d, 7d o "sin límite". */
+  duration?: string;
+  allowChangeVote: boolean;
+}
+
+/** `pollStats/{threadId}`: el resumen que calcula el servidor. */
+export interface PollSummary {
+  id?: string;
+  /** id de opción → votos. */
+  options: Record<string, number>;
+  totalVotes: number;
+  actualizadoAt?: string;
+}
+
+// ======================================================
+// GIFs EN COMENTARIOS
+// ======================================================
+//
+// NO se sube el archivo a Firebase Storage: se guarda solo la
+// información mínima para representarlo (id, URLs y proveedor)
+// y el GIF se sigue sirviendo desde el CDN de GIPHY o Tenor, que
+// es justo como funcionan sus APIs oficiales.
+
+export type GifProvider = 'giphy' | 'tenor';
+
+export interface GifAttachment {
+  provider: GifProvider;
+  id: string;
+  /** GIF animado a tamaño completo. */
+  url: string;
+  /** Versión ligera para la vista previa y la cuadrícula. */
+  previewUrl: string;
+  width?: number;
+  height?: number;
+  title?: string;
+}
+
+/**
+ * Ajustes de privacidad de una cuenta, ya leídos con los
+ * valores por defecto puesta (ver `readPrivacy` en
+ * `services/accountSettings`).
+ *
+ * En Firestore viven como TRES campos de primer nivel del
+ * documento del usuario ("profileVisibility", "allowChatRequests"
+ * y "showActivity"), no anidados en un mapa "privacy".
+ *
+ * Es a propósito, y por dos razones:
+ *
+ *  1. Las reglas de seguridad leen esos campos para decidir si
+ *     se acepta una solicitud de conversación. Leer un campo
+ *     anidado de un mapa que puede no existir es justo el caso
+ *     que falla en reglas, y aquí hay miles de cuentas antiguas
+ *     sin ninguno de los ajustes. Un campo de primer nivel que
+ *     no está vale null, y "null != 'private'" es true, que es
+ *     el valor por defecto que se quiere.
+ *  2. El resto de ajustes del usuario (role, isBanned) ya son
+ *     campos de primer nivel, y la regla de actualización
+ *     comprueba los nombres afectados uno a uno.
+ *
+ * Lo que NO se ofrece: "ocultar mi correo". Las reglas deciden a
+ * nivel de documento, no de campo, así que no hay forma de dejar
+ * leer el campo "email" del documento de otro sin enseñarle el
+ * documento entero. Ofrecer ese interruptor sería prometer algo
+ * que no se cumple, y el correo es justo el dato que más importa
+ * proteger.
+ */
+export interface PrivacySettings {
+  /**
+   * 'public' = cualquiera que conozca tu ID puede ver tu perfil y
+   * pedirte conversación. 'private' = nadie puede iniciar una
+   * conversación nueva contigo (las que ya tienes siguen).
+   */
+  profileVisibility: 'public' | 'private';
+  /** Interruptor fino: recibir solicitudes aunque el perfil sea público. */
+  allowChatRequests: boolean;
+  /** Mostrar los hilos y comentarios propios en tu perfil. */
+  showActivity: boolean;
+}
+
+export interface User {
+  uid: string;
+  email: string;
+  username: string;
+  displayName: string;
+  chatId: string; // e.g. "GK-9482-OTAKU" or uid
+  avatarUrl: string;
+  bio?: string;
+  favoriteAnime?: string;
+  role: UserRole;
+  createdAt: string;
+  lastSeen?: string;
+  isBanned?: boolean;
+
+// ── Privacidad (ver `PrivacySettings`) ──────────────
+  // Los tres van sueltos y no dentro de un mapa, por lo que
+  // explican los comentarios de arriba. Los que no estén
+  // significan "sin configurar", y se leen como los valores por
+  // defecto: todo abierto, como ha funcionado la web siempre.
+  profileVisibility?: 'public' | 'private';
+  allowChatRequests?: boolean;
+  showActivity?: boolean;
+
+  // ── Gamificación (ver `types/gamification.ts`) ──────
+  // Los escribe la Cloud Function con el Admin SDK. Son
+  // opcionales porque el cliente los LEE y las cuentas que ya
+  // existían no los tienen: se leen como cero o como lista
+  // vacía, que es lo que deben mostrar.
+  //
+  // El cliente no puede escribirlos: lo prohíben las reglas de
+  // Firestore, y lo único que escribe el usuario de este bloque es
+  // `equippedTitle`.
+  xp?: number;
+  level?: number;
+  /** Medallas desbloqueadas: id de medalla → fecha ISO. */
+  medals?: Record<string, string>;
+  /** Id de la medalla cuyo título lleva puesto. */
+  equippedTitle?: string | null;
+}
+
+export interface StreamingService {
+  name: string;
+  url: string;
+  badgeColor?: string;
+}
+
+export interface Episode {
+  id: string;
+  animeId: string;
+  /**
+   * Temporada a la que pertenece. Es OPCIONAL a propósito: los
+   * episodios que ya existían antes de las temporadas no lo
+   * tienen, y siguen(se) mostrando como la temporada 1 del anime.
+   * Hacerlo obligatorio habría obligado a migrar el catálogo.
+   */
+  seasonId?: string;
+  number: number;
+  title: string;
+  romajiTitle?: string;
+  description: string;
+  thumbnailUrl: string;
+  /** A qué parte de la miniatura se ancla el recorte. Ver `Character.imageFocus`. */
+  thumbnailFocus?: { x: number; y: number };
+  airDate: string;
+  duration: string;
+  /** Nota del 1 al 10 que pone el equipo, como en el anime. 0 = sin nota. */
+  rating?: number;
+  likesCount: number;
+  likedBy?: string[];
+}
+
+/**
+ * Una temporada dentro de un anime. Los episodios y los
+ * personajes cuelgan de ella con `seasonId`; el anime al que
+ * pertenece se sigue sabiendo por `animeId`.
+ *
+ * LA FICHA ES DE CADA TEMPORADA: la 2 puede tener su propio año,
+ * estado, estudio, puntuación, capítulos, portada y banner. Lo
+ * único que se comparte entre temporadas son las categorías, los
+ * géneros y las plataformas de streaming, que son de la serie
+ * entera y viven en el anime.
+ *
+ * Todos los campos de abajo son opcionales y, cuando faltan, se
+ * hereda el valor del anime (ver `fichaDe` en
+ * `utils/seasonData.ts`). Eso es lo que hace que un catálogo
+ * antiguo, con todo en el anime y sin temporadas, siga
+ * enseñándose igual sin tocar un solo documento.
+ */
+export interface Season {
+  id: string;
+  animeId: string;
+  /** 1, 2, 3... El orden en que se listan y en la wiki. */
+  number: number;
+  /** Nombre propio de la temporada, si tiene ("Segunda Parte"). */
+  title?: string;
+  synopsis?: string;
+  year?: number;
+  status?: 'En emisión' | 'Finalizado' | 'Próximamente';
+  /** Ficha técnica. */
+  studio?: string;
+  rating?: number;
+  episodesCount?: number;
+  /**
+   * Portada vertical PROPIA de la temporada.
+   *
+   * Antes esto no se enseñaba en ningún sitio: era un dato que se
+   * rellenaba en el panel y no se veía. Ahora la wiki lo usa.
+   */
+  posterUrl: string;
+  /**
+   * Banner PROPIO de la temporada, horizontal como el del anime.
+   *
+   * Opcional a propósito: si se deja vacío, la wiki enseña el
+   * banner del anime. Una segunda temporada no tiene por qué
+   * tener una imagen distinta.
+   */
+  bannerUrl?: string;
+  /** A qué parte de la portada se ancla el recorte. */
+  posterFocus?: { x: number; y: number };
+  /** A qué parte del banner se ancla el recorte. */
+  bannerFocus?: { x: number; y: number };
+  createdAt: string;
+}
+
+export interface Character {
+  id: string;
+  animeId: string;
+  /**
+   * Temporada a la que pertenece, si es EXCLUSIVA de una.
+   *
+   * Opcional, pero aquí no significa lo mismo que en
+   * `Episode.seasonId`: un personaje sin `seasonId` es
+   * COMPARTIDO y sale en todas las temporadas de la wiki, que es
+   * lo normal (Kaguya está en las tres). Duplicar el personaje en
+   * cada temporada obligaría a darle imagen, "me gusta" y
+   * comentarios distintos en cada copia.
+   *
+   * Solo se rellena cuando el personaje es exclusivo de una, como
+   * alguien que debuta en la temporada 3.
+   */
+  seasonId?: string;
+  name: string;
+  japaneseName?: string;
+  slug: string;
+  imageUrl: string;
+  /**
+   * Punto de la imagen que se ve en el recorte, de 0 a 1.
+   *
+   * Las fotos de personaje casi nunca vienen cuadradas, y al
+   * recortarlas para la tarjeta se perdían la cabeza o el cuerpo.
+   * Con esto se elige a qué parte se ancla el recorte, así cada
+   * una se ve como toca. Por defecto, el centro.
+   */
+  imageFocus?: { x: number; y: number };
+  description: string;
+  role: 'main' | 'supporting' | 'antagonist';
+  voiceActor?: string;
+  likesCount: number;
+  likedBy?: string[];
+  tags: string[];
+}
+
+export interface Anime {
+  id: string;
+  slug: string;
+  /**
+   * Título de la SERIE, no de una temporada. Es lo que usan las
+   * tarjetas, el buscador y la URL, que no saben qué temporada se
+   * está viendo. El subtítulo de cada una ("Segunda Parte") vive
+   * en `Season.title`.
+   */
+  title: string;
+  japaneseTitle?: string;
+  /**
+   * Sinopsis general de la serie. Cada temporada puede tener la
+   * suya, que es la que sale en la wiki al elegirla.
+   */
+  synopsis: string;
+  /**
+   * Portada y banner de la SERIE.
+   *
+   * Son la base que heredan las temporadas que no tengan las
+   * suyas propias, y de ellas salen las tarjetas del catálogo. Al
+   * guardar la ficha de la temporada 1, sus imágenes se copían
+   * aquí (ver `saveSeasonFields`), así que no se quedan
+   * desincronizadas.
+   */
+  coverUrl: string;
+  bannerUrl: string;
+  /**
+   * A qué parte de la portada y del banner se ancla el recorte,
+   * de 0 a 1. Ver `Character.imageFocus`.
+   *
+   * Van separados porque la portada se recorta en un recuadro
+   * vertical pequeño y el banner en uno horizontal enorme: lo
+   * que funciona para uno no funciona para el otro.
+   */
+  coverFocus?: { x: number; y: number };
+  bannerFocus?: { x: number; y: number };
+  /**
+   * Año, puntuación, estado y capítulos emitidos de la serie.
+   *
+   * Igual que las imágenes, son la BASE: los usa el catálogo y los
+   * heredan las temporadas que no tengan los suyos.
+   */
+  year: number;
+  rating: number;
+  /**
+   * Estado de la serie, con la palabra CORTA que espera el filtro
+   * del panel ('emitiendo' | 'finished' | 'upcoming'). La
+   * temporada usa las largas ('En emisión' | 'Finalizado' |
+   * 'Próximamente') y `saveSeasonFields` traduce al copiar.
+   *
+   * Antes este tipo declaraba las palabras largas, que es lo que
+   * se acaba de escribir: mentía sobre lo que hay en Firestore, y
+   * por eso el estado se enseñaba tal cual en la wiki ("emitiendo"
+   * en minúsculas para la serie, "En emisión" para la T1). Para
+   * pintarlo usa `textoEstado` de `utils/seasonData.ts`, que
+   * entiende los dos vocabularios.
+   */
+  status: 'emitiendo' | 'finished' | 'upcoming' | 'En emisión' | 'Finalizado' | 'Próximamente';
+  episodesCount: number;
+  /**
+   * Categoría principal. Se sigue escribiendo para no romper lo
+   * que ya había: el filtro del catálogo y las fichas la usan.
+   *
+   * Para lo nuevo, usar "categories": una serie puede encajar en
+   * varias ("Shonen & Acción" y "Seinen & Psicológico"), y forzar
+   * a elegir una sola obligaba a que la dejara fuera de la otra.
+   */
+  category: string;
+  /**
+   * Todas las categorías de la serie. Es opcional a propósito: las
+   * que ya estaban en Firestore solo tienen "category".
+   *
+   * El filtro usa esta lista cuando existe, y "category" cuando no,
+   * de forma que las series viejas se sigan viendo en su sitio sin
+   * tener que migrar nada.
+   */
+  categories?: string[];
+  genres: string[];
+  /** También la base: cada temporada puede tener el suyo. */
+  studio: string;
+  /**
+   * Plataformas de la serie. Compartidas por TODAS las
+   * temporadas a propósito: dónde se emite no cambia entre la 1 y
+   * la 2, y copiarlo al revés obligaría a duplicar la lista.
+   */
+  streaming: StreamingService[];
+  likesCount: number;
+  likedBy?: string[];
+  commentsCount: number;
+}
+
+export interface Thread {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  title: string;
+  body: string;
+  categoryId: string;
+  categoryName: string;
+  tags: string[];
+  likesCount: number;
+  likedBy: string[];
+  commentsCount: number;
+  createdAt: string;
+  pinned?: boolean;
+  /** Imagen adjunta, como máximo una por publicación. */
+  imageUrl?: string;
+  /**
+   * Encuesta opcional. Solo existe si el autor la añadió al
+   * publicar. No lleva contadores: los votos viven en la
+   * subcolección `pollVotes` (ver `Poll`).
+   */
+  poll?: Poll;
+  /**
+   * Recuento de reacciones. Lo escribe la Cloud Function al
+   * leer `reactions`; el cliente solo lo LEE.
+   *
+   * Los resultados que ve el usuario se calculan con los
+   * documentos de `reactions`, que siempre son la verdad; esto
+   * es la caché que permite ordenar y sacar estadísticas sin
+   * recorrer todas las reacciones.
+   */
+  reactionCounts?: ReactionCounts;
+  /** Suma de `reactionCounts`. También solo lo escribe el servidor. */
+  reactionsTotal?: number;
+}
+
+export interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  targetType: 'thread' | 'anime' | 'episode' | 'character';
+  targetId: string; // threadId, animeId, episodeId, or characterId
+  parentId: string | null;
+  body: string;
+  likesCount: number;
+  likedBy: string[];
+  createdAt: string;
+  /** Imagen adjunta al comentario. */
+  imageUrl?: string;
+  /**
+   * GIF adjunto al comentario (como máximo uno).
+   *
+   * Se guarda junto a la imagen para no reescribir el cuerpo:
+   * el texto del comentario sigue siendo texto plano y el GIF
+   * se pinta debajo, igual que una foto.
+   */
+  gif?: GifAttachment;
+  /** Recuento de reacciones. Solo lo escribe la Cloud Function. */
+  reactionCounts?: ReactionCounts;
+  reactionsTotal?: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  chatId: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  body: string;
+  createdAt: string;
+  /** 'text' | 'image' | 'gif' (según lo que lleve adjunto). */
+  type: 'text' | 'image' | 'gif';
+  /**
+   * GIF adjunto al mensaje.
+   *
+   * Igual que en los comentarios: no se sube a Storage, se
+   * guarda la ficha (id, URLs y proveedor) y el archivo se sigue
+   * sirviendo desde el CDN. Las reglas comprueban que las URLs
+   * sean del proveedor.
+   */
+  gif?: GifAttachment;
+}
+
+export interface ChatRoom {
+  id: string;
+  type: 'direct' | 'group';
+  name: string; // for group: group name, for direct: name of other participant
+  avatar?: string;
+  ownerId: string;
+  memberIds: string[];
+  lastMessage?: string;
+  lastMessageAt?: string;
+  lastMessageSenderId?: string;
+  /** uid → fecha ISO hasta la que esa persona ha leído. Vive en el
+   *  propio chat para no necesitar una suscripción por conversación. */
+  readAt?: Record<string, string>;
+  /** uids que han eliminado el chat de su lista. */
+  hiddenFor?: string[];
+  /** Solo en grupos: código único (GRP-A1B2-C3D4) con el que se
+   *  pide entrar. El nombre se puede repetir; el código no. */
+  code?: string;
+  /** uid → fecha ISO. Al "vaciar" la conversación, los mensajes
+   *  anteriores a esta fecha dejan de aparecerle a esa persona.
+   *  Los mensajes siguen en Firestore, así que los demás los
+   *  conservan intactos. */
+  clearedAt?: Record<string, string>;
+  unreadCount?: number;
+}
+
+// ======================================================
+// SOLICITUDES DE CONVERSACIÓN
+// ======================================================
+// El chat no existe hasta que se acepta la solicitud. Así el
+// documento de conversación solo está entre personas que ya se
+// han aceptado, y no hay conversaciones a medio hacer.
+
+export type ChatRequestType = 'direct' | 'group';
+export type ChatRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
+
+export interface ChatRequest {
+  id: string;
+  type: ChatRequestType;
+  fromId: string;
+  fromName: string;
+  fromAvatar: string;
+  /** Destinatario: la persona (tipo direct) o el dueño del grupo. */
+  toId: string;
+  /** Nombre y foto del destinatario, para que quien envía la
+   *  solicitud sepa a quién se la mandó sin tener que buscarlo. */
+  toName?: string;
+  toAvatar?: string;
+  /** Solo en tipo 'group': el grupo al que se quiere entrar. */
+  groupId?: string;
+  groupName?: string;
+  status: ChatRequestStatus;
+  createdAt: string;
+  respondedAt?: string;
+  /** Chat creado al aceptarse. */
+  resultingChatId?: string;
+}
+
+/** Ficha de un grupo, obtainable solo con su código. */
+export interface GroupListing {
+  id: string;
+  code: string;
+  name: string;
+  ownerId: string;
+  ownerName: string;
+  memberCount: number;
+  createdAt: string;
+}
+
+export interface CategoryItem {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  animeCount: number;
+  threadsCount?: number;
+  color: string;
+}
+
+export interface TriviaExtra {
+  id: string;
+  title: string;
+  characterOrAnime: string;
+  fact: string;
+  imageUrl: string;
+  category: string;
+  likes: number;
+  likedBy?: string[];
+}
+
+export interface MascotDialogue {
+  id: string;
+  text: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  trackingId: string;
+  userId: string;
+  userName: string;
+  contactEmail: string;
+  category: 'bug' | 'suggestion' | 'account' | 'report';
+  subject: string;
+  message: string;
+  status: 'open' | 'in_progress' | 'resolved';
+  createdAt: string;
+}
+
+// ======================================================
+// CONTENIDO EDITABLE DEL SITIO
+// ======================================================
+// Lo que el admin puede cambiar sin tocar código: el texto de
+// bienvenida de la portada y el logo. Se guarda en un único
+// documento para no tener una colección entera de ajustes.
+
+export interface SiteSettings {
+  /** Parte inicial: "Bienvenido a". */
+  welcomeTitle: string;
+  /** La parte con color degradado: "geekapoo.com". */
+  welcomeHighlight: string;
+  /** Párrafo descriptivo bajo el título. */
+  welcomeText: string;
+  /** Logo del navbar. Si está vacío, se dibuja la "G". */
+  logoUrl: string;
+  /**
+   * Ilustración de la columna izquierda en la página de Soporte.
+   * Vacío = no se pinta nada.
+   */
+  supportArtLeftUrl: string;
+  /** Ilustración de la columna derecha en la página de Soporte. */
+  supportArtRightUrl: string;
+}
+
+export interface WeeklyWork {
+  id: string;
+  title: string;
+  /** Autor o estudio. */
+  author: string;
+  synopsis: string;
+  imageUrl: string;
+  /** Etiqueta corta arriba: "Nº1", "Nuevo", "Top"... */
+  badge: string;
+  /** Nota del 1 al 10, o 0 si no se quiere mostrar. */
+  score: number;
+  /** Posición en la lista. Menor número, más arriba. */
+  order: number;
+  active: boolean;
+}

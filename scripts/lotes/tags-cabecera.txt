@@ -1,0 +1,20 @@
+// ETIQUETAS - Chainsaw Man
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+//
+// Maximo 40 caracteres por etiqueta (`MAX_TAG`).
+//
+// ── EL EJE DE LA SERIE ───────────────────────────────────────
+//
+// Aqui si hay lados: hay una Division de Seguridad Publica que
+// protege a la gente y una tanda de demonios que se la come, y casi
+// todo lo que pasa cae dentro de esa linea. Por eso los demonios
+// llevan "Demonio" y los humanos no.
+//
+// Pero la serie no se queda en el lado bueno. Makima dirige la
+// Division y es quien arranca los capitulos, y Pochita es un demonio
+// que es lo unico que ha salvado a Denji. Asi que ninguna etiqueta
+// dice quien es bueno: dice de que lado esta cada uno.
+//
+// No hay facciones ni rankings: es gente tomando decisiones malas
+// dentro de un trabajo malo.

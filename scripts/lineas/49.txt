@@ -1,0 +1,5 @@
+import { readdir } from 'node:fs/promises';
+import { coleccion, escribir, str, num } from './firestore-rest.mjs';
+import { comoBuscar } from './busquedas-anime.mjs';
+import { capituloDe } from './emparejar-capitulo.mjs';
+import { limpiar } from './normalizar-titulo.mjs';

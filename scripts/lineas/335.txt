@@ -1,0 +1,48 @@
+let puestas = 0;
+  let saltadas = 0;
+  const avisos = new Map();
+
+  for (const f of necesidad) {
+    const nuestro = delCatalogo.find(
+      (d) => d.temporada === f.temporada && d.numero === f.numero,
+    );
+
+    // El emparejado va por `capituloDe`, no por un indice de titulo. La
+    // razon esta en `emparejar-capitulo.mjs`: hay series en las que TVDB
+    // repite la lista de capitulos de la primera parte en todas las
+    // demas, y un indice por titulo daria la imagen de la parte
+    // anterior. Aqui se comprueban la temporada y el numero.
+    const r = capituloDe({
+      animeId: id,
+      nuestro,
+      capitulos: elegida.capitulos,
+      usadas,
+    });
+
+    if (!r) {
+      saltadas++;
+      continue;
+    }
+
+    if (r.aviso) avisos.set(r.aviso, (avisos.get(r.aviso) ?? 0) + 1);
+
+    puestas++;
+    totalNuevas++;
+
+    console.log(
+      `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
+        `${limpiar(nuestro.japones).slice(0, 36).padEnd(38)}${r.url.slice(0, 82)}`,
+    );
+
+    if (escribirEnBase) {
+      await escribir('episodes', f.id, { thumbnailUrl: { stringValue: r.url } }, [
+        'thumbnailUrl',
+      ]);
+    }
+
+    usadas.add(r.url);
+  }
+
+  for (const [aviso, veces] of avisos) {
+    console.log(`  aviso: ${veces} capitulos con "${aviso}"`);
+  }

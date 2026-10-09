@@ -1,0 +1,11 @@
+Denji|1,2|main|デンジ|Kikunosuke Toya|El chico que se suicida al rellenar mal un formulario de la policia y acaba cazando demonios para la mafia. No tiene poderes propios: lo que tiene es un demonio con una motosierra en la cabeza que respeta lo que el le pidio. Lo que quiere de la vida es tan pequeno que da pena decirlo, y por eso choca contra todos los que estan alrededor.
+
+Power|1,2|main|パワー|Fairouz Ai|Demonio de sangre que aparece en un callejon de Tokio y se vende como miembro de la cuarta division porque es donde se come mejor. Habla sin filtro, se burla de todo el mundo y guarda rencor con una memoria que no se borra.
+
+Makima|1,2|main|マキマ|Tomori Kusunoki|Supervisora de la cuarta division y la razon por la que Denji existe como cazador. Dice siempre la verdad y por eso todos le creen, y esa es justo la trampa: lo que promete es lo que va a hacer.
+
+Aki Hayakawa|1,2|main|早川アキ|Shougo Sakata|Demonio del futuro con un capote de siempre que hace su trabajo porque no sabe hacer otra cosa. Le ofrece su cabeza a otro demonio a cambio de no tener que matar. Es el unico de los tres que ve venir el final y no hay manera de avisar.
+
+Reze|2|main|レゼ|Reina Ueda|Trabajadora de un cafe y el secreto mejor guardado de la pelicula: es el Diablo de la Bomba y la enviaron a Japon para casarse con Chainsaw Man. Sabe lo que va a pasar y lo acepta, porque es la unica forma de salvar a Denji.
+
+Kishibe|1,2|supporting|岸辺|Kenjirou Tsuda|El hombre que enseño a los tres a usar un demonio contra otro demonio. Esta jubilado y entrena a Denji y a Power porque no le queda otra: ha visto lo que viene y sabe que la cuarta division no llega entera a Kioto.

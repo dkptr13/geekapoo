@@ -1,0 +1,56 @@
+const SIN_IDEOGRAMA = /[一-鿿぀-ヿ가-힯]/;
+
+// ── COMO SE BUSCA UNA PALABRAinglesa metida en una frase ───────────
+//
+// Buscar "hay alguna palabra inglesa en el fichero" no sirve: hay
+// hundreds. Los capitulos de Tokyo Revengers se llaman "Turn around" y
+// "Run out", los de Evangelion "You Are Not", los de Saekano "How to
+// Raise a Boring Girlfriend", y hay nombres de seiyuu que se llaman Run
+// o Ran. Todo eso es correcto y sale en treinta y seis ficheros.
+//
+// Lo que no es correcto es una palabra inglesa PEGADA a otra, sin
+// espacio. Eso no lo escribe nadie:
+//
+//   "lo queibi iba a asustar"   en vez de "lo que iba"
+//   "se-en el sport"             en vez de "se en el"
+//   "ha。Dicho"                  en vez de "ha dicho"
+//
+// Una inyeccion no pone un espacio alrededor de lo que mete, porque el
+// espacio es justo lo que se pierde. Asi que se busca la palabra inglesa
+// con una letra pegada delante o detras, no la palabra suelta.
+//
+// Se quitan antes los ideogramas, que son japones legitimos, y los
+// titulos entrecomillados cortos, que pueden estar en el idioma
+// original de la serie.
+const sinPegar = (s) => s.replace(SIN_IDEOGRAMA, ' ');
+
+/**
+ * Las palabras ingleses que estan pegadas a otra letra.
+ *
+ * @param {string} s
+ * @returns {string[]}
+ */
+function pegadas(s) {
+  const salida = [];
+
+  for (const m of s.matchAll(/[A-Za-z]{2,}/g)) {
+    const palabra = m[0];
+    const minuscula = palabra.toLowerCase();
+
+    if (!INGLESAS.includes(minuscula)) continue;
+
+    const antes = s[m.index - 1] ?? ' ';
+    const despues = s[m.index + palabra.length] ?? ' ';
+
+    const pegadaAntes = /[A-Za-z]/.test(antes);
+    const pegadaDespues = /[A-Za-z]/.test(despues);
+
+    if (pegadaAntes || pegadaDespues) {
+      salida.push(`${palabra} en "${s.slice(Math.max(0, m.index - 18), m.index + palabra.length + 18)}"`);
+    }
+  }
+
+  return salida;
+}
+
+let fallos = 0;

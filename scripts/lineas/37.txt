@@ -1,0 +1,36 @@
+// comparacion tambien pasa el texto por `minusculas()`.
+//
+// De la lista se han dejado fuera palabras que tambien son espanolas o
+// que salen legitimas en los comentarios:
+//
+//   · "real" y "false": de los comentarios que hablan de
+//     `ratingsSummary.aggregateRating`, donde son nombres de campo.
+//   · "dicho": es espanol ("todo lo que la serie ha dicho"). Aparece en
+//     el resumen del capitulo 18 de Toradora.
+//   · "asi", "aqui", "alla", "no", "si", "mas", "menos":扶持spanol
+//     comun y no Sealguno indice fiable.
+const INGLESAS = [
+  'the', 'and', 'with', 'for', 'from', 'that', 'this', 'not', 'but', 'her', 'his',
+  'him', 'they', 'them', 'were', 'been', 'have', 'has', 'was', 'are', 'you', 'she',
+  'who', 'what', 'when', 'where', 'why', 'how', 'very', 'more', 'most', 'also',
+  'just', 'like', 'back', 'over', 'into', 'out', 'about', 'after', 'before',
+  'again', 'still', 'even', 'only', 'same', 'other', 'some', 'each', 'make',
+  'made', 'than', 'then', 'will', 'would', 'could', 'should', 'being', 'done',
+  'going', 'does', 'did', 'said', 'say', 'says', 'told', 'give', 'given',
+  'find', 'found', 'tell', 'feel', 'felt', 'know', 'knew', 'seem', 'seems',
+  'keep', 'kept', 'let', 'put', 'set', 'use', 'used', 'show', 'showed', 'hear',
+  'heard', 'play', 'played', 'run', 'ran', 'walk', 'walked', 'look', 'looked',
+  'wait', 'waited', 'start', 'started', 'help', 'helped', 'turn', 'turned',
+  'change', 'changed', 'locked', 'dirty', 'propose',
+  // "ibi" no es ingles. Esta por el texto corrupto "lo queibi iba", que
+  // fue una inyeccion; dejarlo en la lista hace que salte a la vista si
+  // vuelve a aparecer.
+  'ibi',
+  'down', 'off', 'away', 'around', 'through', 'under', 'above',
+  'between', 'without', 'within', 'along', 'across', 'behind', 'beyond',
+  'since', 'until', 'while', 'whether', 'either', 'neither',
+  'both', 'few', 'several', 'many', 'much', 'own',
+  'last', 'next', 'first', 'second', 'third', 'best', 'better', 'worst',
+  'enough', 'quite', 'rather', 'sure', 'true', 'yes',
+  'never', 'always', 'sometimes', 'often', 'soon',
+];

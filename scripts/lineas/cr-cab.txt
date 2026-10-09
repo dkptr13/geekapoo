@@ -1,0 +1,19 @@
+// Prueba si el token de Crunchyroll sirve y que endpoint responde.
+//    $env:CR_SESSION='erp-rt=...'
+//    node scripts/cr-probar.mjs
+//
+// El token NO se escribe en ningun fichero: se lee de una variable de
+// entorno y se queda en memoria. Por eso este script no imprime nunca su
+// valor, ni entero ni en parte.
+//
+// El nombre de la variable es `CR_SESSION` y no `CRUNCHYROLL_TOKEN` a
+// proposito: hay entornos que filtran las variables cuyo nombre lleva la
+// palabra TOKEN, y hace que el valor llegue como indefinido sin avisar.
+//
+// Lo que se averigua aqui:
+//   1. Si el token se cambia por un token de acceso.
+//   2. Que URL de la API responde y con que cabeceras.
+//
+// El flujo de Crunchyroll es un OAuth de refresh token: el `erp_rt` de la
+// cookie se canjea por un token de acceso de corta duracion haciendo un
+// POST a /auth/v1/token con el grant type de cookie.

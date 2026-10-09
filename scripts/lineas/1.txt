@@ -1,0 +1,3 @@
+import { readFile } from 'node:fs/promises';
+
+// Busca texto corrupto en los ficheros de datos.

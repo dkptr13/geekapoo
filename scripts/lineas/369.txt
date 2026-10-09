@@ -1,0 +1,69 @@
+for (const f of necesidad) {
+    const nuestro = delCatalogo.find(
+      (d) => Number(d.temporada) === Number(f.temporada) && Number(d.numero) === Number(f.numero),
+    );
+
+    // Sin esto no se puede ni intentar el emparejado, y con el catalogo
+    // entero lleno el aviso se repite por cada capitulo. Con un anime si
+    // es util, porque dice si el problema es de los ficheros de datos.
+    if (!nuestro && REHACER) {
+      console.log(
+        `  T${f.temporada} ${f.numero}  no esta en los ficheros de datos ` +
+          `(hay ${delCatalogo.length} capitulos, de T${delCatalogo[0]?.temporada} ` +
+          `${delCatalogo[0]?.numero} a T${delCatalogo.at(-1)?.temporada} ${delCatalogo.at(-1)?.numero})`,
+      );
+
+      saltadas++;
+      continue;
+    }
+
+    const r = capituloDe({
+      animeId: id,
+      nuestro,
+      capitulos: elegida.capitulos,
+      usadas,
+    });
+
+    if (!r) {
+      // Con `--rehacer` se enseña por que se ha rechazado cada capitulo.
+      // Sin ese dato, un "0 puestas" no dice si es que los titulos no
+      // cuadran, si es que estan mal las temporadas o si es que la imagen
+      // ya la tenia puesta otro.
+      if (REHACER) {
+        const clave = limpiar(nuestro?.japones);
+
+        const conTitulo = elegida.capitulos.filter((e) => limpiar(e.name) === clave);
+
+        console.log(
+          `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
+            `${(clave || '(sin titulo)').slice(0, 34).padEnd(36)}` +
+            `${conTitulo.length} con ese titulo en TVDB` +
+            (conTitulo.length
+              ? `, seeking S${temporadaEnTvdb(id, f.temporada)}E${f.numero}, ` +
+                `en ${[...new Set(conTitulo.map((c) => `S${c.seasonNumber}E${c.number}`))].join(' ')}`
+              : ''),
+        );
+      }
+
+      saltadas++;
+      continue;
+    }
+
+    if (r.aviso) avisos.set(r.aviso, (avisos.get(r.aviso) ?? 0) + 1);
+
+    puestas++;
+    totalNuevas++;
+
+    console.log(
+      `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
+        `${limpiar(nuestro.japones).slice(0, 36).padEnd(38)}${r.url.slice(0, 82)}`,
+    );
+
+    if (escribirEnBase) {
+      await escribir('episodes', f.id, { thumbnailUrl: { stringValue: r.url } }, [
+        'thumbnailUrl',
+      ]);
+    }
+
+    usadas.add(r.url);
+  }

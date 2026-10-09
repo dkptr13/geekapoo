@@ -1,0 +1,1243 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ======================================================
+    // FUNCIONES AUXILIARES
+    // ======================================================
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Perfil del usuario autenticado (null si no existe documento)
+    function myDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function hasProfile() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function myRole() {
+      return hasProfile() ? myDoc().data.role : null;
+    }
+
+    function isAdmin() {
+      return myRole() == 'admin';
+    }
+
+    function isModerator() {
+      return myRole() == 'admin' || myRole() == 'moderator';
+    }
+
+    // Importante: hay que comparar con "== true" y no con "!= true".
+    // Un campo ausente vale null, y en las reglas de seguridad
+    // "null != true" es false (no true), así que un usuario sin campo
+    // isBanned quedaría bloqueado por error.
+    //
+    // Y además hay que comprobar que la clave exista antes de
+    // leerla con punto. El comentario de arriba daba a entender que
+    // leer un campo que no existe devuelve null, y no es así: en las
+    // reglas de seguridad, acceder a una clave ausente de un mapa
+    // lanza un error de evaluación ("Property isBanned is undefined
+    // on object") y la regla entera falla con PERMISSION_DENIED.
+    //
+    // No se puede usar "data.get('isBanned', false)" para sortearlo:
+    // el "get" de las reglas solo acepta la clave, sin valor por
+    // defecto, así que Passaría dos argumentos y es un error de
+    // sintaxis. La forma buena es comprobar antes con "in".
+    //
+    // Esto no ha explotado porque todas las cuentas que crea
+    // AuthContext llevan "isBanned: false" siempre, pero cualquier
+    // cuenta anterior a ese campo (o creada a mano desde la consola)
+    // no podría publicar hilos, comentarios ni nada.
+    function isBanned() {
+      return hasProfile()
+             && 'isBanned' in myDoc().data
+             && myDoc().data.isBanned == true;
+    }
+
+    // Un usuario baneado puede leer, pero no escribir contenido
+    function isActive() {
+      return isSignedIn() && !isBanned();
+    }
+
+    // Datos del chat PADRE.
+    //
+    // Imprescindible para las subcolecciones: dentro de
+    // "chats/{id}/messages/{id}", la variable "resource" es el
+    // MENSAJE, que no tiene campo memberIds. Si isChatMember()
+    // mirara resource, daría false en todos los mensajes y no se
+    // podría ni leer ni enviar nada. Hay que leer el documento
+    // del chat, que es quien guarda la lista de miembros.
+    function chatData(chatId) {
+      return get(/databases/$(database)/documents/chats/$(chatId)).data;
+    }
+
+    function isChatMember(chatId) {
+      return isSignedIn() && request.auth.uid in chatData(chatId).memberIds;
+    }
+
+    function isChatOwner(chatId) {
+      return isSignedIn() && chatData(chatId).ownerId == request.auth.uid;
+    }
+
+    // Solo contadores de "me gusta" y de comentarios: cualquier usuario activo puede tocarlos
+    function onlyEngagement() {
+      return isActive()
+        && request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly(['likedBy', 'likesCount', 'commentsCount']);
+    }
+
+    // ======================================================
+    // ENCUESTAS
+    // ======================================================
+    //
+    // La configuración de la encuesta vive DENTRO del hilo
+    // ("threads/{id}.poll"), sin contadores. Los votos van en
+    // "threads/{id}/pollVotes/{uid}", un documento por persona.
+    //
+    // Que las opciones sean un MAPA (id → texto) y no una lista
+    // es lo que permite comprobarlas aquí: con un mapa, un `in`
+    // dice si el id del voto es una opción de verdad. Con una
+    // lista, el cliente tendría que escribir los votos de cada
+    // opción y las reglas no pueden contrastar ese número con el
+    // voto que se está creando.
+    //
+    // Lo que queda fuera del alcance del cliente:
+    //
+    //   - Los contadores. No hay ninguno que escribir: se cuentan
+    //     los documentos de `pollVotes`. El resumen agregado
+    //     (`pollStats/{threadId}`) lo calcula la Cloud Function y
+    //     aquí está bloqueado con `allow write: if false`.
+    //
+    //   - Votar dos veces. El id del voto es el uid, así que el
+    //     segundo intento choca contra el documento existente, y
+    //     no hay `allow delete`: nadie puede deshacer su voto ni
+    //     liberating el sitio para volver a usarlo.
+    //
+    //   - Cambiar de opinión sin permiso. El `update` solo se
+    //     concede si el autor activó `allowChangeVote`.
+    //
+    //   - Votar en una encuesta cerrada o caducada. Se mira
+    //     `isClosed` y `expiresAt` contra la hora del servidor
+    //     (`request.time`), no contra la del navegador.
+
+    function pollDelHilo(threadId) {
+      return get(/databases/$(database)/documents/threads/$(threadId)).data.poll;
+    }
+
+    function hayPoll(threadId) {
+      return 'poll' in get(/databases/$(database)/documents/threads/$(threadId)).data
+             && pollDelHilo(threadId) is map;
+    }
+
+    /**
+     * Una encuesta abierta: existe, no está cerrada y no ha caducado.
+     *
+     * `expiresAt` y `allowChangeVote` se miran con la forma
+     * `('campo' in mapa)` porque EN LAS REGLAS leer una clave que
+     * no existe LANZA un error de evaluación ("Property
+     * expiresAt is undefined on object") y la regla entera falla
+     * con PERMISSION_DENIED. Y no se puede escribir
+     * `data.get('expiresAt', ...)` para esquivarlo: el `get` de
+     * las reglas solo acepta la clave, sin valor por defecto.
+     *
+     * Esto no es un caso rarísimo: las encuestas creadas antes de
+     * que existiera la caducidad (y las que seedea el panel) no
+     * tienen `expiresAt`, y con la comprobación ingenua no se
+     * podría ni votar en ellas.
+     */
+    function pollAbierto(threadId) {
+      return hayPoll(threadId)
+             && pollDelHilo(threadId).isClosed == false
+             && (!('expiresAt' in pollDelHilo(threadId))
+                 || pollDelHilo(threadId).expiresAt == null
+                 || pollDelHilo(threadId).expiresAt > request.time);
+    }
+
+    /** Permite cambiar de opinión (solo se mira si ya hay voto). */
+    function pollCambiaVotos(threadId) {
+      return hayPoll(threadId)
+             && ('allowChangeVote' in pollDelHilo(threadId))
+             && pollDelHilo(threadId).allowChangeVote == true;
+    }
+
+    /**
+     * Que lo único que cambia al editar un hilo sea el cierre de
+     * su encuesta.
+     *
+     * Necesario porque `affectedKeys()` no siempre informa igual:
+     * según cómo se escriba, un `poll.isClosed` puede aparecer
+     * como "poll.isClosed" o como "poll" entero. Aceptar "poll"
+     * sin más dejaría que el autor reescribiera las opciones
+     * (y con ellas los ids que ya tienen votos apuntando), así
+     * que aquí se compara el resto de la encuesta campo a campo.
+     */
+    function pollSoloCambiaIsClosed(threadId) {
+      return hayPoll(threadId)
+             && request.resource.data.poll is map
+             && request.resource.data.poll.question == pollDelHilo(threadId).question
+             && request.resource.data.poll.options == pollDelHilo(threadId).options
+             && (('allowChangeVote' in request.resource.data.poll)
+                 == ('allowChangeVote' in pollDelHilo(threadId)))
+             && (!('allowChangeVote' in request.resource.data.poll)
+                 || request.resource.data.poll.allowChangeVote
+                    == pollDelHilo(threadId).allowChangeVote)
+             && (('expiresAt' in request.resource.data.poll)
+                 == ('expiresAt' in pollDelHilo(threadId)))
+             && (!('expiresAt' in request.resource.data.poll)
+                 || request.resource.data.poll.expiresAt
+                    == pollDelHilo(threadId).expiresAt)
+             && request.resource.data.poll.isClosed is bool
+             && request.resource.data.poll.isClosed
+                != pollDelHilo(threadId).isClosed;
+    }
+
+    /**
+     * Forma válida de una encuesta al CREAR el hilo.
+     *
+     * No se puede comprobar el tamaño de cada texto del mapa (las
+     * reglas no recorren mapas), pero sí el número de opciones, que
+     * es lo que de verdad protege: sin tope, un mapa con mil
+     * entradas se colaría en el documento.
+     */
+    function pollValido(p) {
+      return p is map
+             && p.question is string
+             && p.question.size() > 0
+             && p.question.size() <= 160
+             && p.options is map
+             && p.options.size() >= 2
+             && p.options.size() <= 6
+             && p.isClosed == false
+             && (!('allowChangeVote' in p)
+                 || p.allowChangeVote is bool)
+             && (!('expiresAt' in p)
+                 || p.expiresAt == null
+                 || p.expiresAt is timestamp);
+    }
+
+    // ======================================================
+    // REACCIONES
+    // ======================================================
+    //
+    // Cada reacción es un documento con un id DETERMINISTA:
+    // "reac_<tipo>_<id>_<uid>". Como el documento se llama así
+    // siempre, una persona no puede tener dos reacciones a la vez
+    // sobre el mismo contenido:(second write crearía el mismo
+    // documento y por tanto no sería un segundo voto, sino el
+    // mismo. Cambiar de 🔥 a 😂 es un `update`, y quitarlo es un
+    // `delete` de ese mismo documento.
+    //
+    // La comprobación del sufijo (`path.endsWith`) es la que
+    // impide falsear el sistema escribiendo con el id de otra
+    // persona: sin ella se podrían crear 400 documentos con el
+    // mismo `userId` y inflar cualquier recuento.
+    //
+    // Los contadores (`reactionCounts` del hilo o del comentario)
+    // los escribe la Cloud Function con el Admin SDK. Aquí no hay
+    // ninguna rama que los incluya en `hasOnly`, así que el
+    // cliente no puede tocarlos: ver `onReactionChanged`.
+
+    // El id del documento tiene que ser EXACTAMENTE el que compone
+    // el servicio: "reac_<tipo>_<id del objetivo>_<uid>".
+    //
+    // Comprobar solo que acabe en el uid no bastaría: alguien
+    // podría crear "basura_<uid>" apuntando al mismo contenido y
+    // salirse con dos reacciones suyas en el recuento. Con el
+    // sufijo entero no hay forma de inventarse un id propio para
+    // un objetivo que ya tiene reacción.
+    //
+    // OJO: se compara con el id del documento que captura el
+    // comodín `{reactionId}`, NO con la variable global `path`.
+    // `path` no existe en el lenguaje de reglas (el emulador la
+    // evalúa como null y TODA la regla falla), y se comprobó
+    // aquí mismo antes de dar por buena la comprobación.
+    function reactionDocDeUid(docId, uid, tipo, objetivoId) {
+      return docId == 'reac_' + tipo + '_' + objetivoId + '_' + uid;
+    }
+
+    /**
+     * El contenido al que se reacciona tiene que existir de verdad.
+     *
+     * Los mensajes de chat llevan su `chatId` en el documento de la
+     * reacción: sin él, las reglas no podrían comprobar que quien
+     * reacciona es miembro de ese chat, y cualquiera podría
+     * reaccionar a un mensaje de una conversación ajena.
+     */
+    function objetivoExiste(tipo, objetivoId) {
+      return (tipo == 'thread'
+              && exists(/databases/$(database)/documents/threads/$(objetivoId)))
+          || (tipo == 'comment'
+              && exists(/databases/$(database)/documents/comments/$(objetivoId)))
+          || (tipo == 'chat_message'
+              && existeMensajeDeChat(request.resource.data.chatId, objetivoId));
+    }
+
+    /** El mensaje existe Y quien escribe es del chat. */
+    function existeMensajeDeChat(chatId, messageId) {
+      return chatId is string
+             && chatId.size() > 0
+             && messageId is string
+             && messageId.size() > 0
+             && isChatMember(chatId)
+             && exists(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId));
+    }
+
+    /**
+     * Formato de la clave de reacción.
+     *
+     * Son más de doscientos emojis (el catálogo está en
+     * `src/data/emojis.ts`), así que una lista de literales en un
+     * `in [...]` sería ilegible y no se podría mantener. Lo que se
+     * exige aquí es el FORMATO: minúsculas, números y guiones
+     * bajos, y nada más.
+     *
+     * Es una comprobación de forma, no de contenido: alguien
+     * podría inventarse la clave "inventada" y la regla la
+     * aceptaría. Qué pasa entonces es que el cliente no la sabe
+     * pintar (no está en el catálogo) y la reacción se descarta
+     * al contar, así que una clave inventada ni se ve ni falsea
+     * ningún número. El catálogo es el que decide qué emojis
+     * existen; las reglas solo se assures de que no se cuela
+     * basura.
+     */
+    function reactionTypeValido(tipo) {
+      return tipo is string
+             && tipo.size() > 0
+             && tipo.size() <= 24
+             && tipo.matches('^[a-z0-9_]+$');
+    }
+
+    // ======================================================
+    // GIFs EN COMENTARIOS
+    // ======================================================
+    //
+    // El GIF no es un archivo: son cuatro datos. Y como el
+    // campo `gif.url` lo escribe el cliente, se comprueba que la
+    // URL sea de verdad del CDN de GIPHY o de Tenor. Sin esto,
+    // el campo serviría para meter cualquier URL (una de
+    // rastreo, una de contenido ilegal...) con solo cuatro
+    // líneas en la consola. `matches()` es una coincidencia
+    // COMPLETA de la expresión regular, no una búsqueda: por eso
+    // la URL entera tiene que encajar, y por eso no vale un
+    // "https://giphy.com/..." disfrazado.
+
+    function gifValido(g) {
+      return g is map
+             && g.provider in ['giphy', 'tenor']
+             && g.id is string
+             && g.id.size() > 0
+             && g.id.size() <= 120
+             && g.url is string
+             && g.url.matches('https://media[0-9]*\\.(giphy|tenor)\\.com/.*')
+             && ('previewUrl' in g
+                 ? (g.previewUrl is string
+                    && g.previewUrl.matches('https://media[0-9]*\\.(giphy|tenor)\\.com/.*'))
+                 : true);
+    }
+
+    // ======================================================
+    // PRIVACIDAD DE LAS SOLICITUDES DE CONVERSACIÓN
+    // ======================================================
+    // Una cuenta puede estar en "privado" o con las solicitudes
+    // apagadas. Se lee del documento de QUIEN RECIBE la solicitud,
+    // no del de quien la manda: si se mirara el propio documento,
+    // bastaría con no marcar el campo para saltárselo.
+    //
+    // Para una solicitud de grupo, "toId" es el dueño del grupo,
+    // que es quien la acepta, así que es su privacidad la que
+    // decide.
+    //
+    // Los ajustes son campos sueltos del documento y no un mapa
+    // "privacy" anidado. Un campo que no está vale null, y en las
+    // reglas "null != 'private'" y "null != false" son true: es
+    // decir, se respeta como ajuste por defecto (todo abierto).
+    // Así TODAS las cuentas anteriores a este apartado siguen
+    // funcionando sin tener que migrar nada, y sin el riesgo de
+    // leer un campo anidado de un mapa inexistente.
+    function acceptsChatRequests(uid) {
+      return !exists(/databases/$(database)/documents/users/$(uid))
+          || (get(/databases/$(database)/documents/users/$(uid)).data.profileVisibility != 'private'
+              && get(/databases/$(database)/documents/users/$(uid)).data.allowChatRequests != false);
+    }
+
+    // ======================================================
+    // USERS
+    // El usuario puede leer y editar su propio perfil.
+    // NUNCA puede auto-asignarse el rol admin ni banearse a si mismo.
+    //
+    // Un moderador puede banear, pero solo el campo isBanned y
+    // solo de quien NO es del equipo. Fijar las dos mitades
+    // (solo isBanned, y nunca sobre un admin o moderador) es
+    // lo que evita que un moderador se conceda el rol admin
+    // escribiéndolo en otro campo del mismo update, o que se
+    // quite el acceso a sí mismo.
+    // ======================================================
+
+    // Campos de la gamificacion.
+    //
+    // Son los que escriben las Cloud Functions con el Admin SDK,
+    // que es lo unico que se salta estas reglas. El cliente los
+    // LEE, pero no puede escribirlos ni borrarlos.
+    //
+    //   - xp / level / xpEnNivel / xpParaSiguienteNivel: el progreso
+    //   - stats: los contadores que alimentan las medallas
+    //   - medals: lo que se ha desbloqueado y cuando
+    //   - xpActualizadoAt / lastLevelUpAt / lastLevelUpLevel: las
+    //     marcas que usa la interfaz para el aviso de subida
+    //
+    // Sin esta lista, un usuario podria abrir la consola del
+    // navegador y escribirse 999999 XP en su propio documento: las
+    // reglas que hay antes solo quitan 'role', 'isBanned',
+    // 'chatId' y 'uid', asi que cualquier otro campo pasaria.
+    //
+    // Los campos de gamificacion que se citan abajo en el 'update'
+    // ('xp', 'level', 'xpEnNivel', 'xpParaSiguienteNivel',
+    // 'stats', 'medals', 'xpActualizadoAt', 'lastLevelUpAt' y
+    // 'lastLevelUpLevel') estan escritos a mano en lugar de usar
+    // una funcion, porque "hasAny" exige una lista literal y no
+    // acepta una variable.
+
+    // Un titulo equipado solo vale si la medalla esta de verdad
+    // desbloqueada en 'medals'.
+    //
+    // Se compara contra "resource" (el documento ANTES del
+    // update) y no contra "request.resource": si se comparara
+    // contra el nuevo, bastaria con escribir a la vez
+    // "equippedTitle" y "medals" inventando una medalla propia.
+    // Leyendo el estado anterior, solo se puede equipar un
+    // titulo que ya estaba ganado antes de esta escritura.
+    //
+    // El campo puede ir en null o desaparecer para quitarse.
+    function tituloValido() {
+      let yaEsta = resource.data.medals;
+
+      return !('equippedTitle' in request.resource.data)
+             || request.resource.data.equippedTitle == null
+             || (yaEsta != null
+                 && request.resource.data.equippedTitle in yaEsta);
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn();
+
+      // El 'create' tambien tiene que mirar los campos de
+      // gamificacion, y es un agujero facil de dejar abierto:
+      // 'update' no dice nada de un documento que aun no existe,
+      // asi que sin esta comprobacion un usuario podria crearse su
+      // cuenta YA con 999999 XP y todas las medallas puestas.
+      //
+      // En un 'create' no se puede usar diff() (no hay documento
+      // anterior contra el que comparar), asi que lo que se mira son
+      // las claves que trae el documento nuevo.
+      allow create: if isAdmin()
+                    || (isSelf(uid)
+                        && request.resource.data.role == 'user'
+                        && !request.resource.data.keys().hasAny(
+                            ['xp', 'level', 'xpEnNivel', 'xpParaSiguienteNivel',
+                             'stats', 'medals', 'equippedTitle',
+                             'xpActualizadoAt', 'lastLevelUpAt',
+                             'lastLevelUpLevel', 'trivia']));
+
+      allow update: if isAdmin()
+                    || (isSelf(uid)
+                        && !request.resource.data.diff(resource.data)
+                             .affectedKeys().hasAny(['role', 'isBanned', 'chatId', 'uid',
+                                                     // La racha de la trivia la calcula la
+                                                     // Cloud Function al corregir el
+                                                     // resultado. Si el usuario pudiera
+                                                     // escribirla, se fabricaría una racha
+                                                     // de 30 días en dos clics y se
+                                                     // llevaría la medalla sin jugar.
+                                                     'trivia'])
+                        && !request.resource.data.diff(resource.data)
+                             .affectedKeys().hasAny(
+                                 ['xp', 'level', 'xpEnNivel', 'xpParaSiguienteNivel',
+                                  'stats', 'medals', 'xpActualizadoAt', 'lastLevelUpAt',
+                                  'lastLevelUpLevel',
+                                  // 'equippedTitle' va aqui TAMBIEN, y no
+                                  // solo en la rama de abajo. Esta rama
+                                  // general permite tocar cualquier campo
+                                  // que no este en la lista, asi que si
+                                  // 'equippedTitle' no estuviera aqui,
+                                  // el usuario se pondria el titulo que
+                                  // quisiera por aqui, sin pasar por
+                                  // 'tituloValido' y sin comprobar que
+                                  // tenga la medalla. La rama de abajo
+                                  // solo seria entonces codigo muerto.
+                                  'equippedTitle']))
+                    // La unica via para escribir 'equippedTitle' es esta:
+                    // que no toque ningun otro campo, y que el titulo
+                    // corresponda a una medalla ya desbloqueada.
+                    || (isSelf(uid)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['equippedTitle'])
+                        && tituloValido())
+                    || (isModerator()
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['isBanned'])
+                        && !(resource.data.role in ['admin', 'moderator']));
+
+      // Borrado: el admin, o el propio usuario.
+      //
+      // Lo segundo es lo que hace posible el apartado "Eliminar
+      // cuenta" del perfil. Sin esta línea, una cuenta solo se
+      // podía destruir desde la consola de Firebase, que para el
+      // que está usando la web es lo mismo que no poder hacerlo.
+      //
+      // El borrado desde la web no toca solo este documento: pasa
+      // antes por los hilos, los comentarios, las solicitudes y
+      // los bloqueados, porque Firestore no borra en cascada (ver
+      // services/accountSettings.ts).
+      allow delete: if isAdmin() || isSelf(uid);
+
+      // ── Libro mayor de XP ─────────────────────────────
+      // Es la prueba de que una recompensa ya se concedio, y es
+      // lo que impide cobrar dos veces por lo mismo.
+      //
+      // Ni el propio usuario ni un admin pueden escribirlo: solo
+      // las Cloud Functions, que usan el Admin SDK. Si se pudiera
+      // escribir, bastaria con no crear el documento para que la
+      // recompensa volviera a pagarse en la siguiente accion.
+      match /rewardLedger/{entryId} {
+        allow read: if isAdmin();
+        allow write: if false;
+      }
+
+      // ── Lista de bloqueados ─────────────────────────
+      // Guardada como subcolección de QUIEN bloquea, no de
+      // quien es bloqueado. Al revés, cualquiera con sesión
+      // (que puede leer todos los usuarios) vería a quién
+      // tiene bloqueado cada uno.
+      match /blocked/{blockedUid} {
+        // Sin condición aparte: quien puede leer todos los
+        // usuarios ya conoce la lista. Lo que importa es que
+        // solo se pueda escribir la propia.
+        allow read: if isSignedIn();
+        allow create, delete: if isSelf(uid);
+        allow update: if false;
+      }
+
+      // ── FAVORITOS: EMOJIS ──────────────────────────
+      //
+      // Los emojis que la persona usa siempre, para no buscarlos
+      // cada vez en el selector. Un documento por emoji, con el
+      // id igual a la clave del emoji (`fire`, `heart`...).
+      //
+      // ¿Por qué una subcolección y no un array en `users/{uid}`?
+      // Porque en un array hay que LEER el documento entero y
+      // reescribirlo para añadir o quitar una entrada, y dos
+      // pulsaciones seguidas (quitar 🔥 y poner 😂) se pisan. Con
+      // un documento por favorito, cada pulsación va a su sitio y
+      // no se pisa con nadie. Además el nombre del documento ES el
+      // emoji guardado: no hay ni que filtrar ni duplicados.
+      match /favoriteEmojis/{emojiKey} {
+        // Solo los ve quien los marcó: son sus ajustes.
+        allow read: if isSelf(uid);
+
+        // El id tiene que ser una clave de reacción válida
+        // (mismo formato que comprueba `reactionTypeValido`), y
+        // el documento no puede traer nada inventado: guardar
+        // "comprado: 1" aquí no sirve de nada.
+        allow create: if isSelf(uid)
+                      && reactionTypeValido(emojiKey)
+                      && request.resource.data.keys().hasOnly(
+                           ['emojiKey', 'createdAt'])
+                      && request.resource.data.emojiKey == emojiKey;
+
+        // Marcar y desmarcar es todo lo que se hace. Un 'update'
+        // no aporta nada y se deja cerrado.
+        allow update: if false;
+
+        allow delete: if isSelf(uid);
+      }
+
+      // ── FAVORITOS: GIFs ────────────────────────────
+      //
+      // Aquí sí se guarda el GIF entero (su ficha: proveedor,
+      // id y URLs), no solo su clave. Es lo que permite volver a
+      // insertarlo sin llamar a la API otra vez, que es justo lo
+      // que se busca al guardar uno: no volver a buscar "el de
+      // la risa que usé la semana pasada".
+      match /favoriteGifs/{gifId} {
+        allow read: if isSelf(uid);
+
+        // Se comprueba que la URL sea del CDN del proveedor con
+        // el MISMO `gifValido` que se usa en comentarios y en
+        // mensajes de chat. Sin esta comprobación, el campo
+        // `gif.url` sería un hueco para colgar cualquier URL.
+        allow create: if isSelf(uid)
+                      && gifId.size() > 0
+                      && gifId.size() <= 120
+                      && request.resource.data.keys().hasOnly(
+                           ['gifId', 'gif', 'createdAt'])
+                      && request.resource.data.gifId == gifId
+                      && gifValido(request.resource.data.gif);
+
+        allow update: if false;
+
+        allow delete: if isSelf(uid);
+      }
+    }
+
+    // ======================================================
+    // SOLICITUDES DE CONVERSACIÓN Y DE ENTRADA A GRUPOS
+    // ======================================================
+    // El chat NO se crea al pedirlo: se crea al aceptarse.
+    // Así el documento de conversación solo existe entre
+    // personas que ya se han aceptado mutuamente, y la
+    // consulta de la lista de chats (que filtra por
+    // memberIds) nunca muestra conversaciones pendientes.
+    match /chatRequests/{requestId} {
+      // Solo se ven las tuyas: las que has enviado y las que
+      // te han enviado.
+      allow read: if isSignedIn()
+                  && (resource.data.fromId == request.auth.uid
+                      || resource.data.toId == request.auth.uid);
+
+      allow create: if isActive()
+                    && request.resource.data.fromId == request.auth.uid
+                    && request.resource.data.toId != request.auth.uid
+                    && request.resource.data.toId is string
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.type in ['direct', 'group']
+                    // El destinatario puede tener la privacidad en
+                    // "privado" o con las solicitudes apagadas. Se
+                    // comprueba contra SU documento, no contra el
+                    // nuestro, para que no se pueda esquivar.
+                    && acceptsChatRequests(request.resource.data.toId);
+
+      // Aceptar o rechazar. También puede cancelar quien la
+      // envió (mientras siga pendiente).
+      allow update: if isSignedIn()
+                    && resource.data.status == 'pending'
+                    && (resource.data.toId == request.auth.uid
+                        || resource.data.fromId == request.auth.uid)
+                    && request.resource.data.status in
+                       ['accepted', 'rejected', 'cancelled'];
+
+      allow delete: if isSignedIn()
+                    && (resource.data.fromId == request.auth.uid
+                        || resource.data.toId == request.auth.uid);
+    }
+
+    // ======================================================
+    // ÍNDICE DE GRUPOS POR CÓDIGO
+    // ======================================================
+    // Un grupo se entra presentando su código (GRP-A1B2-C3D4),
+    // no su nombre, porque los nombres se repiten.
+    //
+    // Aquí solo hay un código -> grupo. NO es un listado: hay
+    // que saber el código exacto para encontrar el documento, y
+    // los códigos son aleatorios, así que no se pueden ir
+    // adivinando.
+    //
+    // Hace falta porque alguien que NO es miembro no puede leer
+    // chats/ (allí solo se lee lo propio), y sin este índice no
+    // podría ni averiguar a quién pertenece el grupo para pedir
+    // entrar. Los datos son mínimos: código, nombre y dueño. El
+    // contenido de la conversación sigue en chats/, con sus
+    // reglas.
+    match /groupCodes/{code} {
+      allow read: if true;
+      allow create: if isActive()
+                    && request.resource.data.code == code;
+      // Solo quien creó el grupo, o un admin, puede alterarlo.
+      allow update, delete: if isAdmin() || isSelf(resource.data.ownerId);
+    }
+
+    // ======================================================
+    // CATALOGO DE CONTENIDO - escritura de admin y moderador
+    // ======================================================
+    match /animes/{animeId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    // TEMPORADAS
+    //
+    // Van en su propia colección y no como subcolección de
+    // animes porque la wiki las consulta todas de una vez para
+    // pintar el selector de temporada, y un get() por anime
+    // sería una latencia por cada serie abierta.
+    match /seasons/{seasonId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    match /episodes/{episodeId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    match /characters/{characterId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, delete: if isAdmin() || isModerator();
+      // El contenido de la categoría es cosa del admin, pero el
+      // contador de hilos lo ajusta automáticamente el propio
+      // usuario al publicar o borrar, así que se le permite tocar
+      // ese campo y solo ese.
+      allow update: if isAdmin() || isModerator()
+                    || (isActive()
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['threadsCount']));
+    }
+
+    match /trivia_extras/{triviaId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    match /mascot_dialogues/{dialogueId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    // ======================================================
+    // TRIVIA DIARIA
+    // ======================================================
+    //
+    // OJO: esto NO es lo mismo que `trivia_extras` de arriba, que
+    // son las curiosidades de la wiki. Aquí hay una trivia al día,
+    // la misma para todo el mundo, y la prepara el equipo.
+    //
+    // El reparto en tres sitios es lo que hace que no se pueda
+    // hacer trampa:
+    //
+    //   questions/  público: enunciado y opciones. Las reglas
+    //                comprueban que el documento NO traiga ninguna
+    //                clave de las privadas, que es lo que
+    //                impide colar la respuesta correcta aquí.
+    //
+    //   answers/    PRIVADO: la correcta y la explicación. Ni una
+    //                sola rama de lectura o escritura para el
+    //                cliente; solo la Cloud Function (Admin SDK).
+    //
+    //   triviaResults/  lo escribe el jugador, pero SOLO con sus
+    //                respuestas, y una sola vez por trivia: el id
+    //                del documento lleva su uid dentro, así que un
+    //                segundo intento choca contra el primero.
+    match /dailyQuizzes/{quizDate} {
+      // Los metadatos (activa, etiqueta, cuántas preguntas) son
+      // públicos: el cliente los necesita para saber si hay trivia
+      // hoy y si está cerrada.
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /questions/{questionId} {
+        allow read: if true;
+
+        // Escribirla es cosa del admin, y con la forma
+        // CONTROLADA: si el documento trae `correctAnswer` o
+        // `explanation`, la trivia queda trucada para todo el
+        // mundo y la regla lo rechaza.
+        allow create: if isAdmin()
+                      && request.resource.data.keys().hasOnly(
+                           ['question', 'options', 'category', 'difficulty'])
+                      && request.resource.data.question is string
+                      && request.resource.data.question.size() > 0
+                      && request.resource.data.question.size() <= 300
+                      && request.resource.data.options is list
+                      && request.resource.data.options.size() >= 2
+                      && request.resource.data.options.size() <= 6;
+
+        allow update: if isAdmin()
+                      && request.resource.data.keys().hasOnly(
+                           ['question', 'options', 'category', 'difficulty'])
+                      && request.resource.data.question is string
+                      && request.resource.data.options is list
+                      && request.resource.data.options.size() >= 2;
+
+        // Borrar una pregunta es cosa del admin, pero el bloque
+        // `answers/` correspondiente lo borra la función
+        // (`gestionarTriviaDiaria`): desde el cliente no se
+        // puede, porque ese bloque no tiene ninguna rama de
+        // escritura.
+        allow delete: if isAdmin();
+      }
+
+      // Las respuestas correctas. Aquí no hay `allow` que conceda
+      // nada al cliente: ni lectura (si la hubiera, se ganarían la
+      // trivia desde la consola) ni escritura (si la hubiera,
+      // cada uno se pondría su propia respuesta correcta).
+      //
+      // El comodín `allow read, write: if false;` es
+      // explícito a propósito: sin él, este bloque seería
+      // heredaría el `allow read, write: if false` del
+      // `match /{document=**}` del final, que ya lo negaría, y
+      // el efecto sería el mismo. Se deja escrito para que quien
+      // lea las reglas sepa que es deliberado.
+      match /answers/{questionId} {
+        allow read, write: if false;
+      }
+    }
+
+    // ======================================================
+    // RESULTADO DE LA TRIVIA DE UN USUARIO
+    // ======================================================
+    //
+    // El jugador escribe aquí sus respuestas y NADA más.
+    //
+    // Lo que NO puede escribir, y por tanto no puede falsear:
+    //
+    //   - Las notas. `correct` y `points` los pone la Cloud
+    //     Function al corregir; el `hasOnly` de abajo lo impide
+    //     aunque Inventase el campo.
+    //   - Repetir la trivia. El id es `{uid}_{fecha}`, así que
+    //     un segundo envío choca contra el documento existente y
+    //     no hay forma de tener dos resultados del mismo día.
+    //   - Corregirse a sí mismo. `update` y `delete` están
+    //     cerrados para el cliente: la respuesta que se envió es
+    //     la que cuenta.
+    //   - Jugar una trivia que no existe o está cerrada: se
+    //     comprueba que el documento de la trivia exista y esté
+    //     activa.
+    match /triviaResults/{resultId} {
+      // Cada quien solo ve su propio resultado. Sin un `get`
+      // abierto: aunque las respuestas de otro no son un secreto,
+      // no hay ninguna razón para enseñarlas.
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isActive()
+                    && request.resource.data.userId == request.auth.uid
+                    // El id tiene que llevar su uid y la fecha del
+                    // documento: sin esto, un jugador podría
+                    // escribir el resultado de otro (con su uid
+                    // puesto) o sobre una trivia que no ha
+                    // jugado.
+                    && resultId ==
+                       request.resource.data.userId + '_' + request.resource.data.date
+                    && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+                    && request.resource.data.quizId == request.resource.data.date
+                    && request.resource.data.answers is map
+                    && request.resource.data.answers.size() > 0
+                    && request.resource.data.answers.size() <= 10
+                    // Ni una clave más: esto es lo que impide
+                    // mandar `correct: 3` o `points: 9999`.
+                    && request.resource.data.keys().hasOnly(
+                         ['userId', 'date', 'quizId', 'answers', 'createdAt'])
+                    // Y la trivia tiene que existir y estar
+                    // abierta, que es lo que impide inventarse
+                    // XP con una fecha que no existe. OJO: la
+                    // función se llama `exists` (en inglés, la
+                    // del lenguaje de reglas); escribirla como
+                    // `existe` hace que el analizador no la
+                    // encuentre y la regla entera falle.
+                    && exists(/databases/$(database)/documents/dailyQuizzes/$(request.resource.data.date))
+                    && get(/databases/$(database)/documents/dailyQuizzes/$(request.resource.data.date)).data.active == true;
+
+      // El cliente no toca sus respuestas una vez enviadas.
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ======================================================
+    // RANKING DE LA TRIVIA
+    // ======================================================
+    //
+    // Un documento por periodo ('semanal', 'mensual',
+    // 'historico') con un mapa `uid → cifras`. Lo escribe la
+    // Cloud Function; el cliente solo lee. Sin ninguna rama de
+    // escritura, un jugador no puede ponerse puntos ni salirse
+    // de la tabla.
+    match /triviaLeaderboard/{periodKey} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ======================================================
+    // FORO
+    // ======================================================
+    match /threads/{threadId} {
+      allow read: if true;
+
+      // La imagen es opcional, pero si viene tiene que ser una
+      // URL corta. Sin esto, el campo "imageUrl" serviría para
+      // meter en un documento un texto de un megabyte y
+      // colarse en la cuota de lectura de todo el mundo.
+      //
+      // Lo mismo con la encuesta: si viene, tiene que estar bien
+      // formada (pregunta, entre 2 y 6 opciones...). La forma
+      // exacta la exige `pollValido`.
+      allow create: if isActive()
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.title.size() <= 200
+                    && request.resource.data.body is string
+                    && request.resource.data.body.size() <= 10000
+                    && (!('imageUrl' in request.resource.data)
+                        || (request.resource.data.imageUrl is string
+                            && request.resource.data.imageUrl.size() <= 1000))
+                    && (!('poll' in request.resource.data)
+                        || pollValido(request.resource.data.poll))
+                    // Nadie se crea a sí mismo una encuesta ya
+                    // cerrada: da igual, no hay forma de abrirla
+                    // después.
+                    && (!('reactionCounts' in request.resource.data))
+                    && (!('reactionsTotal' in request.resource.data));
+
+      allow update: if isAdmin() || isModerator()
+                    || (isSignedIn()
+                        && resource.data.authorId == request.auth.uid
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['title', 'body', 'tags', 'pinned']))
+                    // Cerrar (o reabrir) la encuesta propia.
+                    //
+                    // Se acepta tanto "poll.isClosed" como
+                    // "poll" entero porque `affectedKeys()` no
+                    // informa siempre igual, pero en el segundo
+                    // caso `pollSoloCambiaIsClosed` comprueba que
+                    // el resto de la encuesta sea idéntico: si no,
+                    // el autor podría reescribir las opciones y
+                    // dejar Votes apuntando a otro lado.
+                    || (isSignedIn()
+                        && hayPoll(threadId)
+                        && resource.data.authorId == request.auth.uid
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
+                        && pollSoloCambiaIsClosed(threadId))
+                    || onlyEngagement();
+
+      allow delete: if isAdmin() || isModerator()
+                    || (isSignedIn() && resource.data.authorId == request.auth.uid);
+
+      // ── VOTOS DE LA ENCUESTA ────────────────────────
+      //
+      // Un documento por persona (el id es el uid), sin borrado
+      // para nadie salvo el equipo. De ahí sale la garantía de
+      // "un solo voto": no es que alguien lo compruebe, es que
+      // no hay forma física de tener dos.
+      match /pollVotes/{uid} {
+        allow read: if true;
+
+        allow create: if isActive()
+                      && request.auth.uid == uid
+                      && pollAbierto(threadId)
+                      && request.resource.data.optionId is string
+                      && request.resource.data.optionId in pollDelHilo(threadId).options;
+
+        // Cambiar de opinión, solo si el autor lo permitió.
+        // Los votos ya escritos siguen siendo intocables en sus
+        // campos de identification (uid, createdAt...).
+        allow update: if isActive()
+                      && request.auth.uid == uid
+                      && pollAbierto(threadId)
+                      && pollCambiaVotos(threadId)
+                      && request.resource.data.optionId in pollDelHilo(threadId).options
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(['optionId', 'updatedAt']);
+
+        // Desvotar no existe: quien quiera cambiar, el autor lo
+        // habilitó con `allowChangeVote`. El equipo sí puede
+        // borrar un voto problemático (moderación).
+        allow delete: if isModerator();
+      }
+    }
+
+    // ======================================================
+    // REACCIONES
+    // ======================================================
+    //
+    // Colección PLANA, no subcolección: los comentarios de un
+    // hilo, de un anime, de un episodio o de un personaje están
+    // todos en `comments/`, igual que los mensajes de chat en
+    // `chats/…/messages/`, así que una subcolección del hilo solo
+    // alcanzaría a una cosa de cada clase. El id determinista
+    // (`reac_<tipo>_<id>_<uid>`) es lo que impide las reacciones
+    // duplicadas.
+    match /reactions/{reactionId} {
+      // Los recuentos son públicos: se ven sin entrar, igual que
+      // los "me gusta".
+      allow read: if true;
+
+      allow create: if isActive()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.targetType in
+                       ['thread', 'comment', 'chat_message']
+                    && request.resource.data.targetId is string
+                    && request.resource.data.targetId.size() > 0
+                    && request.resource.data.targetId.size() <= 150
+                    && reactionDocDeUid(reactionId,
+                                        request.auth.uid,
+                                        request.resource.data.targetType,
+                                        request.resource.data.targetId)
+                    && reactionTypeValido(request.resource.data.type)
+                    && objetivoExiste(request.resource.data.targetType,
+                                      request.resource.data.targetId);
+
+      // Solo se puede cambiar el TIPO. Tocar `userId`,
+      // `targetType`, `targetId` o `chatId` aquí sería quedarse
+      // con las reacciones de otra persona o moverlas de sitio.
+      allow update: if isActive()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(['type', 'userName', 'createdAt'])
+                    && reactionTypeValido(request.resource.data.type);
+
+      allow delete: if isActive() && resource.data.userId == request.auth.uid;
+    }
+
+    // ======================================================
+    // RESUMEN DE ENCUESTAS (lo escribe el servidor)
+    // ======================================================
+    //
+    // Es una CACHÉ para estadísticas, orden y el panel: la
+    // verdad son los documentos de `pollVotes`. Por eso aquí no
+    // se escribe ni el cliente ni el equipo: solo la Cloud
+    // Function `onPollVotesChanged`, con el Admin SDK, que es lo
+    // único que se salta estas reglas.
+    match /pollStats/{threadId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ======================================================
+    // COMENTARIOS (polimorficos: hilo, anime, episodio, personaje)
+    // ======================================================
+    match /comments/{commentId} {
+      allow read: if true;
+
+      // Un comentario puede no tener texto si lleva un GIF
+      // ("respondió con un GIF"), pero tiene que llevar algo:
+      // texto, imagen o GIF.
+      allow create: if isActive()
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.targetId is string
+                    && request.resource.data.body is string
+                    && request.resource.data.body.size() <= 5000
+                    && (request.resource.data.body.size() > 0
+                        || ('gif' in request.resource.data)
+                        || ('imageUrl' in request.resource.data))
+                    && (!('imageUrl' in request.resource.data)
+                        || (request.resource.data.imageUrl is string
+                            && request.resource.data.imageUrl.size() <= 1000))
+                    && (!('gif' in request.resource.data)
+                        || gifValido(request.resource.data.gif))
+                    // Los recuentos de reacciones los lleva el
+                    // servidor (ver `onReactionChanged`).
+                    && (!('reactionCounts' in request.resource.data))
+                    && (!('reactionsTotal' in request.resource.data));
+
+      allow update: if isAdmin() || isModerator()
+                    || (isSignedIn()
+                        && resource.data.authorId == request.auth.uid
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['body']))
+                    || (isActive()
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['likedBy', 'likesCount']));
+
+      allow delete: if isAdmin() || isModerator()
+                    || (isSignedIn() && resource.data.authorId == request.auth.uid);
+    }
+
+    // ======================================================
+    // CHATS PRIVADOS Y GRUPALES
+    // ======================================================
+    match /chats/{chatId} {
+      // IMPORTANTE: la lectura usa una forma deliberadamente
+      // simple, sin condiciones alternativas.
+      //
+      // Firestore solo puede PROBAR que una consulta es segura si
+      // la regla se limita exactamente al campo por el que se
+      // filtra. Con "request.auth.uid in resource.data.memberIds"
+      // el analizador puede comprobar que
+      // "where('memberIds','array-contains', uid)" nunca devuelve
+      // conversaciones ajenas, y acepta la consulta.
+      //
+      // Si esta regla tuviera varias condiciones unidas con "||"
+      // (por ejemplo un exists() como alternativa), el analizador
+      // no podría probarla y rechazaría la consulta entera con
+      // "Missing or insufficient permissions", aunque no hubiera
+      // datos privados en juego.
+      allow read: if isSignedIn() && request.auth.uid in resource.data.memberIds;
+
+      allow create: if isActive()
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.memberIds is list
+                    && request.auth.uid in request.resource.data.memberIds
+                    // Un grupo se crea con una sola persona (su
+                    // creador) y el resto se une por solicitud. Por
+                    // eso el mínimo es 1, no 2.
+                    && request.resource.data.memberIds.size() >= 1;
+      // ── Actualizar el chat ──────────────────────────
+      // Reparto de permisos:
+      //   - admin           → todo
+      //   - dueño del grupo → datos del grupo Y lista de miembros
+      //   - cualquier miembro → vista previa, recibos y ocultar
+      //   - cualquier miembro → puede quitarse a SÍ MISMO de un
+      //     grupo (salir). Se comprueba que el tamaño baja en
+      //     exactamente uno y que su uid ya no está: así solo
+      //     puede expulsarse a sí mismo, no a los demás.
+      //
+      // Con "isChatMember" a secas, cualquiera del grupo podía
+      // renombrarlo o expulsar a la gente.
+      allow update: if isAdmin()
+                    || (isChatOwner(chatId)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(
+                               ['name', 'avatar', 'memberIds', 'type',
+                                'hiddenFor', 'ownerId',
+                                'lastMessage', 'lastMessageAt',
+                                'lastMessageSenderId', 'readAt']))
+                    // Cualquier miembro puede ocultar la conversación
+                    // para SÍ MISMO, y vaciarla (los mensajes anteriores
+                    // dejan de aparecerle, pero los demás los conservan).
+                    //
+                    // Sin estas ramas, esas acciones solo funcionaban
+                    // en los chats que habías creado tú: en un chat
+                    // privado, ownerId es del que lo abrió primero, así
+                    // que el receptor recibía permission-denied.
+                    //
+                    // Se aceptan tanto el campo de primer nivel como
+                    // su ruta completa, porque affectedKeys() puede
+                    // informar "hiddenFor" o "hiddenFor.<uid>" según
+                    // cómo se haya escrito.
+                    || (isChatMember(chatId)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(
+                               ['lastMessage', 'lastMessageAt',
+                                'lastMessageSenderId', 'readAt',
+                                'hiddenFor', 'clearedAt',
+                                'hiddenFor.' + request.auth.uid,
+                                'readAt.' + request.auth.uid,
+                                'clearedAt.' + request.auth.uid]))
+                    // Salir del grupo: cambiar memberIds y ocultarse.
+                    // Exactamente una persona menos, y soy yo.
+                    || (isChatMember(chatId)
+                        && request.resource.data.memberIds is list
+                        && !(request.auth.uid in request.resource.data.memberIds)
+                        && request.resource.data.memberIds.size()
+                             == resource.data.memberIds.size() - 1
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['memberIds', 'hiddenFor']));
+
+      // El dueño (o un admin) puede destruir el grupo entero.
+      allow delete: if isChatOwner(chatId) || isAdmin();
+
+      match /members/{uid} {
+        allow read: if isSignedIn();
+        allow create, delete: if isChatOwner(chatId) || isSelf(uid);
+        allow update: if isAdmin();
+      }
+
+      match /messages/{messageId} {
+        allow read: if isChatMember(chatId);
+
+        // Un mensaje puede no tener texto si lleva un GIF (un
+        // "respondió con un GIF" es un meme más viejo que los
+        // chats), pero tiene que llevar algo.
+        //
+        // El GIF no se sube a Storage: se guarda su ficha y el
+        // archivo se sigue sirviendo desde el CDN del proveedor,
+        // así que `gifValido` comprueba que las URLs sean de
+        // verdad de media.giphy.com o media.tenor.com. Sin eso,
+        // el campo serviría para colgar cualquier URL.
+        allow create: if isChatMember(chatId)
+                      && request.resource.data.senderId == request.auth.uid
+                      && request.resource.data.body is string
+                      && request.resource.data.body.size() <= 4000
+                      && (request.resource.data.body.size() > 0
+                          || ('gif' in request.resource.data))
+                      && (!('gif' in request.resource.data)
+                          || gifValido(request.resource.data.gif));
+
+        allow update, delete: if isAdmin()
+                              || (isChatMember(chatId)
+                                  && resource.data.senderId == request.auth.uid);
+      }
+
+      // Recibos de lectura: se guardan en un mapa "readAt" DENTRO
+      // del propio chat (chats/{id}.readAt = { uid: Timestamp }).
+      // No hay subcolección. Así no hace falta una suscripción
+      // por conversación para saber cuáles están sin leer, porque
+      // el documento del chat ya se descarga entero.
+      //
+      // Consecuencia: un miembro puede escribir la clave de otro
+      // dentro de readAt, es decir, falsear que ha leído. Solo
+      // afecta a los ticks de sus propios mensajes, y el impacto
+      // es cosmético. Impedirlo exigiría comparar mapas clave a
+      // clave, que las reglas no saben hacer.
+    }
+
+    // ======================================================
+    // CONTENIDO EDITABLE DEL SITIO
+    // ======================================================
+    // Textos y logo que el admin/moderador cambia sin tocar código. Un
+    // único documento en vez de una colección entera de
+    // ajustes, porque solo hay unos pocos valores.
+    match /siteSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    // "Obras de la semana": lo que se destaca en la portada.
+    match /weeklyWorks/{workId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    // ======================================================
+    // TICKETS DE SOPORTE
+    // ======================================================
+    match /support_tickets/{ticketId} {
+      allow create: if isActive()
+                    && request.resource.data.category in
+                       ['bug', 'suggestion', 'account', 'report']
+                    && request.resource.data.subject is string
+                    && request.resource.data.subject.size() > 0
+                    && request.resource.data.subject.size() <= 200
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if isModerator();
+    }
+
+    // ======================================================
+    // METADATOS INTERNOS (control de la siembra de datos)
+    // ======================================================
+    match /meta/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ======================================================
+    // GAMIFICACION
+    // ======================================================
+    // Un unico documento con la curva de niveles, el valor de cada
+    // recompensa y los ids de anime de las medallas tematicas.
+    //
+    // Se lee desde el cliente para pintar los rangos y las barras,
+    // y desde las funciones para conceder el XP. Que sea legible
+    // por cualquiera es a proposito: no hay nada secreto en el y
+    // asi el panel puede leerlo sin pedir permiso.
+    //
+    // Se escribe por el panel, que lo hace con una Cloud Function
+    // callable (ver `configurarGamificacion`). Aqui se deja el
+    // permiso al admin por si hay que corregirlo a mano desde la
+    // consola, pero el camino normal es la funcion, que valida los
+    // numeros antes de guardarlos.
+    match /gamification/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Cualquier otra ruta queda bloqueada por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

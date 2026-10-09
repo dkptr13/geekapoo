@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function() {
+        try {
+          var _rawFetch = window.fetch;
+          var _fetch = typeof _rawFetch === 'function' ? function() {
+            return _rawFetch.apply(window, arguments);
+          } : _rawFetch;
+
+          var descriptor = {
+            get: function() {
+              return _fetch;
+            },
+            set: function(val) {
+              _fetch = val;
+            },
+            configurable: true,
+            enumerable: true
+          };
+
+          try {
+            Object.defineProperty(window, 'fetch', descriptor);
+          } catch (e) {}
+
+          try {
+            if (typeof Window !== 'undefined' && Window.prototype) {
+              Object.defineProperty(Window.prototype, 'fetch', descriptor);
+            }
+          } catch (e) {}
+
+          try {
+            if (typeof globalThis !== 'undefined' && globalThis !== window) {
+              Object.defineProperty(globalThis, 'fetch', descriptor);
+            }
+          } catch (e) {}
+        } catch (err) {}
+
+        window.addEventListener('error', function(event) {
+          if (event && event.message && event.message.indexOf('Cannot set property fetch of') !== -1) {
+            event.preventDefault();
+            event.stopPropagation();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
+    <title>Geekapoo - Comunidad Friki, Anime, Series y Cultura Pop</title>
+    <meta name="description" content="La plataforma definitiva para la comunidad geek y otaku: debates, wiki de animes con episodios y personajes, chats privados y grupales, y foros con respeto mutuo." />
+    <meta property="og:title" content="Geekapoo - Comunidad Friki, Anime, Series y Cultura Pop" />
+    <meta property="og:description" content="La plataforma definitiva para la comunidad geek y otaku: debates, wiki de animes con episodios y personajes, chats privados y grupales, y foros con respeto mutuo." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-zinc-950 text-zinc-100 antialiased selection:bg-violet-500 selection:text-white min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

@@ -1,0 +1,10 @@
+// El filtro de los ficheros de temporada tiene que excluir los de
+  // etiquetas: `agk-tags.mjs` empieza por `agk-t` y acaba en `.mjs`, con
+  // lo que se colaba como si fuera una temporada y noidia a nadie, pero
+  // hace que un anime sin temporadas propias parezca que no tiene datos.
+  const deTemporada = (nombre) =>
+    nombre.startsWith(`${prefijo}-t`) &&
+    nombre.endsWith('.mjs') &&
+    !nombre.endsWith('-tags.mjs');
+
+  for (const f of ficheros.filter(deTemporada)) {

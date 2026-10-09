@@ -1,0 +1,465 @@
+[
+  {
+    "anilistId": 130102,
+    "nombre": "Denji",
+    "japones": "デンジ",
+    "voz": "Kikunosuke Toya",
+    "rol": "main",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b130102-FO1VHNnEnLlB.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 137079,
+    "nombre": "Power",
+    "japones": "パワー",
+    "voz": "Fairouz Ai",
+    "rol": "main",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b137079-6yLEUYR3bmpr.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 137080,
+    "nombre": "Makima",
+    "japones": "マキマ",
+    "voz": "Tomori Kusunoki",
+    "rol": "main",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b137080-UHcynYNjb5ZU.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 137081,
+    "nombre": "Aki Hayakawa",
+    "japones": "早川アキ",
+    "voz": "Shougo Sakata",
+    "rol": "main",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b137081-TSrUR3mUJL6r.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 170266,
+    "nombre": "Pochita",
+    "japones": "ポチタ",
+    "voz": "Shiori Izawa",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b170266-bBXPkNJnd3mg.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 144596,
+    "nombre": "Himeno",
+    "japones": "姫野",
+    "voz": "Mariya Ise",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b144596-kvL6SD2litJu.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 144593,
+    "nombre": "Kishibe",
+    "japones": "岸辺",
+    "voz": "Kenjirou Tsuda",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b144593-hdCTT9t54z0s.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 144594,
+    "nombre": "Kobeni Higashiyama",
+    "japones": "東山コベニ",
+    "voz": "Karin Takahashi",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b144594-0dbO1NSYeZ12.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 174263,
+    "nombre": "Hirokazu Arai ",
+    "japones": "荒井ヒロカズ",
+    "voz": "Taku Yashiro",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174263-TTMWfBlU1k3f.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 157241,
+    "nombre": "Samurai Sword",
+    "japones": "サムライソード",
+    "voz": "Daiki Hamano",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b157241-GkgQVzkFrmUD.jpg",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174264,
+    "nombre": "Akane Sawatari ",
+    "japones": "沢渡アカネ",
+    "voz": "You Taichi",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174264-dLiZkMXoltQ9.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 152231,
+    "nombre": "Tenshi no Akuma",
+    "japones": "天使の悪魔",
+    "voz": "Maaya Uchida",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b152231-jiMRx9je7H6y.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 157231,
+    "nombre": "Bouryoku no Majin",
+    "japones": "暴力の魔人",
+    "voz": "Yuuya Uchida",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b157231-hV81SwGqxl2R.jpg",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 157232,
+    "nombre": "Beam",
+    "japones": "ビーム",
+    "voz": "Natsuki Hanae",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b157232-5GuWeqoFN9Kq.jpg",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 157277,
+    "nombre": "Prinz",
+    "japones": "プリンシ",
+    "voz": "Saori Gotou",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b157277-h6M1umQ3N2ve.jpg",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 172887,
+    "nombre": "Mirai no Akuma",
+    "japones": "未来の悪魔",
+    "voz": "Hiroki",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b172887-qMCjXPXMSKRk.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 290671,
+    "nombre": "Kitsune no Akuma",
+    "japones": "狐の悪魔",
+    "voz": "Yuuko Kaida",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b290671-YaauAZvHLnyo.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 174282,
+    "nombre": "Zombie no Akuma",
+    "japones": "ゾンビの悪魔",
+    "voz": "Kouki Miyata",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174282-YFLwuvogHMod.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174272,
+    "nombre": "Koumori no Akuma",
+    "japones": "コウモリの悪魔",
+    "voz": "Kenichirou Matsuda",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174272-cU9W4oNykNM0.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174275,
+    "nombre": "Hiru no Akuma",
+    "japones": "ヒルの悪魔",
+    "voz": "Uko Tachibana",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174275-cCAGptyn7ZrR.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 144595,
+    "nombre": "Michiko Tendou",
+    "japones": "天童ミチコ",
+    "voz": "Hitomi Ueda",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b144595-R8Lfn0egUR3q.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 144592,
+    "nombre": "Yuutarou Kurose",
+    "japones": "黒瀬ユウタロウ",
+    "voz": "Kengo Kawanishi",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b144592-pUY67nacCeud.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 172885,
+    "nombre": "Fushi",
+    "japones": "伏",
+    "voz": "Chikahiro Kobayashi",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b172885-hvF2nRMCqNaX.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174267,
+    "nombre": "Madoka",
+    "japones": "円",
+    "voz": "Tadashi Mutou",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174267-2VJVkMILqQpY.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174262,
+    "nombre": "Yuurei no Akuma",
+    "japones": "幽霊の悪魔",
+    "voz": "Hiroko Kiso",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174262-e1ctdgffT3MP.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 289200,
+    "nombre": "Tomato no Akuma",
+    "japones": "トマトの悪魔",
+    "voz": "Hinata Tadokoro",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b289200-mkFXS4A4MRBp.jpg",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 157240,
+    "nombre": "Eien no Akuma",
+    "japones": "永遠の悪魔",
+    "voz": "Hironori Kondou",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b157240-dQJO3S7285nW.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174265,
+    "nombre": "Noroi no Akuma",
+    "japones": "呪いの悪魔",
+    "voz": "Yuuko Ueda",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174265-NsRTeM1eAals.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174270,
+    "nombre": "Namako no Akuma",
+    "japones": "ナマコの悪魔",
+    "voz": null,
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174270-JcnbKLMlxrkn.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174271,
+    "nombre": "Nyaako",
+    "japones": "ニャーコ",
+    "voz": null,
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174271-iC0Ul9YfLOk6.png",
+    "en": [
+      "Chainsaw Man (TV)",
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 289198,
+    "nombre": "Yakuza",
+    "japones": "ヤクザ",
+    "voz": "Kousei Hirota",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b289198-QxBRgBSAVkkK.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 174261,
+    "nombre": "Taiyou",
+    "japones": "タイヨウ",
+    "voz": "Mana Nakatomi",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174261-qRcr40Q3zsyM.png",
+    "en": [
+      "Chainsaw Man (TV)"
+    ]
+  },
+  {
+    "anilistId": 148740,
+    "nombre": "Reze",
+    "japones": "レゼ",
+    "voz": "Reina Ueda",
+    "rol": "main",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b148740-ceAibPxLW8rR.png",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 174276,
+    "nombre": "Taifuu no Akuma",
+    "japones": "台風の悪魔",
+    "voz": "Eri Kitamura",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174276-stAdWlAYg0y1.png",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 174266,
+    "nombre": "Nomo",
+    "japones": "野茂",
+    "voz": "Kenji Akabane",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174266-ap8QWVGmsZ3K.png",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 174277,
+    "nombre": "Katou",
+    "japones": "加藤",
+    "voz": "Kento Shiraishi",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174277-M7koGJI5jVwh.png",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 174280,
+    "nombre": "Tanabe",
+    "japones": "田辺",
+    "voz": "Tarou Kiuchi",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174280-tfDQTac63uq4.png",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 174285,
+    "nombre": "Masaki Andou",
+    "japones": "安藤マサキ",
+    "voz": "Akihiro Mine",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b174285-1xeZ6Vd7sP0y.png",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 378316,
+    "nombre": "Nazo no Otoko",
+    "japones": "謎の男",
+    "voz": "Kenji Nomura",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b378316-kR8JoyqCEPMA.png",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 403939,
+    "nombre": "Fuku Taichou",
+    "japones": "副隊長",
+    "voz": "Hidenori Takahashi",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/b403939-M5w9YTMa1pUM.jpg",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  },
+  {
+    "anilistId": 403940,
+    "nombre": "Futamichi no Master",
+    "japones": "二道のマスター",
+    "voz": "Kenichi Ono",
+    "rol": "supporting",
+    "imagen": "https://s4.anilist.co/file/anilistcdn/character/large/default.jpg",
+    "en": [
+      "Chainsaw Man: Reze-hen (MOVIE)"
+    ]
+  }
+]

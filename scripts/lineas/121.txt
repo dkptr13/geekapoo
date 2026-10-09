@@ -1,0 +1,95 @@
+// ── FOTOS DEL GRUPO Y DE LOS MENSAJES ─────────────────
+  describe('carpeta chats/', () => {
+    it('la dueña puede subir la foto del grupo', async () => {
+      await assertSucceeds(subir(ALICE, 'chats/chat1/group-avatar/1700000000-foto.jpg'));
+    });
+
+    it('un miembro puede subir una foto a un mensaje', async () => {
+      // Bob no es dueño, pero SÍ es miembro: los mensajes son de
+      // cualquiera del grupo.
+      await assertSucceeds(subir(BOB, 'chats/chat1/messages/1700000000-foto.jpg'));
+    });
+
+    it('quien NO es miembro NO puede subir a la carpeta del grupo', async () => {
+      // El ataque: conocer el identificador del chat vale para subir si
+      // la regla no comprueba la pertenencia.
+      await assertFails(subir(CARA, 'chats/chat1/group-avatar/1700000000-intrusa.jpg'));
+    });
+
+    it('sin sesión no se puede subir', async () => {
+      await assertFails(subir(null, 'chats/chat1/messages/1700000000.jpg'));
+    });
+
+    it('un chat que no existe rechaza la subida', async () => {
+      // Si la función de pertenencia se escribiera mal, en vez de
+      // rechazar daría error de evaluación, que también es `false`
+      // pero por otra razón. Lo que no puede pasar es que lo ACEPTE.
+      await assertFails(subir(ALICE, 'chats/chat-inexistente/group-avatar/1700000000.jpg'));
+    });
+
+    it('un fichero que no es imagen se rechaza', async () => {
+      await assertFails(
+        subir(
+          ALICE,
+          'chats/chat1/group-avatar/1700000000-malicioso.svg',
+          Buffer.from('<svg onload="alert(1)"></svg>'),
+          'image/svg+xml',
+        ),
+      );
+    });
+
+    it('cualquiera puede LEER una foto del grupo una vez subida', async () => {
+      // Las fotos de los chats son públicas para quien tenga el
+      // enlace: los mensajes se ven desde cualquier navegador, sin
+      // sesión, así que la foto tiene que verse igual.
+      await subir(ALICE, 'chats/chat1/group-avatar/1700000000-foto.jpg');
+
+      await assertSucceeds(
+        getBytes(
+          ref(
+            testEnv.unauthenticatedContext().storage(),
+            'chats/chat1/group-avatar/1700000000-foto.jpg',
+          ),
+        ),
+      );
+    });
+
+    it('un miembro puede borrar su foto antigua', async () => {
+      // Es lo que hace el servicio al cambiar la foto del grupo: sube
+      // la nueva, escribe el campo y borra el fichero viejo.
+      await subir(ALICE, 'chats/chat1/group-avatar/1700000000-vieja.jpg');
+
+      await assertSucceeds(
+        deleteObject(
+          ref(
+            testEnv.authenticatedContext(ALICE).storage(),
+            'chats/chat1/group-avatar/1700000000-vieja.jpg',
+          ),
+        ),
+      );
+    });
+  });
+
+  // ── QUE NO SE ROMPA LO DE ANTES ────────────────────────
+  describe('las carpetas de siempre siguen igual', () => {
+    it('un usuario puede subir a su carpeta de avatar', async () => {
+      await assertSucceeds(subir(ALICE, `avatars/${ALICE}/1700000000.jpg`));
+    });
+
+    it('un usuario NO puede subir a la carpeta de otro', async () => {
+      await assertFails(subir(CARA, `avatars/${ALICE}/1700000000.jpg`));
+    });
+
+    it('un usuario puede subir a su carpeta de comunidad', async () => {
+      await assertSucceeds(subir(ALICE, `community/${ALICE}/1700000000.jpg`));
+    });
+
+    it('un usuario NO puede subir a la carpeta de comunidad de otro', async () => {
+      await assertFails(subir(CARA, `community/${ALICE}/1700000000.jpg`));
+    });
+
+    it('el contenido del catálogo sigue siendo solo del admin', async () => {
+      await assertFails(subir(ALICE, 'content/anime/portada.jpg'));
+    });
+  });
+});

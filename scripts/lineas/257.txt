@@ -1,0 +1,1 @@
+const imdbId = await buscarImdbId(comoBuscar(id, nombre));

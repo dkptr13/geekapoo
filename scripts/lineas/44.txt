@@ -1,0 +1,5 @@
+'going', 'does', 'did', 'said', 'say', 'says', 'told', 'give', 'given',
+  // "dicho" y "diga" son palabras espanolas legitimas y salian como
+  // falsos positivos. "ibi" estaba por el texto corrupto "lo queibi
+  // iba": es un resto de la inyeccion, no una palabra inglesa, pero
+  // asi se detecta mas rapido si vuelve a aparecer.

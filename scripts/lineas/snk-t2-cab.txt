@@ -1,0 +1,7 @@
+// Las notas de la temporada van del 8,0 al 9,1 y la media es 8,7. La
+// primera se queda en el 6,9. No es que la segunda sea otra serie: es
+// que la primera se habia gastado el gasto en capitulos de relleno, y
+// la segunda ya sabe lo que hace con sus personajes.
+//
+// Y el capitulo 7, el de la nota mas alta, es el unico de los
+// veinticinco que se acerca de verdad al final.

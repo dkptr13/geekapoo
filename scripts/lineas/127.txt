@@ -1,0 +1,9 @@
+// El `import` va fuera del bucle: `await` dentro de un `for` a nivel de
+// modulo es valido, pero tener el import dentro hace que se lea como si
+// `continue` estubiera en juego, que no lo esta.
+import { readFile } from 'node:fs/promises';
+
+const ficheros = process.argv.slice(2);
+
+for (const nombre of ficheros) {
+  const texto = await readFile(nombre, 'utf8');

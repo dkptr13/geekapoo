@@ -1,0 +1,28 @@
+// ── Filtro 1: IMDb tiene que estar de acuerdo ─────────────────────
+      //
+      // Este filtro es el que detecta que la lista de capitulos que
+      // devuelve AniList es de otra serie: Grand Blue trae cinco
+      // capitulos de Saekano ♭ y los titulos no coinciden con ninguno.
+      //
+      // Pero tambien descarta capitulos buenos, porque IMDb no siempre
+      // tiene el titulo oficial. En Tokyo Ghoul, AniList da Tragedy,
+      // Incubation y Dove, que son los titulos reales, e IMDb da New
+      // Surge, Dancing Flowers y Hangman. En Toradora y en Your Lie in
+      // April pasa lo mismo.
+      //
+      // Para esos casos esta `--relajar`, que se salta este filtro y
+      // deja solo el segundo (que la misma miniatura no este ya puesta en
+      // otro capitulo). Con eso solo se rellena la primera temporada del
+      // anime, que es la unica que tiene datos propios: el filtro del
+      // duplicado para las siguientes.
+      //
+      // Y aun asi hay que mirar las imagenes antes de usar `--relajar`.
+      // Los tres animes para los que se ha usado estan en la lista de
+      // `REVISADOS`, con lo que se vio al mirar la imagen.
+
+const referencia = deImdb.find((x) => x.numero === d.numero);
+
+if (!relajar && (!referencia || normalizar(referencia.titulo) !== normalizar(d.titulo))) {
+  saltadas++;
+  continue;
+}

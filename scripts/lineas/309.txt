@@ -1,0 +1,1 @@
+const temporadaImdb = temporadaDeImdb(titulos, temporada.numero, lista.length);

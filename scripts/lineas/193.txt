@@ -1,0 +1,42 @@
+// Capitulos sin miniatura, por anime. Con `--rehacer` entran tambien los
+// que ya la tienen.
+const sinImagen = new Map();
+
+for (const c of capitulos) {
+  if (str(c.f, 'thumbnailUrl') && !REHACER) continue;
+
+  const anime = str(c.f, 'animeId');
+
+  const lista = sinImagen.get(anime) ?? [];
+
+  const temporada = (str(c.f, 'seasonId') ?? '').match(/-s(\d+)$/)?.[1] ?? '?';
+
+  lista.push({
+    id: c.id,
+    numero: num(c.f, 'number') ?? 0,
+    temporada: Number(temporada),
+  });
+
+  sinImagen.set(anime, lista);
+}
+
+// Las imagenes que ya estan puestas.
+//
+// Al rehacer se dejan fuera las de los capitulos que se estan
+// recalculando. Si no, el emparejador rechazaria cada uno por tener su
+// propia URL en el conjunto, y no pondria ninguno. Lo que se quiere es
+// que sigaSaltando la foto cuando le toca a OTRO capitulo, que es lo que
+// hacia falta cuando se relleno un catalogo entero de golpe.
+const recalculando = new Set(
+  REHACER && soloAnime
+    ? (sinImagen.get(soloAnime) ?? []).map((f) => f.id)
+    : [],
+);
+
+const usadas = new Set();
+
+for (const c of capitulos) {
+  const u = str(c.f, 'thumbnailUrl');
+
+  if (u && !recalculando.has(c.id)) usadas.add(u);
+}

@@ -1,0 +1,7 @@
+// ── Utilidades ─────────────────────────────────────────────────────
+
+// `limpiar` viene de `normalizar-titulo.mjs`. Antes estaba aqui una
+// copia que solo quitaba espacios, y `emparejar-capitulo.mjs` usaba otra
+// que ademas normalizaba los parentesis de ancho completo. Con dos
+// copias distintas, el mismo capitulo con el parentesis escrito de otra
+// forma emparejaba en un sitio y no en otro.

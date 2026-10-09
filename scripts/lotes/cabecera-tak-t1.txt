@@ -1,0 +1,37 @@
+// TEMPORADA 1 - Takopi's Original Sin (2025)
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// Seis capitulos, del 28 de junio al 2 de agosto de 2025, uno cada
+// viernes, en ENISHIYA, con direccion de Iino Shinya. Del manga de
+// TAIZAN 5, que salio en el Shonen Jump+ de Shueisha entre diciembre
+// de 2021 y marzo de 2022 en solo dos tomos.
+//
+// ── LAS FECHAS ─────────────────────────────────────────────
+//
+// NO son las de IMDb. IMDb fecha el primero el 27 de junio de 2025 y
+// el ultimo el 1 de agosto, y las dos van un dia antes de las
+// oficiales: la serie se subio en Japon de madrugada y IMDb fecha en
+// UTC. Las que van aqui son las de la lista de capitulos de la
+// wikipedia en japones, que es la fuente oficial.
+//
+// Es el mismo desfase que se vio en Chainsaw Man, y por el mismo
+// motivo.
+//
+// ── LOS TITULOS ─────────────────────────────────────────────
+//
+// El japones es el de cada capitulo en la wiki de cada episodio, que
+// es donde esta la lista buena. Los titulos que devuelve IMDb en
+// ingles transliterado ("2016-nen no kimi e", "Takopî no kyûsai")
+// se usaron para comprobar que los seis capitulos son de esta serie
+// y no de otra, y los seis han cuadrado.
+//
+// Los titulos castellanos traducen el japones, no el de IMDb: "救済"
+// es salvacion y no salvador, que es lo que parece si se lee la
+// transliteracion sin saber.
+//
+// ── LAS NOTAS ──────────────────────────────────────────────
+//
+// De IMDb, serie tt36988358, con 62.079 votos en total. El capitulo 5
+// es el mejor con 9,6 y el 3 el peor con 9,2, y ese orden tiene
+// sentido: el 5 es el que explica el principio desde el final.

@@ -1,0 +1,5 @@
+if (!nuestro && REHACER) {
+      console.log(
+        `  T${f.temporada} ${f.numero}  NO ESTA EN LOS FICHEROS DE DATOS ` +
+          `(hay ${delCatalogo.length} capitulos, de T${delCatalogo[0]?.temporada} ` +
+          `${delCatalogo[0]?.numero} a T${delCatalogo.at(-1)?.temporada} ${delCatalogo.at(-1)?.numero})`,

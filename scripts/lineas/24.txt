@@ -1,0 +1,7 @@
+// [nombre, frase donde se inyecta, lo que se pone en su lugar, debe saltar]
+const CASOS = [
+  ['ideograma pegado', 'Minori en el curro', 'Minori 資產 en el curro', true],
+  ['ideograma suelto', 'la casa de campo es para cuatro', 'la casa de campo 資產 es para cuatro', true],
+  ['punto japones', 'El capitulo entero', 'El capitulo entero。Dicho', true],
+  ['palabra pegada', 'la playa', 'la queibi playa', false],
+];

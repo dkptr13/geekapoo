@@ -1,0 +1,8 @@
+// El `for` con `await` dentro necesita estar en una funcion asincrona: en
+// el nivel superior de un modulo solo se puede esperar con
+// await, no en un bucle `for`.
+async function revisar() {
+  const ficheros = process.argv.slice(2);
+
+  for (const nombre of ficheros) {
+    const texto = await readFile(nombre, 'utf8');

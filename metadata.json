@@ -1,0 +1,6 @@
+{
+  "name": "Geekapoo - Comunidad Friki, Anime, Series y Cultura Pop",
+  "description": "La plataforma definitiva para la comunidad geek y otaku: debates, wiki de animes con episodios y personajes, chats privados y grupales, y foros con respeto mutuo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

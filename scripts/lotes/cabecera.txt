@@ -1,0 +1,56 @@
+// PERSONAJES - Chainsaw Man
+//
+// Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
+//
+// El campo de temporadas va vacio cuando el personaje sale en toda la
+// serie, y con numeros separados por comas cuando no: "2" es el de la
+// pelicula del arco Reze, y "1,2" es el que sale en las dos partes.
+//
+// ── DE DONDE SALEN LOS DATOS ──────────────────────────────────
+//
+// Nombre, nombre japones, voz e imagen vienen de AniList, y se
+// comprobaron uno a uno contra la ficha de cada medio. Los titulos de
+// los capitulos de la T1 se han contrastado con TVDB ademas, porque el
+// emparejador de miniaturas empareja por ahi y no por el numero.
+//
+// Este fichero se genera con `generar-personajes.mjs`, que junta los
+// lotes de `lotes/csm/`. Los lotes estan porque escribir un fichero de
+// cuarenta descripciones de una vez las destrubre.
+//
+// ── LA REPARTO QUE SE HA PUESTO ─────────────────────────────────
+//
+// AniList devuelve 94 personajes para Chainsaw Man, entre las dos
+// partes. 53 son de fondo y no se guardan: los policias de nombre "A",
+// "B" y "C", los prisioneros de una celda, una fila entera del ejercito
+// de zombis y las figurantes de la mafia.
+//
+// De los 41 que quedan se guardan 37. Cuatro quedan fuera y por que:
+//
+//   · Fushi (伏). Es el Diablo del Futuro ya transformado, el mismo
+//     que figura tambien como Mirai no Akuma (未来の悪魔). Ponerlo dos
+//     veces haria que el buscador devolviera al mismo demonio.
+//
+//   · Yakuza (ヤクザ). No es una persona: es un cargo. Los que matan a
+//     Denji en el capitulo 1 son tres mafiosos distintos que ni
+//     siquiera tienen nombre.
+//
+//   · Nyaako (ニャーコ) y Namako no Akuma (ナマコの悪魔). No tienen voz
+//     en AniList y el validador no deja guardar a un personaje sin ella.
+//     Antes que inventar un nombre, se quedan fuera. Volveran cuando
+//     haya una fuente.
+//
+// ── LOS NOMBRES ────────────────────────────────────────────────
+//
+// Se dejan como los escribe la licencia, que es como los conoce todo
+// el mundo: no hay traduccion posible para "Power" ni para "Reze" sin
+// inventar un nombre que nadie usa. Los demonios van con el japones
+// porque en espanol no tienen traduccion oficial, y "el diablo eterno"
+// se entiende peor que "Eien no Akuma".
+//
+// ── UNA COSA DE LA TEMPORADA DE REZE ───────────────────────────
+//
+// AniList da a Reze como de la serie de television y de la pelicula.
+// No sale en ninguno de los doce capitulos: el arco empieza en el
+// capitulo 39 del manga y la serie adaptations hasta el 38. Por eso va
+// solo en la temporada 2. Lo mismo con Nomo y con los demas que solo
+// aparecen en el cine.

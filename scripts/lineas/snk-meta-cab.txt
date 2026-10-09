@@ -1,0 +1,8 @@
+// Es el unico reparto del catalogo en el que el problema de la pareja no
+// es de experiencia sino de lo contrario: la chica que le interesa de
+// verdad es la unica que no encaja en el reparto, y las que encajan son
+// las que compiten entre ellas.
+//
+// Y la segunda temporada lo entiende y lo arregla. La primera gastaba su
+// presupuesto en capitulos de citas; la segunda gasta el mismo presupuesto
+// en decidir.

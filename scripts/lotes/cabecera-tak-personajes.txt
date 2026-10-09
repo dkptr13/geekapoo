@@ -1,0 +1,31 @@
+// PERSONAJES - Takopi's Original Sin
+//
+// Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
+//
+// Siete, que es lo que AniList marca como `main` y `supporting`.
+//
+// ── QUE SE HA QUITADO Y POR QUE ─────────────────────────────
+//
+// AniList devuelve trece. Los seis que faltan son de fondo y tienen
+// nombres de funcion: el `Sensei` (el profesor), el `Happy Mama` (la
+// madre de Takopi) y cuatro `Marina no Yuujin`, que son cuatro
+// hombres distintos que hacen de padre de Marina y no se distinguen
+// entre ellos en la base.
+//
+// Los cuatro padres estan fuera y eso parece una decision mala, pero no
+// lo es: la historia va de que ninguno de los de arriba se mete, y
+// para eso hace falta que sean cuatro y no uno. Meter a uno con cara
+// y a los otros de fondo diria justo lo contrario de lo que quiere
+// decir la serie.
+//
+// ── LOS NOMBRES ───────────────────────────────────────────────
+//
+// Se dejan como los escribe la licencia. "Shizuka" no se traduce y
+// "Marina" tampoco, que es un nombre de pila aqui. El japones si se
+// guarda completo: 東直樹 es el nombre entero de Naoki, no 直樹 solo.
+//
+// ── EL PERRO ──────────────────────────────────────────────────
+//
+// Chappy es un perro y esta con voz porque el anime le pone una. En
+// el doblaje es el mismo actor que lo hace en japones, y por eso
+// tiene entrada propia y no va de apendice del personaje que lo tiene.

@@ -1,0 +1,7 @@
+'Doce capítulos que empiezan con dos hermanos que no han salido de su cuarto en años y terminan con ' +
+      'la partida más importante del mundo. El reparto no cambia nunca: Shiro juega, Sora habla. A mitad ' +
+      'se instalan en la ciudad de los que fracasaron; más adelante la serie se salta ochocientos años para ' +
+      'contar la guerra que casi acaba con la humanidad; y después se vuelve al presente a montar una ' +
+      'alianza de quince reinos. Los capítulos van numerados con los rangos del ajedrez. El mejor es el ' +
+      'sexto, el que gana con una sola jugada, y el peor puntuado es el décimo, que es el único que ocurre ' +
+      'entero dentro de una sala. La dirección es de Atsuko Ishizuka y el estudio es Madhouse.',

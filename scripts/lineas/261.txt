@@ -1,0 +1,3 @@
+for (const [i, tmp] of temporadasCatalogo.entries()) {
+  const n = tmp.numero;
+  const { elegido } = decisiones[i];

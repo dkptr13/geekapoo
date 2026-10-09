@@ -1,0 +1,8 @@
+for (const [aviso, veces] of avisos) {
+    console.log(`  aviso: ${veces} capitulos con "${aviso}"`);
+  }
+
+  console.log(
+    `  ${puestas} puestas` + (saltadas ? `, ${saltadas} sin pareja en TVDB` : ''),
+  );
+}

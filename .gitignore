@@ -1,0 +1,26 @@
+node_modules/
+build/
+dist/
+coverage/
+_DS_Store
+*.log
+.env*
+!.env.example
+
+# Salida compilada de las Cloud Functions. El codigo si se versiona
+# (functions/src), lo que genera tsc no.
+functions/lib/
+
+# Cache local del emulador y del CLI (la crea `npm run test:rules`).
+.firebase/
+
+# Respuestas cacheadas de la API de AniList. Se regeneran solas y
+# caducan a las 24 horas (ver `scripts/anilist.mjs`).
+scripts/.cache-anilist/
+
+# Miniaturas de capitulo bajadas para revisarlas a ojo. Se regeneran
+# solas con scripts/mirar-miniaturas.mjs y no se suben.
+scripts/.miniaturas/
+
+# Copia de seguridad local de src/ (creada antes de migrar a Firestore)
+_backup/

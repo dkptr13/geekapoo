@@ -1,0 +1,11 @@
+Zombie no Akuma|1|antagonist|ゾンビの悪魔|Kouki Miyata|El Diablo Zombi, el que tiene la boca llena de dientes y no habla con nadie. Sale en la parte final del capitolo 11 y es lo que obliga a Power a pelear de verdad, que es lo unico que ella queria de esa pelea.
+
+Tomato no Akuma|1|antagonist|トマトの悪魔|Hinata Tadokoro|El Diablo Tomate, uno de los mas debiles y el primero que se come en el capitolo 6. Es el que le da a Power su primera muerte de demonio dentro del hotel, y ella no lo cuenta porque le da verguenza.
+
+Taiyou|1|antagonist|タイヨウ|Mana Nakatomi|El Diablo Solar, el mas poderoso de los que salen en la primera temporada. Un demonio al que le han puesto el nombre de un dios del clima y por eso da miedo: es el que obliga a Aki a ofrecer su vida durante meses.
+
+Mirai no Akuma|1|antagonist|未来の悪魔|Hiroki|El Diablo del Futuro, un demonio con dos cabezas a las que ya les queda un dia de vida. Aki le ofrece una parte de la suya para usar su poder y asi pelear antes de tiempo, y por eso llega vivo a Kioto.
+
+Yuurei no Akuma|1|antagonist|幽霊の悪魔|Hiroko Kiso|El Diablo Fantasma, el que se acopla a los muertos y se adueña de ellos en el capitolo 10. Asi explica que la tercera tanda de la cuarta division no llegue nunca a Kioto.
+
+Kitsune no Akuma|1,2|supporting|狐の悪魔|Yuko Kaida|El Diablo Zorro, el mas antiguo de los que quedan vivos en la serie. Vive en su cueva con el pelo hecho un nudo de mil años, y cuando aparece en la pelicula es un aviso de que el mundo de la historia se acaba a marchar.

@@ -1,0 +1,3 @@
+console.log(`  T${temporada.numero}: AniList no tiene miniaturas de esta temporada`);
+      continue;
+    }

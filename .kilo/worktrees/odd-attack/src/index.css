@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Outfit', sans-serif;
+  }
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* ======================================================
+   COLUMNAS CON SCROLL PROPIO (feed y barra lateral)
+   ======================================================
+   Estas columnas scrollean su contenido sin arrastrar la
+   página. La barra se agranda y se resalta un poco más que la
+   normal para que se vea dónde termina cada zona: si las dos
+   tuvieran el mismo aspecto, con dos columnas con scroll una
+   al lado de la otra costaría saber cuál de las dos está
+   moviendo.
+
+   Se usa scrollbar-gutter: reserva el hueco de la barra siempre,
+   y no solo cuando aparece. Si no, el contenido daría un salto
+   horizontal cada vez que se llega al final y la barra asoma.
+   ====================================================== */
+.panel-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 #09090b;
+  /* Al saltar a un hilo con scrollIntoView, se para con su
+     encabezado justo en el borde de arriba de la columna. Con un
+     poco de relleno, el Navbar no se lo come. Abajo sirve para
+     que el último hilo no quede pegado al final de la columna. */
+  scroll-padding: 1rem 0 1.5rem;
+}
+.panel-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.panel-scroll::-webkit-scrollbar-track {
+  background: #09090b;
+  border-left: 1px solid #1f1f23;
+}
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 5px;
+  border: 2px solid #09090b;
+}
+.panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* ======================================================
+   ANIMACIONES DE LA COMUNIDAD
+   ======================================================
+   Las usan las piezas nuevas (selector de reacciones, barras de
+   la encuesta, ventana de GIFs). Son tres cosas y nada más:
+   entrar, Grow y tocar. Todas se apagan con "prefers-reduced-
+   motion", que es lo que pide la accesibilidad y evita que a
+   alguien con mareos le salte la pantalla al elegir una
+   reacción.
+
+   Se definen aquí y no con `animate-*` de Tailwind porque el
+   proyecto no trae ese plugin instalado: las clases
+   `animate-in slide-in-from-top-3` que ya había en algunos
+   componentes no hacían nada.
+   ====================================================== */
+
+@keyframes geo-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes geo-entrar-arriba {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes geo-latido {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+
+@keyframes geo-barra {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes geo-aparece {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Panel flotante: selector de reacciones y ventana de GIFs. */
+.geo-pop-in {
+  animation: geo-entrar 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* El mismo panel, pero abriendo hacia arriba (encima del
+   botón). La animación es idéntica; lo que cambia es el origen
+   del escalado, que en el CSS normal sería `bottom left`. */
+.geo-pop-in-arriba {
+  animation: geo-entrar-arriba 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: bottom left;
+}
+
+/* Emoji recién elegido: un latido corto y nada más. */
+.geo-latido {
+  animation: geo-latido 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Barra de resultados de una opción de la encuesta. */
+.geo-barra {
+  animation: geo-barra 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: left center;
+}
+
+/* Avisos y estados (errores, "contando los votos..."). */
+.geo-aparece {
+  animation: geo-aparece 200ms ease-out both;
+}
+
+/* ======================================================
+   ANIMACIONES DE KAPO-CHAN
+   ======================================================
+   Cuatro estados y poco más. La mascota ya se mueve sola (se
+   arrastra, flota, hace pop al tocarla), así que las
+   animaciones de aquí son cortas y discretas: si la mascota
+   baila cada vez que habla, deja de tener sentido que hable.
+
+   El "temblor" de los eventos importantes es lo que las
+   distingue: subir de nivel o ganar una medalla tienen que
+   notarse aunque el usuario no esté mirando el texto. */
+
+@keyframes geo-kapo-beso {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.06) rotate(-2deg); }
+  60% { transform: scale(0.98) rotate(1deg); }
+}
+
+@keyframes geo-kapo-brillo {
+  0% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.7); }
+  100% { box-shadow: 0 0 0 16px rgba(167, 139, 250, 0); }
+}
+
+@keyframes geo-kapo-subir {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+/* Al hablar: un rebote corto. */
+.geo-kapo-habla {
+  animation: geo-kapo-beso 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Evento importante: brillar alrededor de la mascota. */
+.geo-kapo-brillo {
+  animation: geo-kapo-brillo 900ms ease-out 2;
+}
+
+/* Trivia completada: un pequeño salto. */
+.geo-kapo-salto {
+  animation: geo-kapo-subir 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .geo-pop-in,
+  .geo-pop-in-arriba,
+  .geo-latido,
+  .geo-barra,
+  .geo-aparece,
+  .geo-kapo-habla,
+  .geo-kapo-brillo,
+  .geo-kapo-salto {
+    animation: none !important;
+  }
+}

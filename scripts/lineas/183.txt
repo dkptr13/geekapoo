@@ -1,0 +1,3 @@
+const deTvdb = elegido.capitulos.map((e) => e.name);
+
+    const malos = filas.filter((f) => !deTvdb.some((t) => mismoTitulo(t, f.japones)));

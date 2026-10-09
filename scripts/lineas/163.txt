@@ -1,0 +1,4 @@
+const deTvdb = eps.map((e) => e.name);
+
+    const comunes = filas.filter((f) => deTvdb.some((t) => mismoTitulo(t, f.japones)))
+      .length;

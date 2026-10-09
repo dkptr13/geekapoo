@@ -1,0 +1,4 @@
+// El campo del capitulo es `seasonId`, en singular. `seasonIds` en plural
+  // es el de los personajes, y leerlo aqui daria `undefined` en todos los
+  // capitulos.
+  const temporadaId = str(c.f, 'seasonId') ?? '';

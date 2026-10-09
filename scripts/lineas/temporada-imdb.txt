@@ -1,0 +1,21 @@
+// Numero de temporada en IMDb para una temporada del catalogo.
+//
+// Lo normal es que coincidan: temporada 1 con temporada 1, la 2 con la
+// 2. Antes esto se deducia buscando la temporada de IMDb que tuviera un
+// capitulo numero 0, y eso estaba mal: cuando la serie empieza a numerar
+// en cero, esa busqueda devuelve SIEMPRE la primera temporada de IMDb,
+// asi que las imagenes de la segunda se comparaban contra los titulos de
+// la primera y pasaban el filtro sin ser las suyas.
+//
+// Con esto no hay que deducir nada: la temporada N del catalogo se
+// busca la N de IMDb. Si no existe, se coge la que mas capitulos tenga.
+
+function temporadaDeImdb(titulos, numeroTemporada, cuantos) {
+  const directa = titulos.get(numeroTemporada);
+
+  if (directa?.length) return numeroTemporada;
+
+  const numeros = [...titulos.keys()].sort((a, b) => a - b);
+
+  return numeros.find((t) => (titulos.get(t) ?? []).length === cuantos) ?? numeros[0];
+}

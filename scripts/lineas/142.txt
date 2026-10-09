@@ -1,0 +1,3 @@
+const conImagen = new Set(
+  capitulos.filter((c) => str(c.f, 'thumbnailUrl')).map((c) => c.id),
+);

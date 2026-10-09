@@ -1,0 +1,76 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function hasProfile() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid));
+    }
+
+    function myRole() {
+      return hasProfile()
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    function isAdmin() {
+      return myRole() == 'admin';
+    }
+
+    function isModerator() {
+      return myRole() == 'admin' || myRole() == 'moderator';
+    }
+
+    function isBanned() {
+      return hasProfile()
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isBanned == true;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Cada usuario escribe unicamente dentro de su propia carpeta
+    match /avatars/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+                   && request.auth.uid == uid
+                   && isImage();
+      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // Imagenes de los hilos y comentarios de la comunidad.
+    //
+    // Cualquier usuario con sesion puede subir, pero SOLO a su
+    // propia carpeta: el {uid} del path tiene que coincidir con
+    // quien escribe, así que nadie puede subir a nombre de otro
+    // ni llenar la carpeta de alguien con imágenes que no son
+    // suyas. Un usuario baneado se queda sin subir, igual que
+    // se queda sin publicar.
+    match /community/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+                   && request.auth.uid == uid
+                   && !isBanned()
+                   && isImage();
+      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // Contenido del catalogo (portadas, banners, miniaturas, fanarts)
+    match /content/{allPaths=**} {
+      allow read: if true;
+      allow write: if (isAdmin() || isModerator()) && isImage();
+      allow delete: if isAdmin() || isModerator();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

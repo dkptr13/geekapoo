@@ -1,0 +1,40 @@
+export const T1 = [
+  [1, 'Un capitulo de servicio del amor y la juventud', '愛と青春のサービス回', '2015-01-09', 6.4,
+   'El capitulo cero, el que va antes de que empiece lo demas. Tomoya presenta a las cinco chicas de su clase con las que no tiene ninguna relacion y explica por que el proyecto del club de computer le obliga a hacer un trabajo para cada una. Es el capitulo que mas se cita de la temporada y tambien el peor puntuado, y las dos cosas van juntas: cumple su funcion y no funciona como capitulo.'],
+
+  [2, 'Un prologo lleno de errores', '間違いだらけのプロローグ', '2015-01-16', 7.0,
+   'La historia arranca de verdad. Tomoya monta el programa que le han encargado y descubre que las cinco candidatas no se parecen en nada a lo que el pide y que ninguna sabe programar. Lo que funciona es el reparto: cada capitulo se lleva una de las cinco, y esta vez la que peor le va es la que no lo espera.'],
+
+  [3, 'Una novia que no cumple el guion', 'フラグの立たない彼女', '2015-01-23', 7.1,
+   'El capitulo de Megumi, la que deberia ser la protagonista y no hace casi nada para serlo. Es el que establece la mecanica de la serie entera: el chico que hace la declaracion de amor con un discurso preparado y la chica que contesta algo que no estaba en el guion.'],
+
+  [4, 'El clímax se repite', 'クライマックスはリテイクで', '2015-01-30', 7.1,
+   'Donde el prologo se equivoca. Tomoya descubre que su declaracion a Megumi estaba en un borrador a medio hacer, y el capitulo entero es un ensayo general de lo que hara despues con las otras cuatro. Es el primero que se puede ver como serie y no como capitulo suelto.'],
+
+  [5, 'Presupuesto, plazos y novedad', '予算と納期と新展開', '2015-02-06', 6.8,
+   'El capitulo mas administrativo de la temporada: plazos de entrega, presupuesto y una entrega que no llega. Entra Eriri con sus humos deRepresentante y con un estilo exacto que nadie le habia pedido, y el grupo empieza a dejar de ser un club de computer para ser otra cosa.'],
+
+  [6, 'Una cita que se cruza', 'すれ違いのデートイベント', '2015-02-13', 6.9,
+   'Dos salidas a la vez en el mismo sitio y ninguna sale como se planeo. Es el capitulo de Eriri y el que mas usa el recurso de la serie: montarlo todo para que nada ocurra. La muchacha mas sangre fria del reparto es tambien la que peor lleva que las cosas no pasen.'],
+
+  [7, 'Lo que eligen de noche', '二人の夜の選択肢', '2015-02-20', 7.7,
+   'El capitulo de la noche que no ocurre, y el primero en el que la serie sube el tono sin subir el numero de escenas. Lo que se decide ahi no es ninguna de las cinco, sino Tomoya: deja claro que elija a quien elija, las otras cuatro se quedan con el.'],
+
+  [8, 'Enemiga, aliada o personaje nuevo', '敵か味方か新キャラか', '2015-02-27', 8.7,
+   'Entra Utaha, que llega diciendo lo que va a pedir y haciendo lo que va a hacer. Es el mejor capitulo de la temporada hasta aqui y el que mas se acerca al final: el triangulo deja de ser de dos y pasa a ser de tres.'],
+
+  [9, 'El modo recuerdo del trauma equivocado', '当て馬トラウマ回想モード', '2015-03-06', 8.8,
+   'La mejor nota de la temporada. Tomoya confunde a una chica con otra y todo lo que recuerda de su infancia se desmonta en veinte minutos, y de ahi sale el capitulo mas raro y mas cuidado de la serie: el que explica por que el telefono aparece en su bolsillo desde el primer capitulo.'],
+
+  [10, 'La ruta individual despues de ocho años', '八年ぶりの個別ルート', '2015-03-13', 7.7,
+   'Ocho años despues. El capitulo que cambia de genero a ratos y vuelve a las ocho clases de las que salio la serie, con Tomoya y Megumi siendo los mismos y sin que nada haya servido. Es el mas largo de la temporada.'],
+
+  [11, 'La melodia del recuerdo y del refuerzo', '思い出とテコ入れのメロディ', '2015-03-20', 8.7,
+   'El capitulo de Michiru, que es la unica de las cinco que no esta guiada por el deseo de ganarle a las demas. La escena que lo sostiene es una en la que Tomoya entiende que ha estado contando mal quantas personas puede querer.'],
+
+  [12, 'Listos para recoger los hilos', '伏線回収準備よし', '2015-03-27', 7.4,
+   'El capitulo de cierre de la trama secundaria: todo lo que se ha dejado colgando en doce capitulos empieza a atarse. Es de los mas criticados de la temporada porque resuelve con prisa, y la nota lo dice sin que nadie tenga que decirlo.'],
+
+  [13, 'El final de un dia accidentado', '波乱と激動の日常エンド', '2015-03-27', 7.8,
+   'El final de la primera temporada y el capitulo que mas gente recuerda: Tomoya elige, y elige a la que no estaba en el reparto oficial del club. No cierra nada, deja a las otras cuatro en la puerta, y ahi es exactamente donde empieza la segunda temporada.'],
+];

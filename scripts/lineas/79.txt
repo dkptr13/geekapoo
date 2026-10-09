@@ -1,0 +1,25 @@
+// Un `continue` dentro de un `forEach` no vale, porque el `forEach` no
+  // es un bucle: hace falta el bucle de verdad.
+  for (let i = 0; i < lineas.length; i++) {
+    const linea = lineas[i];
+
+    const n = i + 1;
+
+    // Los ideogramas se buscan en las cadenas largas y en los
+    // comentarios, que es donde se han colado. El titulo japones si es
+    // japones a proposito, asi que solo se mira dentro de las frases.
+    for (const f of linea.matchAll(/'([^']{80,})'/g)) {
+      const dentro = [...f[1]].filter((c) => /[一-鿿]/.test(c)).length;
+
+      if (dentro) {
+        avisos.push(`linea ${n}  ideograma en un texto largo: ${f[1].slice(0, 60)}`);
+      }
+    }
+
+    // En los comentarios el japones si es legitimo: los titulos de los
+    // capitulos estan ahi. Solo se avisa de ideogramas con hueco, que es
+    // como sale el texto cuando se ha colado.
+    for (const f of linea.matchAll(/[一-鿿](?:\s+[一-鿿]){2,}/g)) {
+      avisos.push(`linea ${n}  ideograma con hueco: ${f[0]}`);
+    }
+  }

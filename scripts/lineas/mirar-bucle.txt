@@ -1,0 +1,25 @@
+// Se cogen repartidas, no las primeras, para no mirar siempre la misma.
+  const salto = Math.max(1, Math.floor(conImagen.length / (cuantas + 1)));
+
+  const indices = [0, salto, salto * 2]
+    .filter((i) => i < conImagen.length)
+    .slice(0, cuantas);
+
+  for (const i of indices) {
+    const capitulo = conImagen[i];
+
+    const destino =
+      `${carpeta}/mirar-${nombre.replace(/\W+/g, '_')}-` +
+      `${x.title.romaji.replace(/\W+/g, '_')}-${i}.jpg`;
+
+    const res = await fetch(capitulo.thumbnail, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+
+    if (!res.ok) {
+      console.log(`  ${res.status}  ${capitulo.title}`);
+      continue;
+    }
+
+    await writeFile(destino, Buffer.from(await res.arrayBuffer()));
+
+    console.log(`  ${destino.replace(carpeta + '/', '')}   <- ${capitulo.title.slice(0, 50)}`);
+  }

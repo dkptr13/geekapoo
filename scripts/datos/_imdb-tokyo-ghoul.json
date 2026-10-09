@@ -1,0 +1,98 @@
+{
+  "_nota": "Notas de IMDb leidas con el navegador. Copia de seguridad cruda, antes de repartirlas en los ficheros de datos.",
+  "_por_que_tres_series": "Tokyo Ghoul NO es una sola serie en IMDb, son tres fichas distintas. La del 2014, la de Root A (2015) y la de re (2018). Ademas re esta partida en dos temporadas de 12 en IMDb, aunque Wikipedia la cuenta como una sola de 24.",
+  "serie1": {
+    "imdbId": "tt3741634",
+    "tituloImdb": "Tokyo Ghoul",
+    "tipoImdb": "Miniserie de TV",
+    "nota": 7.7,
+    "votos": 86000,
+    "episodios": {
+      "1": 8.3,
+      "2": 7.8,
+      "3": 7.4,
+      "4": 7.4,
+      "5": 8.1,
+      "6": 8.0,
+      "7": 7.7,
+      "8": 8.6,
+      "9": 7.4,
+      "10": 7.7,
+      "11": 8.2,
+      "12": 9.4
+    }
+  },
+  "serie2": {
+    "imdbId": "tt5497534",
+    "tituloImdb": "Tokyo Ghoul: Root A",
+    "nota": 7.5,
+    "votos": 21000,
+    "_nota_numeracion": "En IMDb esta serie numera sus capitulos T1.E1 a T1.E12, aunque es la segunda de la serie. En el catalogo van como capitulos 1 a 12 de la temporada 2.",
+    "episodios": {
+      "1": 8.1,
+      "2": 7.0,
+      "3": 7.2,
+      "4": 7.6,
+      "5": 8.0,
+      "6": 7.2,
+      "7": 7.3,
+      "8": 7.7,
+      "9": 8.1,
+      "10": 8.7,
+      "11": 8.5,
+      "12": 8.3
+    }
+  },
+  "serie3": {
+    "imdbId": "tt8213522",
+    "tituloImdb": "Tokyo Ghoul: re",
+    "nota": 6.5,
+    "votos": 15000,
+    "_nota_numeracion": "IMDb la parte en DOS temporadas de 12 (T1 y T2). Las claves de 'episodios' son las de IMDb, no las del catalogo.",
+    "episodios_curso1": {
+      "1": 7.1,
+      "2": 7.5,
+      "3": 6.7,
+      "4": 7.2,
+      "5": 7.5,
+      "6": 8.2,
+      "7": 7.0,
+      "8": 6.7,
+      "9": 7.0,
+      "10": 7.2,
+      "11": 7.7,
+      "12": 8.4
+    },
+    "episodios_curso2": {
+      "1": 7.3,
+      "2": 8.0,
+      "3": 7.0,
+      "4": 7.3,
+      "5": 7.4,
+      "6": 7.1,
+      "7": 8.0,
+      "8": 8.1,
+      "9": 7.2,
+      "10": 7.1,
+      "11": 7.3,
+      "12": 7.6
+    }
+  },
+  "ovas": {
+    "_nota": "Los dos OVA son peliculas sueltas de 25 y 30 minutos con ficha propia en IMDb, no capitulos de ninguna de las tres series. Sus notas SI son de IMDb y SI valen para el capitulo al que se asignen.",
+    "jack": {
+      "imdbId": "tt5265536",
+      "tituloImdb": "Tokyo Ghoul: Jack",
+      "nota": 7.1,
+      "votos": 2600
+    },
+    "pinto": {
+      "imdbId": "tt5600616",
+      "tituloImdb": "Tokyo Ghoul: Pinto",
+      "nota": 6.8,
+      "votos": 2100
+    }
+  },
+  "_titulos_imdb_de_re": "Los titulos que IMDb pone a los capitulos de re son inconsistentes y a veces vienen rotos: el 4 del segundo curso sale como ':Those Left Behind' (con los dos puntos delante y sin la palabra), el 9 como 'Recollection' sin la palabra inglesa, el 2 sin la palabra, y el final como 'Finale'. Los titulos oficiales, que van en japones y en ingles a la vez, estan en el fichero de datos y son los que se usan.",
+  "_notas_imdb_de_re_que_faltan": "Ninguna. Los 24 capitulos de re tienen nota."
+}

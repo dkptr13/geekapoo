@@ -1,0 +1,15 @@
+// Las temporadas del catalogo, para pasarselas a `elegirTemporadas` en el
+// mismo formato que usa `enlazar-imagenes.mjs`.
+//
+// `number` y `year` son enteros, no cadenas: hay que leerlos con `num`.
+// Con `str` salen vacios y todas las temporadas se quedan con el numero
+// cero, que es un fallo que no da error, solo temporadas que no
+// encuentran nada.
+const temporadasCatalogo = (await coleccion('seasons'))
+  .filter((s) => str(s.f, 'animeId') === id)
+  .map((s) => ({
+    numero: num(s.f, 'number') ?? 0,
+    anio: num(s.f, 'year') ?? 0,
+    titulo: str(s.f, 'title'),
+  }))
+  .sort((a, b) => a.numero - b.numero);

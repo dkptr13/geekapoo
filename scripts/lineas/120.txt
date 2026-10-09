@@ -1,0 +1,5 @@
+// Solo las pegadas: una palabra inglesa suelta puede ser un titulo
+  // legitimo, una pegada no lo es nunca.
+  for (const p of pegadas(sinPegar(texto))) {
+    avisos.push(`palabra inglesa pegada: ${p}`);
+  }

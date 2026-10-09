@@ -1,0 +1,34 @@
+describe('reglas de Storage', () => {
+  let testEnv;
+
+  before(async () => {
+    testEnv = await initializeTestEnvironment({
+      projectId: 'demo-geekapoo-reglas',
+      firestore: { rules: fs.readFileSync('firestore.rules', 'utf8') },
+      storage: { rules: fs.readFileSync('storage.rules', 'utf8') },
+    });
+  });
+
+  after(async () => {
+    await testEnv.cleanup();
+  });
+
+  beforeEach(async () => {
+    await testEnv.clearDatabase();
+
+    // alice es la dueña del grupo y bob es un miembro más; cara está
+    // fuera. Para comprobar la pertenencia hace falta el chat con su
+    // lista de miembros.
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'chat1'), {
+        type: 'group',
+        name: 'grupo',
+        ownerId: ALICE,
+        memberIds: [ALICE, BOB],
+      });
+
+      await setDoc(doc(f, 'users', ALICE), { displayName: 'alice' });
+      await setDoc(doc(f, 'users', BOB), { displayName: 'bob' });
+      await setDoc(doc(f, 'users', CARA), { displayName: 'carla' });
+    });
+  });

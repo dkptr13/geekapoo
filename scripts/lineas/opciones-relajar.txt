@@ -1,0 +1,2 @@
+const escribirEnBase = args.includes('--escribir');
+const relajar = args.includes('--relajar');

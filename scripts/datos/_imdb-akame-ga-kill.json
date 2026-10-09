@@ -1,0 +1,47 @@
+{
+  "_nota": "Notas de IMDb leidas con el navegador. Copia de seguridad cruda, antes de repartirlas en los ficheros de datos.",
+  "serie": {
+    "imdbId": "tt3742982",
+    "tituloImdb": "Akame ga Kill!",
+    "tipoImdb": "Serie de TV",
+    "nota": 7.7,
+    "votos": 40000,
+    "mediaNoPonderada": 7.8,
+    "_nota_votos": "La cifra es la que sale en la pagina de calificaciones, redondeada a '40 k'. Series Graph la da con mas detalle: 39.540 votos para el 7,7, que es el mismo numero redondeado.",
+    "_nota_del_id": "El id correcto es tt3742982. El tt2188709, que es el que devuelve una busqueda a ciegas, NO es esta serie.",
+    "episodios": {
+      "1": 8.1,
+      "2": 7.6,
+      "3": 7.4,
+      "4": 7.8,
+      "5": 7.3,
+      "6": 8.4,
+      "7": 7.7,
+      "8": 8.3,
+      "9": 7.6,
+      "10": 7.5,
+      "11": 7.8,
+      "12": 7.1,
+      "13": 7.3,
+      "14": 7.7,
+      "15": 7.5,
+      "16": 8.1,
+      "17": 8.7,
+      "18": 7.7,
+      "19": 8.3,
+      "20": 8.0,
+      "21": 8.5,
+      "22": 8.3,
+      "23": 8.5,
+      "24": 8.7
+    }
+  },
+  "ona": {
+    "_nota": "Los 24 capitulos de 'AkaKill! Gekijou' (Akame ga Kill! Theater) NO tienen nota propia. En IMDb no son una serie: aparecen como capitulos extra de la propia tt3742982, con el prefijo 'Theater:' delante del titulo, en la seccion 'Episodios sin temporada'. Y ningun extra puntua: es lo mismo que pasa con los OAD de Ataque a los Titanes. Por eso sus notas van a 0.",
+    "imdbId": "ninguno, son capitulos extra de tt3742982",
+    "tituloImdb": "Theater: ...",
+    "episodios": {}
+  },
+  "_titulos_imdb_de_re": "Los titulos de television de esta serie estan en ingles y medio en forma de proposicion ('Kill the Darkness'), que es como los titula Sentai Filmworks. En el catalogo van traducidos, igual que los de Mushoku Tensei y los de Ataque a los Titanes: no por traduzcanismo, sino porque el campo `title` es el que se pinta en la web y en este catalogo esa columna esta en castellano.",
+  "_notas_imdb_de_re_que_faltan": "Ninguna de television. Los 24 capitulos tienen nota."
+}

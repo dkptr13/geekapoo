@@ -1,0 +1,5 @@
+console.log(
+      `  T${temporada.numero}: ${conImagen.length} en AniList ` +
+        `(desplazamiento ${desplazamiento}), ${puestas} verificadas` +
+        (saltadas ? `, ${saltadas} descartadas` : ''),
+    );
