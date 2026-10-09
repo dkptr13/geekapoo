@@ -1,0 +1,37 @@
+/** Lo que devuelve: qué celebrar y qué es nuevo. */
+export interface DeteccionMedallas {
+  /** Los ids a celebrar. Vacío en la primera lectura. */
+  celebrar: string[];
+  /** Los ids que no se habían visto: hay que apuntarlos. */
+  nuevas: string[];
+}
+
+/**
+ * Qué medallas hay que celebrar.
+ *
+ * ── POR QUÉ POR ID Y NO POR FECHA ────────────────────────────────
+ *
+ * Antes se comparaban FECHAS: si la fecha del documento era distinta
+ * a la recordada, la medalla se celebraba. Eso aguantaba la sesión,
+ * pero no el inicio: basta con que la primera lectura traiga el
+ * documento vacío y la segunda lo traiga lleno para que TODAS las
+ * medallas parezcan nuevas. Y cada remontaje volvía a empezar.
+ *
+ * Ahora la pregunta es solo "¿se ha visto este ID alguna vez?". Una
+ * medalla que reaparece (con la fecha que sea) no es nueva. Solo es
+ * nuevo un ID que nunca se había visto, y solo se celebra si además
+ * no es la primera lectura (lo que ya había al entrar es historial).
+ *
+ * @param vistas       ids que ya se han visto (memoria o persistencia)
+ * @param ids          ids que trae el documento ahora
+ * @param esLaPrimera  que no se ha leído el documento en esta sesión
+ */
+export function detectarMedallasNuevas(
+  vistas: ReadonlySet<string>,
+  ids: string[],
+  esLaPrimera: boolean,
+): DeteccionMedallas {
+  const nuevas = (ids ?? []).filter((id) => !vistas.has(id));
+
+  return { celebrar: esLaPrimera ? [] : nuevas, nuevas };
+}

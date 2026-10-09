@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FC, PointerEvent as ReactPointerEvent } from 'react';
-import { Loader2, Maximize2, RotateCcw, X, Check, Crop } from 'lucide-react';
+import { Loader2, Maximize2, RotateCcw, X, Check, Crop, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import {
   PROPORCIONES,
   ZOOM_MAXIMO,
   ZOOM_MINIMO,
   ajustesIniciales,
-  calcularEncuadre,
   clasificarProporcion,
   descripcionProporcion,
+  desplazarEncuadre,
   limitarDesplazamiento,
   limitarZoom,
   type ImageCropSettings,
+  type MedidasArrastre,
 } from '../../services/imageCrop';
 
 import { cargarImagen, pintarEncuadre, recortarImagen } from '../../services/imageCanvas';
@@ -182,16 +183,37 @@ export const CropEditor: FC<CropEditorProps> = ({
     );
   }, [imagen, ajustes, tamano]);
 
+  // Si hay algo cargando o guardando, nada se puede tocar: ni el
+  // arrastre, ni las flechas, ni los botones. Va aquí arriba porque
+  // los manejadores de más abajo lo leen.
+  const ocupado = cargando || guardando;
+
   // ── El arrastre ────────────────────────────────────────────────
   //
   // El desplazamiento se guarda normalizado, así que un píxel de
-  // dedo se traduce a una fracción del recorrido disponible. Si el
-  // recorrido es cero (no hay nada que mover en ese eje) el valor no
-  // se toca, y por eso no hay que comprobarlo antes.
+  // pantalla se traduce a una fracción del recorrido disponible. Si
+  // el recorrido es cero (no hay nada que mover en ese eje) el valor
+  // no se toca, y por eso no hay que comprobarlo antes.
+  //
+  // ── POR QUÉ EL ORIGEN AVANZA EN CADA EVENTO ──────────────────────
+  //
+  // Antes el origen se fijaba al empezar (`pointerdown`) y cada evento
+  // restaba el desplazamiento DESDE EL INICIO al estado actual, que ya
+  // incluía los eventos anteriores. El movimiento se contaba dos
+  // veces y la imagen corría más que el dedo, acelerando cuanto más
+  // se arrastraba: por eso el arrastre se sentía tosco y sin
+  // precisión. Ahora cada evento solo aporta lo movido desde el
+  // anterior, y la imagen sigue al dedo uno a uno.
+  //
+  // ── MAYÚS PARA PRECISIÓN ─────────────────────────────────────────
+  //
+  // Con Mayús pulsada el movimiento va a la décima parte. Es para
+  // colocar la cara al píxel sin pelearse con el dedo, y no necesita
+  // ningún botón más en un modal que ya va lleno.
   const arrastrando = useRef<{ x: number; y: number } | null>(null);
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!imagen) return;
+    if (!imagen || ocupado) return;
 
     e.currentTarget.setPointerCapture(e.pointerId);
     arrastrando.current = { x: e.clientX, y: e.clientY };
@@ -202,25 +224,39 @@ export const CropEditor: FC<CropEditorProps> = ({
 
     if (!desde || !imagen || tamano.ancho <= 0) return;
 
-    const e0 = calcularEncuadre(
-      imagen.naturalWidth,
-      imagen.naturalHeight,
-      tamano.ancho,
-      tamano.alto,
-      ajustes,
-    );
+    const dxPantalla = e.clientX - desde.x;
+    const dyPantalla = e.clientY - desde.y;
 
-    const recorridoX = Math.max(1, e0.ancho - tamano.ancho);
-    const recorridoY = Math.max(1, e0.alto - tamano.alto);
+    if (dxPantalla === 0 && dyPantalla === 0) return;
+
+    // El origen avanza: lo de este evento ya está contado al salir.
+    arrastrando.current = { x: e.clientX, y: e.clientY };
+
+    // Los eventos vienen en píxeles de pantalla y el recorrido en
+    // píxeles del canvas. Solo coinciden si la caja se enseña a su
+    // tamaño real; en un móvil estrecho la caja encoge y sin esta
+    // escala la imagen correría más que el dedo.
+    const rect = e.currentTarget.getBoundingClientRect();
+    const escala = rect.width > 0 ? tamano.ancho / rect.width : 1;
+
+    const paso = e.shiftKey ? 0.1 : 1;
+    const dx = dxPantalla * escala * paso;
+    const dy = dyPantalla * escala * paso;
+
+    // El recorrido se calcula con el estado ACTUAL, dentro del
+    // actualizador: el `ajustes` del cierre puede ir por detrás si
+    // los eventos llegan más rápido que los repintados.
+    const medidas: MedidasArrastre = {
+      fuenteAncho: imagen.naturalWidth,
+      fuenteAlto: imagen.naturalHeight,
+      cajaAncho: tamano.ancho,
+      cajaAlto: tamano.alto,
+    };
 
     // El signo va invertido porque el desplazamiento va hacia el lado
     // contrario al dedo: si tiras de la foto hacia la derecha, lo que
     // se ve es lo que había a la derecha.
-    setAjustes((prev) => ({
-      ...prev,
-      x: limitarDesplazamiento(prev.x - (e.clientX - desde.x) / recorridoX),
-      y: limitarDesplazamiento(prev.y - (e.clientY - desde.y) / recorridoY),
-    }));
+    setAjustes((prev) => desplazarEncuadre(prev, dx, dy, medidas));
   };
 
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -231,6 +267,54 @@ export const CropEditor: FC<CropEditorProps> = ({
     }
   };
 
+  // ── Ajuste fino ────────────────────────────────────────────────
+  //
+  // El dedo, ni siquiera con Mayús, coloca al píxel: un milímetro de
+  // pantalla son varios pasos normalizados. Por eso hay tres niveles:
+  //
+  //   · Botones: 0.02 por pulsación (2% del recorrido).
+  //   · Flechas del teclado: 0.01, y 0.05 con Mayús.
+  //   · Arrastre con Mayús: décima parte de velocidad.
+  //
+  // Van en pasos normalizados y no en píxeles a propósito: el mismo
+  // paso vale para la vista previa pequeña y para el recorte final
+  // grande, igual que el resto del encuadre.
+  const PASO_BOTON = 0.02;
+  const PASO_TECLA = 0.01;
+  const PASO_TECLA_RAPIDO = 0.05;
+
+  const mover = useCallback(
+    (dx: number, dy: number) => {
+      if (!imagen || ocupado) return;
+
+      setAjustes((prev) => ({
+        ...prev,
+        x: limitarDesplazamiento(prev.x + dx),
+        y: limitarDesplazamiento(prev.y + dy),
+      }));
+    },
+    [imagen, ocupado],
+  );
+
+  const onTecla = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!imagen || ocupado) return;
+
+    const paso = e.shiftKey ? PASO_TECLA_RAPIDO : PASO_TECLA;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      mover(paso, 0);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      mover(-paso, 0);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      mover(0, paso);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      mover(0, -paso);
+    }
+  };
   // ── Rueda del ratón, como atajo del zoom ───────────────────────
   const onWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
     setAjustes((prev) => ({
@@ -265,8 +349,6 @@ export const CropEditor: FC<CropEditorProps> = ({
   const etiquetaProporcion =
     aspectRatio === 1 ? 'Cuadrada' : `${aspectRatio.toFixed(2)} : 1`;
 
-  const ocupado = cargando || guardando;
-
   return (
     <div
       // `z-[200]`, por encima del modal de perfil (`z-[100]`).
@@ -291,7 +373,9 @@ export const CropEditor: FC<CropEditorProps> = ({
               {titulo ?? 'Recortar imagen'}
             </h3>
             <p className="mt-0.5 text-[11px] text-zinc-400">
-              Arrastra para mover y usa el zoom para acercar.
+              Arrastra para mover y usa el zoom para acercar. Con Mayús,
+              el arrastre va a la décima parte; con las flechas del
+              teclado, al píxel.
             </p>
           </div>
 
@@ -315,9 +399,18 @@ export const CropEditor: FC<CropEditorProps> = ({
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
             onWheel={onWheel}
+            onKeyDown={onTecla}
+            tabIndex={imagen && !ocupado ? 0 : -1}
+            aria-label="Encuadre: pulsa las flechas del teclado para mover la imagen al píxel"
+            title="Flechas para mover al píxel (con Mayús, saltos mayores)"
             style={{
-              width: ANCHO_CAJA,
-              height: tamano.alto,
+              // La caja encoge en pantallas estrechas en vez de
+              // desbordar: antes medía 420 px fijos y en un móvil se
+              // salía del modal. La resolución interna sigue siendo
+              // la misma, así que la vista previa no pierde nitidez.
+              width: '100%',
+              maxWidth: ANCHO_CAJA,
+              aspectRatio: `${tamano.ancho} / ${Math.max(1, tamano.alto)}`,
               // Lo que hace que en el móvil el dedo arrastre la foto
               // y no suba la página. Sin esto, cualquier gesto vertical
               // se lo queda el scroll y la foto no se mueve.
@@ -326,7 +419,7 @@ export const CropEditor: FC<CropEditorProps> = ({
             }}
             className={`relative overflow-hidden bg-zinc-950 ${
               forma === 'circular' ? 'rounded-full' : 'rounded-2xl'
-            } border border-zinc-700`}
+            } border border-zinc-700 outline-none focus-visible:border-violet-500/70`}
           >
             <canvas
               ref={canvasRef}
@@ -387,6 +480,60 @@ export const CropEditor: FC<CropEditorProps> = ({
 
           <span className="w-10 shrink-0 text-right text-[11px] tabular-nums text-zinc-400">
             {ajustes.zoom.toFixed(2)}×
+          </span>
+        </div>
+
+        {/* ── Ajuste fino ──────────────────────────────────── */}
+        <div className="mt-3 flex items-center gap-3">
+          <span className="w-12 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+            Mover
+          </span>
+
+          <div className="flex flex-1 items-center justify-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => mover(PASO_BOTON, 0)}
+              disabled={ocupado || !imagen}
+              aria-label="Mover a la izquierda"
+              title="Mover a la izquierda"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800/60 text-zinc-200 transition-colors hover:bg-zinc-800 disabled:opacity-40"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => mover(0, PASO_BOTON)}
+              disabled={ocupado || !imagen}
+              aria-label="Mover hacia arriba"
+              title="Mover hacia arriba"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800/60 text-zinc-200 transition-colors hover:bg-zinc-800 disabled:opacity-40"
+            >
+              <ChevronUp size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => mover(0, -PASO_BOTON)}
+              disabled={ocupado || !imagen}
+              aria-label="Mover hacia abajo"
+              title="Mover hacia abajo"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800/60 text-zinc-200 transition-colors hover:bg-zinc-800 disabled:opacity-40"
+            >
+              <ChevronDown size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => mover(-PASO_BOTON, 0)}
+              disabled={ocupado || !imagen}
+              aria-label="Mover a la derecha"
+              title="Mover a la derecha"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800/60 text-zinc-200 transition-colors hover:bg-zinc-800 disabled:opacity-40"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+
+          <span className="w-10 shrink-0 text-right text-[11px] tabular-nums text-zinc-400">
+            {Math.round(ajustes.x * 100)}·{Math.round(ajustes.y * 100)}
           </span>
         </div>
 

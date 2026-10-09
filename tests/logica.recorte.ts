@@ -35,6 +35,7 @@ import {
   calcularEncuadre,
   clasificarProporcion,
   descripcionProporcion,
+  desplazarEncuadre,
   ladoDeSalida,
   limitarDesplazamiento,
   limitarZoom,
@@ -599,5 +600,78 @@ assert.ok(
   ladoDeSalida(4000, 3000, 600) === 600,
   'el máximo se puede ajustar por uso',
 );
+
+// ──────────────────────────────────────────────────────────
+// EL ARRASTRE NO CUENTA DOBLE
+// ──────────────────────────────────────────────────────────
+
+{
+  // El fallo que se vio en el editor: cada evento de movimiento
+  // restaba el desplazamiento DESDE EL INICIO al estado que ya
+  // incluía los eventos anteriores, y la imagen corría más que el
+  // dedo. La propiedad que lo fija: partir un arrastre en N trozos
+  // tiene que dar EXACTAMENTE lo mismo que hacerlo de una vez.
+  const medidas = { fuenteAncho: 1200, fuenteAlto: 800, cajaAncho: 420, cajaAlto: 420 };
+  const inicio: ImageCropSettings = { ...ajustesIniciales(1), zoom: 2 };
+
+  const deUnaVez = desplazarEncuadre(inicio, 100, 60, medidas);
+
+  let aTrozos = inicio;
+  for (let i = 0; i < 10; i += 1) {
+    aTrozos = desplazarEncuadre(aTrozos, 10, 6, medidas);
+  }
+
+  // Con tolerancia y no exacto: diez restas encadenadas acumulan un
+  // redondeo de 1e-16 frente a una sola, y eso no es un fallo, es
+  // cómo suma la coma flotante.
+  assert.ok(
+    Math.abs(aTrozos.x - deUnaVez.x) < 1e-9 && Math.abs(aTrozos.y - deUnaVez.y) < 1e-9,
+    'diez arrastres de 10 px tienen que equivaler a uno de 100 px',
+  );
+}
+
+{
+  // Una panorámica en caja cuadrada con zoom al mínimo: solo hay
+  // recorrido en horizontal. Arrastrar en diagonal mueve la X y deja
+  // la Y quieta.
+  const medidas = { fuenteAncho: 1200, fuenteAlto: 800, cajaAncho: 420, cajaAlto: 420 };
+  const inicio: ImageCropSettings = { ...ajustesIniciales(1), zoom: 1 };
+
+  const r = desplazarEncuadre(inicio, 50, 50, medidas);
+
+  assert.equal(r.y, 0.5, 'sin recorrido vertical, la Y no se toca');
+  assert.ok(r.x < 0.5, 'y la X sí se mueve');
+}
+
+{
+  // Un arrastre nulo no toca nada, y un NaN no rompe el ajuste.
+  const medidas = { fuenteAncho: 1200, fuenteAlto: 800, cajaAncho: 420, cajaAlto: 420 };
+  const inicio: ImageCropSettings = { ...ajustesIniciales(1), zoom: 2 };
+
+  assert.deepEqual(
+    desplazarEncuadre(inicio, 0, 0, medidas),
+    inicio,
+    'mover cero es no mover',
+  );
+
+  assert.deepEqual(
+    desplazarEncuadre(inicio, Number.NaN, 5, medidas),
+    inicio,
+    'un NaN no rompe ni mueve',
+  );
+}
+
+{
+  // El signo: tirar a la derecha BAJA la x (se ve la izquierda).
+  // Es el convenio del editor y del dedo, y va aquí para que no se
+  // invierta sin que nadie lo note.
+  const medidas = { fuenteAncho: 1200, fuenteAlto: 800, cajaAncho: 420, cajaAlto: 420 };
+  const inicio: ImageCropSettings = { ...ajustesIniciales(1), zoom: 2 };
+
+  const r = desplazarEncuadre(inicio, 40, 0, medidas);
+
+  assert.ok(r.x < inicio.x, 'a la derecha, la x baja');
+  assert.equal(r.y, inicio.y, 'y la otra coordenada ni se mira');
+}
 
 console.log('  encuadre y proporciones: OK');

@@ -1,6 +1,5 @@
 import type { MedalRarity } from '../types/gamification';
 import { ORDEN_RAREZA } from './progression';
-import type { ProgresoCrudo } from '../services/gamification';
 
 /**
  * Qué medallas hay que celebrar, y cuáles anotar como ya vistas.
@@ -35,41 +34,42 @@ import type { ProgresoCrudo } from '../services/gamification';
  * se celebren como si fueran nuevas.
  */
 
-/** Lo que devuelve: qué celebrar y con qué estado queda el "visto". */
+/** Lo que devuelve: qué celebrar y qué es nuevo. */
 export interface DeteccionMedallas {
   /** Los ids a celebrar. Vacío en la primera lectura. */
   celebrar: string[];
-  /** Las medallas que hay que apuntar como ya vistas. */
-  marcar: Record<string, string>;
+  /** Los ids que no se habían visto: hay que apuntarlos. */
+  nuevas: string[];
 }
 
 /**
- * Decide qué medallas celebrar.
+ * Qué medallas hay que celebrar.
  *
- * @param medalsVistas  id -> fecha por la que ya se ha visto, de la sesión
- * @param medals         id -> fecha de desbloqueo, tal como viene de Firestore
- * @param esLaPrimera    que no se ha leído el documento en esta sesión
+ * ── POR QUÉ POR ID Y NO POR FECHA ────────────────────────────────
+ *
+ * Antes se comparaban FECHAS: si la fecha del documento era distinta
+ * a la recordada, la medalla se celebraba. Eso aguantaba la sesión,
+ * pero no el inicio: basta con que la primera lectura traiga el
+ * documento vacío y la segunda lo traiga lleno para que TODAS las
+ * medallas parezcan nuevas. Y cada remontaje volvía a empezar.
+ *
+ * Ahora la pregunta es solo "¿se ha visto este ID alguna vez?". Una
+ * medalla que reaparece (con la fecha que sea) no es nueva. Solo es
+ * nuevo un ID que nunca se había visto, y solo se celebra si además
+ * no es la primera lectura (lo que ya había al entrar es historial).
+ *
+ * @param vistas       ids que ya se han visto (memoria o persistencia)
+ * @param ids          ids que trae el documento ahora
+ * @param esLaPrimera  que no se ha leído el documento en esta sesión
  */
 export function detectarMedallasNuevas(
-  medalsVistas: Record<string, string>,
-  medals: Record<string, string>,
+  vistas: ReadonlySet<string>,
+  ids: string[],
   esLaPrimera: boolean,
 ): DeteccionMedallas {
-  const nuevas: string[] = [];
-  const marcar: Record<string, string> = {};
+  const nuevas = (ids ?? []).filter((id) => !vistas.has(id));
 
-  for (const [id, fecha] of Object.entries(medals ?? {})) {
-    // Una medalla cuenta como nueva si no se ha visto, o si se ha
-    // visto con OTRA fecha. Lo segundo no debería pasar: la fecha es
-    // la del desbloqueo. Se comprueba igual, porque si un campo se
- // tocara por error, el aviso se repetiría para siempre.
-    if (medalsVistas[id] === fecha) continue;
-
-    nuevas.push(id);
-    marcar[id] = fecha;
-  }
-
-  return { celebrar: esLaPrimera ? [] : nuevas, marcar };
+  return { celebrar: esLaPrimera ? [] : nuevas, nuevas };
 }
 
 /**
@@ -144,9 +144,4 @@ export function laMasRara<T extends { id: string; rareza: string }>(
     .map((id) => catalogo.find((m) => m.id === id))
     .filter((m): m is T => Boolean(m))
     .sort((a, b) => puesto(a.rareza) - puesto(b.rareza))[0];
-}
-
-/** Las medallas de un `ProgresoCrudo`, como id -> fecha. */
-export function medalsDe(progreso: ProgresoCrudo | null | undefined): Record<string, string> {
-  return progreso?.medals ?? {};
 }

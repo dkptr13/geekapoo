@@ -260,6 +260,70 @@ export function limitarZoom(zoom: number): number {
   return Math.min(ZOOM_MAXIMO, Math.max(ZOOM_MINIMO, zoom));
 }
 
+/** Las medidas que hacen falta para mover un encuadre, ya en píxeles del canvas. */
+export interface MedidasArrastre {
+  fuenteAncho: number;
+  fuenteAlto: number;
+  cajaAncho: number;
+  cajaAlto: number;
+}
+
+/**
+ * Mueve un encuadre una distancia en píxeles del canvas.
+ *
+ * ── POR QUÉ ESTÁ SUELTA ────────────────────────────────────────────
+ *
+ * Porque aquí se puede probar, y el fallo que arregla SOLO se ve
+ * probando: el arrastre del editor contaba cada evento dos veces (el
+ * desplazamiento desde el inicio sobre el estado ya movido), y la
+ * imagen corría más que el dedo.
+ *
+ * La propiedad que lo fija: partir un arrastre en N trozos tiene que
+ * dar EXACTAMENTE lo mismo que hacerlo de una vez. Si un día vuelve
+ * a contarse doble, ese test cae.
+ *
+ * ── EL SIGNO ───────────────────────────────────────────────────────
+ *
+ * Positivo en `dx` es "el dedo ha ido a la derecha", y eso BAJA `x`:
+ * al tirar de la foto a la derecha se ve lo que había a la
+ * izquierda. Es el mismo convenio que el arrastre del editor, no una
+ * decisión nueva.
+ */
+export function desplazarEncuadre(
+  prev: ImageCropSettings,
+  dx: number,
+  dy: number,
+  m: MedidasArrastre,
+): ImageCropSettings {
+  if (!Number.isFinite(dx) || !Number.isFinite(dy)) return prev;
+
+  const e0 = calcularEncuadre(
+    m.fuenteAncho,
+    m.fuenteAlto,
+    m.cajaAncho,
+    m.cajaAlto,
+    prev,
+  );
+
+  // Sin recorrido no hay nada que mover en ese eje, y se deja como
+  // está. Sin esta guarda, cualquier roce mandaba la imagen a una
+  // esquina: con la foto justa, tocarla la movía al borde.
+  //
+  // El corte va en UN píxel y no en cero porque menos de un píxel no
+  // se puede ni ver: una caja que se pasa de la proporción por
+  // redondeo (420×236 contra 16:9) deja dos décimas de recorrido, y
+  // con eso cualquier arrastre saltaba al borde aunque en pantalla
+  // no hubiera nada que mover.
+  const recorridoX = e0.ancho - m.cajaAncho;
+  const recorridoY = e0.alto - m.cajaAlto;
+
+  return {
+    ...prev,
+    x: recorridoX >= 1 ? limitarDesplazamiento(prev.x - dx / recorridoX) : prev.x,
+    y: recorridoY >= 1 ? limitarDesplazamiento(prev.y - dy / recorridoY) : prev.y,
+  };
+}
+
 /**
  * El desplazamiento, en el rango 0 a 1.
  *

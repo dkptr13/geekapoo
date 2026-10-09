@@ -32,6 +32,11 @@ import {
   detectarSubidaNivel,
   laMasRara,
 } from '../utils/medallas';
+import {
+  apuntarCelebradas,
+  guardadoNavegador,
+  leerCelebradas,
+} from '../utils/celebraciones';
 import { useAuth } from './AuthContext';
 // ======================================================
 // PROGRESION DEL USUARIO
@@ -108,15 +113,6 @@ export const ProgressionProvider: React.FC<{
   } | null>(null);
   const [medallaPendiente, setMedallaPendiente] = useState<Medal | null>(null);
 
-  /**
-   * Ultima subida de nivel que ya se ha avisado.
-   *
-   * Se guarda en una ref y no en estado porque no debe provocar
-   * un repintado, y porque necesita sobrevivir a los renders: sin
-   * esto, el aviso saltaria cada vez que se montara el componente.
-   */
-  const ultimaSubidaVista = useRef<string | null>(null);
-
   // ====================================================
   // ESCUCHA DEL PROGRESO
   // ====================================================
@@ -151,52 +147,66 @@ export const ProgressionProvider: React.FC<{
   // ====================================================
 
   /**
-   * Detecta una subida de nivel comparando con lo que ya se ha
-   * avisado.
+   * Lo ya celebrado por este usuario en este navegador.
    *
-   * Se apoya en `lastLevelUpAt`, que escriben las funciones solo
-   * al subir de verdad. Asi el aviso no depende de que el
-   * listener haya estado conectado en el momento exacto de la
-   * subida: si alguien estaba en otra pestana y vuelve, ve el
-   * aviso de lo que se ha perdido, que es justo lo que quiere.
+   * ── POR QUÉ PERSISTE ──────────────────────────────────────────
+   *
+   * La regla es "una medalla se celebra UNA vez, al conseguirla, y
+   * nunca más". Con solo memoria de sesión, cada remontaje, cada
+   * cambio de usuario y cada primera lectura con el documento vacío
+   * volvía a empezar de cero, y el aviso salía en cada inicio de
+   * sesión. Por eso lo visto vive en `localStorage` (ver
+   * `utils/celebraciones.ts`) y aquí solo se consulta.
+   *
+   * El conjunto mezcla medallas y subidas: las subidas van con
+   * prefijo `nivel:` y no chocan con ningún id de medalla.
+   *
+   * `null` significa "sin sembrar": todavía no se ha leído el
+   * documento con este usuario. Al cambiar de usuario se vuelve a
+   * `null`, porque lo visto por otro no vale y su aviso pendiente
+   * no puede quedarse colgado.
    */
-  /**
-   * Si el documento del usuario ya se ha leido ALGUNA vez en esta
-   * sesion.
-   *
-   * ── POR QUÉ ES UN REF PROPIO Y NO EL DE LA SUBIDA ───────────────
-   *
-   * Antes se comprobaba "es la primera vez" mirando que
-   * `ultimaSubidaVista.current` siguiera en `null`. Y eso estaba mal,
-   * porque ese ref lo rellena el efecto de la subida de nivel, que va
-   * ANTES en el fichero. En la primera lectura del documento, ese
-   * efecto ya habia escrito, con lo que `null` ya no era `null` para
-   * nadie que alguna vez hubiera subido de nivel.
-   *
- * El efecto de las medallas daba por hecho que era la primera
-   * vez que NO lo era, y celebraba todas las medallas que el usuario
-   * tenia de antes. Por eso "Primero Voz" salia en cada inicio de
-   * sesion: se concede al registrarse, asi que todo el mundo la tiene
-   * desde el minuto uno.
-   *
-   * Un ref por efecto y sin dependencias entre ellos: que uno decida
-   * si es la primera vez no puede depender de lo que haya hecho otro.
-   */
-  const primeraSubida = useRef(true);
+  const vistos = useRef<Set<string> | null>(null);
   const primeraMedalla = useRef(true);
+  const primeraSubida = useRef(true);
 
+  // Al cambiar de usuario se resiembra todo y se apagan los avisos
+  // del anterior. Sin esto, entrar con otra cuenta celebraría sus
+  // medallas como si fueran nuevas.
   useEffect(() => {
-    if (!progreso?.lastLevelUpAt) return;
+    vistos.current = null;
+    primeraMedalla.current = true;
+    primeraSubida.current = true;
+    setMedallaPendiente(null);
+    setSubidaPendiente(null);
+  }, [uid]);
 
-    const { nuevaClave, avisar } = detectarSubidaNivel(
-      `${progreso.lastLevelUpAt}`,
-      ultimaSubidaVista.current,
+  // Detecta una subida de nivel comparando con lo ya celebrado.
+  //
+  // Se apoya en `lastLevelUpAt`, que escriben las funciones solo al
+  // subir de verdad. Pero solo se celebra si la clave aparece
+  // DESPUÉS de haber leído el documento: lo que ya estaba al entrar
+  // es historial, no algo que acaba de pasar.
+  useEffect(() => {
+    if (!uid || !progreso?.lastLevelUpAt) return;
+
+    if (vistos.current === null) {
+      vistos.current = leerCelebradas(guardadoNavegador(), uid);
+    }
+
+    const clave = `${progreso.lastLevelUpAt}`;
+    const llave = `nivel:${clave}`;
+
+    const { avisar } = detectarSubidaNivel(
+      clave,
+      vistos.current.has(llave) ? clave : null,
       primeraSubida.current,
     );
 
-    // La clave se guarda siempre, se avise o no. Es lo que evita que
-    // el aviso reaparezca en cada lectura del documento.
-    ultimaSubidaVista.current = nuevaClave;
+    // Se apunta se avise o no: lo que ya estaba al entrar es
+    // historial, y lo celebrado no se repite.
+    vistos.current.add(llave);
+    apuntarCelebradas(guardadoNavegador(), uid, vistos.current, [llave]);
     primeraSubida.current = false;
 
     if (!avisar) return;
@@ -205,24 +215,28 @@ export const ProgressionProvider: React.FC<{
       nivel: progreso.lastLevelUpLevel ?? progreso.level,
       key: Date.now(),
     });
-  }, [progreso?.lastLevelUpAt, progreso?.lastLevelUpLevel, progreso?.level]);
+  }, [uid, progreso?.lastLevelUpAt, progreso?.lastLevelUpLevel, progreso?.level]);
 
-  /** Analoga para las medallas nuevas. */
-  const medalsVistas = useRef<Record<string, string>>({});
-
+  /** Análoga para las medallas nuevas. */
   useEffect(() => {
-    if (!progreso?.medals) return;
+    if (!uid || !progreso?.medals) return;
 
-    const { celebrar, marcar } = detectarMedallasNuevas(
-      medalsVistas.current,
-      progreso.medals,
+    if (vistos.current === null) {
+      vistos.current = leerCelebradas(guardadoNavegador(), uid);
+    }
+
+    const ids = Object.keys(progreso.medals);
+    const { celebrar, nuevas } = detectarMedallasNuevas(
+      vistos.current,
+      ids,
       primeraMedalla.current,
     );
 
-    // Se apunta SIEMPRE, incluso en la primera carga. Si no, las
-    // medallas que ya tenia el usuario se volverian a celebrar en la
-    // siguiente actualizacion del documento.
-    medalsVistas.current = { ...medalsVistas.current, ...marcar };
+    // Se apunta TODO lo nuevo, se celebre o no: de las que salen a
+    // la vez solo se avisa la más rara, y las demás tampoco pueden
+    // salir después. "Solo una vez" vale para cada medalla.
+    nuevas.forEach((id) => vistos.current!.add(id));
+    apuntarCelebradas(guardadoNavegador(), uid, vistos.current, nuevas);
     primeraMedalla.current = false;
 
     if (celebrar.length === 0) return;
@@ -231,11 +245,10 @@ export const ProgressionProvider: React.FC<{
     // medallas, avisar solo por la mejor es menos molesto que
     // encadenar tres avisos.
     const configActual = catalogoConAnimeIds(config.animeMedallas ?? {});
-
     const mejor = laMasRara(celebrar, configActual);
 
     if (mejor) setMedallaPendiente(mejor);
-  }, [progreso?.medals, config]);
+  }, [uid, progreso?.medals, config]);
 
   // ====================================================
   // CALCULOS

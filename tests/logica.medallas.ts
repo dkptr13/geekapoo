@@ -41,15 +41,15 @@ import {
 // EL CASO QUE SE VIO
 // ═══════════════════════════════════════════════════════════
 //
-// Un usuario con UNA medalla de antes, entrando en la web.
-
-const PRIMERO_VOZ = '2026-01-01T10:00:00.000Z';
+// Un usuario con medallas de antes, entrando en la web. La primera
+// lectura no celebra nada pero lo apunta todo; la segunda, con lo
+// mismo, tampoco celebra.
 
 {
-  const medals = { medal_miembro_fundador: PRIMERO_VOZ };
+  const ids = ['medal_miembro_fundador'];
 
   // Primera lectura del documento: se marca como vista, no se celebra.
-  const primera = detectarMedallasNuevas({}, medals, true);
+  const primera = detectarMedallasNuevas(new Set(), ids, true);
 
   assert.equal(
     primera.celebrar.length,
@@ -57,51 +57,48 @@ const PRIMERO_VOZ = '2026-01-01T10:00:00.000Z';
     'en la primera lectura no se celebra NADA, aunque haya medallas',
   );
   assert.deepEqual(
-    primera.marcar,
-    medals,
+    primera.nuevas,
+    ids,
     'pero se apuntan todas como vistas, para que no vuelvan a salir',
   );
-}
 
-{
-  // Y lo que de verdad rompía: la segunda lectura en la MISMA sesion,
-  // con el estado ya anotado. Esto es lo que pasaba al iniciar sesion,
-  // porque el segundo efecto encontraba el `ref` ya escrito.
-  const medals = { medal_miembro_fundador: PRIMERO_VOZ };
-
-  let vistas: Record<string, string> = {};
-
-  // Primera lectura: como el usuario acaba de entrar.
-  const primera = detectarMedallasNuevas(vistas, medals, true);
-
-  vistas = { ...vistas, ...primera.marcar };
-
-  // El documento llega otra vez (o el componente se vuelve a montar).
-  const segunda = detectarMedallasNuevas(vistas, medals, false);
+  // La segunda lectura, con lo ya anotado, tampoco celebra.
+  const vistas = new Set(primera.nuevas);
+  const segunda = detectarMedallasNuevas(vistas, ids, false);
 
   assert.equal(
     segunda.celebrar.length,
     0,
     'la segunda vez tampoco se celebra, porque ya constan como vistas',
   );
+  assert.deepEqual(segunda.nuevas, [], 'y no hay nada nuevo que apuntar');
 }
 
 // ═══════════════════════════════════════════════════════════
 // UNA MEDALLA DE VERDAD NUEVA
 // ═══════════════════════════════════════════════════════════
+//
+// Solo es nueva si el ID no se había visto. Y solo se celebra si
+// además no es la primera lectura: lo que ya había al entrar es
+// historial, aunque el navegador no lo tuviera apuntado.
 
 {
-  const vistas = { medal_miembro_fundador: PRIMERO_VOZ };
+  const vistas = new Set(['medal_miembro_fundador']);
+  const ids = ['medal_miembro_fundador', 'medal_primer_hilo'];
 
-  const medals = {
-    ...vistas,
-    medal_primer_hilo: '2026-06-01T12:00:00.000Z',
-  };
-
-  const r = detectarMedallasNuevas(vistas, medals, false);
+  const r = detectarMedallasNuevas(vistas, ids, false);
 
   assert.deepEqual(r.celebrar, ['medal_primer_hilo'], 'la nueva sí se celebra');
-  assert.deepEqual(r.marcar, { medal_primer_hilo: '2026-06-01T12:00:00.000Z' });
+  assert.deepEqual(r.nuevas, ['medal_primer_hilo'], 'y solo esa se apunta');
+}
+
+{
+  // La misma medalla nueva, pero en la primera lectura: es historial
+  // (navegador nuevo, por ejemplo), así que se apunta sin celebrar.
+  const r = detectarMedallasNuevas(new Set(), ['medal_primer_hilo'], true);
+
+  assert.deepEqual(r.celebrar, [], 'en la primera lectura no se celebra');
+  assert.deepEqual(r.nuevas, ['medal_primer_hilo'], 'pero se apunta igualmente');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -109,19 +106,15 @@ const PRIMERO_VOZ = '2026-01-01T10:00:00.000Z';
 // ═══════════════════════════════════════════════════════════
 
 {
-  const medals = {
-    medal_a: '2026-06-01T12:00:00.000Z',
-    medal_b: '2026-06-02T12:00:00.000Z',
-    medal_c: '2026-06-03T12:00:00.000Z',
-  };
+  const ids = ['medal_a', 'medal_b', 'medal_c'];
 
-  const r = detectarMedallasNuevas({}, medals, false);
+  const r = detectarMedallasNuevas(new Set(), ids, false);
 
   assert.equal(r.celebrar.length, 3, 'las tres se detectan');
-  assert.deepEqual(r.marcar, medals, 'las tres se apuntan como vistas');
+  assert.deepEqual(r.nuevas, ids, 'las tres se apuntan como vistas');
 
   // Volver a leer el mismo documento no celebra ninguna otra vez.
-  const otra = detectarMedallasNuevas(r.marcar, medals, false);
+  const otra = detectarMedallasNuevas(new Set(r.nuevas), ids, false);
 
   assert.equal(otra.celebrar.length, 0, 'y no se repiten');
 }
@@ -130,32 +123,66 @@ const PRIMERO_VOZ = '2026-01-01T10:00:00.000Z';
 // SIN MEDALLAS
 // ═══════════════════════════════════════════════════════════
 
-assert.deepEqual(detectarMedallasNuevas({}, {}, true), { celebrar: [], marcar: {} });
-assert.deepEqual(detectarMedallasNuevas({}, {}, false), { celebrar: [], marcar: {} });
-
-// Un documento sin el campo, que en Firestore pasa a `{}` pero en un
-// documento a mano podría no venir.
 assert.deepEqual(
-  detectarMedallasNuevas({}, undefined as never, false),
-  { celebrar: [], marcar: {} },
+  detectarMedallasNuevas(new Set(), [], true),
+  { celebrar: [], nuevas: [] },
+  'conversación vacía en primera lectura',
+);
+assert.deepEqual(
+  detectarMedallasNuevas(new Set(), [], false),
+  { celebrar: [], nuevas: [] },
+  'y en las demás',
+);
+
+// Un documento sin el campo no rompe: se trata como lista vacía.
+assert.deepEqual(
+  detectarMedallasNuevas(new Set(), undefined as never, false),
+  { celebrar: [], nuevas: [] },
   'sin campo de medallas no se celebra nada ni se rompe',
 );
 
 // ═══════════════════════════════════════════════════════════
-// UNA MEDALLA QUE YA SE HA VISTO CON OTRA FECHA
+// UNA MEDALLA QUE DESAPARECE Y VUELVE
 // ═══════════════════════════════════════════════════════════
 //
-// No debería pasar: la fecha es la del desbloqueo y no cambia. Pero si
-// alguien tocara el campo, el aviso se repetiría en cada lectura para
-// siempre, así que también se avisa de ello.
+// La propiedad que fija el fallo de raíz: lo que se ha visto no
+// vuelve a ser nuevo NUNCA, traiga la fecha que traiga. Antes se
+// comparaban fechas, y bastaba con que la primera lectura trajera
+// el documento vacío para que todo pareciera nuevo al llegar la
+// segunda. Por ID eso no puede pasar: vacío no apunta nada, y al
+// llegar lo lleno todo es... primera lectura, que no celebra.
 
 {
-  const medals = { medal_x: '2026-02-02T00:00:00.000Z' };
+  const vistas = new Set(['medal_x']);
 
-  const antes = detectarMedallasNuevas({}, medals, true);
-  const despues = detectarMedallasNuevas(antes.marcar, medals, false);
+  // El documento la pierde una lectura (o llega vacío) y la
+  // recupera en la siguiente: no es nueva, ya se vio.
+  const sinElla = detectarMedallasNuevas(vistas, [], false);
 
-  assert.equal(despues.celebrar.length, 0, 'misma fecha, no se repite');
+  assert.deepEqual(sinElla.celebrar, [], 'que falte no celebra');
+
+  const conElla = detectarMedallasNuevas(vistas, ['medal_x'], false);
+
+  assert.deepEqual(conElla.celebrar, [], 'y que vuelva tampoco');
+  assert.deepEqual(conElla.nuevas, [], 'porque nunca dejó de estar vista');
+}
+
+{
+  // Y el caso del inicio de sesión: primera lectura vacía, segunda
+  // llena. La primera no apunta nada (no había nada), pero sigue
+  // siendo la primera: la segunda no celebra.
+  const primera = detectarMedallasNuevas(new Set(), [], true);
+
+  assert.deepEqual(primera.celebrar, [], 'vacío no celebra');
+
+  const vistas = new Set(primera.nuevas);
+  const segunda = detectarMedallasNuevas(vistas, ['medal_x'], true);
+
+  assert.deepEqual(
+    segunda.celebrar,
+    [],
+    'en la primera lectura no se celebra aunque traiga medallas',
+  );
 }
 
 // ═══════════════════════════════════════════════════════════

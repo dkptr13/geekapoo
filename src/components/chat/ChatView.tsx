@@ -358,21 +358,45 @@ export const ChatView: React.FC = () => {
   // enviado un mensaje": sin esto, el aviso abría la lista y la
   // conversación activa seguía siendo la primera, no la del mensaje.
   //
+  // El parámetro SE CONSUME (se borra de la URL al usarlo). Si se
+  // quedara puesto, este efecto lo reimpondría en cada cambio de
+  // conversación y no habría forma de cambiar de chat: cada clic en
+  // otro chat volvería al del aviso, que es justo lo que pasaba.
+  //
   // Va DESPUÉS del efecto que elige la primera conversación por
   // defecto (en `ChatContext`): ese solo toca si no hay ninguna
   // activa, así que si la URL pide una que existe, esta la impone.
   // Y si la URL pide una que ya no existe (chat borrado), no se
   // toca nada: mejor la lista que un panel vacío.
-  const [params] = useSearchParams();
-  const chatPedido = params.get('chat') ?? '';
+  const [params, setParams] = useSearchParams();
 
   useEffect(() => {
-    if (!chatPedido) return;
-    if (activeRoomId === chatPedido) return;
-    if (!rooms.some((r) => r.id === chatPedido)) return;
+    const pedido = params.get('chat');
+    if (!pedido) return;
+    // Sin la lista cargada no se decide nada: ni abrir (podría no
+    // haber llegado aún) ni borrar el parámetro (se perdería el
+    // destino antes de verlo).
+    if (chatsLoading) return;
 
-    setActiveRoomId(chatPedido);
-  }, [chatPedido, rooms, activeRoomId, setActiveRoomId]);
+    const quitarParametro = () => {
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('chat');
+          return next;
+        },
+        { replace: true },
+      );
+    };
+
+    if (!rooms.some((r) => r.id === pedido)) {
+      quitarParametro();
+      return;
+    }
+
+    if (activeRoomId !== pedido) setActiveRoomId(pedido);
+    quitarParametro();
+  }, [params, rooms, activeRoomId, chatsLoading, setActiveRoomId, setParams]);
 
   // ── Reacciones de los mensajes de esta conversación ────
   //
