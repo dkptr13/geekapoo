@@ -773,10 +773,26 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                 <Sparkles size={16} className="text-violet-400" />
                 <span>{seasonOfView ? 'Sinopsis de la temporada' : 'Sinopsis Oficial'}</span>
               </h2>
-              {/* max-w-prose: al ensanchar el contenedor, un
-                  párrafo de 1400px de ancho es incómoda de
-                  leer. La caja crece, la línea no. */}
-              <p className="max-w-prose text-xs sm:text-sm leading-relaxed text-zinc-300">
+              {/* Sin `max-w-prose`: la caja de esta sección es de 8 columnas y el
+                  texto se quedaba en unos 65 caracteres, dejando media
+                  tarjeta vacía a la derecha. Los géneros de abajo sí
+                  ocupan todo el ancho, así que además la sinopsis
+                  quedaba más corta que lo que hay debajo, y la
+                  sección parecía cortada.
+
+                  A favor de `max-w-prose` estaba que una línea de mil
+                  doscientos píxeles es incómoda de leer. En contra, que
+                  en pantalla ancha se perdía casi la mitad del texto y
+                  la página parecía rota. Ahora la línea crece con la
+                  caja.
+
+                  Si algún día molesta en pantallas enormes, la vuelta
+                  es un `max-w-[80ch]` solo a partir de `2xl`, y no en
+                  todas. */}
+              <p className="text-xs sm:text-sm leading-relaxed text-zinc-300">
+                {ficha.synopsis}
+              </p>
+              <p className="text-xs sm:text-sm leading-relaxed text-zinc-300">
                 {ficha.synopsis}
               </p>
 
