@@ -1,0 +1,8 @@
+function acceptsChatRequests(uid) {
+      let ruta = /databases/$(database)/documents/users/$(uid);
+
+      let d = exists(ruta) ? get(ruta).data : {};
+
+      return !(('profileVisibility' in d) && d.profileVisibility == 'private')
+          && !(('allowChatRequests' in d) && d.allowChatRequests == false);
+    }

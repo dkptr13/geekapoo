@@ -304,12 +304,42 @@ export async function withdrawRequest(
   });
 }
 
+/**
+ * Convierte un error del SDK en algo que se pueda enseñar.
+ *
+ * ── POR QUÉ MIRA `code` Y NO `message` ─────────────────────────────
+ *
+ * El código de permiso NO está en el texto del error. El SDK de Firestore
+ * pone `code: 'permission-denied'` y deja el texto en humano: "Missing or
+ * insufficient permissions.".
+ *
+ * Buscando la cadena 'permission-denied' dentro de `message` no se
+ * encuentra nunca, así que la función caía al `return e.message` y
+ * enseñaba el texto crudo del emulador de Firestore. Eso es
+ * literalmente lo que se veía en el diálogo de añadir contacto.
+ *
+ * Con `code` se distingen los tres casos que aquí importan:
+ * `permission-denied` (no puedes), `unavailable` (prueba otra vez) y
+ * `not-found` (el chat ya no está). El resto se enseña tal cual, que
+ * para un error raro el texto del SDK es más útil que un invento.
+ */
 function messageOf(e: unknown, fallback: string): string {
-  if (e instanceof Error) {
-    if (e.message.includes('permission-denied')) {
-      return 'No tienes permiso para esta acción.';
-    }
-    return e.message;
+  const code = (e as { code?: string } | null)?.code ?? '';
+
+  if (code === 'permission-denied') {
+    return 'No tienes permiso para esta acción.';
   }
+  if (code === 'unavailable' || code === 'deadline-exceeded') {
+    return 'No hay conexión con el servidor. Inténtalo de nuevo.';
+  }
+  if (code === 'not-found') {
+    return 'Ya no existe. Puede que se haya borrado.';
+  }
+  if (code === 'failed-precondition' || code === 'unauthenticated') {
+    return 'No se ha podido completar la operación.';
+  }
+
+  if (e instanceof Error && e.message) return e.message;
+
   return fallback;
 }

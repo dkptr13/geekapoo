@@ -1,0 +1,47 @@
+// ======================================================
+    // PRIVACIDAD DE LAS SOLICITUDES DE CONVERSACIÓN
+    // ======================================================
+    // Una cuenta puede estar en "privado" o con las solicitudes
+    // apagadas. Se lee del documento de QUIEN RECIBE la solicitud,
+    // no del de quien la manda: si se mirara el propio documento,
+    // bastaría con no marcar el campo para saltárselo.
+    //
+    // Para una solicitud de grupo, "toId" es el dueño del grupo,
+    // que es quien la acepta, así que es su privacidad la que decide.
+    //
+    // ── LO QUE FALLA AL LEER UN CAMPO QUE NO ESTÁ ───────────
+    //
+    // Antes este comentario decía: "Un campo que no está vale null,
+    // y en las reglas 'null != private' es true, es decir, se respeta
+    // el ajuste por defecto".
+    //
+    // Eso es FALSO, y por eso no se podía añadir a nadie. En las
+    // reglas de Firestore leer un campo que el documento no tiene no
+    // devuelve null ni false: lanza un error de evaluación, y el
+    // error de evaluación deniega la operación entera. El emulador lo
+    // dice con todas las letras:
+    //
+    //     evaluation error at L867:24 for 'create'
+    //     Property profileVisibility is undefined on object.
+    //
+    // NINGUNA cuenta tenía el campo escrito, así que NINGUNA podía
+    // recibir una solicitud. La cuenta que se crea hoy tampoco lo
+    // tiene: los ajustes de privacidad no se guardan al crear el
+    // usuario, solo cuando alguien los cambia en su perfil.
+    //
+    // Por eso aquí se comprueba si el campo EXISTE antes de leerlo, con
+    // el operador `in`. Es la forma que no falla:
+    //
+    //     if ('profileVisibility' in d) { ... }
+    //
+    // Y el resultado es el mismo que en el cliente: `readPrivacy`, en
+    // `src/services/accountSettings.ts`, pone 'public' cuando falta
+    // el campo y true cuando no es false. Las dos mitades tienen que
+    // decir lo mismo, porque si el cliente dice "puedes" y las reglas
+    // dicen "no", el usuario ve un botón que no sirve de nada.
+    //
+    // ── POR QUÉ NO SE COMPRUEBA EL DOCUMENTO PROPIO ───────────
+    //
+    // Porque entonces bastaría con no marcar el campo para saltarse
+    // la privacidad. Se lee el de QUIEN RECIBE, que no puede tocarlo
+    // el emisor.
