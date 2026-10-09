@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { startTransition, useEffect, useRef, useState } from 'react';
 
 import {
   AuthProvider,
@@ -80,9 +80,18 @@ const {
    * enlace de la cabecera pone la pestaña pero no toca el usuario,
    * y te pondría en el perfil de aquella otra persona sin previo
    * aviso. Por eso todo cambio de pestaña borra el usuario.
+   *
+   * Va en transición para que el botón responda al instante: montar
+   * la pestaña nueva (feed, wiki, chat) es un render pesado y sin
+   * esto el clic se queda "pegado" hasta que termina, que en móvil
+   * se siente como botones con delay. Con la transición, el menú
+   * cierra y la pestaña vieja sigue viva hasta que la nueva está
+   * lista.
    */
   const setCurrentTab = (tab: string) => {
-    setUrl({ tab, usuario: null });
+    startTransition(() => {
+      setUrl({ tab, usuario: null });
+    });
   };
 
   // "?tab=buscar" ya no existe: el buscador se fusionó dentro de la

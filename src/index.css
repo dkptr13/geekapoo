@@ -3,6 +3,17 @@
 @layer base {
   body {
     font-family: 'Outfit', sans-serif;
+    /* Guardarraíl contra el scroll lateral: si algún contenido
+       (un enlace largo, un nombre, una imagen) ensancha más que la
+       pantalla, la página no se mueve de lado y la barra superior
+       sigue cubriendo todo el ancho.
+       Es `clip` y no `hidden` a propósito: `hidden` crea un
+       contenedor de scroll que rompería el `sticky` del Navbar;
+       `clip` recorta sin crearlo y el sticky sigue funcionando.
+       No sustituye a corregir cada desborde (hilos y comentarios
+       ya cortan palabras largas); esto evita que el próximo que
+       aparezca rompa la barra otra vez. */
+    overflow-x: clip;
   }
   code, pre {
     font-family: 'JetBrains Mono', monospace;

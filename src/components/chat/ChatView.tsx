@@ -1009,8 +1009,12 @@ export const ChatView: React.FC = () => {
     // 480px obligaba a la página a desplazarse en móviles
     // pequeños, justo lo que se quiere evitar.
     <div className="-mx-4 -my-6 flex h-[calc(100dvh-4rem)] min-h-0 flex-col gap-2 px-2 sm:mx-0 sm:my-0 sm:h-[calc(100dvh-7rem)] sm:min-h-[480px] sm:gap-4 sm:px-0">
-      {/* Top Banner Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 sm:p-4">
+      {/* Top Banner Info.
+          En móvil se esconde cuando hay conversación abierta: entre
+          este cartel, la cabecera y el compositor no quedaba
+          historial (un mensaje visible). La lista lo sigue
+          enseñando, y en escritorio sale siempre. */}
+      <div className={`${activeRoomId ? 'hidden lg:flex' : 'flex'} flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 sm:p-4`}>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
             <MessageCircle size={20} />
@@ -2065,7 +2069,10 @@ export const ChatView: React.FC = () => {
                                 }}
                                 aria-label={`Opciones del mensaje de ${senderNameOf(msg)}`}
                                 title="Opciones"
-                                className="rounded p-0.5 text-zinc-600 transition-colors hover:bg-zinc-700/60 hover:text-zinc-200 focus-visible:outline-2 focus-visible:outline-violet-400"
+                                // Diana de 28px con icono de 11: en el
+                                // móvil el botón de antes (p-0.5) era
+                                // casi imposible de acertar con el dedo.
+                                className="rounded p-2 text-zinc-600 transition-colors hover:bg-zinc-700/60 hover:text-zinc-200 focus-visible:outline-2 focus-visible:outline-violet-400"
                               >
                                 <MoreVertical size={11} />
                               </button>
