@@ -35,6 +35,8 @@ const {
   collection,
   setDoc,
   updateDoc,
+  deleteDoc,
+  getDoc,
   getDocs,
   query,
   where,
@@ -460,5 +462,283 @@ describe('La lista de conversaciones del cliente', () => {
     );
 
     assert.ok(lista.size >= 1, 'el grupo recien creado esta en la lista');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// BORRAR MENSAJES
+// ═══════════════════════════════════════════════════════════
+//
+// El borrado para todos lo hace SOLO el servidor
+// (`eliminarMensajeParaTodos`), y el personal son registros
+// propios. Estas pruebas fijan lo que el cliente NO puede:
+//
+//   - Ni el autor puede reescribir, marcar o destruir su mensaje.
+//   - Nadie puede ocultar mensajes de otro.
+//   - Lo oculto no se modifica: o está o no está.
+
+/** Un chat con un mensaje de ALICE, listo para intentar borrarlo. */
+async function sembrarMensaje(chatId = 'g1', msgId = 'm1', de = ALICE) {
+  await sembrar(async (f) => {
+    await setDoc(doc(f, 'chats', chatId), nuevoChat(ALICE, [ALICE, BOB]));
+    await setDoc(doc(f, 'chats', chatId, 'messages', msgId), {
+      chatId,
+      senderId: de,
+      senderName: de,
+      senderAvatar: '',
+      body: 'Hola',
+      type: 'text',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
+  });
+}
+
+describe('Borrar mensajes: el cliente no toca mensajes', () => {
+  it('el autor ya no puede reescribir su mensaje', async () => {
+    await sembrarMensaje();
+
+    // Antes la regla dejaba al autor actualizar lo suyo sin mirar
+    // qué campos: se podía cambiar el texto sin dejar rastro.
+    await assertFails(updateDoc(doc(db(ALICE), 'chats', 'g1', 'messages', 'm1'), {
+      body: 'Yo nunca dije eso',
+    }));
+  });
+
+  it('el autor no puede marcar borrado-para-todos a mano', async () => {
+    await sembrarMensaje();
+
+    // El camino es la callable, que comprueba autoría y 2 horas
+    // con el reloj del servidor. Por reglas no pasa nadie.
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chats', 'g1', 'messages', 'm1'), {
+        deletedForEveryone: true,
+        deletedAt: '2026-10-09T18:00:00.000Z',
+        deletedBy: ALICE,
+      }),
+    );
+  });
+
+  it('el autor no puede destruir su mensaje', async () => {
+    await sembrarMensaje();
+
+    await assertFails(deleteDoc(doc(db(ALICE), 'chats', 'g1', 'messages', 'm1')));
+  });
+
+  it('un receptor no puede tocar un mensaje ajeno', async () => {
+    await sembrarMensaje();
+
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chats', 'g1', 'messages', 'm1'), { body: 'Editado' }),
+    );
+    await assertFails(deleteDoc(doc(db(BOB), 'chats', 'g1', 'messages', 'm1')));
+  });
+
+  it('quien no es miembro tampoco', async () => {
+    await sembrarMensaje();
+
+    await assertFails(
+      updateDoc(doc(db(CARA), 'chats', 'g1', 'messages', 'm1'), {
+        deletedForEveryone: true,
+      }),
+    );
+  });
+
+  it('crear mensajes sigue funcionando igual', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    // La regla de creación no se ha tocado: si esto falla, el
+    // cierre de update/delete se ha llevado algo por delante.
+    await assertSucceeds(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm2'), {
+        chatId: 'g1',
+        senderId: ALICE,
+        senderName: 'alice',
+        senderAvatar: '',
+        body: 'Otro',
+        type: 'text',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }),
+    );
+  });
+});
+
+describe('Ocultar para mí: cada uno lo suyo', () => {
+  it('puedo ocultar un mensaje y leer mi registro', async () => {
+    await sembrarMensaje();
+
+    await assertSucceeds(
+      setDoc(doc(db(ALICE), 'users', ALICE, 'hiddenMessages', 'm1'), {
+        chatId: 'g1',
+        messageId: 'm1',
+        hiddenAt: '2026-10-09T18:00:00.000Z',
+      }),
+    );
+
+    const propio = await assertSucceeds(
+      getDoc(doc(db(ALICE), 'users', ALICE, 'hiddenMessages', 'm1')),
+    );
+
+    assert.ok(propio.exists(), 'mi registro se puede leer');
+  });
+
+  it('no puedo ocultar en nombre de otro ni leer lo suyo', async () => {
+    await sembrarMensaje();
+
+    await assertFails(
+      setDoc(doc(db(ALICE), 'users', BOB, 'hiddenMessages', 'm1'), {
+        chatId: 'g1',
+        messageId: 'm1',
+        hiddenAt: '2026-10-09T18:00:00.000Z',
+      }),
+    );
+
+    await assertFails(getDoc(doc(db(ALICE), 'users', BOB, 'hiddenMessages', 'm1')));
+  });
+
+  it('lo oculto no se modifica: o está o no está', async () => {
+    await sembrarMensaje();
+
+    await assertSucceeds(
+      setDoc(doc(db(ALICE), 'users', ALICE, 'hiddenMessages', 'm1'), {
+        chatId: 'g1',
+        messageId: 'm1',
+        hiddenAt: '2026-10-09T18:00:00.000Z',
+      }),
+    );
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'users', ALICE, 'hiddenMessages', 'm1'), {
+        chatId: 'otra',
+      }),
+    );
+  });
+
+  it('ocultar dos veces no duplica y se puede deshacer', async () => {
+    await sembrarMensaje();
+
+    const ref = doc(db(ALICE), 'users', ALICE, 'hiddenMessages', 'm1');
+
+    await assertSucceeds(
+      setDoc(ref, { chatId: 'g1', messageId: 'm1', hiddenAt: '1' }),
+    );
+    await assertSucceeds(
+      setDoc(ref, { chatId: 'g1', messageId: 'm1', hiddenAt: '2' }),
+    );
+    await assertSucceeds(deleteDoc(ref));
+
+    const trasBorrar = await assertSucceeds(getDoc(ref));
+
+    assert.ok(!trasBorrar.exists(), 'al borrar el registro vuelve a verse');
+  });
+
+  it('el id tiene que ser el del mensaje', async () => {
+    await sembrarMensaje();
+
+    // Sin esto se podría rellenar la carpeta de otro... bueno, la
+    // propia, con basura que no apunta a ningún mensaje.
+    await assertFails(
+      setDoc(doc(db(ALICE), 'users', ALICE, 'hiddenMessages', 'm1'), {
+        chatId: 'g1',
+        messageId: 'otro',
+        hiddenAt: '2026-10-09T18:00:00.000Z',
+      }),
+    );
+  });
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// CITAR AL ENVIAR
+// ═══════════════════════════════════════════════════════════
+//
+// La cita viaja dentro del mensaje nuevo (`replyTo`). Como la
+// escribe el cliente, la regla exige forma: mapa con id, autor y
+// fragmento acotado. Sin eso serviría para colar datos.
+
+/** Un mensaje válido con cita, tal cual lo manda el cliente. */
+function mensajeConCita(de = ALICE) {
+  return {
+    chatId: 'g1',
+    senderId: de,
+    senderName: de,
+    senderAvatar: '',
+    body: 'Totalmente',
+    type: 'text',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    replyTo: { messageId: 'm0', senderName: 'bob', snippet: 'Hola' },
+  };
+}
+
+describe('Citar mensajes: forma obligatoria', () => {
+  it('un mensaje con cita bien formada se puede enviar', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertSucceeds(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mensajeConCita()),
+    );
+  });
+
+  it('la cita sin id no pasa', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = { senderName: 'bob', snippet: 'Hola' };
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('la cita que no es un mapa no pasa', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = 'm0';
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('un fragmento gigante no pasa', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = { messageId: 'm0', senderName: 'bob', snippet: 'x'.repeat(500) };
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('sin cita sigue igual que siempre', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertSucceeds(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), {
+        chatId: 'g1',
+        senderId: ALICE,
+        senderName: 'alice',
+        senderAvatar: '',
+        body: 'Sin cita',
+        type: 'text',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }),
+    );
   });
 });

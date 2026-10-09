@@ -908,6 +908,33 @@ service cloud.firestore {
         // antiguos es tarea del mantenimiento, con el Admin SDK.
         allow delete: if false;
       }
+
+      // Mensajes ocultos solo para su dueño ("eliminar solo para
+      // mí"). Cada documento es un mensaje que este usuario dejó de
+      // ver; el mensaje original no se toca y los demás lo conservan.
+      //
+      // Solo los propios, como las notificaciones de lectura: con
+      // `uid` distinto ni se leen, ni se crean, ni se deshacen.
+      // El id del documento es el del mensaje, así que ocultar dos
+      // veces no duplica nada.
+      match /hiddenMessages/{messageId} {
+        allow get, list: if isSignedIn() && request.auth.uid == uid;
+
+        allow create: if isSignedIn()
+                      && request.auth.uid == uid
+                      && request.resource.data.messageId == messageId
+                      && request.resource.data.chatId is string;
+
+        // Re-ocultar actualiza la fecha y nada más: ni el chat ni el
+        // mensaje pueden cambiar, así que un registro no puede
+        // acabar apuntando a otro mensaje.
+        allow update: if isSignedIn()
+                      && request.auth.uid == uid
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(['hiddenAt']);
+
+        allow delete: if isSignedIn() && request.auth.uid == uid;
+      }
     }
 
     // ======================================================
@@ -1671,11 +1698,29 @@ service cloud.firestore {
                       && (!('gif' in request.resource.data)
                           || gifValido(request.resource.data.gif))
                       && (!('location' in request.resource.data)
-                          || ubicacionValida(request.resource.data.location));
+                          || ubicacionValida(request.resource.data.location))
+                      // La cita es una foto fija del citado que escribe
+                      // el cliente: se exige forma (mapa con id, autor
+                      // y fragmento acotado) para que no sirva para
+                      // colar datos arbitrarios en el documento.
+                      && (!('replyTo' in request.resource.data)
+                          || (request.resource.data.replyTo is map
+                              && request.resource.data.replyTo.messageId is string
+                              && request.resource.data.replyTo.senderName is string
+                              && request.resource.data.replyTo.snippet is string
+                              && request.resource.data.replyTo.snippet.size() <= 200));
 
-        allow update, delete: if isAdmin()
-                              || (isChatMember(chatId)
-                                  && resource.data.senderId == request.auth.uid);
+        // Los mensajes solo los toca el servidor (borrado para
+        // todos vía `eliminarMensajeParaTodos`, que comprueba
+        // autoría y 2 horas con su reloj).
+        //
+        // Antes el autor podía actualizar y borrar lo suyo sin más
+        // checks. Eso permitía reescribir el texto sin dejar rastro,
+        // borrar físicamente sin control de plazo y, peor, marcar
+        // `deletedForEveryone` a mano saltándose la ventana de 2
+        // horas. Por eso actualizar y destruir quedan en manos del
+        // admin (la Function usa el Admin SDK y no pasa por aquí).
+        allow update, delete: if isAdmin();
       }
 
       // Recibos de lectura: se guardan en un mapa "readAt" DENTRO

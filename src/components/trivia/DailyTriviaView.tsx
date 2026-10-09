@@ -517,10 +517,10 @@ const ResultadoFinal: FC<{
               arriba al bajar por las explicaciones. */}
           <div className="sticky top-24">
             <img
-              src="/img/trivia-chica.webp"
-              alt="Chica pelirroja con gorro negro, gafas redondas y ropa de cuero"
-              width={900}
-              height={1205}
+              src="/img/logros-chica-roja.webp"
+              alt="Chica pelirroja con gorro negro, gafas redondas, top blanco y vaqueros rotos"
+              width={500}
+              height={673}
               loading="lazy"
               decoding="async"
               className="w-full select-none"

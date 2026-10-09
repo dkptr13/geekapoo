@@ -1666,6 +1666,221 @@ export const onChatMessageCreated = onDocumentCreated(
 );
 
 
+// ── Borrado para todos de un mensaje (estilo WhatsApp) ─────────
+//
+// El cliente NO puede hacerlo solo: las reglas solo dejan a un
+// admin tocar mensajes, así que esta callable es el único camino.
+// Aquí se comprueba con el reloj del servidor:
+//
+//   1. Quien llama tiene sesión.
+//   2. El chat existe y quien llama es miembro.
+//   3. El mensaje existe y es SUYO (senderId == uid).
+//   4. No han pasado 2 horas desde `createdAt` (< estricto: a las
+//      2 horas justas ya no se puede).
+//   5. Sin fecha fiable no hay borrado (fail closed).
+//
+// Es un borrado LÓGICO: el documento sigue para no romper el orden
+// ni las referencias, pero el contenido se vacía en el servidor.
+// Vaciarlo aquí (y no solo esconderlo en el cliente) importa porque
+// los miembros pueden LEER los documentos: si el texto siguiera en
+// el documento, "eliminar para todos" sería cosmético y cualquiera
+// con la consola lo leería igual.
+//
+// El archivo de Storage NO se borra: podría compartirlo otro
+// mensaje y comprobarlo exigiría un rastreo caro. Sin `imageUrl` en
+// el documento ya no se muestra ni se descubre desde el chat.
+const VENTANA_BORRADO_MS = 2 * 60 * 60 * 1000;
+
+export const eliminarMensajeParaTodos = onCall(async (request) => {
+  const uid = request.auth?.uid;
+
+  if (!uid) {
+    throw new HttpsError('unauthenticated', 'Tienes que iniciar sesión.');
+  }
+
+  const chatId = typeof request.data?.chatId === 'string' ? request.data.chatId : '';
+  const messageId =
+    typeof request.data?.messageId === 'string' ? request.data.messageId : '';
+
+  if (!chatId || !messageId) {
+    throw new HttpsError('invalid-argument', 'Falta el chat o el mensaje.');
+  }
+
+  const chatSnap = await db.doc(`${CHATS}/${chatId}`).get();
+  const miembros = chatSnap.data()?.memberIds;
+
+  if (!chatSnap.exists || !Array.isArray(miembros) || !miembros.includes(uid)) {
+    throw new HttpsError('permission-denied', 'No estás en esa conversación.');
+  }
+
+  const ref = db.doc(`${CHATS}/${chatId}/messages/${messageId}`);
+  const snap = await ref.get();
+
+  if (!snap.exists) {
+    throw new HttpsError('not-found', 'Ese mensaje ya no está.');
+  }
+
+  const data = snap.data() ?? {};
+
+  // Solo el autor. Ni el dueño del grupo ni un admin por aquí:
+  // los admins ya pueden por reglas y esto es para usuarios.
+  if (data.senderId !== uid) {
+    throw new HttpsError('permission-denied', 'Solo el autor puede borrar para todos.');
+  }
+
+  // Idempotente: si ya se borró, no es un error.
+  if (data.deletedForEveryone) {
+    return { ok: true };
+  }
+
+  const creado = data.createdAt?.toMillis?.();
+
+  if (typeof creado !== 'number' || Number.isNaN(creado)) {
+    throw new HttpsError(
+      'permission-denied',
+      'Ese mensaje no tiene fecha fiable y no se puede borrar para todos.',
+    );
+  }
+
+  if (Date.now() - creado >= VENTANA_BORRADO_MS) {
+    throw new HttpsError('permission-denied', 'Pasaron las 2 horas.');
+  }
+
+  await ref.update({
+    body: '',
+    imageUrl: FieldValue.delete(),
+    gif: FieldValue.delete(),
+    location: FieldValue.delete(),
+    deletedForEveryone: true,
+    deletedAt: FieldValue.serverTimestamp(),
+    deletedBy: uid,
+  });
+
+  // Si era el último, la vista previa no puede seguir enseñando el
+  // texto borrado. Se deja este marcador sin tocar la fecha: el
+  // orden de la conversación no cambia por borrar.
+  try {
+    const top = await db
+      .collection(`${CHATS}/${chatId}/messages`)
+      .orderBy('createdAt', 'desc')
+      .limit(1)
+      .get();
+
+    if (!top.empty && top.docs[0].id === messageId) {
+      await db.doc(`${CHATS}/${chatId}`).update({
+        lastMessage: 'Este mensaje fue eliminado',
+      });
+    }
+  } catch (e) {
+    logger.error('No se pudo actualizar la vista previa al borrar', {
+      chatId,
+      messageId,
+      error: e,
+    });
+  }
+
+  return { ok: true };
+});
+
+
+// ── Editar el texto de un mensaje propio ─────────────────────────
+//
+// Como el borrado, solo el servidor puede: las reglas no dejan a
+// ningún cliente actualizar mensajes. Aquí se comprueba:
+//
+//   1. Quien llama tiene sesión y es miembro del chat.
+//   2. El mensaje existe y es SUYO.
+//   3. No está borrado para todos (lo borrado no se reedita).
+//   4. El texto cabe (1 a 4000, como al enviar; vacío solo si el
+//      mensaje ya lleva foto, GIF o ubicación).
+//
+// La creación NO se toca: editar no rejuvenece el mensaje y el
+// plazo de borrado sigue contando desde el envío. Se guarda
+// `editedAt` para pintar el "editado".
+export const editarMensajeChat = onCall(async (request) => {
+  const uid = request.auth?.uid;
+
+  if (!uid) {
+    throw new HttpsError('unauthenticated', 'Tienes que iniciar sesión.');
+  }
+
+  const chatId = typeof request.data?.chatId === 'string' ? request.data.chatId : '';
+  const messageId =
+    typeof request.data?.messageId === 'string' ? request.data.messageId : '';
+  const body = typeof request.data?.body === 'string' ? request.data.body.trim() : '';
+
+  if (!chatId || !messageId) {
+    throw new HttpsError('invalid-argument', 'Falta el chat o el mensaje.');
+  }
+
+  if (body.length > 4000) {
+    throw new HttpsError('invalid-argument', 'El mensaje no puede superar los 4000 caracteres.');
+  }
+
+  const chatSnap = await db.doc(`${CHATS}/${chatId}`).get();
+  const miembros = chatSnap.data()?.memberIds;
+
+  if (!chatSnap.exists || !Array.isArray(miembros) || !miembros.includes(uid)) {
+    throw new HttpsError('permission-denied', 'No estás en esa conversación.');
+  }
+
+  const ref = db.doc(`${CHATS}/${chatId}/messages/${messageId}`);
+  const snap = await ref.get();
+
+  if (!snap.exists) {
+    throw new HttpsError('not-found', 'Ese mensaje ya no está.');
+  }
+
+  const data = snap.data() ?? {};
+
+  if (data.senderId !== uid) {
+    throw new HttpsError('permission-denied', 'Solo el autor puede editar.');
+  }
+
+  if (data.deletedForEveryone) {
+    throw new HttpsError(
+      'failed-precondition',
+      'Ese mensaje se eliminó para todos y no se puede editar.',
+    );
+  }
+
+  const llevaAlgo = Boolean(data.gif ?? data.imageUrl ?? data.location);
+
+  if (!body && !llevaAlgo) {
+    throw new HttpsError('invalid-argument', 'El mensaje no puede quedar vacío.');
+  }
+
+  await ref.update({
+    body,
+    editedAt: FieldValue.serverTimestamp(),
+  });
+
+  // Si es el último, la vista previa sigue al texto nuevo. Como al
+  // borrar: se mira cuál es el último de verdad, no se supone.
+  try {
+    const top = await db
+      .collection(`${CHATS}/${chatId}/messages`)
+      .orderBy('createdAt', 'desc')
+      .limit(1)
+      .get();
+
+    if (!top.empty && top.docs[0].id === messageId) {
+      await db.doc(`${CHATS}/${chatId}`).update({
+        lastMessage: body || 'Mensaje con archivo adjunto',
+      });
+    }
+  } catch (e) {
+    logger.error('No se pudo actualizar la vista previa al editar', {
+      chatId,
+      messageId,
+      error: e,
+    });
+  }
+
+  return { ok: true };
+});
+
+
 // ======================================================
 // REACCIONES
 // ======================================================

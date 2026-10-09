@@ -618,6 +618,23 @@ export interface LocationAttachment {
   place?: string;
 }
 
+/**
+ * A qué mensaje responde otro (cita).
+ *
+ * Es una foto fija del citado, no un enlace vivo: si el original
+ * cambia o se borra, la cita conserva quién lo escribió y qué
+ * decía en ese momento. Al pintar, si el citado sigue en la lista
+ * y está borrado para todos, se enseña el marcador en su lugar.
+ */
+export interface ChatReplyTo {
+  /** Id del mensaje citado. */
+  messageId: string;
+  /** Quién lo escribió, tal como se veía al citar. */
+  senderName: string;
+  /** Fragmento del contenido (o "[Foto]", "GIF", "Ubicación"). */
+  snippet: string;
+}
+
 export interface ChatMessage {
   id: string;
   chatId: string;
@@ -652,6 +669,40 @@ export interface ChatMessage {
   imageUrl?: string;
   /** Ubicación adjunta al mensaje. */
   location?: LocationAttachment;
+  /**
+   * Cita a otro mensaje (responder).
+   *
+   * Guarda una FOTO del citado en el momento de responder: quién lo
+   * escribió y un fragmento. Si el citado se borra para todos
+   * después, al pintarlo se comprueba si sigue en la lista y en ese
+   * caso se enseña "eliminado" en vez del fragmento guardado, para
+   * no filtrar por la cita lo que el borrado quitó.
+   */
+  replyTo?: ChatReplyTo;
+  /**
+   * Cuándo se editó el texto, en ISO. Lo pone el servidor
+   * (`editarMensajeChat`). La creación (`createdAt`) no se toca
+   * nunca: editar no rejuvenece el mensaje y el plazo de borrado
+   * sigue contando desde el envío.
+   */
+  editedAt?: string;
+  /**
+   * Borrado para todos (estilo WhatsApp).
+   *
+   * Es un borrado LÓGICO: el documento sigue existiendo para no
+   * romper el orden ni las referencias, pero el contenido
+   * (texto, foto, GIF, ubicación) lo vacía el servidor al borrar
+   * y aquí solo se pinta "Este mensaje fue eliminado".
+   *
+   * Solo lo escribe la Cloud Function `eliminarMensajeParaTodos`,
+   * que comprueba autoría y plazo. Las reglas no dejan a ningún
+   * cliente tocar estos campos.
+   */
+  deletedForEveryone?: boolean;
+  /** Cuándo se borró para todos, en ISO. Lo pone el servidor. */
+  deletedAt?: string;
+  /** Quién lo borró para todos: siempre coincide con `senderId`. */
+  deletedBy?: string;
 }
 
 export interface ChatRoom {

@@ -22,6 +22,7 @@ import {
   setGroupAvatar as setGroupAvatarService,
   subscribeChats,
   subscribeMessages,
+  subscribeOcultos,
   syncGroupMemberCount,
   transferGroupOwnership,
 } from '../services/chats';
@@ -40,6 +41,7 @@ import { acceptsChatRequests } from '../services/accountSettings';
 
 import {
   ChatMessage,
+  ChatReplyTo,
   ChatRequest,
   ChatRoom,
   GifAttachment,
@@ -90,6 +92,7 @@ interface ChatContextType {
     text: string,
     gif?: GifAttachment,
     adjunto?: { imageUrl?: string; location?: LocationAttachment },
+    respuesta?: ChatReplyTo | null,
   ) => void;
 
   // ── Solicitudes ────────────────────────────────────
@@ -129,6 +132,22 @@ interface ChatContextType {
   removeMember: (room: ChatRoom, memberId: string) => Promise<ChatResult>;
 
   isReadByEveryone: (messageId: string, createdAt: string) => boolean;
+
+  /**
+   * Parchea un mensaje en la lista local sin tocar el servidor.
+   *
+   * Es lo que hace que editar (y borrar) se VEAN al instante: la
+   * callable tarda (arranque en frío incluido) y esperar su vuelta
+   * con la caja congelada es la "tardanza" que se nota. El servidor
+   * sigue mandando: cuando su escritura llega por el listener,
+   * pisa el parche con la verdad. Y si falla, quien llama revierte
+   * con otro parche.
+   */
+  parchearMensaje: (
+    roomId: string,
+    messageId: string,
+    parche: Partial<ChatMessage>,
+  ) => void;
   setChatOpen: (open: boolean) => void;
   unreadRoomIds: string[];
   hasUnread: boolean;
@@ -140,6 +159,14 @@ interface ChatContextType {
    * mensajes nuevos, o la conversación todavía no ha cargado.
    */
   corteNuevos: CorteNuevos;
+
+  /**
+   * Ids de mensajes que este usuario ocultó solo para sí mismo.
+   *
+   * Vienen de `users/{uid}/hiddenMessages` y se filtran al pintar:
+   * el mensaje sigue intacto para los demás.
+   */
+  hiddenIds: Set<string>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -159,6 +186,22 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [incomingRequests, setIncomingRequests] = useState<ChatRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<ChatRequest[]>([]);
   const [blockedIds, setBlockedIds] = useState<string[]>([]);
+
+  // Mensajes ocultos solo para este usuario ("eliminar solo para
+  // mí"). Es un conjunto de ids que se filtra al pintar; el
+  // documento del mensaje no se toca.
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    if (!currentUser) {
+      setHiddenIds(new Set());
+      return;
+    }
+
+    return subscribeOcultos(currentUser.uid, setHiddenIds, (e: unknown) =>
+      console.error('[Chats] No se pudieron leer los mensajes ocultos:', e),
+    );
+  }, [currentUser]);
 
   const [chatOpen, setChatOpen] = useState(false);
   const [tabVisible, setTabVisible] = useState(
@@ -458,6 +501,22 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [activeRoom, currentUser],
   );
 
+  // ── Parche local de un mensaje (optimista) ────────────
+  const parchearMensaje = useCallback(
+    (roomId: string, messageId: string, parche: Partial<ChatMessage>) => {
+      setMessages((prev) => {
+        const lista = prev[roomId];
+        if (!lista) return prev;
+
+        return {
+          ...prev,
+          [roomId]: lista.map((m) => (m.id === messageId ? { ...m, ...parche } : m)),
+        };
+      });
+    },
+    [],
+  );
+
   // ── Enviar mensaje ───────────────────────────────────
   const sendMessage = useCallback(
     (
@@ -465,6 +524,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       text: string,
       gif?: GifAttachment,
       adjunto?: { imageUrl?: string; location?: LocationAttachment },
+      respuesta?: ChatReplyTo | null,
     ) => {
       // Sin sesión no se envía nada, y sin texto ni adjunto tampoco:
       // un mensaje vacío no es un mensaje.
@@ -473,7 +533,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!currentUser || vacio) return;
 
-      sendChatMessageService(roomId, currentUser, text, gif, adjunto)
+      sendChatMessageService(roomId, currentUser, text, gif, adjunto, respuesta)
         .then(() => setSendError(null))
         .catch((e: unknown) => {
           console.error('[Chats] Error al enviar mensaje:', e);
@@ -865,12 +925,14 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addMember,
         removeMember,
         isReadByEveryone,
+        parchearMensaje,
         setChatOpen,
         unreadRoomIds,
         hasUnread: unreadRoomIds.length > 0,
         corteNuevos: activeRoomId
           ? (cortePorChat[activeRoomId] ?? SIN_NUEVOS)
           : SIN_NUEVOS,
+        hiddenIds,
       }}
     >
       {children}

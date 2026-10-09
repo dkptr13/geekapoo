@@ -94,10 +94,10 @@ export const AchievementsView: React.FC = () => {
         <aside className="hidden lg:block">
           <div className="sticky top-24">
             <img
-              src="/img/logros-chica-roja.webp"
-              alt="Chica de pelo rojo con gorro de orejas de gato y gafas redondas"
-              width={500}
-              height={673}
+              src="/img/logros-trofeo.webp"
+              alt="Dos chicas pelirrojas con orejas de gato levantando un trofeo dorado"
+              width={600}
+              height={1067}
               loading="lazy"
               decoding="async"
               className="w-full select-none"

@@ -24,7 +24,7 @@ export type WithId<T> = T & { id: string };
 // no es una fecha, es texto ya formateado ("En línea", "Hace 5m",
 // "Ayer"). Si se intentara convertir, toDate("En línea") daría null y
 // el campo se quedaría vacío.
-const DATE_FIELDS = ['createdAt', 'updatedAt', 'lastMessageAt'] as const;
+const DATE_FIELDS = ['createdAt', 'updatedAt', 'lastMessageAt', 'deletedAt', 'editedAt'] as const;
 
 /**
  * Convierte cualquier formato de fecha de Firestore a un objeto Date.

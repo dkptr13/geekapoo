@@ -1,0 +1,50 @@
+/**
+ * Traduce el error de la edición a algo que se pueda enseñar.
+ *
+ * Separado del de borrado porque los motivos no son los mismos:
+ * aquí no hay plazo, pero sí "ya se borró" y "vacío".
+ */
+function mensajeDeEdicion(e: unknown): string {
+  const code = (e as { code?: string })?.code ?? '';
+
+  if (code.includes('unauthenticated')) return 'Tienes que iniciar sesión.';
+  if (code.includes('not-found')) return 'Ese mensaje ya no está.';
+  if (code.includes('permission-denied')) {
+    return 'Ya no se puede editar: o no es tuyo o se eliminó para todos.';
+  }
+  if (code.includes('failed-precondition')) {
+    return 'Ese mensaje ya se eliminó para todos y no se puede editar.';
+  }
+  if (code.includes('invalid-argument')) {
+    return 'El texto no vale: vacío o demasiado largo.';
+  }
+  if (code.includes('unavailable')) {
+    return 'No hay conexión con el servidor. Inténtalo de nuevo.';
+  }
+  return e instanceof Error ? e.message : 'No se pudo editar el mensaje.';
+}
+
+/**
+ * Traduce el error de la callable a algo que se pueda enseñar.
+ *
+ * Sin esto saldría el código crudo ("functions/permission-denied"),
+ * que no dice si es que ya pasaron las 2 horas, si el mensaje no
+ * es tuyo o si se fue la conexión.
+ */
+function mensajeDeBorrado(e: unknown): string {
+  const code = (e as { code?: string })?.code ?? '';
+
+  if (code.includes('unauthenticated')) return 'Tienes que iniciar sesión.';
+  if (code.includes('not-found')) return 'Ese mensaje ya no está.';
+  if (code.includes('permission-denied')) {
+    return 'Ya no se puede eliminar para todos: o no es tuyo o pasaron las 2 horas.';
+  }
+  if (code.includes('failed-precondition')) {
+    return 'Ese mensaje ya se eliminó para todos.';
+  }
+  if (code.includes('invalid-argument')) return 'Falta el chat o el mensaje.';
+  if (code.includes('unavailable')) {
+    return 'No hay conexión con el servidor. Inténtalo de nuevo.';
+  }
+  return e instanceof Error ? e.message : 'No se pudo eliminar el mensaje.';
+}

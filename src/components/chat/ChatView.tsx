@@ -29,9 +29,20 @@ import {
   ImagePlus,
   Camera,
   ArrowDown,
+  Trash2,
+  Ban,
+  Reply,
+  Pencil,
 } from 'lucide-react';
 
 import { textoDeNuevos } from '../../utils/chatLectura';
+import { puedeBorrarParaTodos } from '../../utils/chatBorrado';
+import { citaVisible, fragmentoParaCita } from '../../utils/chatCita';
+import {
+  editarMensajeChat,
+  eliminarMensajeParaTodos,
+  ocultarMensajeParaMi,
+} from '../../services/chats';
 import { useAuth } from '../../context/AuthContext';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useChat } from '../../context/ChatContext';
@@ -69,9 +80,11 @@ export const ChatView: React.FC = () => {
     loading: chatsLoading,
     error: chatsError,
     isReadByEveryone,
+    parchearMensaje,
     setChatOpen,
     unreadRoomIds,
     corteNuevos,
+    hiddenIds,
     removeConversation,
     clearConversation,
     addMember,
@@ -256,6 +269,20 @@ export const ChatView: React.FC = () => {
   const [memberFeedback, setMemberFeedback] = useState<{ error?: string; success?: string } | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
+  // Borrado de mensajes: qué menú está abierto y qué mensaje está
+  // pendiente de confirmar. El borrado no se ejecuta hasta pulsar
+  // una opción del modal.
+  const [menuMsgId, setMenuMsgId] = useState<string | null>(null);
+  const [borrandoMsg, setBorrandoMsg] = useState<ChatMessage | null>(null);
+  const [borrandoBusy, setBorrandoBusy] = useState(false);
+  const [borrandoError, setBorrandoError] = useState<string | null>(null);
+
+  // Citar y editar. Son excluyentes: responder cancela la edición y
+  // editar cancela la respuesta, porque la caja es una sola.
+  const [citaA, setCitaA] = useState<ChatMessage | null>(null);
+  const [editando, setEditando] = useState<ChatMessage | null>(null);
+  const [editandoBusy, setEditandoBusy] = useState(false);
+
   // Solo quien creó el grupo puede añadir o expulsar miembros.
   const isGroupOwner =
     !!activeRoom && activeRoom.type === 'group' && activeRoom.ownerId === currentUser?.uid;
@@ -348,8 +375,14 @@ export const ChatView: React.FC = () => {
   // Al cambiar de conversación se vuelve abajo. Si no, abrir la
   // tercera con la segunda a medias dejaría el scroll donde estaba,
   // en un sitio que no significa nada en la nueva.
+  //
+  // Y se sueltan la cita y la edición: apuntaban a mensajes de la
+  // otra conversación y la caja es la misma para todas.
   useEffect(() => {
     setLejosDelFinal(false);
+    setCitaA(null);
+    setEditando(null);
+    setInputText('');
   }, [activeRoomId]);
 
   // Abrir la conversación que pide la URL (`?tab=chats&chat=...`).
@@ -461,12 +494,25 @@ export const ChatView: React.FC = () => {
 
     if (!activeRoomId || !hayAlgo) return;
 
+    // La cita viaja dentro del mensaje nuevo. Se construye aquí, al
+    // enviar, con lo que el citado dice AHORA: si se construyera al
+    // pulsar "Responder" y el citado se editara después, la cita
+    // llevaría el texto viejo.
+    const respuesta = citaA
+      ? {
+          messageId: citaA.id,
+          senderName: senderNameOf(citaA),
+          snippet: fragmentoParaCita(citaA),
+        }
+      : null;
+
     sendMessage(activeRoomId, inputText, gif ?? undefined, {
       ...(foto ? { imageUrl: foto } : {}),
       ...(sitio ? { location: sitio } : {}),
-    });
+    }, respuesta);
 
     setInputText('');
+    setCitaA(null);
 
     // Lo que no se ha mandado no se borra: si la ubicación se ha
     // enviado aparte, la foto y el GIF siguen ahí para el siguiente
@@ -479,6 +525,14 @@ export const ChatView: React.FC = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // En modo edición, enviar GUARDA lo editado en vez de mandar un
+    // mensaje nuevo. Son dos caminos con el mismo botón.
+    if (editando) {
+      void guardarEdicion();
+      return;
+    }
+
     enviar();
   };
 
@@ -575,7 +629,11 @@ export const ChatView: React.FC = () => {
     return true;
   });
 
-  const activeMessages = activeRoomId ? messages[activeRoomId] || [] : [];
+  // Sin los ocultados solo para mí: el documento sigue intacto
+  // para los demás, aquí simplemente no se pintan.
+  const activeMessages = (
+    activeRoomId ? messages[activeRoomId] || [] : []
+  ).filter((m) => !hiddenIds.has(m.id));
 
   // Nombre e interlocutor del chat abierto, calculados igual que en
   // la lista: a partir de la lista de miembros, no del nombre
@@ -682,6 +740,134 @@ export const ChatView: React.FC = () => {
   // Mensaje de error de una acción, o null si ha ido bien.
   const reportActionError = (result: { error?: string }) => {
     if (result.error) setActionFeedback(result.error);
+  };
+
+  // ── Borrar mensajes (estilo WhatsApp) ──────────
+  //
+  // Nada se ejecuta hasta confirmar en el modal. Si la operación
+  // falla, el modal NO se cierra: pintar que se borró sería mentira
+  // y el mensaje seguiría ahí al recargar.
+
+  const pedirBorrar = (msg: ChatMessage) => {
+    setMenuMsgId(null);
+    setBorrandoError(null);
+    setBorrandoMsg(msg);
+  };
+
+  const borrarSoloParaMi = async () => {
+    if (!borrandoMsg || !activeRoomId || !currentUser || borrandoBusy) return;
+
+    setBorrandoBusy(true);
+    setBorrandoError(null);
+
+    try {
+      await ocultarMensajeParaMi(currentUser.uid, activeRoomId, borrandoMsg.id);
+      setBorrandoMsg(null);
+    } catch (e: unknown) {
+      setBorrandoError(
+        e instanceof Error ? e.message : 'No se pudo ocultar el mensaje.',
+      );
+    } finally {
+      setBorrandoBusy(false);
+    }
+  };
+
+  const borrarParaTodos = async () => {
+    if (!borrandoMsg || !activeRoomId || !currentUser || borrandoBusy) return;
+
+    const objetivo = borrandoMsg;
+    const room = activeRoomId;
+
+    // Optimista, como la edición: se esconde al instante y el
+    // servidor confirma detrás. Si dice que no (plazo cumplido
+    // entre abrir el modal y pulsar), el mensaje VUELVE y sale el
+    // motivo en vez de quedarse borrado en falso.
+    parchearMensaje(room, objetivo.id, {
+      body: '',
+      imageUrl: undefined,
+      gif: undefined,
+      location: undefined,
+      replyTo: undefined,
+      deletedForEveryone: true,
+      deletedAt: new Date().toISOString(),
+      deletedBy: currentUser.uid,
+    });
+    setBorrandoMsg(null);
+    setBorrandoBusy(true);
+
+    try {
+      await eliminarMensajeParaTodos(room, objetivo.id);
+    } catch (e: unknown) {
+      parchearMensaje(room, objetivo.id, { ...objetivo });
+      setActionFeedback(
+        e instanceof Error ? e.message : 'No se pudo eliminar el mensaje.',
+      );
+    } finally {
+      setBorrandoBusy(false);
+    }
+  };
+
+  // ── Citar y editar ──────────
+  //
+  // La cita viaja DENTRO del mensaje nuevo (`replyTo`); la edición
+  // cambia el texto del existente vía callable (`editarMensajeChat`,
+  // que comprueba autoría en el servidor). En los dos casos la
+  // creación original no se toca.
+
+  const responderA = (msg: ChatMessage) => {
+    setMenuMsgId(null);
+    setEditando(null);
+    setCitaA(msg);
+    inputRef.current?.focus();
+  };
+
+  const empezarEdicion = (msg: ChatMessage) => {
+    setMenuMsgId(null);
+    setCitaA(null);
+    // Los adjuntos pendientes no pintan nada aquí: la edición solo
+    // cambia el texto y lo que hubiera en la caja se colaría en el
+    // siguiente mensaje nuevo.
+    setChatGif(null);
+    setChatImageUrl(null);
+    setEditando(msg);
+    setInputText(msg.body);
+    inputRef.current?.focus();
+  };
+
+  const cancelarEdicion = () => {
+    setEditando(null);
+    setInputText('');
+  };
+
+  const guardarEdicion = async () => {
+    if (!editando || !activeRoomId || !currentUser || editandoBusy) return;
+
+    const objetivo = editando;
+    const room = activeRoomId;
+    const texto = inputText;
+    const previo = { body: objetivo.body, editedAt: objetivo.editedAt };
+
+    // Optimista: se pinta al instante con la fecha de aquí. Cuando
+    // la escritura del servidor llegue por el listener, la pisa con
+    // la de verdad. Si falla, se revierte y sale el motivo.
+    parchearMensaje(room, objetivo.id, {
+      body: texto,
+      editedAt: new Date().toISOString(),
+    });
+    setEditando(null);
+    setInputText('');
+    setEditandoBusy(true);
+
+    try {
+      await editarMensajeChat(room, objetivo.id, texto);
+    } catch (e: unknown) {
+      parchearMensaje(room, objetivo.id, previo);
+      setActionFeedback(
+        e instanceof Error ? e.message : 'No se pudo editar el mensaje.',
+      );
+    } finally {
+      setEditandoBusy(false);
+    }
   };
 
   // ── Menú de acciones sobre una conversación ──────────
@@ -1591,6 +1777,80 @@ export const ChatView: React.FC = () => {
                 ) : (
                   activeMessages.map((msg, posicion) => {
                     const isMe = msg.senderId === currentUser.uid;
+                    const eliminado = !!msg.deletedForEveryone;
+
+                    // El citado, si sigue en la lista: sirve para no
+                    // enseñar por la cita lo que el borrado quitó.
+                    const citado =
+                      msg.replyTo && activeRoomId
+                        ? (messages[activeRoomId] ?? []).find(
+                            (m: ChatMessage) => m.id === msg.replyTo!.messageId,
+                          )
+                        : undefined;
+
+                    // Borrado para todos: burbuja discreta sin
+                    // contenido, sin reacciones, sin ticks y sin menú.
+                    // Lo que pone depende de quién mira: el autor ve
+                    // que lo eliminó él, los demás que se eliminó.
+                    if (eliminado) {
+                      return (
+                        <Fragment key={msg.id}>
+                          {posicion === corteNuevos.indice && corteNuevos.total > 0 && (
+                            <div className="flex items-center gap-3 py-1">
+                              <div className="h-px flex-1 bg-violet-500/40" />
+                              <span className="shrink-0 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1 text-[11px] font-bold text-violet-300">
+                                {textoDeNuevos(corteNuevos.total)}
+                              </span>
+                              <div className="h-px flex-1 bg-violet-500/40" />
+                            </div>
+                          )}
+
+                          <div
+                            className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                          >
+                            {!isMe && (
+                              <span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-500">
+                                <Ban size={13} />
+                              </span>
+                            )}
+
+                            <div className="max-w-[78%] space-y-1 sm:max-w-[70%] 2xl:max-w-[45%]">
+                              {!isMe && (
+                                <span className="text-[11px] font-bold text-violet-300 pl-1 block">
+                                  {senderNameOf(msg)}
+                                </span>
+                              )}
+
+                              <div
+                                className={`flex w-fit max-w-full items-center gap-2 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/60 px-4 py-2.5 text-xs sm:text-sm italic text-zinc-500 ${
+                                  isMe ? 'ml-auto' : ''
+                                }`}
+                              >
+                                <Ban size={13} className="flex-shrink-0" />
+                                <span>
+                                  {isMe
+                                    ? 'Eliminaste este mensaje'
+                                    : 'Este mensaje fue eliminado'}
+                                </span>
+                              </div>
+
+                              <div
+                                className={`flex items-center gap-1 text-[10px] text-zinc-500 font-mono ${
+                                  isMe ? 'justify-end pr-1' : 'pl-1'
+                                }`}
+                              >
+                                <span>
+                                  {new Date(msg.createdAt).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </Fragment>
+                      );
+                    }
 
                     return (
                       <Fragment key={msg.id}>
@@ -1648,10 +1908,40 @@ export const ChatView: React.FC = () => {
                             </span>
                           )}
 
+                          {/* Cita: a qué mensaje responde este. Si el
+                              citado sigue en la lista y está borrado
+                              para todos, se enseña el marcador en vez
+                              del fragmento guardado, para no filtrar
+                              por la cita lo que el borrado quitó. Si
+                              ya no está (antiguo), se enseña lo
+                              guardado tal cual. */}
+                          {msg.replyTo && (
+                            <div
+                              className={`mb-1 w-fit max-w-full rounded-lg border-l-2 border-violet-500/70 bg-zinc-900/70 px-2.5 py-1.5 ${
+                                isMe ? 'ml-auto' : ''
+                              }`}
+                            >
+                              <p className="text-[10px] font-bold text-violet-300">
+                                {msg.replyTo.senderName}
+                              </p>
+                              <p className="line-clamp-2 text-[11px] text-zinc-400">
+                                {citaVisible(msg.replyTo.snippet, citado?.deletedForEveryone)}
+                              </p>
+                            </div>
+                          )}
+
                           <div
-                            className={`rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-md ${
+                            // `w-fit`: la burbuja abraza al texto. Sin
+                            // esto, al ser bloque, llena el ancho del
+                            // contenedor, que lo marca la fila más
+                            // ancha (hora + ticks + menú): un "lol"
+                            // editado desde un párrafo se quedaba con
+                            // el ancho del párrafo. El `ml-auto` es
+                            // para los propios: estrecha pegada a la
+                            // derecha, como antes llenando.
+                            className={`w-fit max-w-full rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-md ${
                               isMe
-                                ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-tr-none'
+                                ? 'ml-auto bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-tr-none'
                                 : 'bg-zinc-800 text-zinc-100 rounded-tl-none border border-zinc-750'
                             }`}
                           >
@@ -1725,6 +2015,14 @@ export const ChatView: React.FC = () => {
                                 minute: '2-digit',
                               })}
                             </span>
+                            {/* Editado: solo si el servidor puso fecha.
+                                Sin esto, un texto cambiado no se
+                                distinguiría del original. */}
+                            {msg.editedAt && (
+                              <span className="italic" title="Mensaje editado">
+                                · editado
+                              </span>
+                            )}
                             {isMe &&
                               (isReadByEveryone(msg.id, msg.createdAt) ? (
                                 // Doble tick: el resto ya lo ha leído
@@ -1741,6 +2039,75 @@ export const ChatView: React.FC = () => {
                                   <Check size={11} />
                                 </span>
                               ))}
+
+                            {/* Menú del mensaje: responder, editar (solo
+                                propio) y eliminar. Va aquí, junto a la
+                                hora, y no sobre la burbuja: así funciona
+                                igual con dedo que con ratón, sin
+                                depender de `hover`, y no tapa el
+                                contenido en pantallas estrechas. */}
+                            <span className="relative">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMenuMsgId(menuMsgId === msg.id ? null : msg.id);
+                                }}
+                                aria-label={`Opciones del mensaje de ${senderNameOf(msg)}`}
+                                title="Opciones"
+                                className="rounded p-0.5 text-zinc-600 transition-colors hover:bg-zinc-700/60 hover:text-zinc-200 focus-visible:outline-2 focus-visible:outline-violet-400"
+                              >
+                                <MoreVertical size={11} />
+                              </button>
+
+                              {menuMsgId === msg.id && (
+                                <span className={`absolute bottom-5 z-20 block w-48 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-2xl ${isMe ? 'right-0' : 'left-0'}`}>
+                                  <button
+                                    type="button"
+                                    onClick={() => responderA(msg)}
+                                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
+                                  >
+                                    <Reply size={13} className="text-violet-400" />
+                                    <span>
+                                      Responder
+                                      <span className="block text-[10px] font-normal text-zinc-500">
+                                        Citar este mensaje
+                                      </span>
+                                    </span>
+                                  </button>
+
+                                  {isMe && (
+                                    <button
+                                      type="button"
+                                      onClick={() => empezarEdicion(msg)}
+                                      className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
+                                    >
+                                      <Pencil size={13} className="text-zinc-400" />
+                                      <span>
+                                        Editar
+                                        <span className="block text-[10px] font-normal text-zinc-500">
+                                          Cambiar el texto
+                                        </span>
+                                      </span>
+                                    </button>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    onClick={() => pedirBorrar(msg)}
+                                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
+                                  >
+                                    <Trash2 size={13} className="text-red-400" />
+                                    <span>
+                                      Eliminar mensaje
+                                      <span className="block text-[10px] font-normal text-zinc-500">
+                                        Para ti o para todos
+                                      </span>
+                                    </span>
+                                  </button>
+                                </span>
+                              )}
+                            </span>
                           </div>
                         </div>
                         </div>
@@ -1750,6 +2117,92 @@ export const ChatView: React.FC = () => {
                 )}
                 <div ref={messagesEndRef} />
               </div>
+
+              {/* CONFIRMAR BORRADO DE MENSAJE
+                  Casos:
+                    A. Soy el autor y no pasaron 2 h → para todos + solo para mí.
+                    B. Soy el autor y pasaron 2 h o más → solo "solo para mí".
+                       La opción de todos NO se pinta (no basta con
+                       desactivarla).
+                    C. No soy el autor → solo "solo para mí".
+                  Nada se ejecuta hasta pulsar: abrir el modal no borra. */}
+              {borrandoMsg && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+                  onClick={() => {
+                    if (!borrandoBusy) setBorrandoMsg(null);
+                  }}
+                >
+                  <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Eliminar mensaje"
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full max-w-xs rounded-3xl border border-zinc-700 bg-zinc-900 p-5 shadow-2xl"
+                  >
+                    <h3 className="text-center text-sm font-black text-white">
+                      Eliminar mensaje
+                    </h3>
+                    <p className="mt-1 text-center text-[11px] text-zinc-400">
+                      ¿Cómo quieres eliminarlo?
+                    </p>
+
+                    <div className="mt-4 space-y-2">
+                      {currentUser &&
+                        puedeBorrarParaTodos(borrandoMsg, currentUser.uid) && (
+                          <button
+                            type="button"
+                            onClick={() => void borrarParaTodos()}
+                            disabled={borrandoBusy}
+                            className="flex w-full items-center gap-2.5 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-left transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                          >
+                            <Trash2 size={15} className="flex-shrink-0 text-red-400" />
+                            <span>
+                              <span className="block text-xs font-bold text-white">
+                                {borrandoBusy ? 'Eliminando...' : 'Eliminar para todos'}
+                              </span>
+                              <span className="block text-[10px] font-normal text-zinc-400">
+                                Desaparece para todos los participantes
+                              </span>
+                            </span>
+                          </button>
+                        )}
+
+                      <button
+                        type="button"
+                        onClick={() => void borrarSoloParaMi()}
+                        disabled={borrandoBusy}
+                        className="flex w-full items-center gap-2.5 rounded-xl border border-zinc-700 bg-zinc-800/60 px-3 py-2.5 text-left transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                      >
+                        <Eraser size={15} className="flex-shrink-0 text-zinc-400" />
+                        <span>
+                          <span className="block text-xs font-bold text-white">
+                            {borrandoBusy ? 'Eliminando...' : 'Eliminar solo para mí'}
+                          </span>
+                          <span className="block text-[10px] font-normal text-zinc-400">
+                            Los demás lo siguen viendo
+                          </span>
+                        </span>
+                      </button>
+                    </div>
+
+                    {borrandoError && (
+                      <p className="mt-3 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">
+                        {borrandoError}
+                      </p>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setBorrandoMsg(null)}
+                      disabled={borrandoBusy}
+                      className="mt-3 w-full rounded-xl border border-zinc-700 px-4 py-2 text-xs font-bold text-zinc-300 transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* BAJAR A LOS NUEVOS
 
@@ -1917,6 +2370,57 @@ export const ChatView: React.FC = () => {
                 onSubmit={handleSendMessage}
                 className="relative border-t border-zinc-800 bg-zinc-950 p-3"
               >
+                {/* Citando: a quién y qué, con salida. Al enviar, la
+                    cita viaja dentro del mensaje nuevo. */}
+                {citaA && !editando && (
+                  <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-violet-500 bg-zinc-900 px-3 py-2">
+                    <Reply size={13} className="flex-shrink-0 text-violet-400" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold text-violet-300">
+                        {senderNameOf(citaA)}
+                      </p>
+                      <p className="truncate text-[11px] text-zinc-400">
+                        {fragmentoParaCita(citaA)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCitaA(null)}
+                      aria-label="Dejar de citar"
+                      className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Editando: lo que se escriba sustituye al texto del
+                    mensaje, no manda uno nuevo. Los adjuntos no
+                    aplican aquí: la foto o el GIF que tuviera se
+                    quedan como están. */}
+                {editando && (
+                  <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-amber-500 bg-zinc-900 px-3 py-2">
+                    <Pencil size={13} className="flex-shrink-0 text-amber-400" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold text-amber-300">
+                        Editando mensaje
+                      </p>
+                      <p className="truncate text-[11px] text-zinc-400">
+                        {editando.body || '(sin texto)'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={cancelarEdicion}
+                      aria-label="Cancelar edición"
+                      className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
+                
         {/* Con "flex-wrap" los dos botones pasan a una columna en
             pantallas estrechas. Sin esto, a 390px se quedaban sin
             ancho y "Crear Grupo" se partía en dos líneas, con la
@@ -1927,7 +2431,9 @@ export const ChatView: React.FC = () => {
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder={`Escribir a ${activeRoomName}...`}
+                    placeholder={
+                      editando ? 'Editar mensaje...' : `Escribir a ${activeRoomName}...`
+                    }
                     className="flex-1 min-w-[8rem] rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-xs sm:text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
                   />
 
@@ -1946,36 +2452,49 @@ export const ChatView: React.FC = () => {
                     <Smile size={17} />
                   </button>
 
-                  {/* Adjuntar una foto del ordenador */}
+                  {/* Adjuntar una foto del ordenador. En edición no
+                      aplica: solo cambia el texto y la foto que hubiera
+                      se queda como está. */}
                   <button
                     type="button"
                     onClick={() => imageInputRef.current?.click()}
+                    disabled={!!editando}
                     aria-label="Adjuntar una foto"
                     title="Adjuntar una foto"
                     className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
                       chatImageUrl
                         ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
                         : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300'
-                    }`}
+                    } disabled:opacity-40`}
                   >
                     <ImagePlus size={17} />
                   </button>
 
                   {/* Compartir ubicación: abre el menú con las dos
                       formas de elegirla. El permiso del navegador solo
-                      se pide si se elige "usar mi ubicación actual". */}
-                  <LocationMenu
-                    onLocated={handleLocated}
-                    onAbrirMapa={() => abrirMapa()}
-                    onError={setGeoNotice}
-                  />
+                      se pide si se elige "usar mi ubicación actual".
+                      En edición no aplica, igual que la foto. */}
+                  <div className={editando ? 'pointer-events-none opacity-40' : ''}>
+                    <LocationMenu
+                      onLocated={handleLocated}
+                      onAbrirMapa={() => abrirMapa()}
+                      onError={setGeoNotice}
+                    />
+                  </div>
 
                   <button
                     type="submit"
-                    disabled={!inputText.trim() && !chatGif && !chatImageUrl}
+                    disabled={
+                      editandoBusy ||
+                      (editando
+                        ? !inputText.trim() &&
+                          !(editando.imageUrl || editando.gif || editando.location)
+                        : !inputText.trim() && !chatGif && !chatImageUrl)
+                    }
+                    aria-label={editando ? 'Guardar edición' : 'Enviar mensaje'}
                     className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600 text-white hover:bg-violet-500 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-md shadow-violet-600/30"
                   >
-                    <Send size={16} />
+                    {editando ? <Check size={16} /> : <Send size={16} />}
                   </button>
                 </div>
 
@@ -2006,8 +2525,9 @@ export const ChatView: React.FC = () => {
                 {/* La foto elegida, antes de mandarla. Se ve aquí para
                     poder quitarla sin tener que vaciar el texto.
                     La ubicación no aparece aquí porque no pasa por la
-                    caja: se ve y se manda desde su propio mapa. */}
-                {chatImageUrl && (
+                    caja: se ve y se manda desde su propio mapa.
+                    En edición no sale: solo cambia el texto. */}
+                {chatImageUrl && !editando && (
                   <div className="mt-2 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-2">
                     <div className="mb-1.5 flex items-center justify-between">
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
@@ -2036,7 +2556,9 @@ export const ChatView: React.FC = () => {
                 {/* ── GIFs y emojis, bajo el campo ────────
                     El GIF es un adjunto del mensaje (igual que en
                     los comentarios) y el emoji se inserta en el
-                    texto, en el cursor. */}
+                    texto, en el cursor. En edición no sale: el
+                    emoji sí sigue disponible arriba. */}
+                {!editando && (
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <GifPicker value={chatGif} onChange={setChatGif} />
                   {chatGif && (
@@ -2045,6 +2567,7 @@ export const ChatView: React.FC = () => {
                     </span>
                   )}
                 </div>
+                )}
 
                 {/* ── Ventana de emojis ──────────────────
                     Va fija y por encima de todo, como la del

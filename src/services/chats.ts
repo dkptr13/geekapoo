@@ -16,14 +16,16 @@ import {
   where,
   type Unsubscribe,
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
-import { db } from '../lib/firebase';
+import { db, functions } from '../lib/firebase';
 import { mapWithId, toDate, toIsoString, withId, Timestamp } from './firestoreUtils';
 import { esUrlDeGifValida } from './gifs';
 import { ubicacionPlausible } from './ubicacion';
 import { deleteStoredImage, storagePathFromUrl, uploadChatImage } from './imageUpload';
 import type {
   ChatMessage,
+  ChatReplyTo,
   ChatRoom,
   GifAttachment,
   GroupListing,
@@ -337,6 +339,7 @@ export async function sendChatMessage(
   body: string,
   gif?: GifAttachment,
   adjunto?: { imageUrl?: string; location?: LocationAttachment },
+  respuesta?: ChatReplyTo | null,
 ): Promise<void> {
   const text = body.trim();
 
@@ -380,6 +383,18 @@ export async function sendChatMessage(
     ...(gif ? { gif } : {}),
     ...(adjunto?.imageUrl ? { imageUrl: adjunto.imageUrl } : {}),
     ...(adjunto?.location ? { location: adjunto.location } : {}),
+    // La cita es una foto fija del citado. Se recorta aquí porque
+    // la escribe el cliente y las reglas solo dejan pasar forma y
+    // tamaños sanos; la garantía final está allí.
+    ...(respuesta?.messageId
+      ? {
+          replyTo: {
+            messageId: String(respuesta.messageId).slice(0, 100),
+            senderName: String(respuesta.senderName ?? '').slice(0, 60),
+            snippet: String(respuesta.snippet ?? '').slice(0, 200),
+          },
+        }
+      : {}),
     createdAt: serverTimestamp(),
   });
 
@@ -678,6 +693,188 @@ export async function markChatRead(chatId: string, uid: string): Promise<void> {
     // timestamps que différencia "leído" de "no leído".
     tx.update(ref, { readAt: { ...current, [uid]: serverTimestamp() } });
   });
+}
+
+// ────────────────────────────────────────────────────────
+// BORRAR MENSAJES (estilo WhatsApp)
+// ────────────────────────────────────────────────────────
+// Dos operaciones distintas, con dos caminos distintos:
+//
+//   · Para TODOS: borrado lógico vía Cloud Function
+//     (`eliminarMensajeParaTodos`). El servidor comprueba
+//     autoría y plazo (2 h) con su reloj, vacía el contenido y
+//     deja el marcador. El cliente NO puede hacerlo solo: las
+//     reglas solo dejan a un admin tocar mensajes.
+//   · Solo PARA MÍ: registro personal en
+//     `users/{uid}/hiddenMessages/{messageId}`. El mensaje sigue
+//     intacto para los demás; este usuario deja de verlo porque
+//     el cliente filtra esos ids. Las reglas solo dejan tocar
+//     los propios.
+// ────────────────────────────────────────────────────────
+
+/** Subcolección de mensajes ocultos solo para su dueño. */
+export const HIDDEN_MESSAGES = 'hiddenMessages';
+
+/**
+ * Oculta un mensaje solo para quien lo pide.
+ *
+ * No toca el mensaje: crea un registro personal. Si ya existía,
+ * `setDoc` con el mismo id lo deja igual, así que pulsar dos
+ * veces no duplica nada.
+ */
+export async function ocultarMensajeParaMi(
+  uid: string,
+  chatId: string,
+  messageId: string,
+): Promise<void> {
+  if (!uid || !chatId || !messageId) {
+    throw new Error('Falta el usuario, el chat o el mensaje.');
+  }
+
+  await setDoc(doc(db, 'users', uid, HIDDEN_MESSAGES, messageId), {
+    chatId,
+    messageId,
+    hiddenAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Escucha los ids de mensajes que este usuario ocultó.
+ *
+ * Es una colección pequeña (un documento por mensaje oculto) y
+ * vive en el propio usuario, así que no hace falta paginar: se
+ * trae entera y se filtra en memoria.
+ */
+export function subscribeOcultos(
+  uid: string | null,
+  onData: (ids: Set<string>) => void,
+  onError?: (e: Error) => void,
+): Unsubscribe {
+  if (!uid) {
+    onData(new Set());
+    return () => undefined;
+  }
+
+  return onSnapshot(
+    collection(db, 'users', uid, HIDDEN_MESSAGES),
+    (snap) => onData(new Set(snap.docs.map((d) => d.id))),
+    (e) => onError?.(e),
+  );
+}
+
+/** Lo que devuelve el borrado para todos cuando va bien. */
+export interface BorradoParaTodos {
+  ok: true;
+}
+
+/**
+ * Pide al servidor el borrado para todos de un mensaje.
+ *
+ * La comprobación de verdad (autoría, pertenencia y 2 horas con
+ * el reloj del servidor) la hace la Cloud Function. Si el cliente
+ * pudiera marcar el mensaje, bastaría la consola del navegador
+ * para saltarse el plazo.
+ */
+export async function eliminarMensajeParaTodos(
+  chatId: string,
+  messageId: string,
+): Promise<BorradoParaTodos> {
+  if (!chatId || !messageId) {
+    throw new Error('Falta el chat o el mensaje.');
+  }
+
+  const llamar = httpsCallable<{ chatId: string; messageId: string }, BorradoParaTodos>(
+    functions,
+    'eliminarMensajeParaTodos',
+  );
+
+  try {
+    await llamar({ chatId, messageId });
+    return { ok: true };
+  } catch (e: unknown) {
+    throw new Error(mensajeDeBorrado(e));
+  }
+}
+
+/**
+ * Pide al servidor cambiar el texto de un mensaje propio.
+ *
+ * Como el borrado, solo el servidor puede: las reglas no dejan a
+ * ningún cliente actualizar mensajes. El servidor comprueba
+ * autoría y que no esté borrado para todos; la creación
+ * (`createdAt`) no se toca, así que editar no rejuvenece el
+ * mensaje y el plazo de borrado sigue contando desde el envío.
+ */
+export async function editarMensajeChat(
+  chatId: string,
+  messageId: string,
+  body: string,
+): Promise<void> {
+  if (!chatId || !messageId) {
+    throw new Error('Falta el chat o el mensaje.');
+  }
+
+  const llamar = httpsCallable<{ chatId: string; messageId: string; body: string }, { ok: true }>(
+    functions,
+    'editarMensajeChat',
+  );
+
+  try {
+    await llamar({ chatId, messageId, body });
+  } catch (e: unknown) {
+    throw new Error(mensajeDeEdicion(e));
+  }
+}
+
+/**
+ * Traduce el error de la edición a algo que se pueda enseñar.
+ *
+ * Separado del de borrado porque los motivos no son los mismos:
+ * aquí no hay plazo, pero sí "ya se borró" y "vacío".
+ */
+function mensajeDeEdicion(e: unknown): string {
+  const code = (e as { code?: string })?.code ?? '';
+
+  if (code.includes('unauthenticated')) return 'Tienes que iniciar sesión.';
+  if (code.includes('not-found')) return 'Ese mensaje ya no está.';
+  if (code.includes('permission-denied')) {
+    return 'Ya no se puede editar: o no es tuyo o se eliminó para todos.';
+  }
+  if (code.includes('failed-precondition')) {
+    return 'Ese mensaje ya se eliminó para todos y no se puede editar.';
+  }
+  if (code.includes('invalid-argument')) {
+    return 'El texto no vale: vacío o demasiado largo.';
+  }
+  if (code.includes('unavailable')) {
+    return 'No hay conexión con el servidor. Inténtalo de nuevo.';
+  }
+  return e instanceof Error ? e.message : 'No se pudo editar el mensaje.';
+}
+
+/**
+ * Traduce el error de la callable a algo que se pueda enseñar.
+ *
+ * Sin esto saldría el código crudo ("functions/permission-denied"),
+ * que no dice si es que ya pasaron las 2 horas, si el mensaje no
+ * es tuyo o si se fue la conexión.
+ */
+function mensajeDeBorrado(e: unknown): string {
+  const code = (e as { code?: string })?.code ?? '';
+
+  if (code.includes('unauthenticated')) return 'Tienes que iniciar sesión.';
+  if (code.includes('not-found')) return 'Ese mensaje ya no está.';
+  if (code.includes('permission-denied')) {
+    return 'Ya no se puede eliminar para todos: o no es tuyo o pasaron las 2 horas.';
+  }
+  if (code.includes('failed-precondition')) {
+    return 'Ese mensaje ya se eliminó para todos.';
+  }
+  if (code.includes('invalid-argument')) return 'Falta el chat o el mensaje.';
+  if (code.includes('unavailable')) {
+    return 'No hay conexión con el servidor. Inténtalo de nuevo.';
+  }
+  return e instanceof Error ? e.message : 'No se pudo eliminar el mensaje.';
 }
 
 // ────────────────────────────────────────────────────────

@@ -1,0 +1,94 @@
+
+// ═══════════════════════════════════════════════════════════
+// CITAR AL ENVIAR
+// ═══════════════════════════════════════════════════════════
+//
+// La cita viaja dentro del mensaje nuevo (`replyTo`). Como la
+// escribe el cliente, la regla exige forma: mapa con id, autor y
+// fragmento acotado. Sin eso serviría para colar datos.
+
+/** Un mensaje válido con cita, tal cual lo manda el cliente. */
+function mensajeConCita(de = ALICE) {
+  return {
+    chatId: 'g1',
+    senderId: de,
+    senderName: de,
+    senderAvatar: '',
+    body: 'Totalmente',
+    type: 'text',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    replyTo: { messageId: 'm0', senderName: 'bob', snippet: 'Hola' },
+  };
+}
+
+describe('Citar mensajes: forma obligatoria', () => {
+  it('un mensaje con cita bien formada se puede enviar', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertSucceeds(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mensajeConCita()),
+    );
+  });
+
+  it('la cita sin id no pasa', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = { senderName: 'bob', snippet: 'Hola' };
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('la cita que no es un mapa no pasa', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = 'm0';
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('un fragmento gigante no pasa', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = { messageId: 'm0', senderName: 'bob', snippet: 'x'.repeat(500) };
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('sin cita sigue igual que siempre', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertSucceeds(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), {
+        chatId: 'g1',
+        senderId: ALICE,
+        senderName: 'alice',
+        senderAvatar: '',
+        body: 'Sin cita',
+        type: 'text',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }),
+    );
+  });
+});
