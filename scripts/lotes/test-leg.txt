@@ -1,0 +1,2 @@
+{ id: 'legendaria', rareza: 'legendaria' },
+  ];

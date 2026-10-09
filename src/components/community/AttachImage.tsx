@@ -66,11 +66,20 @@ export const AttachImage: FC<AttachImageProps> = ({
   if (value) {
     return (
       <div className="relative inline-block">
-        /* `object-contain` y NO `object-cover` en el modo grande: sin un
-           contenedor con proporción, la caja de la imagen es la propia
-           imagen y `cover` no hace nada. Con `contain` y sin ancho
-           fijo, lo que se ve es la imagen ENTERA y con su proporción,
-           limitada por `max-h` para que no se coma el hilo entero. */
+        {/* OJO: esto va entre llaves, y no es opcional.
+
+            Un comentario de JS suelto dentro de JSX no es un
+            comentario: el navegador lo pinta como texto. Eso es
+            exactamente lo que pasaba aquí, y lo que se veía al
+            adjuntar una imagen: el párrafo entero escrito arriba,
+            mostrado encima de la foto.
+
+            `object-contain` y NO `object-cover` en el modo grande: sin
+            un contenedor con proporción, la caja de la imagen es la
+            propia imagen y `cover` no hace nada. Con `contain` y sin
+            ancho fijo, lo que se ve es la imagen ENTERA y con su
+            proporción, limitada por `max-h` para que no se coma el
+            hilo entero. */}
         <img
           src={value}
           alt="Imagen adjunta"

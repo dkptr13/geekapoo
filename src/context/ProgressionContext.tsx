@@ -27,8 +27,12 @@ import {
   rangoDeNivel,
 } from '../utils/progression';
 
+import {
+  detectarMedallasNuevas,
+  detectarSubidaNivel,
+  laMasRara,
+} from '../utils/medallas';
 import { useAuth } from './AuthContext';
-
 // ======================================================
 // PROGRESION DEL USUARIO
 // ======================================================
@@ -156,16 +160,47 @@ export const ProgressionProvider: React.FC<{
    * subida: si alguien estaba en otra pestana y vuelve, ve el
    * aviso de lo que se ha perdido, que es justo lo que quiere.
    */
+  /**
+   * Si el documento del usuario ya se ha leido ALGUNA vez en esta
+   * sesion.
+   *
+   * ── POR QUÉ ES UN REF PROPIO Y NO EL DE LA SUBIDA ───────────────
+   *
+   * Antes se comprobaba "es la primera vez" mirando que
+   * `ultimaSubidaVista.current` siguiera en `null`. Y eso estaba mal,
+   * porque ese ref lo rellena el efecto de la subida de nivel, que va
+   * ANTES en el fichero. En la primera lectura del documento, ese
+   * efecto ya habia escrito, con lo que `null` ya no era `null` para
+   * nadie que alguna vez hubiera subido de nivel.
+   *
+ * El efecto de las medallas daba por hecho que era la primera
+   * vez que NO lo era, y celebraba todas las medallas que el usuario
+   * tenia de antes. Por eso "Primero Voz" salia en cada inicio de
+   * sesion: se concede al registrarse, asi que todo el mundo la tiene
+   * desde el minuto uno.
+   *
+   * Un ref por efecto y sin dependencias entre ellos: que uno decida
+   * si es la primera vez no puede depender de lo que haya hecho otro.
+   */
+  const primeraSubida = useRef(true);
+  const primeraMedalla = useRef(true);
+
   useEffect(() => {
     if (!progreso?.lastLevelUpAt) return;
 
-    // La clave de unicidad es la marca de tiempo de la subida, no
-    // el nivel: si se sube dos veces al mismo nivel en dos
-    // momentos distintos, tiene que avisar las dos.
-    const clave = `${progreso.lastLevelUpAt}`;
-    if (clave === ultimaSubidaVista.current) return;
+    const { nuevaClave, avisar } = detectarSubidaNivel(
+      `${progreso.lastLevelUpAt}`,
+      ultimaSubidaVista.current,
+      primeraSubida.current,
+    );
 
-    ultimaSubidaVista.current = clave;
+    // La clave se guarda siempre, se avise o no. Es lo que evita que
+    // el aviso reaparezca en cada lectura del documento.
+    ultimaSubidaVista.current = nuevaClave;
+    primeraSubida.current = false;
+
+    if (!avisar) return;
+
     setSubidaPendiente({
       nivel: progreso.lastLevelUpLevel ?? progreso.level,
       key: Date.now(),
@@ -178,32 +213,26 @@ export const ProgressionProvider: React.FC<{
   useEffect(() => {
     if (!progreso?.medals) return;
 
-    const nuevas = Object.keys(progreso.medals).filter(
-      (id) => medalsVistas.current[id] !== progreso.medals[id],
+    const { celebrar, marcar } = detectarMedallasNuevas(
+      medalsVistas.current,
+      progreso.medals,
+      primeraMedalla.current,
     );
 
-    // La primera vez que llegan medallas no se celebran: son las
-    // que ya tenia el usuario de antes, no algo que acaba de
-    // conseguir. Para no saltarse ninguna hay que haber visto el
-    // documento al menos una vez.
-    const primeraCarga =
-      Object.keys(medalsVistas.current).length === 0 &&
-      ultimaSubidaVista.current === null;
+    // Se apunta SIEMPRE, incluso en la primera carga. Si no, las
+    // medallas que ya tenia el usuario se volverian a celebrar en la
+    // siguiente actualizacion del documento.
+    medalsVistas.current = { ...medalsVistas.current, ...marcar };
+    primeraMedalla.current = false;
 
-    nuevas.forEach((id) => {
-      medalsVistas.current[id] = progreso.medals[id];
-    });
-
-    if (primeraCarga || nuevas.length === 0) return;
+    if (celebrar.length === 0) return;
 
     // Se elige la mas rara de las nuevas: si a la vez le dan tres
     // medallas, avisar solo por la mejor es menos molesto que
     // encadenar tres avisos.
     const configActual = catalogoConAnimeIds(config.animeMedallas ?? {});
-    const mejor = nuevas
-      .map((id) => configActual.find((m) => m.id === id))
-      .filter((m): m is Medal => Boolean(m))
-      .sort((a, b) => b.rareza.length - a.rareza.length)[0];
+
+    const mejor = laMasRara(celebrar, configActual);
 
     if (mejor) setMedallaPendiente(mejor);
   }, [progreso?.medals, config]);

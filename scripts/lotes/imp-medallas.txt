@@ -1,0 +1,5 @@
+import {
+  detectarMedallasNuevas,
+  detectarSubidaNivel,
+  laMasRara,
+} from '../utils/medallas';

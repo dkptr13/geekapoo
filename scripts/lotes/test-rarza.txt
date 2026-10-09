@@ -1,0 +1,53 @@
+{
+  // `rareza` es un TEXTO, no una lista. Se ordenan por `ORDEN_RAREZA`,
+  // que va de menos a más, y no por la longitud del texto: "épica" y
+  // "común" tienen las mismas letras y son rarezas distintas.
+  const catalogo = [
+    { id: 'comun', rareza: 'comun' },
+    { id: 'epica', rareza: 'epica' },
+    { id: 'rara', rareza: 'rara' },
+    { id: 'legendaria', rareza: 'legendaria' },
+  ];
+
+  const mejor = laMasRara(['comun', 'rara', 'legendaria', 'epica'], catalogo);
+
+  assert.equal(mejor?.id, 'legendaria', 'gana la legendaria, la más rara de verdad');
+
+  // El caso que el fallo antiguo no distingue: dos rarezas con el
+  // mismo número de letras. Con `rareza.length` empataban y ganaba la
+  // queFIRST se hubiera encontrado, que dependía del orden del
+  // catálogo.
+  const empateLetras = laMasRara(['comun', 'epica'], catalogo);
+
+  assert.equal(
+    empateLetras?.id,
+    'epica',
+    'con las mismas letras, gana la más rara y no la primera que aparezca',
+  );
+
+  assert.equal(laMasRara(['comun'], catalogo)?.id, 'comun', 'con una sola, esa');
+
+  assert.equal(
+    laMasRara(['no_existe'], catalogo),
+    undefined,
+    'un id que no está en el catálogo no inventa una medalla',
+  );
+
+  assert.equal(laMasRara([], catalogo), undefined, 'sin ids no hay nada');
+
+  // Y una rareza desconocida se trata como la más común, no como la
+  // mejor: no se elige un id raro por escribirlo raro.
+  const conDesconocida = laMasRara(
+    ['raro', 'comun'],
+    [
+      { id: 'raro', rareza: 'mitica' },
+      { id: 'comun', rareza: 'comun' },
+    ],
+  );
+
+  assert.equal(
+    conDesconocida?.id,
+    'comun',
+    'una rareza que no está en la lista no gana por ser rara',
+  );
+}
