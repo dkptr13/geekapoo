@@ -1001,9 +1001,16 @@ export const ChatView: React.FC = () => {
     // sea: el total siempre es el mismo y la ventana se queda
     // quieta. El "7rem" son el navbar (4rem) y el padding
     // vertical del <main> (3rem).
-    <div className="flex h-[calc(100dvh-7rem)] min-h-[480px] flex-col gap-4">
+    //
+    // En móvil se rompe ese marco: con `-mx-4 -my-6` se anula el
+    // padding del <main> y la altura pasa a ser la ventana menos
+    // el navbar (4rem). El chat aprovecha así prácticamente toda
+    // la pantalla. El `min-h-0` es a propósito: el mínimo de
+    // 480px obligaba a la página a desplazarse en móviles
+    // pequeños, justo lo que se quiere evitar.
+    <div className="-mx-4 -my-6 flex h-[calc(100dvh-4rem)] min-h-0 flex-col gap-2 px-2 sm:mx-0 sm:my-0 sm:h-[calc(100dvh-7rem)] sm:min-h-[480px] sm:gap-4 sm:px-0">
       {/* Top Banner Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 sm:p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
             <MessageCircle size={20} />
@@ -1561,7 +1568,7 @@ export const ChatView: React.FC = () => {
           {activeRoom ? (
             <>
               {/* Chat Top Header */}
-              <div className="flex items-center justify-between gap-2 border-b border-zinc-800 p-4 bg-zinc-900">
+              <div className="flex items-center justify-between gap-2 border-b border-zinc-800 p-3 sm:p-4 bg-zinc-900">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   {/* Volver a la lista. Solo en móvil, donde la
                       lista no está al lado: sin esto, al abrir un
@@ -1762,7 +1769,7 @@ export const ChatView: React.FC = () => {
               <div
                 ref={listaRef}
                 onScroll={alDesplazar}
-                className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 space-y-4"
+                className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 space-y-4"
               >
                 {activeMessages.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center text-center p-8 text-zinc-500">
@@ -1822,7 +1829,7 @@ export const ChatView: React.FC = () => {
                               )}
 
                               <div
-                                className={`flex w-fit max-w-full items-center gap-2 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/60 px-4 py-2.5 text-xs sm:text-sm italic text-zinc-500 ${
+                                className={`flex w-fit max-w-full items-center gap-2 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/60 px-4 py-2.5 text-[15px] sm:text-sm italic text-zinc-500 ${
                                   isMe ? 'ml-auto' : ''
                                 }`}
                               >
@@ -1939,7 +1946,10 @@ export const ChatView: React.FC = () => {
                             // el ancho del párrafo. El `ml-auto` es
                             // para los propios: estrecha pegada a la
                             // derecha, como antes llenando.
-                            className={`w-fit max-w-full rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-md ${
+                            // El texto base es 15px en móvil (se lee
+                            // sin zoom) y se queda como estaba en
+                            // escritorio.
+                            className={`w-fit max-w-full rounded-2xl px-4 py-2.5 text-[15px] sm:text-sm leading-relaxed shadow-md ${
                               isMe
                                 ? 'ml-auto bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-tr-none'
                                 : 'bg-zinc-800 text-zinc-100 rounded-tl-none border border-zinc-750'
@@ -2434,7 +2444,10 @@ export const ChatView: React.FC = () => {
                     placeholder={
                       editando ? 'Editar mensaje...' : `Escribir a ${activeRoomName}...`
                     }
-                    className="flex-1 min-w-[8rem] rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-xs sm:text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                    // 16px en móvil: por debajo, iOS acerca la vista
+                    // al enfocar y hay que alejar a mano. En
+                    // escritorio se queda como estaba.
+                    className="flex-1 min-w-[8rem] rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-base sm:text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
                   />
 
                   {/* Emojis */}

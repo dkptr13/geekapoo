@@ -498,7 +498,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             </span>
           </h1>
 
-          <p className="mt-3 text-sm sm:text-base text-zinc-300 leading-relaxed max-w-2xl whitespace-pre-line">
+          <p className="mt-3 text-sm sm:text-base text-zinc-300 leading-relaxed max-w-2xl whitespace-pre-line break-words">
             {settings.welcomeText}
           </p>
 
@@ -575,7 +575,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             const ok = requireAuth('crear un hilo nuevo', () => setShowCreateThread(true));
             if (ok) setShowCreateThread(!showCreateThread);
           }}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-600/30 hover:opacity-95 transition-all"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-violet-600/30 hover:opacity-95 transition-all"
         >
           <PlusCircle size={16} />
           <span>Abrir Nuevo Hilo</span>
@@ -612,7 +612,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="¿Qué opináis del final de...? / Debate sobre animación en..."
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                 required
               />
             </div>
@@ -623,7 +623,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-white focus:border-violet-500 focus:outline-none"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-base sm:text-xs text-white focus:border-violet-500 focus:outline-none"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -642,7 +642,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
                   placeholder="Kaguya, Manga, Spoilers, Debate2026"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -656,7 +656,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="Desarrolla tu punto de vista, teorías o curiosidades..."
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none leading-relaxed"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none leading-relaxed"
                 required
               />
             </div>
@@ -809,10 +809,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
               {/* Title & Body */}
               <div className="mt-4">
-                <h2 className="text-base sm:text-lg font-black tracking-tight text-white hover:text-violet-300 transition-colors">
+                <h2 className="text-lg sm:text-lg font-black tracking-tight text-white hover:text-violet-300 transition-colors break-words">
                   {thread.title}
                 </h2>
-                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-zinc-300 whitespace-pre-line">
+                {/* `break-words`: un enlace largo sin espacios
+                    ensanchaba la tarjeta más que la pantalla y la
+                    página se podía mover de lado, con el navbar
+                    incluido. */}
+                <p className="mt-2 text-[15px] sm:text-sm leading-relaxed text-zinc-300 whitespace-pre-line break-words">
                   {thread.body}
                 </p>
 
@@ -1020,7 +1024,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             ? 'Escribe tu opinión respetuosa...'
                             : 'Inicia sesión para opinar...'
                         }
-                        className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                        className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                       />
                       <button
                         type="submit"
@@ -1096,7 +1100,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                               </span>
                             </div>
 
-                            <p className="text-xs text-zinc-300 leading-relaxed pl-8">
+                            <p className="text-[15px] text-zinc-300 leading-relaxed pl-8 break-words">
                               {comment.body}
                             </p>
 
@@ -1254,7 +1258,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
                                     placeholder={`Respondiendo a @${comment.authorName}...`}
-                                    className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                                    className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-base sm:text-xs text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
                                   />
                                   <button
                                     type="submit"

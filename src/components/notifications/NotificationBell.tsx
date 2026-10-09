@@ -238,13 +238,13 @@ export const NotificationBell: React.FC = () => {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm">{iconoDe(n)}</span>
-                        <span className="truncate text-xs font-semibold text-white">
+                        <span className="truncate text-sm sm:text-xs font-semibold text-white">
                           {n.actorName}
                         </span>
                       </div>
 
                       <p
-                        className={`mt-0.5 text-xs leading-relaxed ${
+                        className={`mt-0.5 text-sm sm:text-xs leading-relaxed ${
                           noLeida ? 'text-gray-200' : 'text-gray-400'
                         }`}
                       >

@@ -365,7 +365,7 @@ export const AuthModal: React.FC = () => {
                     setEmail(e.target.value)
                   }
                   placeholder="ejemplo@geekapoo.com"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   required
                 />
 
@@ -410,7 +410,7 @@ export const AuthModal: React.FC = () => {
                     setPassword(e.target.value)
                   }
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   required
                 />
 
@@ -460,7 +460,7 @@ export const AuthModal: React.FC = () => {
                     setUsername(e.target.value)
                   }
                   placeholder="OtakuSenpai_26"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   required
                 />
 
@@ -486,7 +486,7 @@ export const AuthModal: React.FC = () => {
                     setEmail(e.target.value)
                   }
                   placeholder="tu_email@dominio.com"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   required
                 />
 
@@ -512,7 +512,7 @@ export const AuthModal: React.FC = () => {
                     setPassword(e.target.value)
                   }
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   required
                 />
 
@@ -568,7 +568,7 @@ export const AuthModal: React.FC = () => {
                     setEmail(e.target.value)
                   }
                   placeholder="ejemplo: kaguya.fan@geekapoo.com"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   required
                 />
 
