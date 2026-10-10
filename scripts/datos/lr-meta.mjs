@@ -58,7 +58,8 @@ export const TITULOS_EN_INGLES = true;
  * TVDB trae una S2 con un capitulo TBA sin fecha: anunciada pero
  * sin emitir, asi que no entra (una temporada sin capitulos se
  * guardaria vacia). Los seis cortos de 2025 ("Friends are thieves
- * of time") son web, no temporada de television, y tampoco entran.
+ * of time") van como T2 porque ya estan emitidos, con nota 0 por
+ * capitulo al no haber dato IMDb verificado.
  */
 export const TEMPORADAS = [
   {
@@ -75,6 +76,18 @@ export const TEMPORADAS = [
       'tiempo prestado.',
     capitulos: 'T1',
   },
+  {
+    numero: 2,
+    titulo: 'Friends are thieves of time',
+    anio: 2025,
+    estado: 'Finalizado',
+    estudio: 'A-1 Pictures',
+    synopsis:
+      'Seis cortos de vida diaria en el cafe: fiestas, viajes, sustos caseros y pijamadas ' +
+      'con las Lycoris fuera de servicio. Sin tiros serios, solo el grupo entero siendo ' +
+      'el grupo entero. Cierra con el viaje a Hawaii que se prometio al final de la serie.',
+    capitulos: 'T2',
+  },
 ];
 
 /**
@@ -88,10 +101,9 @@ export const TEMPORADAS = [
 export const RATING_SERIE = 7.6;
 
 /**
- * Capitulos en total: los 13 de la unica temporada, del 2 de julio
- * al 24 de septiembre de 2022.
+ * Capitulos en total: 13 de la serie mas 6 cortos = 19.
  */
-export const EPISODIOS_TOTAL = 13;
+export const EPISODIOS_TOTAL = 19;
 
 /**
  * Donde se emite, verificado en JustWatch Espana: Crunchyroll.
