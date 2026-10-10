@@ -792,9 +792,6 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               <p className="text-xs sm:text-sm leading-relaxed text-zinc-300">
                 {ficha.synopsis}
               </p>
-              <p className="text-xs sm:text-sm leading-relaxed text-zinc-300">
-                {ficha.synopsis}
-              </p>
 
 
               {/* Géneros */}
