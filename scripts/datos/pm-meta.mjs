@@ -30,9 +30,9 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Doga Kobo',
 
-  // Wikipedia en espanol (ciencia ficcion, drama, romance, tragedia)
-  // y AniList (Drama, Romance, Sci-Fi, Slice of Life). Dos categorias.
-  categorias: ['Drama & Romance', 'Ciencia ficción'],
+  // Las de la lista del panel (ver `data/animeCategories.ts`): la
+  // primera es la principal en la ficha. Drama adulto y romance.
+  categorias: ['Josei & Drama', 'Romance & Comedia'],
 
   generos: ['Drama', 'Romance', 'Ciencia ficción', 'Tragedia'],
 };

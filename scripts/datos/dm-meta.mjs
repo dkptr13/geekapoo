@@ -32,9 +32,10 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'J.C.Staff',
 
-  // AniList (Action, Adventure, Comedy, Fantasy, Romance) y la pagina
-  // de Crunchyroll en espanol. Dos categorias, como pide la ficha.
-  categorias: ['Acción & Aventura', 'Fantasía & Romance'],
+  // Las de la lista del panel (ver `data/animeCategories.ts`): la
+  // primera es la principal en la ficha. Fantasia y aventura es lo
+  // suyo; Shonen y accion, lo segundo.
+  categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
   generos: ['Acción', 'Aventura', 'Comedia', 'Fantasía', 'Romance'],
 };
