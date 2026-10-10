@@ -88,6 +88,8 @@ const ANIMES = [
   { id: 'saekano-how-to-raise-a-boring-girlfriend', buscar: 'Saenai Heroine no Sodatekata' },
   { id: 'danmachi', buscar: 'Dungeon ni Deai wo Motomeru no wa Machigatteiru Darou ka' },
   { id: 'plastic-memories', buscar: 'Plastic Memories' },
+  { id: 'lycoris-recoil', buscar: 'Lycoris Recoil' },
+  { id: 'ragna-crimson', buscar: 'Ragna Crimson' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 // ── Estado ─────────────────────────────────────────────────────────

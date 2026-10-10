@@ -1,0 +1,33 @@
+414057 "リコリス・リコイル" 2022
+genres: 
+network:  status: Ended
+
+--- S0: 10 capitulos ---
+S0E1 2022-07-20 「リコリス」ってなに？
+S0E2 2022-07-20 「DA」ってなに？
+S0E3 2022-07-20 「喫茶リコリコ」ってなに？
+S0E4 2022-07-20 「電波塔事件」ってなに？
+S0E5 2025-04-16 Take it easy
+S0E6 2025-04-23 Miles away
+S0E7 2025-04-30 Scintillation of genius
+S0E8 2025-05-07 Watch out!
+S0E9 2025-05-14 Bittersweet first love
+S0E10 2025-05-21 Brief respite
+
+--- S1: 13 capitulos ---
+S1E1 2022-07-02 Easy does it
+S1E2 2022-07-09 The more the merrier
+S1E3 2022-07-16 More haste, less speed
+S1E4 2022-07-23 Nothing seek, nothing find
+S1E5 2022-07-30 So far, so good
+S1E6 2022-08-06 Opposites attract
+S1E7 2022-08-13 Time will tell
+S1E8 2022-08-20 Another day, another dollar
+S1E9 2022-08-27 What’s done is done
+S1E10 2022-09-03 Repay evil with evil
+S1E11 2022-09-10 Diamond cut diamond
+S1E12 2022-09-17 Nature versus nurture
+S1E13 2022-09-24 Recoil of Lycoris
+
+--- S2: 1 capitulos ---
+S2E1 ????-??-?? TBA
