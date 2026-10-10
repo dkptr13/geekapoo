@@ -33,4 +33,5 @@ export const TAGS = {
   'Wiene': ['Dragon', 'Xenos', 'Protegida'],
   'Cassandra Ilion': ['Profeta', 'Aventurero', 'Apoyo'],
   'Daphne Lauros': ['Aventurero', 'Apoyo', 'Amiga'],
+  'Artemis': ['Diosa', 'Pelicula', 'Encargo'],
 };

@@ -49,8 +49,16 @@ export const ANIME_ID = 'danmachi';
  * T3  12 capitulos  (octubre-diciembre de 2020)
  * T4  22 capitulos  (julio-octubre de 2022 y enero-marzo de 2023)
  * T5  15 capitulos  (octubre de 2024-marzo de 2025)
+ * T6   1 capitulo   (pelicula Arrow of the Orion, febrero de 2019)
  * --
- *     74
+ *     75
+ *
+ * La pelicula va como T6 aunque sea de 2019: renumerar las T2-T5
+ * para meterla en orden cronologico romperia sus ids y todo lo que
+ * apunta a ellos (temporadas, capitulos, personajes). Entra al
+ * final con el titulo dejando claro que es la pelicula. Cuando
+ * llegue la sexta temporada de la serie ira a la T7 por el mismo
+ * motivo.
  *
  * La cuarta va como UNA temporada con 22 capitulos aunque se emitio
  * en dos partes: es como la lista TVDB y como la cuenta la propia
@@ -132,6 +140,19 @@ export const TEMPORADAS = [
       'diosa. Freya pierde su divinidad y la ciudad despierta.',
     capitulos: 'T5',
   },
+  {
+    numero: 6,
+    titulo: 'Arrow of the Orion',
+    anio: 2019,
+    estado: 'Finalizado',
+    estudio: 'J.C.Staff',
+    synopsis:
+      'Pelicula de 82 minutos: la diosa Artemisa encarga a Bell recuperar la lanza de Orion en ' +
+      'un festival lejano. Lo que empieza como fiesta con concurso acaba en pelea contra algo ' +
+      'anterior a Orario, con Hermes enredando al fondo. No hace falta haber visto la serie para ' +
+      'seguirla, pero ayuda saber quien es cada dios.',
+    capitulos: 'T6',
+  },
 ];
 
 /**
@@ -154,13 +175,14 @@ export const RATING_SERIE = 7.4;
  *   T3  12  capitulos  (octubre-diciembre de 2020)
  *   T4  22  capitulos  (julio-octubre de 2022 y enero-marzo de 2023)
  *   T5  15  capitulos  (octubre de 2024-marzo de 2025)
+ *   T6   1  pelicula   (febrero de 2019)
  *   --
- *       74
+ *       75
  *
  * Sin OVAs ni especiales: TVDB los lista en la temporada 0 y aqui
  * no entran, igual que en el resto del catalogo.
  */
-export const EPISODIOS_TOTAL = 74;
+export const EPISODIOS_TOTAL = 75;
 
 /**
  * Donde se emite, verificado uno por uno.

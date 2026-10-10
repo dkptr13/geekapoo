@@ -83,4 +83,7 @@ export const PERSONAJES = [
 
   ['Daphne Lauros', '2,4', 'supporting', 'ダフネ・ラウロス', 'Wakana Kowaka',
    'Amiga inseparable de Kasandra y la sensata del duo. Sostiene a los que flaquean cuando la expedicion se rompe. Su amistad con Kasandra es de lo poco solido cuando todo se hunde.'],
+
+  ['Artemis', '6', 'supporting', 'アルテミス', 'Maaya Sakamoto',
+   'Diosa que encarga a Bell recuperar la lanza de Orion en la pelicula. Detras del encargo festivo hay algo mucho mas viejo y mas peligroso. Solo sale aqui: es un personaje de la pelicula.'],
 ];
