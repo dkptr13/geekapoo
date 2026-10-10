@@ -38,6 +38,8 @@ export const BUSQUEDAS = {
   // este termino el emparejador se queda con la que mas capitulos
   // coincidan por titulo.
   'oshi-no-ko': '【推しの子】',
+  'danmachi': 'ダンジョンに出会いを求めるのは間違っているだろうか',
+  'plastic-memories': 'プラスティック・メモリーズ',
 };
 
 /**
