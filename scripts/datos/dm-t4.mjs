@@ -1,76 +1,43 @@
-// TEMPORADA 4 - DanMachi (2022-2023)
+// TEMPORADA 4 - DanMachi (2020)
 //
-// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
-//
-// Veintidos capitulos, del 23 de julio de 2022 al 18 de marzo de 2023,
-// en J.C.Staff, en dos partes de once (julio-octubre de 2022 y
-// enero-marzo de 2023). Las fechas son las de TVDB y las notas las de
-// IMDb para cada capitulo.
+// Doce capitulos, del 3 de octubre al 19 de diciembre de 2020.
+// El arco de Wiene y los Xenos: Bell esconde y protege a una chica
+// dragon con razon y acaba tachado de necio por defenderla.
 
 export const T4 = [
-  [1, 'Preludio (noche antes de partir)', '出発前夜―プレリュード―', '2022-07-23', 7.6,
-   'La familia Hestia prepara la expedicion mas ambiciosa de su historia: bajar a los pisos profundos que ningun aventurero ha pisado. Bell reune a los suyos, repasa el equipo y se despide de la superficie. La vispera esta cargada de nervios porque todos saben que quiza no vuelvan.'],
+  [1, 'Hija del dragon', '竜の少女(ウィーネ)', '2020-10-03', 7.7,
+   'Bell encuentra en la mazmorra a Wiene, una chica dragon de tipo vouivre que sabe hablar. Al ver que piensa y siente como una persona decide esconderla y llevarla con el. La guarda en su casa mientras busca como salvarla sin que nadie la vea.'],
 
-  [2, 'La gran caida (Great Fall)', '巨蒼の滝―グレート・フォール―', '2022-07-30', 7.8,
-   'La expedicion desciende hasta la gran cascada subterranea que marca la entrada a lo profundo. El paisaje es precioso y letal a la vez, y el grupo aprende que abajo las reglas de la mazmorra cambian. El primer contacto con los pisos hondos deja claro el precio del reto.'],
+  [2, 'Monstruo', '片翼(モンスター)', '2020-10-10', 7.6,
+   'Wiene llega herida y con un ala rota, y Bell se niega a verla como un monstruo mas. La familia Hestia la acoge en secreto mientras Bell la defiende de los que la ven como presa. El chico empieza a plantar cara a todos por un monstruo que le ha movido el corazon.'],
 
-  [3, 'Parasito (muerdago)', '寄生―ヤドリギ―', '2022-08-06', 8.0,
-   'Unos monstruos parasitos se ceban con el grupo y los obligan a pelear en condiciones pesimas. La expedicion aguanta gracias a la coordinacion, pero el desgaste se nota y alguno empieza a dudar de si estan listos. Bell tira del carro como siempre, sin pensarlo dos veces.'],
+  [3, 'Herejes', '異端児(ゼノス)', '2020-10-17', 7.9,
+   'Bell descubre que Wiene no esta sola: hay mas monstruos con razon que se llaman a si mismos Xenos. Viven a escondidas en la mazmorra y solo piden un lugar donde vivir sin que los cacen. Bell les promete ayuda y se mete en un lio que supera a su familia.'],
 
-  [4, 'Sirena (chica de la ciudad del agua)', '水都の少女―マーメイド―', '2022-08-13', 7.8,
-   'El grupo alcanza la ciudad del agua, un respiro de luz en mitad de la oscuridad de abajo. Entre canales y ruinas aparece una presencia misteriosa que los observa. La calma dura poco: lo profundo no regala nada y cada descanso se paga.'],
+  [4, 'Sueno lejano', '遠い夢(アコガレ)', '2020-10-24', 7.9,
+   'Wiene quiere ver el cielo y vivir fuera de la mazmorra como una persona mas. Bell se ve en ella y recuerda su viejo anhelo de ser un heroe que salva a todos. Los dos se prometen un futuro donde nadie tenga que esconderse.'],
 
-  [5, 'Argo Vesta (corte heroico de la llama sagrada)', '聖火の英斬―アルゴ・ウェスタ―', '2022-08-20', 8.5,
-   'Bell estrena su corte definitivo, bautizado con el nombre de la llama sagrada, y con el abre un hueco donde no lo habia. Es el capitulo en el que su crecimiento deja de ser promesa y se vuelve filo. La expedicion recupera el aliento gracias a el.'],
+  [5, 'Familia Ikelos', '惨劇の王者[イケロス・ファミリア]', '2020-10-31', 7.8,
+   'La familia Ikelos lleva anos cazando Xenos para venderlos y ganar dinero con su dolor. Bell descubre sus cacerias y lo que hacen con los monstruos que atrapan. El choque con ellos se vuelve directo y Bell ya no puede mirar a otro lado.'],
 
-  [6, 'Pata de conejo', '白兎の脚―ラビットフット―', '2022-08-27', 7.3,
-   'La fama de patas rapidas de Bell le viene al pelo cuando toca correr mas que pelear. El grupo se mueve entre trampas naturales y emboscadas, y la suerte del conejo blanco se convierte en plan de huida. No todo se gana a espadazos.'],
+  [6, 'Laberinto artificial', '人造迷宮(クノッソス)', '2020-11-07', 8,
+   'Bell y los suyos dan con Knossos, un laberinto hecho por manos de personas bajo la ciudad. Alli la familia Ikelos guarda a los Xenos que caza y prepara sus ventas. El hallazgo cambia todo lo que creian saber de la mazmorra.'],
 
-  [7, 'Kasandra Ilion (sueno premonitorio)', '予知夢―カサンドラ・イリオン―', '2022-09-03', 7.4,
-   'Kasandra tiene suenos que anuncian desgracias y nadie la cree, porque nunca acierta en lo pequeno. Esta vez el sueno es grande y huele a muerte, y el grupo tiene que decidir si fiarse de la chica de los malos presagios. El miedo se instala antes que el monstruo.'],
+  [7, 'Sueno de las bestias', '獣の夢(ディックス・ペルディクス)', '2020-11-14', 8.3,
+   'Dix, el jefe de los cazadores de la familia Ikelos, persigue a Wiene y a su grupo sin descanso. Odia a los Xenos y sueña con darles caza hasta acabar con ellos. Bell se cruza en su camino y el odio entre los dos ya no tiene vuelta atras.'],
 
-  [8, 'Caos (Mirabilis)', '混迷―ミラビリス―', '2022-09-10', 7.7,
-   'La expedicion se desordena: ordenes cruzadas, heridos y un enemigo que no da la cara. Cada uno tira por su lado y el plan comun se rompe. En medio del caos, las rencillas viejas salen a flote y pesan tanto como los monstruos.'],
+  [8, 'Necio', '愚者(ベル・クラネル)', '2020-11-21', 8.5,
+   'La familia Loki choca con Bell por defender a monstruos y hasta Ais se pone en su contra. Todos lo llaman necio por jugarse la vida por Wiene. Bell acepta el insulto y sigue adelante: no va a dejar tirada a quien le pidio ayuda.'],
 
-  [9, 'Mal augurio (Lambton)', '凶兆―ラムトン―', '2022-09-17', 7.8,
-   'Las senales de catastrofe se acumulan y el grupo entiende que algo gordo se acerca por los tuneles. La tension entre los miembros crece al mismo ritmo que el peligro. Nadie lo dice en alto, pero todos piensan en dar media vuelta.'],
+  [9, 'Caida', '零落(スティグマ)', '2020-11-28', 7.7,
+   'La ciudad entera señala a Bell por proteger monstruos y el chico cae en desgracia. La marca de traidor lo persigue vaya donde vaya. Aun asi se niega a entregar a Wiene y aguanta solo el peso de su eleccion.'],
 
-  [10, 'Destructor (Juggernaut)', '破壊者―ジャガーノート―', '2022-09-24', 8.4,
-   'Aparece el Juggernaut, el desastre con patas que la mazmorra escupe cuando se le hace dano de verdad. Su coraza lo hace casi intocable y el grupo se deshace en minutos. Es una masacre de la que solo unos pocos salen con vida.'],
+  [10, 'Avance forzado', '強行突破(インビジブル)', '2020-12-05', 8.1,
+   'Bell y sus amigos entran a la fuerza en Knossos para liberar a los Xenos presos. Avanzan sin ser vistos por pasillos llenos de trampas y enemigos. Cada paso los acerca a Wiene y a un choque que ya no se puede parar.'],
 
-  [11, 'Interminable (cruel)', '過酷―エンドレス―', '2022-10-01', 8.6,
-   'Los supervivientes huyen sin rumbo por pisos que no conocen, con el Juggernaut detras y sin fuerzas para otro combate. Bell y Ryu quedan separados del resto y solos ante lo profundo. La primera parte cierra con el grupo roto y la esperanza bajo minimos.'],
+  [11, 'Batalla decisiva', '決戦(ウルトラソウル)', '2020-12-12', 8.5,
+   'La lucha en Knossos llega a su punto mas alto con Bell plantado ante Dix. Los dos se lo juegan todo por lo que creen: uno por cazar y otro por salvar. Es la batalla que decide el futuro de Wiene y de los Xenos.'],
 
-  [12, 'Anfisbena (canto de desesperacion)', '絶望の詩―アンフィス・バエナ―', '2023-01-07', 8.3,
-   'La segunda parte arranca con el dragon de dos cabezas sembrando desesperacion entre los dispersos. Cada subgrupo pelea por su cuenta para sobrevivir un dia mas. El canto del monstruo pesa tanto como sus colmillos.'],
-
-  [13, 'Morgue (victima)', '犠牲―モルグ―', '2023-01-14', 8.6,
-   'Alguien tiene que pagar para que los demas vivan, y la expedicion lo sabe. Los sacrificios se suceden y cada perdida deja al grupo mas pequeno y mas unido. El precio de bajar tan hondo se pone por escrito.'],
-
-  [14, 'Dafne Lauros (amiga)', '友―ダフネ・ラウロス―', '2023-01-21', 8.3,
-   'Dafne se convierte en el apoyo de los que flaquean y demuestra que la amistad tambien es un arma en la mazmorra. Su relacion con Kasandra sostiene al grupo cuando todo invita a rendirse. A veces salvar a alguien es no dejarlo solo.'],
-
-  [15, 'Ignis (llama)', '不冷―イグニス―', '2023-01-28', 8.0,
-   'Una llama imposible arde donde no deberia y marca el camino de los perdidos. El grupo la sigue porque es lo unico que brilla en la oscuridad. La esperanza, aqui abajo, tambien quema.'],
-
-  [16, 'Welf Crozzo (aspiracion)', '始高―ヴェルフ・クロッゾ―', '2023-02-04', 8.3,
-   'Welf se encara con su propia sangre de herrero y con lo que esperan de el. Su decision sobre que forjar y para quien lo cambia todo para el grupo. Un arma no es solo metal: es la voluntad de quien la empuña.'],
-
-  [17, 'Palacio blanco (laberinto blanco)', '白の迷宮―ホワイトパレス―', '2023-02-11', 8.3,
-   'Los supervivientes alcanzan el palacio blanco, un paraje irreal en lo mas hondo. La belleza del sitio esconde que estan en el peor lugar posible. Reagruparse aqui es la ultima oportunidad antes del final.'],
-
-  [18, 'Desesperado (bajada suicida a la mazmorra)', '迷宮決死行―デスパレート―', '2023-02-18', 8.4,
-   'Sin salida buena a la vista, el grupo apuesta por la bajada suicida: todo o nada contra lo que venga. Cada uno asume su papel sabiendo que puede ser el ultimo. La desesperacion, bien usada, tambien es un plan.'],
-
-  [19, 'Coliseo (arena de combate)', '間技場―コロシアム―', '2023-02-25', 8.6,
-   'La arena natural del fondo se convierte en coliseo para la revancha contra el Juggernaut. Bell vuelve al mismo rival con lo aprendido a golpes. Esta vez no huye: lo espera de frente.'],
-
-  [20, 'Familia Astrea (muerte heroica)', '散華―アストレア・ファミリア―', '2023-03-04', 9.0,
-   'El pasado de Ryu sale a la luz: su familia Astrea, su maestra Alise y la justicia por la que murieron todas ante el mismo desastre. Entre la venganza y el ideal de su maestra, Ryu tiene que elegir quien quiere ser. Es el corazon de la temporada.'],
-
-  [21, 'Sueno despierto (dulce mentira)', '優しい嘘―デイ・ドリーム―', '2023-03-11', 8.6,
-   'Tras la batalla solo queda recoger a los caidos y mirar de frente lo que queda. Las mentiras piadosas se caen y cada uno asume su verdad. El grupo, roto y todo, vuelve a ser grupo.'],
-
-  [22, 'Luvia (flor estrellada)', '星華―ルヴィア―', '2023-03-18', 8.6,
-   'Con las pociones milagrosas y la flor estrellada como ultimo recurso, la expedicion remata la faena y pone rumbo a casa. Bell vuelve a la superficie distinto de como bajo. La mazmorra sigue ahi, pero ya no es la misma para el.'],
+  [12, 'Regreso del heroe', '英雄回帰(アルゴノゥト)', '2020-12-19', 8.5,
+   'Bell vence fiel a su sueño de heroe y demuestra que salvar tambien es pelear. Wiene queda a salvo y aceptada a escondidas lejos de los ojos de la ciudad. Aunque lo llamen necio, Bell vuelve a casa con la frente alta y su promesa cumplida.'],
 ];

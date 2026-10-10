@@ -1,43 +1,45 @@
-// TEMPORADA 3 - DanMachi (2020)
+// TEMPORADA 3 - DanMachi (2019)
 //
-// Doce capitulos, del 3 de octubre al 19 de diciembre de 2020.
-// El arco de Wiene y los Xenos: Bell esconde y protege a una chica
-// dragon con razon y acaba tachado de necio por defenderla.
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// Doce capitulos, del 13 de julio al 28 de septiembre de 2019, en J.C.Staff.
+// Las fechas son las de TVDB; las de IMDb van un dia antes por el huso horario.
+// Las notas son las de IMDb para cada capitulo.
 
 export const T3 = [
-  [1, 'Hija del dragon', '竜の少女(ウィーネ)', '2020-10-03', 7.7,
-   'Bell encuentra en la mazmorra a Wiene, una chica dragon de tipo vouivre que sabe hablar. Al ver que piensa y siente como una persona decide esconderla y llevarla con el. La guarda en su casa mientras busca como salvarla sin que nadie la vea.'],
+  [1, 'Banquete de los dioses (Party)', '神の宴（パーティー）', '2019-07-13', 7.3,
+   'Los dioses celebran su banquete y Apolo pone a Bell en el centro de todas las miradas con preguntas incomodas. Hestia defiende a su chico pero vuelve a casa con mal cuerpo. El banquete deja claro que Apolo quiere algo de la familia Hestia.'],
 
-  [2, 'Monstruo', '片翼(モンスター)', '2020-10-10', 7.6,
-   'Wiene llega herida y con un ala rota, y Bell se niega a verla como un monstruo mas. La familia Hestia la acoge en secreto mientras Bell la defiende de los que la ven como presa. El chico empieza a plantar cara a todos por un monstruo que le ha movido el corazon.'],
+  [2, 'Dios del sol (Apolo)', '太陽神（アポロン）', '2019-07-20', 7.6,
+   'Apolo acusa a Hestia de hacer trampas y le exige a Bell como pago por la ofensa. La familia, pequena y sin fondos, queda contra las cuerdas ante un dios con ejercito propio. Hestia se niega a entregar a Bell y acepta resolverlo en un juego de guerra.'],
 
-  [3, 'Herejes', '異端児(ゼノス)', '2020-10-17', 7.9,
-   'Bell descubre que Wiene no esta sola: hay mas monstruos con razon que se llaman a si mismos Xenos. Viven a escondidas en la mazmorra y solo piden un lugar donde vivir sin que los cacen. Bell les promete ayuda y se mete en un lio que supera a su familia.'],
+  [3, 'Reunion (Conversion)', '集結（コンバージョン）', '2019-07-27', 7.4,
+   'Hestia reune a sus pocos aliados y varios aventureros cambian de familia para pelear a su lado. Entre ellos hay viejos amigos de Bell que no dudan en dar el paso. El grupo crece justo antes de la guerra y Bell recupera la moral.'],
 
-  [4, 'Sueno lejano', '遠い夢(アコガレ)', '2020-10-24', 7.9,
-   'Wiene quiere ver el cielo y vivir fuera de la mazmorra como una persona mas. Bell se ve en ella y recuerda su viejo anhelo de ser un heroe que salva a todos. Los dos se prometen un futuro donde nadie tenga que esconderse.'],
+  [4, 'Juego de guerra (War Game)', '戦争遊戯（ウォーゲーム）', '2019-08-03', 8.1,
+   'El juego de guerra se decide en un asedio al castillo de Apolo, con Bell colandose dentro con los suyos. Bell vence al campeon rival en un duelo que todos miran. Hestia gana la guerra y su familia se queda con todo lo del perdedor.'],
 
-  [5, 'Familia Ikelos', '惨劇の王者[イケロス・ファミリア]', '2020-10-31', 7.8,
-   'La familia Ikelos lleva anos cazando Xenos para venderlos y ganar dinero con su dolor. Bell descubre sus cacerias y lo que hacen con los monstruos que atrapan. El choque con ellos se vuelve directo y Bell ya no puede mirar a otro lado.'],
+  [5, 'Hogar (la mansion del fuego)', '竈火の館（ホーム）', '2019-08-10', 7.1,
+   'Con lo ganado en la guerra la familia estrena una casa nueva con chimenea y celebra su primer dia en ella. Bell recorre las habitaciones y piensa en lo lejos que ha llegado desde que dormia en un sotano. La casa se convierte en el hogar que Hestia siempre quiso.'],
 
-  [6, 'Laberinto artificial', '人造迷宮(クノッソス)', '2020-11-07', 8,
-   'Bell y los suyos dan con Knossos, un laberinto hecho por manos de personas bajo la ciudad. Alli la familia Ikelos guarda a los Xenos que caza y prepara sus ventas. El hallazgo cambia todo lo que creian saber de la mazmorra.'],
+  [6, 'Familia Ishtar (ciudad del deseo)', '淫都（イシュタル・ファミリア）', '2019-08-17', 7.2,
+   'En el distrito del placer la familia Ishtar campa a sus anchas y retiene a Haruhime, una chica zorro con un poder extrano. Bell la conoce por casualidad y promete sacarla de alli. El distrito muestra su cara mas dura cuando el grupo pregunta demasiado.'],
 
-  [7, 'Sueno de las bestias', '獣の夢(ディックス・ペルディクス)', '2020-11-14', 8.3,
-   'Dix, el jefe de los cazadores de la familia Ikelos, persigue a Wiene y a su grupo sin descanso. Odia a los Xenos y sueña con darles caza hasta acabar con ellos. Bell se cruza en su camino y el odio entre los dos ya no tiene vuelta atras.'],
+  [7, 'Chica zorro (Renard)', '狐人（ルナール）', '2019-08-24', 7.1,
+   'Haruhime cuenta su historia y su lazo con Mikoto, amiga de la infancia que la busca desde hace anos. El pasado de la chica zorro explica por que no puede salir sola del palacio. La familia Hestia prepara el rescate con ayuda de dentro.'],
 
-  [8, 'Necio', '愚者(ベル・クラネル)', '2020-11-21', 8.5,
-   'La familia Loki choca con Bell por defender a monstruos y hasta Ais se pone en su contra. Todos lo llaman necio por jugarse la vida por Wiene. Bell acepta el insulto y sigue adelante: no va a dejar tirada a quien le pidio ayuda.'],
+  [8, 'Suenos fugaces (piedra asesina)', '殺生石（ウタカタノユメ）', '2019-08-31', 7.0,
+   'El grupo se infiltra en el palacio del placer buscando la piedra que ata a Haruhime a su duena. El plan sale a medias y Bell tiene que improvisar con lo que lleva encima. Los suenos de libertad de Haruhime parecen mas lejos que nunca.'],
 
-  [9, 'Caida', '零落(スティグマ)', '2020-11-28', 7.7,
-   'La ciudad entera señala a Bell por proteger monstruos y el chico cae en desgracia. La marca de traidor lo persigue vaya donde vaya. Aun asi se niega a entregar a Wiene y aguanta solo el peso de su eleccion.'],
+  [9, 'Berbera (prostitutas de guerra)', '戦闘娼婦（バーベラ）', '2019-09-07', 7.5,
+   'Las guerreras de Ishtar caen sobre el grupo y la guerrera Aisha cambia de bando en plena pelea. El palacio se parte en dos entre las que atacan y las que ayudan. Bell aprovecha el caos para llegar hasta Haruhime.'],
 
-  [10, 'Avance forzado', '強行突破(インビジブル)', '2020-12-05', 8.1,
-   'Bell y sus amigos entran a la fuerza en Knossos para liberar a los Xenos presos. Avanzan sin ser vistos por pasillos llenos de trampas y enemigos. Cada paso los acerca a Wiene y a un choque que ya no se puede parar.'],
+  [10, 'Anhelo de heroe (Argonauta)', '英雄切望（アルゴノゥト）', '2019-09-14', 8.0,
+   'Bell enfrenta a la jefa rival para abrir paso a Haruhime mientras el palacio se viene abajo. Con la ayuda de la chica zorro, Bell remata una pelea que parecia perdida. Haruhime sale del palacio libre por primera vez en anos.'],
 
-  [11, 'Batalla decisiva', '決戦(ウルトラソウル)', '2020-12-12', 8.5,
-   'La lucha en Knossos llega a su punto mas alto con Bell plantado ante Dix. Los dos se lo juegan todo por lo que creen: uno por cazar y otro por salvar. Es la batalla que decide el futuro de Wiene y de los Xenos.'],
+  [11, 'Avance del ejercito (Rakia)', '進軍（ラキア）', '2019-09-21', 6.8,
+   'El ejercito de Rakia marcha sobre Orario y la familia Hestia sale a defender la ciudad con otros aventureros. La batalla es breve pero deja claro que la ciudad no se rinde. Bell vuelve a pelear al lado de los que ganaron la guerra con el.'],
 
-  [12, 'Regreso del heroe', '英雄回帰(アルゴノゥト)', '2020-12-19', 8.5,
-   'Bell vence fiel a su sueño de heroe y demuestra que salvar tambien es pelear. Wiene queda a salvo y aceptada a escondidas lejos de los ojos de la ciudad. Aunque lo llamen necio, Bell vuelve a casa con la frente alta y su promesa cumplida.'],
+  [12, 'Diosa y familia (cancion de amor)', '女神と眷族（アイノウタ）', '2019-09-28', 7.1,
+   'Tras la batalla Hestia canta para los suyos una cancion de amor a su familia y todos brindan juntos. Bell mira al frente con un objetivo claro y la familia cierra filas. La temporada acaba con la promesa de seguir creciendo.'],
 ];

@@ -42,28 +42,29 @@ export const ANIME = {
 export const ANIME_ID = 'danmachi';
 
 /**
- * LAS CINCO TEMPORADAS
+ * LAS SEIS ENTRADAS (cinco temporadas + pelicula)
  *
  * T1  13 capitulos  (abril-junio de 2015)
- * T2  12 capitulos  (julio-septiembre de 2019)
- * T3  12 capitulos  (octubre-diciembre de 2020)
- * T4  22 capitulos  (julio-octubre de 2022 y enero-marzo de 2023)
- * T5  15 capitulos  (octubre de 2024-marzo de 2025)
- * T6   1 capitulo   (pelicula Arrow of the Orion, febrero de 2019)
+ * T2   1 capitulo   (pelicula Arrow of the Orion, febrero de 2019)
+ * T3  12 capitulos  (julio-septiembre de 2019)
+ * T4  12 capitulos  (octubre-diciembre de 2020)
+ * T5  22 capitulos  (julio-octubre de 2022 y enero-marzo de 2023)
+ * T6  15 capitulos  (octubre de 2024-marzo de 2025)
  * --
  *     75
  *
- * La pelicula va como T6 aunque sea de 2019: renumerar las T2-T5
- * para meterla en orden cronologico romperia sus ids y todo lo que
- * apunta a ellos (temporadas, capitulos, personajes). Entra al
- * final con el titulo dejando claro que es la pelicula. Cuando
- * llegue la sexta temporada de la serie ira a la T7 por el mismo
- * motivo.
+ * La pelicula va como T2 por orden cronologico (febrero de 2019,
+ * antes que la segunda temporada de julio). Eso obligo a renumerar
+ * las temporadas 2 a 5, que pasaron a T3-T6 con documentos e ids
+ * nuevos: mantener los viejos habria dejado dos temporadas
+ * distintas compartiendo numero. Cuando llegue la sexta temporada
+ * de la serie ira a la T7.
  *
- * La cuarta va como UNA temporada con 22 capitulos aunque se emitio
- * en dos partes: es como la lista TVDB y como la cuenta la propia
- * serie (DanMachi IV con arco final aparte). Partirla en dos fichas
- * dejaria dos temporadas cojas de 11 capitulos que nadie reconoce.
+ * La quinta (antes cuarta) va como UNA temporada con 22 capitulos
+ * aunque se emitio en dos partes: es como la lista TVDB y como la
+ * cuenta la propia serie (DanMachi IV con arco final aparte).
+ * Partirla en dos fichas dejaria dos temporadas cojas de 11
+ * capitulos que nadie reconoce.
  *
  * Hay una SEXTA TEMPORADA anunciada el 7 de febrero de 2026, sin
  * fecha ni capitulos. No entra aqui porque una temporada sin
@@ -87,6 +88,19 @@ export const TEMPORADAS = [
   },
   {
     numero: 2,
+    titulo: 'Arrow of the Orion',
+    anio: 2019,
+    estado: 'Finalizado',
+    estudio: 'J.C.Staff',
+    synopsis:
+      'Pelicula de 82 minutos: la diosa Artemisa encarga a Bell recuperar la lanza de Orion en ' +
+      'un festival lejano. Lo que empieza como fiesta con concurso acaba en pelea contra algo ' +
+      'anterior a Orario, con Hermes enredando al fondo. No hace falta haber visto la serie para ' +
+      'seguirla, pero ayuda saber quien es cada dios.',
+    capitulos: 'T2',
+  },
+  {
+    numero: 3,
     titulo: '',
     anio: 2019,
     estado: 'Finalizado',
@@ -97,10 +111,10 @@ export const TEMPORADAS = [
       'Haruhime del distrito del placer de Ishtar, con Aisha cambiando de bando a mitad de fiesta. ' +
       'Cierra con el ejercito de Rakia llamando a la puerta y la cancion con la que Hestia levanta ' +
       'a la ciudad.',
-    capitulos: 'T2',
+    capitulos: 'T3',
   },
   {
-    numero: 3,
+    numero: 4,
     titulo: '',
     anio: 2020,
     estado: 'Finalizado',
@@ -110,10 +124,10 @@ export const TEMPORADAS = [
       'monstruo con razon. La esconde y la defiende mientras la familia Ikelos los caza para el ' +
       'mercado negro y aparece Knossos, el laberinto artificial. Hasta la familia Loki, con Ais a ' +
       'la cabeza, se pone enfrente. Bell queda como el necio que protege monstruos, y lo asume.',
-    capitulos: 'T3',
+    capitulos: 'T4',
   },
   {
-    numero: 4,
+    numero: 5,
     titulo: '',
     anio: 2022,
     estado: 'Finalizado',
@@ -124,10 +138,10 @@ export const TEMPORADAS = [
       'Solos abajo sale el pasado de Ryu: su familia Astrea y su maestra Alise, muertas por el mismo ' +
       'desastre anos atras. Reagrupados en el palacio blanco, Bell lo vence con la espada Argo Vesta ' +
       'y las pociones de Fels, y Ryu elige la justicia de su maestra en vez de la venganza.',
-    capitulos: 'T4',
+    capitulos: 'T5',
   },
   {
-    numero: 5,
+    numero: 6,
     titulo: '',
     anio: 2024,
     estado: 'Finalizado',
@@ -138,19 +152,6 @@ export const TEMPORADAS = [
       'los suyos resisten. Hay Juego de Guerra entre familias, con Hedin y Hogni entre los ' +
       'ejecutores de Freya. Bell gana, rompe el encanto y elige a la Syr mortal antes que a la ' +
       'diosa. Freya pierde su divinidad y la ciudad despierta.',
-    capitulos: 'T5',
-  },
-  {
-    numero: 6,
-    titulo: 'Arrow of the Orion',
-    anio: 2019,
-    estado: 'Finalizado',
-    estudio: 'J.C.Staff',
-    synopsis:
-      'Pelicula de 82 minutos: la diosa Artemisa encarga a Bell recuperar la lanza de Orion en ' +
-      'un festival lejano. Lo que empieza como fiesta con concurso acaba en pelea contra algo ' +
-      'anterior a Orario, con Hermes enredando al fondo. No hace falta haber visto la serie para ' +
-      'seguirla, pero ayuda saber quien es cada dios.',
     capitulos: 'T6',
   },
 ];

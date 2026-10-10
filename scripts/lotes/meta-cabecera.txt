@@ -1,0 +1,30 @@
+/**
+ * LAS SEIS ENTRADAS (cinco temporadas + pelicula)
+ *
+ * T1  13 capitulos  (abril-junio de 2015)
+ * T2   1 capitulo   (pelicula Arrow of the Orion, febrero de 2019)
+ * T3  12 capitulos  (julio-septiembre de 2019)
+ * T4  12 capitulos  (octubre-diciembre de 2020)
+ * T5  22 capitulos  (julio-octubre de 2022 y enero-marzo de 2023)
+ * T6  15 capitulos  (octubre de 2024-marzo de 2025)
+ * --
+ *     75
+ *
+ * La pelicula va como T2 por orden cronologico (febrero de 2019,
+ * antes que la segunda temporada de julio). Eso obligo a renumerar
+ * las temporadas 2 a 5, que pasaron a T3-T6 con documentos e ids
+ * nuevos: mantener los viejos habria dejado dos temporadas
+ * distintas compartiendo numero. Cuando llegue la sexta temporada
+ * de la serie ira a la T7.
+ *
+ * La quinta (antes cuarta) va como UNA temporada con 22 capitulos
+ * aunque se emitio en dos partes: es como la lista TVDB y como la
+ * cuenta la propia serie (DanMachi IV con arco final aparte).
+ * Partirla en dos fichas dejaria dos temporadas cojas de 11
+ * capitulos que nadie reconoce.
+ *
+ * Hay una SEXTA TEMPORADA anunciada el 7 de febrero de 2026, sin
+ * fecha ni capitulos. No entra aqui porque una temporada sin
+ * capitulos se guardaria vacia en la wiki. Cuando tenga fecha, es
+ * anadir la entrada y crear el fichero.
+ */

@@ -1,0 +1,69 @@
+  {
+    numero: 2,
+    titulo: 'Arrow of the Orion',
+    anio: 2019,
+    estado: 'Finalizado',
+    estudio: 'J.C.Staff',
+    synopsis:
+      'Pelicula de 82 minutos: la diosa Artemisa encarga a Bell recuperar la lanza de Orion en ' +
+      'un festival lejano. Lo que empieza como fiesta con concurso acaba en pelea contra algo ' +
+      'anterior a Orario, con Hermes enredando al fondo. No hace falta haber visto la serie para ' +
+      'seguirla, pero ayuda saber quien es cada dios.',
+    capitulos: 'T2',
+  },
+  {
+    numero: 3,
+    titulo: '',
+    anio: 2019,
+    estado: 'Finalizado',
+    estudio: 'J.C.Staff',
+    synopsis:
+      'Apolo obliga a Hestia a un Juego de Guerra apostando a Bell, y la familia pequena gana al ' +
+      'gigante con ayuda de Takemikazuchi, Miach, Hermes y Ryu. Con casa nueva toca el rescate de ' +
+      'Haruhime del distrito del placer de Ishtar, con Aisha cambiando de bando a mitad de fiesta. ' +
+      'Cierra con el ejercito de Rakia llamando a la puerta y la cancion con la que Hestia levanta ' +
+      'a la ciudad.',
+    capitulos: 'T3',
+  },
+  {
+    numero: 4,
+    titulo: '',
+    anio: 2020,
+    estado: 'Finalizado',
+    estudio: 'J.C.Staff',
+    synopsis:
+      'Bell encuentra en la mazmorra a Wiene, una chica dragon que habla y piensa: una Xenos, un ' +
+      'monstruo con razon. La esconde y la defiende mientras la familia Ikelos los caza para el ' +
+      'mercado negro y aparece Knossos, el laberinto artificial. Hasta la familia Loki, con Ais a ' +
+      'la cabeza, se pone enfrente. Bell queda como el necio que protege monstruos, y lo asume.',
+    capitulos: 'T4',
+  },
+  {
+    numero: 5,
+    titulo: '',
+    anio: 2022,
+    estado: 'Finalizado',
+    estudio: 'J.C.Staff',
+    synopsis:
+      'Expedicion a los pisos profundos que nadie ha pisado. El Juggernaut, el desastre que la ' +
+      'mazmorra escupe cuando se le hace dano, masacra al grupo y separa a Bell y Ryu del resto. ' +
+      'Solos abajo sale el pasado de Ryu: su familia Astrea y su maestra Alise, muertas por el mismo ' +
+      'desastre anos atras. Reagrupados en el palacio blanco, Bell lo vence con la espada Argo Vesta ' +
+      'y las pociones de Fels, y Ryu elige la justicia de su maestra en vez de la venganza.',
+    capitulos: 'T5',
+  },
+  {
+    numero: 6,
+    titulo: '',
+    anio: 2024,
+    estado: 'Finalizado',
+    estudio: 'J.C.Staff',
+    synopsis:
+      'Syr, la camarera de siempre, invita a Bell a una cita. Pero Syr es Freya, la diosa de la ' +
+      'belleza, que lo quiere para ella y encanta a Orario entera para arrebatarlo. Solo Hestia y ' +
+      'los suyos resisten. Hay Juego de Guerra entre familias, con Hedin y Hogni entre los ' +
+      'ejecutores de Freya. Bell gana, rompe el encanto y elige a la Syr mortal antes que a la ' +
+      'diosa. Freya pierde su divinidad y la ciudad despierta.',
+    capitulos: 'T6',
+  },
+];
