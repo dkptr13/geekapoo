@@ -40,6 +40,8 @@ export const BUSQUEDAS = {
   'oshi-no-ko': '【推しの子】',
   'danmachi': 'ダンジョンに出会いを求めるのは間違っているだろうか',
   'plastic-memories': 'プラスティック・メモリーズ',
+  'mk': '負けヒロインが多すぎる！',
+  'tk': 'からかい上手の高木さん',
 };
 
 /**

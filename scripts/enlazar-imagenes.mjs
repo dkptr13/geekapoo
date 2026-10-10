@@ -90,6 +90,8 @@ const ANIMES = [
   { id: 'plastic-memories', buscar: 'Plastic Memories' },
   { id: 'lycoris-recoil', buscar: 'Lycoris Recoil' },
   { id: 'ragna-crimson', buscar: 'Ragna Crimson' },
+  { id: 'makeine-too-many-losing-heroines', buscar: 'Makeine' },
+  { id: 'teasing-master-takagi-san', buscar: 'Karakai Jouzu no Takagi-san' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 // ── Estado ─────────────────────────────────────────────────────────
