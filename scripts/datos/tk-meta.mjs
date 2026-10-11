@@ -1,8 +1,8 @@
 // LA FICHA DEL ANIME - Teasing Master Takagi-san
 //
 // Titulo oficial en ingles. Tres temporadas de costumbrismo escolar
-// y una pelicula (2022) que aqui no entra porque no se pidio: si se
-// quiere, va como temporada aparte siguiendo el caso DanMachi.
+// y una pelicula (2022) que va como cuarta temporada en orden
+// cronologico, igual que las de Bunny Girl.
 
 export const ANIME = {
   titulo: 'Teasing Master Takagi-san',
@@ -35,17 +35,18 @@ export const ANIME = {
 export const ANIME_ID = 'teasing-master-takagi-san';
 
 /**
- * LAS TRES TEMPORADAS
+ * LAS CUATRO TEMPORADAS
  *
  * T1  12 capitulos  (enero-marzo de 2018)
  * T2  12 capitulos  (julio-septiembre de 2019)
  * T3  12 capitulos  (enero-marzo de 2022)
+ * T4   1 pelicula   (junio de 2022)
  * --
- *     36
+ *     37
  *
  * Cada capitulo trae de 3 a 6 segmentos cortos, asi que los titulos
- * unen los segmentos con " / ". Ni la OVA de 2018 ni la pelicula de
- * 2022 entran: TVDB los lista en S0 y aqui no entran los especiales.
+ * unen los segmentos con " / ". La OVA de 2018 no entra: TVDB la
+ * lista en S0 y aqui no entran los especiales sueltos.
  */
 export const TEMPORADAS = [
   {
@@ -84,6 +85,19 @@ export const TEMPORADAS = [
       'ritmo, empieza a corresponder. Cierra la serie antes de la pelicula.',
     capitulos: 'T3',
   },
+  {
+    numero: 4,
+    titulo: 'The Movie',
+    anio: 2022,
+    estado: 'Finalizado',
+    estudio: 'Shin-Ei Animation',
+    synopsis:
+      'Setenta y tres minutos de cine estrenados el 10 de junio de 2022. Ultimo verano ' +
+      'de secundaria: Takagi y Nishikata encuentran una gatita abandonada en el santuario ' +
+      'y la llaman Hana. Cuidarla a escondidas, con la tienda de Oota y su loro Katsuo de ' +
+      'por medio, es su primera aventura de verdad juntos y el cierre que la serie debia.',
+    capitulos: 'T4',
+  },
 ];
 
 /**
@@ -96,17 +110,19 @@ export const TEMPORADAS = [
 export const RATING_SERIE = 7.7;
 
 /**
- * Capitulos en total, contando las tres temporadas.
+ * Capitulos en total, contando las tres temporadas y la pelicula.
  *
  *   T1  12  capitulos  (enero-marzo de 2018)
  *   T2  12  capitulos  (julio-septiembre de 2019)
  *   T3  12  capitulos  (enero-marzo de 2022)
+ *   T4   1  pelicula   (junio de 2022)
  *   --
- *       36
+ *       37
  *
- * Sin OVA ni pelicula: van en S0 de TVDB y aqui no entran.
+ * Sin la OVA de 2018: va en S0 de TVDB y aqui no entran los
+ * especiales sueltos.
  */
-export const EPISODIOS_TOTAL = 36;
+export const EPISODIOS_TOTAL = 37;
 
 // Sin plataformas verificadas en Espana: JustWatch dice que aqui no
 // hay ninguna (Crunchyroll la lleva en Suiza y otros 26 paises,

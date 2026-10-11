@@ -42,6 +42,21 @@ export const BUSQUEDAS = {
   'plastic-memories': 'プラスティック・メモリーズ',
   'mk': '負けヒロインが多すぎる！',
   'tk': 'からかい上手の高木さん',
+  're-zero-comenzando-la-vida-en-otro-mundo': 'Re:Zero kara Hajimeru Isekai Seikatsu',
+  'seishun-buta-yaro-wa-bunny-girl-senpai-no-yume-wo-minai': '青春ブタ野郎はバニーガール先輩の夢を見ない',
+  'las-quintillizas': 'Go-toubun no Hanayome',
+  '86-eighty-six': '86: Eighty Six',
+  'konosuba': 'Kono Subarashii Sekai ni Shukufuku wo!',
+  'classroom-of-the-elite': 'Youkoso Jitsuryoku Shijou Shugi no Kyoushitsu e',
+  'my-dress-up-darling': 'Sono Bisque Doll wa Koi wo Suru',
+  'armed-girls-machiavellism': 'Busou Shoujo Machiavellianism',
+  'gachiakuta': 'Gachiakuta',
+  'kakegurui': 'Kakegurui',
+  'darwin-s-game': "Darwin's Game",
+  'golden-time': 'Golden Time',
+  'kubo-san-wa-mob-wo-yurusanai': 'Kubo-san wa Mob wo Yurusanai',
+  'guilty-crown': 'Guilty Crown',
+  'solo-leveling': 'Ore dake Level Up na Ken',
 };
 
 /**

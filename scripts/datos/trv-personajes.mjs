@@ -180,4 +180,24 @@ export const PERSONAJES = [
 
   ['Masato Tachibana', '2', 'supporting', '橘 正人', 'Ryōta Ōsaka',
     'El padre de Hinata y Naoto. Sale poco y por eso duele mas cuando aparece: es un hombre normal al que la serie le ha pasado por encima igual que a los demas. Comparte voz con Naoto porque los hermanos son gemelos.'],
+  ['Makoto Suzuki', '1,2,3,4', 'supporting', '鈴木マコト', 'Shunsuke Takeuchi',
+   'Del quinteto de Mizo, los amigos de Takemichi del instituto. Sale en las cuatro partes.'],
+
+  ['Yasuhiro Mutou', '1,2,3,4', 'supporting', '武藤泰宏', 'Daisuke Ono',
+   'Capitan de la quinta division, un armario apodado Mucho. Sale en las cuatro partes.'],
+
+  ['Ryouko Tachibana', '1,2', 'supporting', '橘亮子', 'Manami Numakura',
+   'Madre de Hinata y Naoto. Sale en la primera y la segunda, en casa con los suyos.'],
+
+  ['Luna Mitsuya', '2', 'supporting', '三ツ谷ルナ', 'Minami Tanaka',
+   'Hermana pequeña de Mitsuya. Sale en la segunda parte con su hermano.'],
+
+  ['Gariman', '1,3', 'supporting', 'ガリ男', 'Ryouta Yano',
+   'Lider de Night Dust, banda puntera de Tokio que manda en Ueno. Sale en la primera y la tercera.'],
+
+  ['Chonbo', '1', 'supporting', 'チョンボ', 'Shuuhei Iwase',
+   'Uno de los capitanes de Valhalla y de sus mejores luchadores. Sale solo en la primera.'],
+
+  ['Choji Ahane', '1', 'supporting', '亜波根チョウジ', 'Junichi Yanagita',
+   'Uno de los capitanes de Valhalla y de los recaderos de Kisaki. Sale solo en la primera.'],
 ];

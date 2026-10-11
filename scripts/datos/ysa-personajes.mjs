@@ -26,7 +26,14 @@
 //
 // ── EL REPARTO ────────────────────────────────────────────
 //
-// Los doce de la lista de Wikipedia, que da el seiyuu japones de
+// ── POR QUE NO ESTA KOHARU ──────────────────────────────
+//
+// La hija pequeña de Hiroko salio de la ficha en octubre de 2026:
+// en AniList figura como BACKGROUND, una sola escena, y el criterio
+// del catalogo es MAIN + SUPPORTING. Era la unica BACKGROUND con
+// voz de la lista (Inori Minase).
+//
+// Los once de la lista de Wikipedia, que da el seiyuu japones de
 // cada uno. Es el reparto completo: no falta nadie con nombre y voz.
 //
 // Los tres con los que empieza todo van como `main`: Kousei, Kaori y
@@ -57,8 +64,6 @@ export const PERSONAJES = [
    'La madre de Kōsei, que aparece muerta desde el minuto uno. Todo lo que hace la serie con ella es indirecto: una sombra, una carta sin enviar, un modo de tocar. Es la única protagonista que nunca habla y la que más pesa.'],
    ['Hiroko Seto', TODAS, 'supporting', '瀬戸 紘子', 'Mie Sonozaki',
    'La pianista famosa. Amiga de Saki y de la familia de Kaori, y la que le ensena a Kousei a tocar sin el miedo de equivocarse. Tambien acaba siendo profesora de Nagi.'],
-   ['Koharu Seto', TODAS, 'supporting', '瀬戸 小春', 'Inori Minase',
-   'La hija de Hiroko. Sale poco y casi siempre de rebote, pero tiene un ojo para la música que no le viene de su madre. Es quien le explica a Kōsei que las luciérnagas también viven.'],
    ['Saitō', TODAS, 'supporting', '斎藤', 'Kazuyuki Okitsu',
    'El capitan de antes del softbol, al que Tsubaki admiraba de pequena. Vuelve cuando Tsubaki esta peor y le hace el papel de novio hasta que la deja sin decir nada.'],
   ['Nao Kashiwagi', TODAS, 'supporting', '柏木 奈緒', 'Shizuka Ishigami',

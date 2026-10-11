@@ -81,4 +81,11 @@ export const TAGS = {
   'Wakasa Imaushi': ['Tenjiku', 'En todas las peleas'],
   'Keizō Arashi': ['Antagonista', 'Líder de la rebelión'],
   'Minami Terano': ['Tenjiku', 'Viene de lejos'],
+  'Ryouko Tachibana': ['Madre', 'En casa'],
+  'Luna Mitsuya': ['Hermana', 'Mitsuya'],
+  'Makoto Suzuki': ['Mizo', 'Amigo'],
+  'Yasuhiro Mutou': ['Capitán', 'Quinta'],
+  'Gariman': ['Night Dust', 'Líder'],
+  'Chonbo': ['Valhalla', 'Capitán'],
+  'Choji Ahane': ['Valhalla', 'Recadero'],
 };

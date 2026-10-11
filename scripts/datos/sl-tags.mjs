@@ -1,0 +1,50 @@
+// ETIQUETAS - Solo Leveling
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+//
+// Maximo 40 caracteres por etiqueta. Sistema, gremios y sombras
+// ordenan el catalogo: aqui cada uno es de donde sube.
+
+export const TAGS = {
+  "Jin-U Seong": ["Protagonista", "Sistema", "Sombras"],
+  "Ju-Hui Lee": ["Curandera"],
+  "Dong-Su Hwang": ["Venganza"],
+  "Jin-Ho Yu": ["Vicepresidente", "Rico"],
+  "Yun-Ho Baek": ["Rango S", "Bestia"],
+  "Jin-Cheol U": ["Vigilancia", "Asociacion"],
+  "Hae-In Cha": ["Rango S", "Heroina"],
+  "Jin-A Seong": ["Hermana", "Estudiante"],
+  "Geon-Hui Go": ["Presidente", "Asociacion"],
+  "Song-I Han": ["Cazadora", "Joven"],
+  "Jong-In Choi": ["Maestro", "Gremio"],
+  "Byeong-Gu Min": ["Curandero"],
+  "Myung-Han Yu": ["Asociacion"],
+  "Hee-Jin Park": ["Gremio"],
+  "Gina": ["Asociacion"],
+  "Sang-Min Ahn": ["Gremio"],
+  "Myung-Hwan Go": ["Asociacion"],
+  "Ki-Cheol Hyeon": ["Cazador"],
+  "Iron": ["Sombra", "Soldado"],
+  "Tae-Shik Kang": ["Agente", "Corrupto"],
+  "Il-Hwan Seong": ["Padre", "Regreso"],
+  "Beru": ["Rey hormiga", "Sombra", "Antagonista"],
+  "Esil Radiru": ["Demonio", "Noble"],
+  "Goto Ryuji": ["Elite"],
+  "Zhigang Liu": ["Heroe", "Chino"],
+  "Dong-Wook Ma": ["Rango S"],
+  "Baruka": ["Segunda"],
+  "Tusk": ["Orco", "Sombra"],
+  "Kyung-Hye Park": ["Madre", "Enferma"],
+  "Rakan": ["Monarca", "Antagonista"],
+  "Hanekawa": ["Equipo", "Isla"],
+  "Akari Shimizu": ["Equipo", "Isla"],
+  "Michael Connor": ["Equipo", "Isla"],
+  "Kenzo Tanaka": ["Equipo", "Isla"],
+  "Tatsumi Fujishima": ["Equipo", "Isla"],
+  "Tae-Gyu Lim": ["Equipo", "Isla"],
+  "Yun-Tae Jeong": ["Equipo", "Isla"],
+  "Jong-Su Park": ["Equipo", "Isla"],
+  "Kanae Tawata": ["Equipo", "Isla"],
+  "Baran": ["Segunda"],
+  "Shigeo Matsumoto": ["Equipo", "Isla"],
+};

@@ -35,12 +35,12 @@ export const PERSONAJES = [
    'Giftia seria con pinta de ejecutiva, tiradora de Yasutaka. Le saca de quicio la desgana de su companero y cuando se enfada da tanto miedo como Kazuki. La unica que mantiene a su pareja a raya.'],
 
   ['Eru Miru', '', 'supporting', '海松エル', 'Sumire Uesaka',
-   'Ingeniera del equipo de mantenimiento y friki declarada de los androides, con debilidad especial por Isla. Su amiga Olivia volvio como Andie con otro sistema, y Eru tiene que aprender a querer a las dos por separado.'],
+   'Ingeniera del equipo de mantenimiento y friki declarada de los androides, con debilidad especial por Isla. Su amiga Olivia volvio como Andy con otro sistema, y Eru tiene que aprender a querer a las dos por separado.'],
 
   ['Takao Yamanobe', '', 'supporting', '山野辺タカオ', 'Nobuo Tobita',
    'Jefe de seccion venido de ventas, sin ni idea de campo. No sabe comunicarse ni con su hija, pero aguanta el chiringuito como puede. El mando que manda sin haber estado nunca fuera.'],
 
-  ['Marcia', '', 'supporting', 'マーシャ', 'Mamiko Noto',
+  ['Marsha', '', 'supporting', 'マーシャ', 'Mamiko Noto',
    'Giftia que crio a Souta como hermana mayor tras morir sus padres. Su secuestro y caida a Wanderer centran los capitulos intermedios. Queria tanto al nino que hasta rota lo buscaba.'],
 
   ['Souta Wakanae', '', 'supporting', '若苗ソウタ', 'Misato Fukuen',
@@ -49,9 +49,27 @@ export const PERSONAJES = [
   ['Sarah', '', 'supporting', 'サラ', 'Ayahi Takagaki',
    'Giftia guardaespaldas del mafioso Antonio, que la crio como nieta. Su recuperacion es el ultimo trabajo de Tsukasa e Isla juntos. Lo que le susurra Isla al oido antes del borrado nadie lo oye.'],
 
-  ['Andie', '', 'supporting', 'アンディ', 'Mikako Komatsu',
+  ['Andy', '', 'supporting', 'アンディ', 'Mikako Komatsu',
    'Tiradora de la oficina 3 que antes fue Olivia, amiga de Eru, con el sistema cambiado por recortes. Vive una segunda vida sin recuerdos de la primera. Obliga a Eru a decidir a quien quiere.'],
 
   ['Mikijirou Tetsuguro', '', 'supporting', '鉄黒ミキジロウ', 'Mitsuaki Hoshino',
    'Jefe de Eru y encargado de la sala de pruebas fisicas. Mide a las Giftias como maquinas porque es su trabajo, aunque sabe que no lo son. Secundario de fondo con bata blanca.'],
+
+  ['Nina', '', 'supporting', 'ニーナ', 'Misaki Kuno',
+   'Niña Giftia criada por Chizu como nieta. Acepta irse para no darle problemas a quien quiere, y su despedida es la primera leccion de Tsukasa.'],
+
+  ['Chizu Shirohana', '', 'supporting', '白花チヅ', 'Reiko Suzuki',
+   'Anciana severa que crio a Nina como nieta. Se niega a entregarla hasta que oye a la niña aceptar irse por ella, y entonces la deja marchar con las gracias a Tsukasa.'],
+
+  ['Ren Kawarake', '', 'supporting', '土器レン', 'Shinnosuke Ogami',
+   'Empleado del Terminal Service One al que Zack llama chupatintas. Papeleo y oficina mientras los demas salen al campo.'],
+
+  ['Mari Iwai', '', 'supporting', '岩井マリ', 'Kiyoko Miyazawa',
+   'Esposa de Hajime y dueña de Edward junto a el. Se despide del Giftia en el primer capitulo con el marido al lado.'],
+
+  ['Hajime Iwai', '', 'supporting', '岩井ハジメ', 'Kan Tanaka',
+   'Esposo de Mari y dueño de Edward junto a ella. Comparte con su mujer la despedida del Giftia en el primer capitulo.'],
+
+  ['Edward', '', 'supporting', 'エドワード', 'Akinori Egoshi',
+   'Giftia de los Iwai, recuperado en el primer capitulo. Su despedida con sus dueños es la primera muestra de en que consiste el trabajo.'],
 ];

@@ -52,7 +52,6 @@ export const TAGS = {
   'Nagi Aiza': ['Pianista', 'Hermana menor', 'Consejo Estudiantil'],
   'Saki Arima': ['Madre', 'Muerta', 'Pianista'],
   'Hiroko Seto': ['Pianista', 'Profesora', 'Conocida'],
-  'Koharu Seto': ['Pianista', 'Hija', 'Pequeña'],
   'Saitō': ['Sóftbol', 'Novio', 'Ex'],
   'Nao Kashiwagi': ['Amistad', 'Consejo Estudiantil', 'Honesta'],
 };

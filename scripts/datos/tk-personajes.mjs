@@ -35,4 +35,40 @@ export const PERSONAJES = [
 
   ['Tanabe-sensei', '', 'supporting', '田辺先生', 'Hinata Tadokoro',
    'El profesor, serio por fuera y humano por dentro. Aguanta al grupo con paciencia de santo. Su clase es el escenario de media serie.'],
+
+  ['Chii Nishikata', '3,4', 'supporting', '西片ちー', 'Yume Miyamoto',
+   'Hija pequeña de Nishikata y Takagi, de guarderia. Odia los pimientos verdes y adora hacerle cosquillas a su padre. Sale en el futuro del tercer curso y en la pelicula.'],
+
+  ['Hamaguchi', '2,3,4', 'supporting', '浜口', 'Kouki Uchiyama',
+   'Amigo de Nishikata del grupo de chicos, al que le gusta Houjou. Sale en la segunda, la tercera y la pelicula.'],
+
+  ['Houjou', '2,3,4', 'supporting', '北条', 'Aoi Yuuki',
+   'Compañera tranquila de la clase por la que se interesa Hamaguchi. Sale en la segunda, la tercera y la pelicula.'],
+
+  ['Sumire Takagawa', '2,3,4', 'supporting', '鷹川すみれ', 'Madoka Asahina',
+   'Compañera de clase y amiga cercana de Takagi, de coleta marcada. Sale en la segunda, la tercera y la pelicula.'],
+
+  ['Sae Tenkawa', '2', 'supporting', '天川さえ', 'Haruka Shiraishi',
+   'Hermana pequeña de Yukari. Sale solo en la segunda temporada, con su hermana mayor.'],
+
+  ['Kyunko', '2,3', 'supporting', 'キュン子', 'Rie Takahashi',
+   'Protagonista del shoujo inventado de amor no correspondido, la serie que Nishikata ve a escondidas y que tanto le gusta. Sale en la segunda y la tercera.'],
+
+  ['Ike Otoko', '2,3', 'supporting', 'イケ男', 'Yuuki Kaji',
+   'El chico guapo del shoujo inventado que ve Nishikata, pareja de Kyunko en la ficcion. Sale en la segunda y la tercera.'],
+
+  ['Dandy', '3', 'supporting', 'ダンディ', 'Tesshou Genda',
+   'Heroe de la serie dentro de la serie en la tercera temporada: un tipo duro de la frontera legendario al que admira Nishikata. Sale solo en la tercera.'],
+
+  ['Tsukimoto-sensei', '3,4', 'supporting', '月本先生', 'Sayaka Kikuchi',
+   'Hermana mayor de Sanae y maestra. Tanabe-sensei le pide matrimonio. Sale en la tercera y en la pelicula.'],
+
+  ['Oota', '4', 'supporting', '太田', 'Haruka Tomatsu',
+   'Dueña de la tienda de mascotas del barrio, con su loro Katsuo siempre encima. Vende a la pareja la comida de Hana y los aconseja. Sale solo en la pelicula.'],
+
+  ['Hana', '4', 'supporting', 'ハナ', 'Inori Minase',
+   'La gatita abandonada del santuario a la que Takagi y Nishikata llaman Hana. Cuidarla a escondidas entre los dos centra la pelicula.'],
+
+  ['Katsuo', '4', 'supporting', 'カツオ', 'Jun Fukushima',
+   'El loro de la tienda de Oota. Ve pasar a la pareja con la gatita y repite lo que oye. Sale solo en la pelicula.'],
 ];

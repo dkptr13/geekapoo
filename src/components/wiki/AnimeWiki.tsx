@@ -1203,11 +1203,15 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                   className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/90 flex flex-col justify-between"
                 >
                   <div>
-                    <div className={`relative ${ALTURA_CARD_PERSONAJE} w-full overflow-hidden`}>
+                    <div className={`relative ${ALTURA_CARD_PERSONAJE} w-full overflow-hidden bg-zinc-950`}>
+                      {/* `object-contain` y no `object-cover`: la foto se ve
+                          entera (retrato o cuerpo completo) dentro del mismo
+                          recuadro para todas las tarjetas. El fondo oscuro
+                          rellena lo que sobra segun la proporcion. */}
                       <img
                         src={char.imageUrl}
                         alt={char.name}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain"
                         style={encuadre(char.imageFocus)}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />

@@ -50,6 +50,5 @@ export const TAGS = {
   'Matsuri Narushima': ['Antes de la serie', 'Amigo'],
   'Frill Shiranui': ['Fans', 'Colegio'],
   'Ryūnosuke Sugano': ['Fans', 'Provocador'],
-  'Miyu': ['B-Komachi', 'Directora de escena'],
   'Tsukuyomi': ['Secreto', 'Desconocida'],
 };

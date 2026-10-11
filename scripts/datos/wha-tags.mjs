@@ -26,16 +26,19 @@ export const TAGS = {
   // ── Coco y su atelier ─────────────────────────────────────
   'Coco': ['Destacados', 'Protagonista', 'Aprendiz', 'Contradicción'],
   'Qifrey': ['Destacados', 'Maestro', 'Venganza', 'Ojo tapado'],
-  'Agott Arklaum': ['Aprendiz', 'Snob', 'Rencilla'],
+  'Agott Arkrome': ['Aprendiz', 'Snob', 'Rencilla'],
   'Tetia': ['Aprendiz', 'Alegre'],
   'Richeh': ['Aprendiz', 'Creativa', 'Cerrada'],
   'Olruggio': ['Maestro', 'Vigilante', 'Inventor'],
-  'Brushbuddy': ['Mascota', 'Criatura'],
+  'Fudemushi': ['Mascota', 'Criatura'],
 
   // ── La Gran Aula y los Caballeros ─────────────────────────
   'Alaira': ['Gran Aula', 'Supervisora'],
   'Easthies': ['Caballeros Magos', 'Antagonistas', 'Legalista'],
   'Luluci': ['Caballeros Magos', 'Antagonistas', 'Justa'],
+  'Utowin': ['Caballeros Magos', 'Antagonistas', 'Disciplina'],
+  'Galga': ['Caballeros Magos', 'Antagonistas', 'Fuerza'],
+  'Richeh no Sensei': ['Maestro', 'Richeh', 'Serio'],
   'Kukrow': ['Antagonistas', 'Malo maestro'],
   'Riliphin': ['Antagonistas', 'Hermano mayor'],
 
@@ -49,5 +52,5 @@ export const TAGS = {
   'Euini': ['Aprendiz', 'Infectado'],
   'Tartah': ['Artesano', 'Ciego al color'],
   'Nolnoa': ['Artesano', 'Anciano'],
-  'Coco’s mother': ['Sastresa', 'Piedra'],
+  'Coco no Haha': ['Sastresa', 'Piedra'],
 };

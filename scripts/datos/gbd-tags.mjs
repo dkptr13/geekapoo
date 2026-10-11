@@ -41,4 +41,13 @@ export const TAGS = {
   'Kenta Fujiwara': ['El sensato', 'Se le borra'],
   'Sakurako Busujima': ['Universidad femenina', 'Va de guapa'],
   'Shiori Kitahara': ['Hermana menor', 'Quiere el ryokan'],
+  'Rie Oohashi': ['Novia', 'Tranquila'],
+  'Kanako Iida': ['Universidad femenina', 'Amiga de Aina'],
+  'Keiko Suzuki': ['Universidad femenina', 'Amiga de Aina'],
+  'Kiyoko Kamio': ['Universidad femenina', 'Amiga de Aina'],
+  'Kitahara Chichi': ['Padre', 'Familia'],
+  'Kitahara Haha': ['Madre', 'Familia'],
+  'Naomi Otoya': ['Buceador', 'Capitan', 'Joven'],
+  'Ushironomiya': ['Profesor', 'Adulto'],
+  'Yuuichi Ikegoshi': ['Idol', 'Presentador', 'Doble'],
 };

@@ -41,7 +41,7 @@ export const PERSONAJES = [
   ['Golem', '', 'supporting', 'ゴーレム', 'Hiroki Touchi',
    'Sirviente mole de Crimson infiltrado en el ejercito como coronel. Tanque con patas que aguanta lo que sea. Su robot gigante planta cara a lo mas grande.'],
 
-  ['Starlia', '', 'supporting', 'スターリア・レーゼ', 'Rina Hidaka',
+  ['Starlia Lese', '', 'supporting', 'スターリア・レーゼ', 'Rina Hidaka',
    'Princesa sin brazos al mando del cuerpo franco, con ojos que ven el aura y protesis de plata. Se enamora de Ragna a primera vista y forja para el la cometa plateada. Manda mas que nadie sin levantar la voz.'],
 
   ['Olto Zora', '', 'supporting', 'オルト・ゾラ', 'Ryoutarou Okiayu',
@@ -58,4 +58,43 @@ export const PERSONAJES = [
 
   ['Borgius', '', 'supporting', 'ボルギウス', 'Kenyu Horiuchi',
    'Dragon anciano que se regenera para un ultimo ataque suicida. Tan viejo que solo le queda morir bien. Su final es de lo mas grande de la serie.'],
+
+  ['Femud Lese', '', 'supporting', 'フェムド・レーゼ', 'Takashi Matsuyama',
+   'Rey de Lese, quebrado por Ultimatia hasta ayudarla a matar su propio reino. Su hija Starlia es lo unico que le queda.'],
+
+  ['Christopher Algren', '', 'supporting', 'クリストファー・オルグレン', 'Kenji Hamada',
+   'Soldado del cuerpo franco que empuña la lanza gigante de Starlia contra Taratectra. De los que pelean hasta el final en la capital.'],
+
+  ['Dornea', '', 'supporting', 'ドルニーア', 'Keisuke Koumoto',
+   'Monarca dragon al que mato Starlia ella sola. Su caida llevo a Ultimatia a mover ficha contra el reino.'],
+
+  ['Fu', '', 'supporting', 'フー', 'Yukihiro Nozuyama',
+   'Mago taumaturgo del cuerpo, el unico que puede activar el circulo de teletransporte. Se inyecta sangre de dragon y muta para pelear.'],
+
+  ['Garm Ulban', '', 'supporting', 'ガルム・ウルバン', 'Shirou Saitou',
+   'General de Starlia y mejor espadachin de Lese. Reta a Ragna en duelo y lo pierde, y aun asi sigue peleando hasta caer ante Olto Zora.'],
+
+  ['Gilzea', '', 'supporting', 'ギルゼア', 'Rie Kugimiya',
+   'Monarca dragon conocida como la de la Garra. Del linaje alado.'],
+
+  ['Greya', '', 'supporting', 'グレア', 'Rio Tsuchiya',
+   'Comandante gemela con Hesela, del escuadron volador. Medio dragon por sangre y pasado de circo, de caracter retorcido.'],
+
+  ['Hesela', '', 'supporting', 'へゼラ', 'Rio Tsuchiya',
+   'Gemela de Greya y su otra mitad en el escuadron volador. Comparte sangre, pasado de circo y caracter retorcido.'],
+
+  ['Lakucia', '', 'supporting', 'ラクーシャ', 'Yuu Wakui',
+   'Princesa solariana a la que sirvieron Olto Zora y Taratectra cuando eran soldados humanos. Su muerte los marco a los dos.'],
+
+  ['Nazarena Teluzian', '', 'supporting', 'ナサレナ・テルジアン', 'Yuu Shimamura',
+   'Criada y asesina de Starlia, infiltrada por la iglesia para llevarla a su causa. Huye con Starlia herida y la ve morir en brazos.'],
+
+  ['Shin Cutlass', '', 'supporting', 'シン・カトラス', 'Tasuku Hatanaka',
+   'Comandante tozudo del cuerpo franco que reta a Ragna en duelo y lo pierde. Pierde brazo y pierna y sigue peleando hasta el final.'],
+
+  ['Temruogtaf', '', 'supporting', 'メルグブデ', 'Kouzou Shioya',
+   'Octavo del linaje alado. Su ejercito de arboles abre la guerra y Ragna lo tumba de un golpe al despertar.'],
+
+  ['Carula', '', 'supporting', 'カルラ', 'Reina Ueda',
+   'Santa del Tiempo de la iglesia solariana, de cara y magia iguales a Ultimatia. Ultimatia fue una de sus copias.'],
 ];

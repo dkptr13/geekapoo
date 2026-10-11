@@ -76,6 +76,35 @@ export const TEMPORADA_TVDB = {
   // TVDB no tiene. Es el unico capitulo que se queda sin imagen, y no
   // porque este mal el dato sino porque en esa fuente no existe.
   'neon-genesis-evangelion': { 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+
+  // Seishun Buta Yaro va en orden cronologico: series y peliculas
+  // mezcladas. TVDB guarda las cuatro pelis en el cajon de la
+  // temporada 0 (S0E6 a S0E9) y la serie universitaria como S2.
+  //
+  //   catalogo T2  "Yumemiru Shoujo" (2019)          TVDB S0E6
+  //   catalogo T3  "Odekake Sister" (jun 2023)       TVDB S0E7
+  //   catalogo T4  "Randoseru Girl" (dic 2023)       TVDB S0E8
+  //   catalogo T5  "Santa Claus" (TV 2025)           TVDB S2
+  //   catalogo T6  "Dear Friend" (oct 2026)          TVDB S0E9
+  'seishun-buta-yaro-wa-bunny-girl-senpai-no-yume-wo-minai': { 2: 0, 3: 0, 4: 0, 5: 2, 6: 0 },
+
+  // La pelicula de Takagi va como T4 del catalogo y TVDB la guarda
+  // en Specials. Las tres de television coinciden solas.
+  'teasing-master-takagi-san': { 4: 0 },
+
+  // Las Quintillizas va en orden cronologico: dos series, peli y dos
+  // especiales. TVDB guarda peli y especiales en Specials (S0E1 a
+  // S0E5); las dos series coinciden solas.
+  //
+  //   catalogo T3  pelicula (2022)               TVDB S0E1
+  //   catalogo T4  especial de verano (2023)     TVDB S0E2+E3
+  //   catalogo T5  luna de miel (2024)           TVDB S0E4+E5
+  'las-quintillizas': { 3: 0, 4: 0, 5: 0 },
+
+  // La peli de KonoSuba va como T3 y TVDB la guarda en Specials
+  // (S0E5). La T5 es la S3 de TVDB. Bakuen va aparte: es otra serie
+  // en TVDB (420657) y sus miniaturas se ponen a mano.
+  'konosuba': { 3: 0, 5: 3 },
 };
 
 /**

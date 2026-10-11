@@ -98,4 +98,30 @@ export const PERSONAJES = [
 
   ['Shiori Kitahara', '2,3', 'supporting', '北原栞', 'Sumire Morohoshi',
     'La hermana menor de Iori, de tercero de secundaria y con mania por el kimono. Finge querer a su hermano mientras trabaja por debajo para que se haga cargo del ryokan de la familia y ella pueda librarse de las exigencias de sus padres. Es la razon de que la temporada dos empiece con una carta.'],
+  ['Rie Oohashi', '1,3', 'supporting', '大橋りえ', 'Saki Yamakita',
+   'Novia de Mitarai, a la que se ve pegandole cuando los amigos intentan romperlos. Tranquila entre tanto grito. Sale en la primera y la tercera.'],
+
+  ['Kanako Iida', '1', 'supporting', '飯田かなこ', 'Yuuko Gibu',
+   'Amiga de Aina de la universidad femenina. Sale solo en la primera, con el grupo de las chicas.'],
+
+  ['Keiko Suzuki', '1', 'supporting', '鈴木恵子', 'Ai Kayano',
+   'Amiga de Aina de la universidad femenina. Sale solo en la primera, con el grupo de las chicas.'],
+
+  ['Kiyoko Kamio', '1', 'supporting', '神尾清子', 'Yuka Iguchi',
+   'Amiga de Aina de la universidad femenina. Sale solo en la primera, con el grupo de las chicas.'],
+
+  ['Kitahara Chichi', '3', 'supporting', '北原父', 'Naoya Uchida',
+   'Padre de Iori y Shiori. Aparece en la tercera cuando la familia entra en escena.'],
+
+  ['Kitahara Haha', '3', 'supporting', '北原母', 'Maaya Uchida',
+   'Madre de Iori y Shiori. Aparece en la tercera cuando la familia entra en escena.'],
+
+  ['Naomi Otoya', '2,3', 'supporting', '乙矢尚海', 'Yoshino Aoyama',
+   'Estudiante de instituto al que le encanta el buceo. Capitan del club de su centro y compañero de faenas de Iori y Sakurako. Sale en la segunda y la tercera.'],
+
+  ['Ushironomiya', '2,3', 'supporting', '右代宮', 'Takehito Koyasu',
+   'Profesor asociado de la universidad de Izu. Sale en la segunda y la tercera, del lado de los adultos.'],
+
+  ['Yuuichi Ikegoshi', '3', 'supporting', '池越雄一', 'Ryouhei Kimura',
+   'Idol del grupo SIPS y presentador del programa de la tele en Palaos. Se parece tanto a Kohei que este lo sustituye cuando se lesiona. Sale solo en la tercera.'],
 ];

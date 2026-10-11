@@ -2,7 +2,7 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// Veinte, que es el reparto de la primera temporada del anime. El del manga es
+// Veintitres, que es el reparto de la primera temporada del anime. El del manga es
 // bastante mas largo (la wiki de personajes lista mas de cuarenta), asi que no
 // esta todo: solo lo que sale en pantalla.
 //
@@ -39,8 +39,8 @@ export const PERSONAJES = [
   ['Qifrey', '', 'main', 'キーフリー', 'Natsuki Hanae',
    'El brujo del atelier, especialista en magia de agua. Lleva un ojo tapado porque de chico lo usaron de recipiente para un arbol de plata. Va buscando a los Sombrero de Ala desde entonces y no se detiene ante nada.'],
 
-  ['Agott Arklaum', '', 'main', 'アガット・アークロム', 'Hibiku Yamamura',
-   'La aprendiz de la familia Arclaum, que desprecia a Coco por despecho. Salio de la prueba de aprendiz con el rumor de que habia plagiado su magia, y lleva toda la serie intentando demostrar que se equivocaron.'],
+  ['Agott Arkrome', '', 'main', 'アガット・アークロム', 'Hibiku Yamamura',
+   'La aprendiz de la familia Arkrome, que desprecia a Coco por despecho. Salio de la prueba de aprendiz con el rumor de que habia plagiado su magia, y lleva toda la serie intentando demostrar que se equivocaron.'],
 
   ['Tetia', '', 'main', 'テティア', 'Kurumi Haruki',
    'La mas alegre del grupo, que quiere hacer hechizos que hagan feliz a la gente y ser recordada por ello. Es la que trae el hechizo de nube que calma al dragon.'],
@@ -75,10 +75,10 @@ export const PERSONAJES = [
   ['Nolnoa', '', 'supporting', 'ノルノア', 'Yoshito Yasuhara',
    'El anciano que hace las plumas y las tintas magicas. Sabe mas de lo que dice, y Qifrey le borra la memoria para que no cuente lo del dragon.'],
 
-  ['Coco’s mother', '', 'supporting', 'ココの母', 'Mayumi Sako',
+  ['Coco no Haha', '', 'supporting', 'ココの母', 'Mayumi Saco',
    'La sastresa que llevo sola el taller tras morir su marido. Es la primera victima del hechizo de Coco y la razon de que la protagonista entre en el mundo de la magia.'],
 
-  ['Brushbuddy', '', 'supporting', 'フデムシ', 'Misaki Kuno',
+  ['Fudemushi', '', 'supporting', 'フデムシ', 'Misaki Kuno',
    'Una bichera blanca y peluda que se pega a Coco durante la prueba por el olor de las tintas. Vive en el atelier y se le intuye una inteligencia parecida a la de una persona.'],
 
   ['Easthies', '', 'antagonist', 'イースヒース', 'Junichi Suwabe',
@@ -92,4 +92,13 @@ export const PERSONAJES = [
 
   ['Kukrow', '', 'antagonist', 'クックロウ', 'Hiroshi Yanaka',
    'El brujo despreocupado e irresponsable que fue maestro de Euini. Le da igual lo que le pase al chico mientras no le toque trabajar a el.'],
+
+  ['Utowin', '', 'antagonist', 'ウトウィン', 'Jun Kasama',
+   'Miembro de los Caballeros Moralis a las ordenes directas de Easthies. Sale con el cuerpo cuando toca hacer cumplir las reglas de la Gran Aula.'],
+
+  ['Galga', '', 'antagonist', 'ガルガ', 'Hiroki Yasumoto',
+   'Brujo de los Caballeros Moralis, alto y de complexion fuerte. Sale con el cuerpo cuando toca perseguir a quien abusa de la magia.'],
+
+  ['Richeh no Sensei', '', 'supporting', 'リチェの先生', 'Youji Ueda',
+   'El maestro de Richeh. Hombre serio de pocas palabras al que su alumna respeta, y que aparece cuando el pasado de Richeh vuelve a escena.'],
 ];

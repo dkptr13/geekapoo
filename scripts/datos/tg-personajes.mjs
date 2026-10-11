@@ -158,4 +158,75 @@ export const PERSONAJES = [
    'El que no habla y come sin parar. Shirazu lo mata y descubre que era un cadaver.'],
   ['Nico', '3', 'supporting', 'ニコ', 'Kenjirō Tsuda',
    'De los Payasos, y el unico que no sigue a Furuta. Sale poco y en el bando correcto.'],
+  ['Yukinori Shinohara', '1,2,4', 'supporting', '篠原幸紀', 'Yutaka Nakano',
+   'Investigador de clase especial y mentor de Amon y Juuzou. De los pocos de la Comision que caen bien. Sale en la primera, la segunda y el OVA Jack.'],
+
+  ['Yoshitoki Washuu', '2,3', 'supporting', '和修吉時', 'Shunsuke Sakuya',
+   'Mando maximo de la Comision y cara amable de la institucion. Sale en la segunda y la tercera.'],
+
+  ['Ui Koori', '2,3', 'supporting', '宇井郡', 'Keisuke Oda',
+   'Del Escuadron Cero de la Comision. Sale en la segunda y la tercera.'],
+
+  ['Kousuke Houji', '1,3', 'supporting', '法寺項介', 'Shou Hayami',
+   'Investigador veterano de la Comision, compañero de Shinohara. Sale en la primera y la tercera.'],
+
+  ['Iwao Kuroiwa', '2,3', 'supporting', '黒磐巌', 'Ryuuzaburou Ootomo',
+   'Investigador de clase especial, tanque humano de la Comision. Sale en la segunda y la tercera.'],
+
+  ['Chuu Hachikawa', '2,3', 'supporting', '鉢川忠', 'Kenta Miyake',
+   'Investigador asociado de clase especial de la Comision. Sale en la segunda y la tercera.'],
+
+  ['Kouitsu Chigyou', '2,3', 'supporting', '地行甲乙', 'Shinji Kawada',
+   'Jefe de investigacion goul en el laboratorio de la Comision. Vino del GFG de Alemania. Sale en la segunda y la tercera.'],
+
+  ['Matasaka Kamishiro', '2,3', 'supporting', '神代叉栄', 'Kiyoyuki Yanada',
+   'Padre de Rize. Sale en la segunda y la tercera.'],
+
+  ['Arata Kirishima', '1,3', 'supporting', '霧嶋新', 'Yuuya Uchida',
+   'Padre de Touka y Ayato. Sale en la primera y la tercera.'],
+
+  ['Kimi Nishino', '1,2', 'supporting', '西野貴未', 'Yurie Kobori',
+   'Ayudante de Kanou en sus experimentos y novia humana de Nishio, estudiante de medicina. Le guardo el secreto. Sale en la primera y la segunda.'],
+
+  ['Misato Gori', '1,2', 'supporting', '五里美郷', 'Reina Ueda',
+   'Investigadora de rango 2 del distrito 13. Sale en la primera y la segunda.'],
+
+  ['Maiko Abe', '1,3', 'supporting', '阿倍麻衣子', 'Mayumi Asano',
+   'Miembro del restaurante goul. Sale en la primera y la tercera.'],
+
+  ['Hisashi Ogura', '1,3', 'supporting', '小倉久志', 'Teruyuki Tanzawa',
+   'Investigador de gouls que sale en television hablando de ellos. Sale en la primera y la tercera.'],
+
+  ['Katsuya Mabuchi', '1,2,3', 'supporting', '馬淵活也', 'Shinya Takahashi',
+   'Investigador subordinado de Marude y miembro de los Payasos. Sale en las tres.'],
+
+  ['Mougan Tanakamaru', '2,3', 'supporting', '田中丸望元', 'Tsuyoshi Koyama',
+   'Investigador de clase especial y director de la sucursal del distrito 2. Capitan del escuadron 2 en el asalto a Anteiku. Sale en la segunda y la tercera.'],
+
+  ['Miza Kusakari', '3', 'supporting', '草刈ミザ', 'Yumiri Hanamori',
+   'Goul ex-ejecutiva de Aogiri, alias Tres Cuchillas por su kagune. Lidero el distrito 18. Sale en la tercera.'],
+
+  ['Ching-Li Hsiao', '3', 'supporting', '小静麗', 'Maya Enoyoshi',
+   'Investigadora taiwanesa de rango 1 y de la segunda hornada del escuadron Quinx. Sale en la tercera.'],
+
+  ['Keijin Nakarai', '3', 'supporting', '半井恵仁', 'Yuuya Hirose',
+   'Investigador de primera clase, vice-lider del escuadron de Suzuya en el distrito 13. Sale en la tercera.'],
+
+  ['Nobu Shimoguchi', '3', 'supporting', '下口房', 'Soushirou Hori',
+   'Investigador de primera clase con escuadron propio. Llevo el caso del Torso con el Quinx. Sale en la tercera.'],
+
+  ['Goumasa Tokage', '3', 'supporting', '戸影豪正', 'Atsuyoshi Miyazaki',
+   'Instructor de combate de la segunda academia. Sale en la tercera.'],
+
+  ['Nashiro Yasuhisa', '2', 'supporting', '安久奈白', 'Haruka Tomatsu',
+   'Goul artificial de un ojo que planto cara a Kaneki junto a su gemela Kurona. Sale en la segunda.'],
+
+  ['Aki Sasada', '4', 'main', '笹田アキ', 'Rumi Ookubo',
+   'Amiga de la infancia de Taishi y novia de Ryou. Protagonista del OVA Jack.'],
+
+  ['Uruka Minami', '4', 'main', '三波麗花', 'Saori Hayami',
+   'Estudiante de segundo en Seishin, compañera de Arima y Taishi. Protagonista del OVA Jack.'],
+
+  ['Matsumae', '3,4', 'supporting', '松前', 'Chie Nakamura',
+   'Criada de la familia Tsukiyama. Sale en la tercera y en el OVA Pinto.'],
 ];

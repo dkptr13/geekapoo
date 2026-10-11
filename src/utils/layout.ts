@@ -15,9 +15,9 @@
  * Alto del recuadro de imagen de una tarjeta de personaje.
  * h-80 = 20rem = 320px.
  *
- * Las fotos de personaje suelen ser verticales y la tarjeta
- * ocupa media pantalla de ancho, así que con "object-cover" se
- * ve una franja estrecha. Cuanto más alto el recuadro, menos
- * descompensada queda la proporción y menos se recorta.
+ * Todas las tarjetas usan este mismo alto: la foto se adapta
+ * dentro con "object-contain", asi que da igual que el original
+ * sea vertical, cuadrado u horizontal. El fondo oscuro del
+ * recuadro rellena lo que sobra.
  */
 export const ALTURA_CARD_PERSONAJE = 'h-80';

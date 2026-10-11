@@ -18,4 +18,11 @@ export const TAGS = {
   'Karen Himemiya': ['Novia', 'Rival', 'Amable'],
   'Mitsuki Ayano': ['Infancia', 'Novio', 'Amigo'],
   'Chihaya Asagumo': ['Novia', 'Celosa', 'Amiga'],
+  'Kaju Nukumizu': ['Hermana pequeña', 'Mejor amiga', 'Directa'],
+  'Sayo Konuki': ['Enfermera', 'Asesora', 'Adulta'],
+  'Konami Amanatsu': ['Tutora', 'Su clase', 'Paciente'],
+  'Yumeko Shikiya': ['Secretaria', 'Consejo', 'Seria'],
+  'Asami Gondou': ['Mejor amiga', 'Jardineria', 'Plantas'],
+  'Hibari Hokobaru': ['Presidenta', 'Consejo', 'Famosa'],
+  'Tiara Basori': ['Vicepresidenta', 'Consejo', 'Nerviosa'],
 };

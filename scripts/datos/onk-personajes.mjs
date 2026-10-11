@@ -13,8 +13,16 @@
 //
 // QUE HAY EN ESTA FICHA
 //
-// Veintiocho. No esta el reparto entero, sino los que tienen peso: los
+// Veintisiete. No esta el reparto entero, sino los que tienen peso: los
 // que cambian la trama y los que se verian raro que no estuvieran.
+//
+// ── POR QUE NO ESTA "MIYU" ──────────────────────────────────
+//
+// Llego a estar como 'Miyu' (ミユ, supuesta voz Kana Hanazawa,
+// "administradora de B-Komachi"). No existe en la serie: el puesto de
+// Miyako Saito ya esta cubierto en esta ficha con su voz real (Lynn),
+// y Kana Hanazawa es Nino, del B-Komachi original. Era un duplicado
+// fantasma con la voz de otra, y se quito en octubre de 2026.
 //
 // DE DONDE VIENEN LOS KANJI Y LAS VOCES
 //
@@ -114,9 +122,6 @@ export const PERSONAJES = [
 
   ['Ryūnosuke Sugano', '1,2', 'supporting', '菅野良介', 'Atsushi Tamaru',
      'El provocador. El que se pasa de la raya en el show de Ai y el que deja en manos de Ruby el telefono con lo de la muerte de su madre. Es el hilo suelto mas importante de la primera temporada.'],
-
-  ['Miyu', '2,3', 'supporting', 'ミユ', 'Kana Hanazawa',
-   'La administradora de B-Komachi que se ocupa de que todo el mundo mantenga la fachada. Es quien decide que se dice en los entrevistas y que se calla, y por eso es la primera en caer cuando algo se sale de su control.'],
 
   ['Tsukuyomi', '3', 'supporting', 'つくよみ', 'Hina Kino',
    'La chica de pelo blanco que aparece al final de la segunda temporada y trae toda la informacion del final. Nadie de la serie la conoce y es quien tiene la razon del giro final.'],

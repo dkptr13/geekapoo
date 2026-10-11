@@ -153,6 +153,23 @@ const SOLO_T3 = [
    'El Rey Dragón Acorazado. Vive en una fortaleza flotante y lleva veinte años esperando que Laplace regrese para matarlo otra vez.'],
 ];
 
+// ── Añadidos en octubre de 2026 ─────────────────────────────
+// Faltaban en la auditoria contra AniList: el dios hombre, el
+// principe de Shirone, la guardia de Zanoba, el primogenito de
+// Asura y la cabeza de los Notos.
+const NUEVOS = [
+  ['Hitogami', '', 'antagonist', 'ヒトガミ', 'Kujira',
+   'Dios hombre de cara en blanco que ve el futuro y ayuda a Rudeus en momentos clave. Enemigo jurado de Orsted y, al final, el antagonista de fondo de todo.'],
+  ['Pax Shirone', '1', 'supporting', 'パックス・シーローン', 'Jun Fukushima',
+   'Principe del reino de Shirone. Sale en la primera temporada.'],
+  ['Ginger York', '1,2', 'supporting', 'ジンジャー・ヨーク', 'Tomo Muranaka',
+   'Subordinada leal de Zanoba y antigua guardia imperial. Sale en la primera y la segunda.'],
+  ['Grabell Zafin Asura', '1,2', 'supporting', 'グラーヴェル・ザフィン・アスラ', 'Masaaki Mizunaka',
+   'Primer principe de Asura y medio hermano de Ariel. Sale en la primera y la segunda.'],
+  ['Pilemon Notos Greyrat', '2', 'supporting', 'ピレモン・ノトス・グレイラット', 'Masaki Terasoma',
+   'Cabeza de los Notos, hermano de Paul y padre de Luke. Sale en la segunda.'],
+];
+
 export const PERSONAJES = [
   ...COMPARTIDOS,
   ...SOLO_T1,
@@ -160,4 +177,5 @@ export const PERSONAJES = [
   ...T2_Y_T3,
   ...SOLO_T2,
   ...SOLO_T3,
+  ...NUEVOS,
 ];

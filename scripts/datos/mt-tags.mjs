@@ -120,4 +120,11 @@ export const TAGS = {
   'Reida Lia': ['Agua Dios'],
   'Isolte Cruel': ['Agua Dios', 'Antagonistas'],
   'Perugius Dola': ['Antagonistas', 'Rey Dragón Acorazado', 'Chaos Breaker'],
+
+  // ── Añadidos en octubre de 2026 ─────────────────────────
+  'Hitogami': ['Dios hombre', 'Futuro', 'Antagonistas'],
+  'Pax Shirone': ['Principe', 'Shirone'],
+  'Ginger York': ['Guardia', 'Zanoba', 'Leal'],
+  'Grabell Zafin Asura': ['Principe', 'Asura', 'Hermano'],
+  'Pilemon Notos Greyrat': ['Notos', 'Padre', 'Hermano'],
 };

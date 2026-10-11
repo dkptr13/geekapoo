@@ -64,7 +64,7 @@ export const PERSONAJES = [
     'Hija de un ingles y una japonesa, compañera de toda la vida y la mejor dibujante de la clase por fuera. Por dentro es una ilustradora que trabaja con el nombre de otra persona y que nunca habia dicho que vendia de mas porque si. Es la que mas frio esta y la que peor lo lleva.'],
   ['Utaha Kasumigaoka', '', 'main', '霞ヶ丘詩羽', 'Ai Kayano',
     'La que mas cosas dice de si misma y la que mas se equivoca. Es la que escribe el guion del proyecto del otro y la que usa ese mismo proyecto como arma sin darse cuenta de que lo esta haciendo. Es la unica de las cinco que se va de casa, y lo hace en el ultimo capitulo de la primera temporada.'],
-  ['Izumi Hashima', '', 'main', '波島出海', 'Chika Akasaki',
+  ['Izumi Hashima', '', 'supporting', '波島出海', 'Chika Akasaki',
     'Del trio de la infancia y la que menos misterio tiene de las tres. Dice lo que piensa en el momento en que lo piensa, que es justo lo contrario de lo que hacen las otras, y por eso es la que mas veces le dice a Tomoya la verdad.'],
   ['Michiru Hyoudou', '', 'main', '氷堂 美智留', 'Sayuri Yagishita',
     'La rival de fuera del instituto: misma edad, otra escuela, y un grupo de musica al que pertenece. Es la unica de las candidatas que llega con vida hecha, y el capitulo suyo es el que explica por que el grupo del prota no es solo el grupo del prota.'],
