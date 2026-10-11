@@ -1182,7 +1182,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
           {/* Characters Grid */}
           {filteredCharacters.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center md:col-span-2">
+            <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center col-span-full">
               <Users size={22} className="mx-auto text-zinc-700" />
               <p className="mt-3 text-sm text-zinc-500">
                 {allCharacters.length === 0
@@ -1191,7 +1191,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               </p>
             </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-4 min-[480px]:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
               {filteredCharacters.map((char) => {
               const isLiked = currentUser ? char.likedBy?.includes(currentUser.uid) : false;
               const isExpanded = expandedCharacterId === char.id;
@@ -1236,7 +1236,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                       </div>
                     </div>
 
-                    <div className="p-5">
+                    <div className="p-4">
                       <h4 className="text-lg font-bold text-white">{char.name}</h4>
                       {char.japaneseName && (
                         <span className="text-xs text-violet-400 font-mono block">

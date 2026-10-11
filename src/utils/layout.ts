@@ -13,11 +13,13 @@
 
 /**
  * Alto del recuadro de imagen de una tarjeta de personaje.
- * h-80 = 20rem = 320px.
+ * h-72 = 18rem = 288px.
  *
- * Todas las tarjetas usan este mismo alto: la foto se adapta
- * dentro con "object-contain", asi que da igual que el original
- * sea vertical, cuadrado u horizontal. El fondo oscuro del
- * recuadro rellena lo que sobra.
+ * La rejilla es de hasta 4 columnas, asi que las tarjetas son
+ * estrechas: con esta altura un retrato vertical tipico casi
+ * llena el recuadro. Todas las tarjetas usan este mismo alto y
+ * la foto se adapta dentro con "object-contain", asi que da igual
+ * que el original sea vertical, cuadrado u horizontal. El fondo
+ * oscuro del recuadro rellena lo que sobra.
  */
 export const ALTURA_CARD_PERSONAJE = 'h-80';
