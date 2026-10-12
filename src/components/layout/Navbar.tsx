@@ -20,6 +20,8 @@ import {
   ArrowUpRight,
   Trophy,
   Brain,
+  Sparkles,
+  Settings,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -28,6 +30,8 @@ import { useChat } from '../../context/ChatContext';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { useNotifications } from '../../context/NotificationsContext';
 import { NotificationBell } from '../notifications/NotificationBell';
+import { AccountMenu } from './AccountMenu';
+import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
 
 
 // ======================================================
@@ -94,6 +98,28 @@ export default function Navbar({
   const hasUnread = unreadCount > 0;
 
   const navigate = useNavigate();
+
+  // Escritura conjunta de la URL (pestaña + acción del perfil).
+  // `setCurrentTab` solo toca `tab` y limpia `usuario`; para
+  // abrir el editor o los ajustes hace falta escribir `accion`
+  // en la misma operación, o se pisa una clave a otra.
+  const setUrl = useQueryStateBatch();
+
+  // Si se está mirando el perfil propio (sin `usuario`), para
+  // marcar "Mi perfil" como activo en el desplegable.
+  const [usuarioParam] = useQueryState('usuario', '');
+
+  const perfilPropioActivo = currentTab === 'perfil' && !usuarioParam;
+
+  /** Va al perfil propio, con el editor abierto si se pide. */
+  const irAPerfil = (editar?: boolean) => {
+    setUrl({ tab: 'perfil', usuario: null, accion: editar ? 'editar' : null });
+  };
+
+  /** Va al apartado propio de configuración de la cuenta. */
+  const irAAjustes = () => {
+    setUrl({ tab: 'ajustes', usuario: null, accion: null });
+  };
 
 
   // ====================================================
@@ -423,72 +449,20 @@ export default function Navbar({
               {/* NOTIFICACIONES */}
               <NotificationBell />
 
-              {/* PERFIL.
-
-                  Con sesión, el avatar sí se queda a la vista en
-                  el móvil: es la forma más corta de volver al
-                  perfil, y encima enseña la foto, así que se
-                  reconoce sin texto. El nombre va a partir de sm
-                  (640px), que es donde ya no empuja al logo. */}
-
-              <button
-                type="button"
-                onClick={() => goToTab('perfil')}
-                aria-label="Mi perfil"
-                className="flex items-center gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-gray-800"
-              >
-
-                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-violet-500/40 bg-purple-600/20 text-purple-300">
-
-                  {currentUser.avatarUrl ? (
-                    <img
-                      src={currentUser.avatarUrl}
-                      alt={displayName}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <User size={16} />
-                  )}
-
-                </div>
-
-
-                <div className="hidden text-left sm:block">
-
-                  <div className="max-w-[140px] truncate text-xs font-bold text-white">
-                    {displayName}
-                  </div>
-
-                  <div className="text-[10px] text-gray-400">
-                    {currentUser?.role === 'admin'
-                      ? '[ADMIN]'
-                      : currentUser?.role === 'moderator'
-                        ? '[MODERADOR]'
-                        : 'Usuario'}
-                  </div>
-
-                </div>
-
-              </button>
-
-
-              {/* SALIR. A partir de md; en el móvil está en el
-                  menú. Antes el texto se escondía por debajo de sm
-                  y dejaba un botón cuadrado sin decir qué hacía. */}
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="hidden items-center gap-1.5 rounded-lg border border-gray-800 px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300 md:flex"
-              >
-
-                <LogOut size={16} />
-
-                <span>
-                  Salir
-                </span>
-
-              </button>
+              {/* CUENTA.
+                  El desplegable con "Mi perfil", "Personalizar
+                  perfil", "Configuración de cuenta" y "Cerrar
+                  sesión". El botón de salir suelto que había aquí
+                  se movió dentro, para no tenerlo dos veces. */}
+              <AccountMenu
+                usuario={currentUser}
+                currentTab={currentTab}
+                perfilPropioActivo={perfilPropioActivo}
+                onMiPerfil={() => irAPerfil()}
+                onPersonalizar={() => irAPerfil(true)}
+                onAjustes={irAAjustes}
+                onLogout={() => void handleLogout()}
+              />
 
             </>
 
@@ -623,6 +597,30 @@ export default function Navbar({
                   </span>
 
                   <ArrowUpRight size={14} className="flex-shrink-0 text-gray-500" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuAbierto(false);
+                    irAPerfil(true);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-300 transition-colors hover:bg-gray-800/70 hover:text-white"
+                >
+                  <Sparkles size={17} className="flex-shrink-0 text-violet-400" />
+                  Personalizar perfil
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuAbierto(false);
+                    irAAjustes();
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-300 transition-colors hover:bg-gray-800/70 hover:text-white"
+                >
+                  <Settings size={17} className="flex-shrink-0 text-gray-400" />
+                  Configuración de cuenta
                 </button>
 
                 <button

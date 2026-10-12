@@ -43,7 +43,8 @@ import type { PrivacySettings } from '../../types';
 //   Gestión de cuenta → correo, contraseña y sesión
 //   Eliminar cuenta   → la zona roja, con su contraseña
 //
-// Va en el perfil y no en el panel de admin porque todo lo que
+// Vive en su pestaña propia (`?tab=ajustes`) y no al final del
+// perfil: es de la cuenta, no del perfil público. Todo lo que
 // hay aquí es de la cuenta propia: el admin puede banear a
 // alguien, pero no puede cambiarle el correo ni borrarle la
 // cuenta, y al revés: el usuario no se borra a sí mismo desde un

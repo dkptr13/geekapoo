@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Copy,
   Check,
@@ -7,7 +7,6 @@ import {
   Calendar,
   ArrowUpRight,
   Reply,
-  Settings,
   Star,
   Play,
   Users,
@@ -40,7 +39,6 @@ import {
   VitrinaPrincipal,
   VitrinaTexto,
 } from './ProfileShowcases';
-import { AccountSettings } from './AccountSettings';
 import { FollowersModal } from '../follows/FollowersModal';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 
@@ -81,6 +79,14 @@ interface ProfileViewProps {
    * "atrás" del navegador funcione y recargar no pierda la vista.
    */
   userId?: string;
+  /**
+   * Qué hacer al montar el perfil propio: 'editar' abre el
+   * editor. Lo escribe el menú de cuenta y se consume una sola
+   * vez (ver `onAccionConsumida`). En perfiles ajenos se ignora.
+   */
+  accionInicial?: string;
+  /** Borra `accion` de la URL tras consumirla, para no repetirla. */
+  onAccionConsumida?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = (props) => {
@@ -171,6 +177,8 @@ export const ProfileView: React.FC<ProfileViewProps> = (props) => {
       esPropio={esPropio}
       onGoToThread={props.onGoToThread}
       onGoToAnime={props.onGoToAnime}
+      accionInicial={esPropio ? props.accionInicial : undefined}
+      onAccionConsumida={props.onAccionConsumida}
     />
   );
 };
@@ -204,7 +212,9 @@ const Perfil: React.FC<{
   esPropio: boolean;
   onGoToThread?: (threadId: string, commentId?: string) => void;
   onGoToAnime?: (slug: string) => void;
-}> = ({ onGoToThread, onGoToAnime, perfil, esPropio }) => {
+  accionInicial?: string;
+  onAccionConsumida?: () => void;
+}> = ({ onGoToThread, onGoToAnime, perfil, esPropio, accionInicial, onAccionConsumida }) => {
   // Seguimientos. El contexto centraliza los contadores y el estado
   // del botón, para que el perfil no tenga dos o tres listeners
   // propios: el modal y las filas de la lista también lo necesitan.
@@ -220,9 +230,23 @@ const Perfil: React.FC<{
   const [showMyLikes, setShowMyLikes] = useState(false);
   const [editorAbierto, setEditorAbierto] = useState(false);
 
-  // Referencia al apartado de configuración, para el botón de la
-  // cabecera que baja hasta él.
-  const settingsRef = useRef<HTMLDivElement | null>(null);
+  // ── Acción pendiente del menú de cuenta ──────────────
+  //
+  // 'editar' abre el editor. Solo en el perfil propio: en el
+  // ajeno no hay editor que abrir. Se consume una sola vez (se
+  // borra de la URL): sin eso, volver al perfil reabriría el
+  // editor.
+  useEffect(() => {
+    if (!accionInicial || !esPropio) return;
+    if (accionInicial === 'editar') {
+      setEditorAbierto(true);
+    }
+    onAccionConsumida?.();
+    // Solo al montar / al llegar la acción. `onAccionConsumida`
+    // se excluye a propósito: incluirla relanzaría el efecto en
+    // cada render del padre.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accionInicial, esPropio]);
 
   // Si el usuario ha pedido que su actividad no se vea, no se le
   // cuentan los hilos ni los comentarios ni se le listan. La
@@ -525,21 +549,6 @@ const Perfil: React.FC<{
           {copiedUid && (
             <span className="text-xs font-semibold text-emerald-400">¡UID copiado al portapapeles!</span>
           )}
-
-          {/* Acceso a privacidad, correo, contraseña y borrado */}
-          <button
-            type="button"
-            onClick={() =>
-              settingsRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-              })
-            }
-            className="flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-violet-500/40 hover:text-white"
-          >
-            <Settings size={13} className="text-violet-400" />
-            Configuración de la cuenta
-          </button>
         </div>
       )}
 
@@ -891,21 +900,6 @@ const Perfil: React.FC<{
               </>
             ))}
         </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════
-          CONFIGURACIÓN DE LA CUENTA
-
-          Va al final del perfil y no dentro del editor porque no
-          guarda el perfil: son los ajustes de la cuenta
-          (privacidad, correo, contraseña y el borrado). El ref es
-          para el botón de arriba.
-
-          Solo del dueño, que es de quien son estos ajustes. */}
-      {esPropio && (
-        <div ref={settingsRef} className="scroll-mt-20">
-          <AccountSettings />
-        </div>
       )}
 
       {/* ── MODAL DE SEGUIDORES ────────────────────────────

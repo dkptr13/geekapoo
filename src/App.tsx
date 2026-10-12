@@ -30,6 +30,7 @@ import { ChatView } from './components/chat/ChatView';
 import { SupportView } from './components/support/SupportView';
 import { ExtrasView } from './components/extras/ExtrasView';
 import { ProfileView } from './components/profile/ProfileView';
+import { AccountSettings } from './components/profile/AccountSettings';
 import { OtakuMascot } from './components/mascot/OtakuMascot';
 import { DailyTriviaView } from './components/trivia/DailyTriviaView';
 import { AuthModal } from './components/auth/AuthModal';
@@ -139,6 +140,13 @@ const {
   // `useGoToProfile`, que escribe la URL entera desde el hook. Este
   // solo lee. Y quien lo borra es `setCurrentTab`, de más abajo.
   const [usuarioParam] = useQueryState('usuario', '');
+
+  // Qué tiene que hacer el perfil al montarse: abrir el editor
+  // ('editar') o bajar a los ajustes ('ajustes'). Lo escribe el
+  // menú de cuenta de la barra, en la misma operación que pone
+  // `tab=perfil`, y lo consume `ProfileView` una sola vez (luego
+  // lo borra de la URL para no reabrirlo al volver).
+  const [accionParam] = useQueryState('accion', '');
 
   // Hilo y comentario a los que hay que saltar, si vienen en la URL.
   //
@@ -454,6 +462,8 @@ const {
               onGoToThread={goToThread}
               onGoToAnime={handleGoToAnime}
               userId={usuarioParam || undefined}
+              accionInicial={accionParam || undefined}
+              onAccionConsumida={() => setUrl({ accion: null })}
             />
           ) : (
             <div className="flex min-h-[400px] items-center justify-center">
@@ -465,6 +475,36 @@ const {
 
                 <p className="mt-2 text-sm text-zinc-400">
                   Debes iniciar sesión para ver tu perfil.
+                </p>
+
+              </div>
+            </div>
+          )
+        )}
+
+
+        {/* ================================================
+            CONFIGURACIÓN DE LA CUENTA
+        =================================================
+        Apartado propio (ya no vive al final del perfil): solo
+        con sesión, como el perfil. Cada usuario solo ve la
+        suya, porque `AccountSettings` lee de `currentUser`. */}
+
+        {currentTab === 'ajustes' && (
+          currentUser ? (
+            <div className="mx-auto max-w-3xl 2xl:max-w-4xl">
+              <AccountSettings />
+            </div>
+          ) : (
+            <div className="flex min-h-[400px] items-center justify-center">
+              <div className="text-center">
+
+                <h2 className="text-xl font-bold text-white">
+                  Inicia sesión
+                </h2>
+
+                <p className="mt-2 text-sm text-zinc-400">
+                  Debes iniciar sesión para ver tu configuración.
                 </p>
 
               </div>
