@@ -57,6 +57,7 @@ import {
 } from '../../data/profileCustomization';
 import { ESTILO_RAREZA } from '../gamification/MedalCard';
 import { CropEditor } from '../common/CropEditor';
+import { ProfileHeader } from './ProfileHeader';
 import { textoTitulo } from '../gamification/AuthorBadge';
 import type { ImageCropSettings } from '../../services/imageCrop';
 import type { PerfilEditable } from '../../types/profile';
@@ -172,7 +173,29 @@ export const CustomizeProfileModal: React.FC<{
   const [decoracionSel, setDecoracionSel] = useState<string | null>(null);
 
   const lienzoRef = React.useRef<HTMLDivElement | null>(null);
-  const arrastrandoRef = React.useRef<string | null>(null);
+
+  // Arrastre en curso: id + desplazamiento entre el cursor y el
+  // centro del elemento al agarrar. Sin ese desplazamiento, el
+  // elemento saltaría con el centro al cursor al empezar a mover.
+  const agarreRef = React.useRef<{ id: string; dx: number; dy: number } | null>(null);
+
+  // Ancho del marco del lienzo, para encoger la cabecera con
+  // `zoom`. Se mide al abrir la pestaña (antes no existe).
+  const marcoRef = React.useRef<HTMLDivElement | null>(null);
+  const [anchoMarco, setAnchoMarco] = React.useState(0);
+
+  React.useEffect(() => {
+    if (pestana !== 'decoracion') return;
+    const el = marcoRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setAnchoMarco(el.clientWidth));
+    setAnchoMarco(el.clientWidth);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [pestana]);
+
+  /** La cabecera real mide 768 de referencia; se encoge a lo que quepa. */
+  const escalaLienzo = anchoMarco > 0 ? Math.min(1, anchoMarco / 768) : 1;
 
   const [errores, setErrores] = useState<Partial<Record<keyof PerfilEditable, string>>>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
@@ -358,21 +381,48 @@ export const CustomizeProfileModal: React.FC<{
     if (d) tocarDecoracion(id, { x: d.x + dx, y: d.y + dy });
   };
 
-  const alMoverLienzo = (e: React.PointerEvent) => {
-    const id = arrastrandoRef.current;
-    if (!id || !lienzoRef.current) return;
-    const r = lienzoRef.current.getBoundingClientRect();
-    if (r.width <= 0 || r.height <= 0) return;
-    const x = ((e.clientX - r.left) / r.width) * 100;
-    const y = ((e.clientY - r.top) / r.height) * 100;
-    tocarDecoracion(id, { x, y });
-  };
+  // ── Arrastre en el lienzo ────────────────────────
+  //
+  // Al pulsar se anota el agarre y el movimiento se escucha en la
+  // VENTANA, no en el lienzo: así no depende de que la captura de
+  // puntero sobreviva a los re-renders (cada movimiento repinta
+  // la cabecera) ni de que el cursor siga encima del lienzo. Las
+  // coordenadas salen siempre del mismo rectángulo que ve el
+  // usuario, así que el elemento sigue al dedo sin saltos.
+  //
+  // El `preventDefault` del inicio impide el arrastre nativo de
+  // la imagen fantasma al pulsar sobre una imagen o un icono.
 
-  const decoracionContenido = (d: Decoracion): React.ReactNode => {
-    if (d.kind === 'sticker') return PEGATINAS.find((p) => p.id === d.ref)?.emoji ?? '?';
-    if (d.kind === 'image') return null; // la imagen se pinta abajo (con su onError)
-    const medalla = desbloqueadas.find((m) => m.id === d.ref);
-    return medalla?.icono ?? '?';
+  const alAgarrar = (e: React.PointerEvent, id: string) => {
+    e.preventDefault();
+    const caja = e.currentTarget.getBoundingClientRect();
+    agarreRef.current = {
+      id,
+      dx: e.clientX - (caja.left + caja.width / 2),
+      dy: e.clientY - (caja.top + caja.height / 2),
+    };
+    setDecoracionSel(id);
+
+    const mover = (ev: PointerEvent) => {
+      const g = agarreRef.current;
+      const el = lienzoRef.current;
+      if (!g || !el) return;
+      const r = el.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) return;
+      tocarDecoracion(g.id, {
+        x: ((ev.clientX - r.left - g.dx) / r.width) * 100,
+        y: ((ev.clientY - r.top - g.dy) / r.height) * 100,
+      });
+    };
+    const soltar = () => {
+      agarreRef.current = null;
+      window.removeEventListener('pointermove', mover);
+      window.removeEventListener('pointerup', soltar);
+      window.removeEventListener('pointercancel', soltar);
+    };
+    window.addEventListener('pointermove', mover);
+    window.addEventListener('pointerup', soltar);
+    window.addEventListener('pointercancel', soltar);
   };
 
   // ── Vitrinas ─────────────────────────────────────
@@ -424,6 +474,9 @@ export const CustomizeProfileModal: React.FC<{
           }
         : null,
       equippedTitle: datos.equippedTitle ?? null,
+      // Las decoraciones del borrador: la cabecera del lienzo las
+      // pinta con su propia capa, igual que en el perfil.
+      decorations: datos.decorations ?? [],
     }),
     [currentUser, datos],
   );
@@ -1241,79 +1294,77 @@ export const CustomizeProfileModal: React.FC<{
             {pestana === 'decoracion' && (
               <>
                 <p className="-mt-2 text-[11px] text-zinc-500">
-                  Hasta {MAX_DECORACIONES} elementos sobre la cabecera. Arrastra en el
-                  lienzo o usa las posiciones fijas; en el móvil, los botones de mover.
+                  Hasta {MAX_DECORACIONES} elementos sobre tu cabecera, tal cual se
+                  verá: arrastra en el lienzo o usa las posiciones fijas; en el
+                  móvil, los botones de mover.
                 </p>
 
-                {/* LIENZO */}
+                {/* LIENZO: la cabecera de verdad, encogida.
+                    No es una imitación con estructura fija: es
+                    `ProfileHeader` con el borrador, al que se le
+                    aplica `zoom` para que quepa. Si añades
+                    personaje favorito, bio o título, la tarjeta
+                    crece aquí igual que en el perfil, y las
+                    posiciones en % caen en el mismo sitio. Lo que
+                    se ve lo pinta su propia capa (la misma del
+                    perfil); encima van zonas de agarre invisibles
+                    para arrastrar. */}
                 <div
-                  ref={lienzoRef}
-                  onPointerMove={alMoverLienzo}
-                  onPointerUp={() => {
-                    arrastrandoRef.current = null;
-                  }}
-                  onPointerLeave={() => {
-                    arrastrandoRef.current = null;
-                  }}
-                  className="relative h-44 touch-none select-none overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950"
+                  ref={marcoRef}
+                  className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/90"
                 >
-                  <span aria-hidden="true" className="absolute inset-0 opacity-40" style={{ background: colorVista }} />
-                  <span className="absolute left-3 top-3 flex items-center gap-2">
-                    <img
-                      src={datos.avatarUrl || avatarPorDefecto}
-                      alt=""
-                      aria-hidden="true"
-                      className="h-10 w-10 rounded-xl object-cover ring-2 ring-zinc-700"
-                    />
-                    <span className="text-xs font-black text-white drop-shadow">
-                      {datos.displayName.trim() || currentUser.username}
-                    </span>
-                  </span>
-                  {(datos.decorations ?? []).map((d) => {
-                    const px = TAMANOS_DECORACION[d.size];
-                    const sel = decoracionSel === d.id;
-                    return (
-                      <span
-                        key={d.id}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Decoración ${d.ref}`}
-                        onPointerDown={(e) => {
-                          (e.target as Element).setPointerCapture?.(e.pointerId);
-                          arrastrandoRef.current = d.id;
-                          setDecoracionSel(d.id);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'ArrowLeft') moverDecoracion(d.id, -2, 0);
-                          if (e.key === 'ArrowRight') moverDecoracion(d.id, 2, 0);
-                          if (e.key === 'ArrowUp') moverDecoracion(d.id, 0, -2);
-                          if (e.key === 'ArrowDown') moverDecoracion(d.id, 0, 2);
-                        }}
-                        style={{
-                          left: `${d.x}%`,
-                          top: `${d.y}%`,
-                          width: px,
-                          height: px,
-                          transform: 'translate(-50%,-50%)',
-                        }}
-                        className={`absolute flex cursor-move items-center justify-center rounded-lg text-2xl drop-shadow-lg ${
-                          sel ? 'bg-violet-500/20 outline outline-2 outline-violet-400' : ''
-                        }`}
-                      >
-                        {d.kind === 'image' ? (
-                          <img
-                            src={d.ref}
-                            alt=""
-                            aria-hidden="true"
-                            draggable={false}
-                            className="pointer-events-none h-full w-full rounded-lg object-cover"
+                  {anchoMarco > 0 && (
+                    <div
+                      ref={lienzoRef}
+                      onDragStart={(e) => e.preventDefault()}
+                      style={{ width: 768, zoom: escalaLienzo }}
+                      className="relative touch-none select-none"
+                    >
+                      <div className="pointer-events-none">
+                        <ProfileHeader
+                          perfil={vistaPrevia}
+                          esPropio={false}
+                          seguidores={undefined}
+                          seguidos={undefined}
+                          onVerLista={() => {}}
+                          onEditar={undefined}
+                          avatarPorDefecto={avatarPorDefecto}
+                          config={config}
+                        />
+                      </div>
+                      {(datos.decorations ?? []).map((d) => {
+                        const px = TAMANOS_DECORACION[d.size];
+                        const sel = decoracionSel === d.id;
+                        return (
+                          <span
+                            key={d.id}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Mover decoración ${d.ref}`}
+                            onPointerDown={(e) => alAgarrar(e, d.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'ArrowLeft') moverDecoracion(d.id, -2, 0);
+                              if (e.key === 'ArrowRight') moverDecoracion(d.id, 2, 0);
+                              if (e.key === 'ArrowUp') moverDecoracion(d.id, 0, -2);
+                              if (e.key === 'ArrowDown') moverDecoracion(d.id, 0, 2);
+                            }}
+                            style={{
+                              left: `${d.x}%`,
+                              top: `${d.y}%`,
+                              width: px,
+                              height: px,
+                              transform: 'translate(-50%,-50%)',
+                            }}
+                            className={`pointer-events-auto absolute flex cursor-move items-center justify-center rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-400 ${
+                              sel
+                                ? 'bg-violet-500/20 outline outline-2 outline-violet-400'
+                                : 'hover:bg-white/5'
+                            }`}
                           />
-                        ) : (
-                          <span className="pointer-events-none">{decoracionContenido(d)}</span>
-                        )}
-                      </span>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* SELECCIONADA */}

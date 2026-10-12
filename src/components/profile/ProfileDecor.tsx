@@ -41,6 +41,7 @@ export const PerfilFondo: React.FC<{ perfil: User; level: number }> = ({ perfil,
         <img
           src={fondo.url}
           alt=""
+          draggable={false}
           onError={(e) => {
             e.currentTarget.style.display = 'none';
           }}
@@ -68,6 +69,7 @@ function contenidoDe(d: Decoracion, perfil: User): React.ReactNode {
       <img
         src={d.ref}
         alt=""
+        draggable={false}
         onError={(e) => {
           e.currentTarget.style.display = 'none';
         }}
