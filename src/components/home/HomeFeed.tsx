@@ -32,6 +32,8 @@ import { ReactionBar } from '../community/ReactionBar';
 import { CommentGif } from '../community/CommentGif';
 import { GifPicker } from '../community/GifPicker';
 import { ReportDialog } from '../community/ReportDialog';
+import { StableImage } from '../common/StableImage';
+import type { ImageDims } from '../../utils/imagenes';
 import {
   POLL_VACIO,
   PollComposer,
@@ -157,9 +159,13 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [category, setCategory] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   // Imagen adjunta pendiente de publicar. Se sube al elegirla
-  // y la URL se escribe al enviar.
+  // y la URL se escribe al enviar. Las dimensiones se miden al
+  // subir y se guardan con la imagen para reservar su sitio
+  // antes de descargarla (ver `StableImage`).
   const [threadImageUrl, setThreadImageUrl] = useState('');
+  const [threadImageDims, setThreadImageDims] = useState<ImageDims | null>(null);
   const [commentImageUrl, setCommentImageUrl] = useState('');
+  const [commentImageDims, setCommentImageDims] = useState<ImageDims | null>(null);
 
   // Encuesta del formulario. Apagada por defecto: publicar un
   // hilo con encuesta es opcional.
@@ -261,19 +267,36 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   // Desplaza hasta la tarjeta del hilo. Va en un efecto aparte
   // porque el de arriba corre antes de que el hilo se haya
   // pintado, y entonces el elemento aún no existe en el DOM.
+  //
+  // Sin `setTimeout` fijo: se espera al ELEMENTO (hasta ~4 s,
+  // fotograma a fotograma), no a un número de milisegundos
+  // inventado. En una conexión lenta 250 ms no bastan y en una
+  // rápida sobran; aquí el salto ocurre en cuanto se puede
+  // pintar el destino, exista o no su imagen descargada (el
+  // sitio ya está reservado, así que la posición no se mueve).
   useEffect(() => {
     if (!highlightThreadId) return;
 
-    const timer = setTimeout(() => {
-      document
-        .getElementById(`thread-${highlightThreadId}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 250);
+    let vivo = true;
+    let raf = 0;
+    let intentos = 0;
+
+    const paso = () => {
+      if (!vivo) return;
+      const el = document.getElementById(`thread-${highlightThreadId}`);
+      if (el || ++intentos > 240) {
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      raf = requestAnimationFrame(paso);
+    };
+    raf = requestAnimationFrame(paso);
 
     const clear = setTimeout(() => setHighlightThreadId(null), 1500);
 
     return () => {
-      clearTimeout(timer);
+      vivo = false;
+      cancelAnimationFrame(raf);
       clearTimeout(clear);
     };
   }, [highlightThreadId, expandedThreadId]);
@@ -281,19 +304,34 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   // Cuando el hilo ya está abierto en pantalla, se desplaza
   // hasta el comentario. Efecto aparte por el mismo motivo que
   // el de arriba: primero se pinta, luego se busca el elemento.
+  //
+  // Los comentarios llegan por suscripción DESPUÉS de abrir el
+  // hilo, así que aquí la espera al elemento es lo esencial:
+  // con el temporizador fijo se desplazaba antes de que el
+  // comentario existiera y el aviso "no hacía nada".
   useEffect(() => {
     if (!highlightCommentId) return;
 
-    const timer = setTimeout(() => {
-      document
-        .getElementById(`comment-${highlightCommentId}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 250);
+    let vivo = true;
+    let raf = 0;
+    let intentos = 0;
+
+    const paso = () => {
+      if (!vivo) return;
+      const el = document.getElementById(`comment-${highlightCommentId}`);
+      if (el || ++intentos > 240) {
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      raf = requestAnimationFrame(paso);
+    };
+    raf = requestAnimationFrame(paso);
 
     const clear = setTimeout(() => setHighlightCommentId(null), 4000);
 
     return () => {
-      clearTimeout(timer);
+      vivo = false;
+      cancelAnimationFrame(raf);
       clearTimeout(clear);
     };
   }, [highlightCommentId, expandedThreadId]);
@@ -332,13 +370,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       }
     }
 
-    const success = await createThread(title, body, category, tags, threadImageUrl, poll);
+    const success = await createThread(title, body, category, tags, threadImageUrl, poll, threadImageDims);
 
     if (success) {
       setTitle('');
       setBody('');
       setTagsInput('');
       setThreadImageUrl('');
+      setThreadImageDims(null);
       setConEncuesta(false);
       setBorradorEncuesta(POLL_VACIO);
       setErrorEncuesta('');
@@ -362,10 +401,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       null,
       commentImageUrl,
       commentGif ?? undefined,
+      commentImageDims,
     );
     if (ok) {
       setNewCommentText('');
       setCommentImageUrl('');
+      setCommentImageDims(null);
       setCommentGif(null);
     }
   };
@@ -669,6 +710,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 uid={currentUser?.uid}
                 value={threadImageUrl}
                 onChange={setThreadImageUrl}
+                onDims={setThreadImageDims}
                 size="md"
               />
             </div>
@@ -743,9 +785,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             <article
               key={thread.id}
               // Permite saltar hasta la tarjeta desde el perfil,
-              // el buscador o la barra lateral.
+              // el buscador o la barra lateral. El `scroll-mt`
+              // deja aire bajo el navbar fijo para que el salto
+              // no esconda el encabezado.
               id={`thread-${thread.id}`}
-              className={`rounded-3xl border transition-all ${
+              className={`scroll-mt-20 rounded-3xl border transition-all ${
                 highlightThreadId === thread.id
                   ? 'border-violet-400 ring-2 ring-violet-500/40 shadow-lg shadow-violet-900/40'
                   : thread.pinned
@@ -838,11 +882,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     se quedan a su tamaño en vez de estirarse borrosas
                     hasta el borde. */}
                 {thread.imageUrl && (
-                  <img
+                  <StableImage
                     src={thread.imageUrl}
                     alt="Imagen adjunta al hilo"
-                    className="mt-3 block h-auto max-w-full rounded-2xl border border-zinc-800 object-contain"
-                    loading="lazy"
+                    width={thread.imageWidth}
+                    height={thread.imageHeight}
+                    className="block h-auto max-w-full rounded-2xl border border-zinc-800 object-contain"
+                    wrapperClassName="mt-3 overflow-hidden rounded-2xl"
+                    eager={highlightThreadId === thread.id}
                   />
                 )}
 
@@ -1044,6 +1091,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                         uid={currentUser?.uid}
                         value={commentImageUrl}
                         onChange={setCommentImageUrl}
+                        onDims={setCommentImageDims}
                       />
                       {!commentImageUrl && (
                         <GifPicker value={commentGif} onChange={setCommentGif} />
@@ -1066,8 +1114,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             key={comment.id}
                             // Permite que el perfil salte hasta este
                             // comentario concreto con scrollIntoView.
+                            // El `scroll-mt` lo deja visible bajo el
+                            // navbar fijo.
                             id={`comment-${comment.id}`}
-                            className={`rounded-2xl border p-4 space-y-2.5 transition-colors ${
+                            className={`scroll-mt-20 rounded-2xl border p-4 space-y-2.5 transition-colors ${
                               highlightCommentId === comment.id
                                 ? 'border-violet-500 bg-violet-950/40'
                                 : 'border-zinc-800/80 bg-zinc-950/60'
@@ -1106,7 +1156,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
                             {/* GIF adjunto al comentario */}
                             {comment.gif && (
-                              <CommentGif gif={comment.gif} className="pl-8" />
+                              <CommentGif
+                                gif={comment.gif}
+                                className="pl-8"
+                                eager={highlightCommentId === comment.id}
+                              />
                             )}
 
                             {/* Imagen adjunta al comentario.
@@ -1135,11 +1189,18 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                   móvil. El hueco va con `ml`, que no
                                   toca la caja. */}
                               {comment.imageUrl && (
-                                <img
+                                <StableImage
                                   src={comment.imageUrl}
                                   alt="Imagen adjunta al comentario"
-                                  className="mt-1 ml-8 block h-auto max-h-72 max-w-full rounded-xl border border-zinc-800 object-contain"
-                                  loading="lazy"
+                                  width={comment.imageWidth}
+                                  height={comment.imageHeight}
+                                  // 288 = el `max-h-72` de siempre: la
+                                  // reserva se capa igual que la imagen
+                                  // final para no reservar de más.
+                                  maxHeight={288}
+                                  className="block h-auto max-h-72 max-w-full rounded-xl border border-zinc-800 object-contain"
+                                  wrapperClassName="ml-8 mt-1 overflow-hidden rounded-xl"
+                                  eager={highlightCommentId === comment.id}
                                 />
                               )}
 
@@ -1281,7 +1342,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                   return (
                                     <div
                                       key={reply.id}
-                                      className="rounded-xl bg-zinc-900/60 p-3 space-y-1.5"
+                                      // Los avisos también llegan a
+                                      // respuestas: mismo ancla que los
+                                      // comentarios, con aire bajo el
+                                      // navbar.
+                                      id={`comment-${reply.id}`}
+                                      className="scroll-mt-20 rounded-xl bg-zinc-900/60 p-3 space-y-1.5"
                                     >
                                       <div className="flex items-center justify-between">
 <div className="flex items-center gap-1.5">
@@ -1317,7 +1383,27 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                       </div>
                                        <p className="text-xs text-zinc-300 pl-5">{reply.body}</p>
                                        {reply.gif && (
-                                         <CommentGif gif={reply.gif} className="pl-5" />
+                                         <CommentGif
+                                           gif={reply.gif}
+                                           className="pl-5"
+                                           eager={highlightCommentId === reply.id}
+                                         />
+                                       )}
+                                       {/* Las respuestas ya no suben
+                                           imagen, pero las antiguas
+                                           pueden traerla: se pinta
+                                           igual que en comentarios. */}
+                                       {reply.imageUrl && (
+                                         <StableImage
+                                           src={reply.imageUrl}
+                                           alt="Imagen adjunta a la respuesta"
+                                           width={reply.imageWidth}
+                                           height={reply.imageHeight}
+                                           maxHeight={288}
+                                           className="block h-auto max-h-72 max-w-full rounded-xl border border-zinc-800 object-contain"
+                                           wrapperClassName="ml-5 overflow-hidden rounded-xl"
+                                           eager={highlightCommentId === reply.id}
+                                         />
                                        )}
                                        <div className="flex flex-wrap items-center gap-3 pl-5 pt-1">
                                          <button

@@ -3,6 +3,7 @@ import type { FC } from 'react';
 import { ExternalLink } from 'lucide-react';
 
 import { ATRIBUCION, ORIGEN } from '../../services/gifs';
+import { dimsValidas } from '../../utils/imagenes';
 import type { GifAttachment } from '../../types';
 
 // ======================================================
@@ -23,13 +24,16 @@ interface CommentGifProps {
   gif: GifAttachment;
   /** Sangría para igualar la del texto del comentario. */
   className?: string;
+  /** `true` para lo que tiene que verse ya (destino de un aviso). */
+  eager?: boolean;
 }
 
-export const CommentGif: FC<CommentGifProps> = ({ gif, className = '' }) => {
+export const CommentGif: FC<CommentGifProps> = ({ gif, className = '', eager = false }) => {
   const [fallback, setFallback] = useState(false);
   const [roto, setRoto] = useState(false);
 
   const src = fallback ? gif.previewUrl : gif.url;
+  const reservado = dimsValidas(gif.width, gif.height);
 
   return (
     <figure className={`mt-1 ${className}`}>
@@ -48,7 +52,8 @@ export const CommentGif: FC<CommentGifProps> = ({ gif, className = '' }) => {
           <img
             src={src}
             alt={gif.title ?? 'GIF del comentario'}
-            loading="lazy"
+            {...(reservado ? { width: gif.width, height: gif.height } : {})}
+            loading={eager ? 'eager' : 'lazy'}
             onError={() => {
               if (!fallback && gif.previewUrl && gif.previewUrl !== gif.url) {
                 setFallback(true);

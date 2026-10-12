@@ -589,6 +589,19 @@ export interface Thread {
   /** Imagen adjunta, como máximo una por publicación. */
   imageUrl?: string;
   /**
+   * Dimensiones originales de la imagen, en píxeles.
+   *
+   * Se miden al subir y se guardan para reservar su sitio
+   * antes de descargarla (ver `StableImage`): sin ellas, la
+   * pantalla salta cuando la foto aparece. El archivo no se
+   * toca: sigue siendo el original con toda su calidad.
+   *
+   * Opcionales porque los hilos antiguos no los tienen; sin
+   * ellos la imagen se pinta como antes, con fundido.
+   */
+  imageWidth?: number;
+  imageHeight?: number;
+  /**
    * Encuesta opcional. Solo existe si el autor la añadió al
    * publicar. No lleva contadores: los votos viven en la
    * subcolección `pollVotes` (ver `Poll`).
@@ -622,6 +635,15 @@ export interface Comment {
   createdAt: string;
   /** Imagen adjunta al comentario. */
   imageUrl?: string;
+  /**
+   * Dimensiones originales de la imagen, en píxeles.
+   *
+   * Igual que en los hilos: se miden al subir para reservar
+   * el sitio antes de descargar (ver `StableImage`), sin
+   * tocar el archivo. Los comentarios antiguos no los tienen.
+   */
+  imageWidth?: number;
+  imageHeight?: number;
   /**
    * GIF adjunto al comentario (como máximo uno).
    *

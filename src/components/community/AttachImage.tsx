@@ -4,6 +4,7 @@ import { ImagePlus, X, Loader2, AlertCircle } from 'lucide-react';
 
 import { uploadCommunityImage, esGif } from '../../services/imageUpload';
 import { cargarImagen } from '../../services/imageCanvas';
+import { dimsValidas, type ImageDims } from '../../utils/imagenes';
 import { CropEditor } from '../common/CropEditor';
 
 // ======================================================
@@ -24,6 +25,12 @@ import { CropEditor } from '../common/CropEditor';
 // fija, así que editar un GIF lo dejaría sin animación en
 // silencio.
 //
+// Además de la URL se entregan las DIMENSIONES del archivo
+// que se va a servir (tras recortar, si se recorta): quien
+// publica las guarda junto a la imagen para reservar su sitio
+// antes de descargarla (ver `StableImage`). El archivo no se
+// toca: sigue siendo el original con toda su calidad.
+//
 // Una sola imagen por publicación, no un álbum: es lo que
 // encaja con un foro y evita que alguien llene su comentario
 // con veinte imágenes.
@@ -35,6 +42,8 @@ interface AttachImageProps {
   uid: string | undefined;
   value: string;
   onChange: (url: string) => void;
+  /** Recibe las dimensiones medidas, o null al quitar la imagen. */
+  onDims?: (dims: ImageDims | null) => void;
   /** Solo para el hilo: la imagen se muestra grande. */
   size?: 'sm' | 'md';
 }
@@ -43,6 +52,7 @@ export const AttachImage: FC<AttachImageProps> = ({
   uid,
   value,
   onChange,
+  onDims,
   size = 'sm',
 }) => {
   const [uploading, setUploading] = useState(false);
@@ -67,6 +77,25 @@ export const AttachImage: FC<AttachImageProps> = ({
     }
   };
 
+  /**
+   * Mide un archivo ya elegido y avisa con sus dimensiones.
+   *
+   * Se mide lo que SE VA A SERVIR: el original en un GIF, el
+   * recorte en una foto. Si no se puede abrir o las medidas no
+   * cuadran, se avisa con null y la imagen se sirve igual (sin
+   * reserva de sitio, como antes).
+   */
+  const medirYAvisar = async (file: File): Promise<void> => {
+    try {
+      const img = await cargarImagen(file);
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+      onDims?.(dimsValidas(width, height) ? { width, height } : null);
+    } catch {
+      onDims?.(null);
+    }
+  };
+
   const handleFile = async (file: File) => {
     setError('');
 
@@ -83,6 +112,7 @@ export const AttachImage: FC<AttachImageProps> = ({
 
     // El GIF no se puede recortar sin matarlo: se sube directo.
     if (esGif(file)) {
+      await medirYAvisar(file);
       await subir(file);
       return;
     }
@@ -110,6 +140,8 @@ export const AttachImage: FC<AttachImageProps> = ({
   // abierto y el aviso sale debajo del botón, para reintentar sin
   // volver a elegir el archivo.
   const guardarRecorte = async (recortada: File) => {
+    // Se mide el RECORTE (lo que se va a servir), no el original.
+    await medirYAvisar(recortada);
     const ok = await subir(recortada);
     if (ok) setPendiente(null);
     else throw new Error('No se pudo subir la imagen recortada.');
@@ -154,7 +186,10 @@ export const AttachImage: FC<AttachImageProps> = ({
         />
         <button
           type="button"
-          onClick={() => onChange('')}
+          onClick={() => {
+            onChange('');
+            onDims?.(null);
+          }}
           className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-zinc-300 shadow-lg transition-colors hover:border-red-500/60 hover:text-red-400"
           aria-label="Quitar imagen"
         >

@@ -44,6 +44,8 @@ import {
   TriviaExtra,
 } from '../types';
 
+import type { ImageDims } from '../utils/imagenes';
+
 import { useAuth } from './AuthContext';
 
 // ======================================================
@@ -75,6 +77,8 @@ export interface CommunityContextType {
     imageUrl?: string,
     /** Encuesta opcional. Se valida en `services/threads`. */
     poll?: NewPollInput,
+    /** Dimensiones de la imagen, medidas al subir. */
+    imageDims?: ImageDims | null,
   ) => Promise<boolean>;
 
   deleteThread: (threadId: string) => Promise<boolean>;
@@ -153,6 +157,8 @@ export interface CommunityContextType {
     imageUrl?: string,
     /** GIF adjunto. Como máximo uno, y sustituye a la imagen. */
     gif?: GifAttachment,
+    /** Dimensiones de la imagen, medidas al subir. */
+    imageDims?: ImageDims | null,
   ) => Promise<boolean>;
 
   getCommentsForTarget: (
@@ -378,6 +384,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       tags: string[],
       imageUrl?: string,
       poll?: NewPollInput,
+      imageDims?: ImageDims | null,
     ): Promise<boolean> => {
       if (!currentUser) {
         requireAuth('crear un hilo en la comunidad');
@@ -400,6 +407,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           tags,
           imageUrl,
           poll,
+          imageDims,
         });
         return true;
       } catch (e) {
@@ -490,6 +498,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       parentId: string | null = null,
       imageUrl?: string,
       gif?: GifAttachment,
+      imageDims?: ImageDims | null,
     ): Promise<boolean> => {
       if (!currentUser) {
         requireAuth('publicar un comentario');
@@ -507,6 +516,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           body,
           imageUrl,
           gif,
+          imageDims,
         });
         return true;
       } catch (e) {

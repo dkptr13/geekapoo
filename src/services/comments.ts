@@ -13,6 +13,7 @@ import {
 import { db } from '../lib/firebase';
 import { esUrlDeGifValida } from './gifs';
 import { toggleLike } from './firestoreUtils';
+import { dimsValidas, type ImageDims } from '../utils/imagenes';
 import type { Comment, GifAttachment } from '../types';
 
 // ======================================================
@@ -57,6 +58,13 @@ export interface NewCommentInput {
   body: string;
   /** Imagen adjunta, opcional. */
   imageUrl?: string;
+  /**
+   * Dimensiones de la imagen, medidas al subir.
+   *
+   * Igual que en los hilos: reservan el sitio sin tocar el
+   * archivo. Solo valen enteros sensatos.
+   */
+  imageDims?: ImageDims | null;
   /** GIF adjunto, opcional. Como máximo uno por comentario. */
   gif?: GifAttachment;
 }
@@ -106,7 +114,15 @@ export async function createComment(input: NewCommentInput): Promise<string> {
   };
 
   // Solo se guarda si hay imagen, para no dejar el campo vacío.
-  if (imagen) payload.imageUrl = imagen;
+  // Las dimensiones van con ella, validadas.
+  if (imagen) {
+    payload.imageUrl = imagen;
+    const dims = input.imageDims;
+    if (dims && dimsValidas(dims.width, dims.height)) {
+      payload.imageWidth = Math.floor(dims.width);
+      payload.imageHeight = Math.floor(dims.height);
+    }
+  }
   if (gif) payload.gif = gif;
 
   const batch = writeBatch(db);

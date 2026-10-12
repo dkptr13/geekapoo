@@ -15,6 +15,7 @@ import {
 import { db } from '../lib/firebase';
 import { toggleLike, type WithId } from './firestoreUtils';
 import { normalizarPoll } from './polls';
+import { dimsValidas, type ImageDims } from '../utils/imagenes';
 import type { NewPollInput, Poll, Thread } from '../types';
 
 // ======================================================
@@ -40,6 +41,14 @@ export interface NewThreadInput {
   tags: string[];
   /** Imagen adjunta, opcional. */
   imageUrl?: string;
+  /**
+   * Dimensiones de la imagen, medidas al subir.
+   *
+   * Se guardan para reservar su sitio antes de descargarla.
+   * Solo valen enteros sensatos; lo demás se ignora y la
+   * imagen se sirve igual, sin reserva.
+   */
+  imageDims?: ImageDims | null;
   /**
    * Encuesta opcional.
    *
@@ -99,8 +108,16 @@ export async function createThread(input: NewThreadInput): Promise<string> {
   };
 
   // Solo se guarda el campo si hay imagen, para no dejar un
-  // imageUrl vacío en los hilos sin foto.
-  if (input.imageUrl) payload.imageUrl = input.imageUrl;
+  // imageUrl vacío en los hilos sin foto. Las dimensiones van
+  // con ella, validadas: reservan el sitio sin tocar el archivo.
+  if (input.imageUrl) {
+    payload.imageUrl = input.imageUrl;
+    const dims = input.imageDims;
+    if (dims && dimsValidas(dims.width, dims.height)) {
+      payload.imageWidth = Math.floor(dims.width);
+      payload.imageHeight = Math.floor(dims.height);
+    }
+  }
 
   // La encuesta se escribe DENTRO del hilo, en el mismo lote. Si
   // fuera un documento aparte, un fallo entre medias dejaría un
