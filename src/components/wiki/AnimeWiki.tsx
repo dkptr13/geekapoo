@@ -20,6 +20,7 @@ import {
   Trash2,
   Flag,
   Loader2,
+  Info,
 } from 'lucide-react';
 import { useCommunity } from '../../context/CommunityContext';
 import { useAuth } from '../../context/AuthContext';
@@ -1346,6 +1347,52 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
       )}
         </>
       )}
+
+      {/* Créditos y atribución legal (TheTVDB, TMDB, AniList e IMDb).
+          Va al final del contenido, fuera de las fichas: es de la
+          sección entera, no de un anime. Las sinopsis en español
+          son redacción propia del catálogo; los datos de
+          episodios, las miniaturas, las imágenes y las notas
+          vienen de las APIs indicadas. */}
+      <section
+        aria-label="Créditos de los datos del catálogo"
+        className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 text-center sm:flex-row sm:p-5 sm:text-left"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-600/10 text-violet-400">
+            <Info size={18} />
+          </div>
+          <div className="space-y-0.5 text-xs leading-relaxed text-zinc-400">
+            <p>
+              Los datos de episodios y temporadas, las miniaturas, las imágenes y las
+              notas del catálogo son proporcionados por{' '}
+              <a
+                href="https://thetvdb.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-violet-400 underline transition-colors hover:text-violet-300"
+              >
+                TheTVDB
+              </a>
+              {', '}
+              <a
+                href="https://www.themoviedb.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-violet-400 underline transition-colors hover:text-violet-300"
+              >
+                TMDB
+              </a>
+              {', AniList e IMDb.'}
+            </p>
+            <p className="text-[11px] text-zinc-500">
+              Este producto utiliza sus APIs pero no está avalado ni certificado por
+              TheTVDB ni TMDB.
+            </p>
+          </div>
+        </div>
+        <ExternalLink size={14} className="hidden shrink-0 text-zinc-600 sm:block" />
+      </section>
 
       {/* Aviso y denuncia. Fuera de las listas de comentarios a
           propósito: dentro de un listado largo no se sabría a
