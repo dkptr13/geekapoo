@@ -1348,7 +1348,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
         </>
       )}
 
-      {/* Créditos y atribución legal (TheTVDB, TMDB, AniList e IMDb).
+      {/* Créditos y atribución legal (TheTVDB, AniList e IMDb).
           Va al final del contenido, fuera de las fichas: es de la
           sección entera, no de un anime. Las sinopsis en español
           son redacción propia del catálogo; los datos de
@@ -1374,20 +1374,10 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               >
                 TheTVDB
               </a>
-              {', '}
-              <a
-                href="https://www.themoviedb.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-violet-400 underline transition-colors hover:text-violet-300"
-              >
-                TMDB
-              </a>
               {', AniList e IMDb.'}
             </p>
             <p className="text-[11px] text-zinc-500">
-              Este producto utiliza sus APIs pero no está avalado ni certificado por
-              TheTVDB ni TMDB.
+              Este producto utiliza su API pero no está avalado ni certificado por TheTVDB.
             </p>
           </div>
         </div>
