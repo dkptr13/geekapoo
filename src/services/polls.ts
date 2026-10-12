@@ -65,7 +65,7 @@ export const LIMITS = {
   question: 160,
   option: 80,
   minOptions: 2,
-  maxOptions: 6,
+  maxOptions: 10,
 };
 
 /** Duraciones que ofrece el formulario. Vacío = sin fecha de cierre. */

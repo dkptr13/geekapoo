@@ -242,10 +242,20 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
       })));
     });
 
-    it('NO permite una encuesta con siete opciones', async () => {
+    it('permite una encuesta con diez opciones', async () => {
       const options = {};
-      for (let i = 1; i <= 7; i += 1) options[`o${i}`] = `Opción ${i}`;
-      await assertFails(setDoc(doc(db(BOB), 'threads', 'siete'), nuevoHilo({
+      for (let i = 1; i <= 10; i += 1) options[`o${i}`] = `Opción ${i}`;
+      await assertSucceeds(setDoc(doc(db(BOB), 'threads', 'diez'), nuevoHilo({
+        authorId: BOB,
+        authorName: 'bob',
+        poll: { ...POLO, options },
+      })));
+    });
+
+    it('NO permite una encuesta con once opciones', async () => {
+      const options = {};
+      for (let i = 1; i <= 11; i += 1) options[`o${i}`] = `Opción ${i}`;
+      await assertFails(setDoc(doc(db(BOB), 'threads', 'once'), nuevoHilo({
         authorId: BOB,
         authorName: 'bob',
         poll: { ...POLO, options },

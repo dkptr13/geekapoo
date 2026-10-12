@@ -215,7 +215,7 @@ service cloud.firestore {
              && p.question.size() <= 160
              && p.options is map
              && p.options.size() >= 2
-             && p.options.size() <= 6
+             && p.options.size() <= 10
              && p.isClosed == false
              && (!('allowChangeVote' in p)
                  || p.allowChangeVote is bool)
@@ -1484,7 +1484,7 @@ service cloud.firestore {
       // colarse en la cuota de lectura de todo el mundo.
       //
       // Lo mismo con la encuesta: si viene, tiene que estar bien
-      // formada (pregunta, entre 2 y 6 opciones...). La forma
+      // formada (pregunta, entre 2 y 10 opciones...). La forma
       // exacta la exige `pollValido`.
       allow create: if isActive()
                     && request.resource.data.authorId == request.auth.uid
