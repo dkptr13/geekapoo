@@ -49,6 +49,12 @@ export const CommentGif: FC<CommentGifProps> = ({ gif, className = '', eager = f
           title={`Abrir el GIF en ${ORIGEN[gif.provider]}`}
           className="group relative inline-block"
         >
+          {/* `object-contain` y NO `object-cover`: la ficha guarda
+              las medidas de una variante reducida mientras `url`
+              es el original, y si la proporción difiere el cover
+              recortaría el GIF (izquierda/derecha o arriba/abajo).
+              Con contain se ve siempre entero; cuando los datos
+              cuadran, el resultado es idéntico. */}
           <img
             src={src}
             alt={gif.title ?? 'GIF del comentario'}
@@ -61,7 +67,7 @@ export const CommentGif: FC<CommentGifProps> = ({ gif, className = '', eager = f
                 setRoto(true);
               }
             }}
-            className="max-h-72 max-w-full rounded-xl border border-zinc-800 bg-zinc-950 object-cover transition-opacity group-hover:opacity-90"
+            className="max-h-72 max-w-full rounded-xl border border-zinc-800 bg-zinc-950 object-contain transition-opacity group-hover:opacity-90"
           />
           <span className="absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 rounded-lg bg-black/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white opacity-0 transition-opacity group-hover:opacity-100">
             GIF

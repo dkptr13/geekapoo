@@ -168,13 +168,27 @@ function aGif(item: GiphyItem): GifResult {
   const grande = img.downsized_medium?.url || img.downsized?.url || original;
   const preview = img.fixed_width_small?.url || img.fixed_width?.url || grande;
 
+  // Las medidas, del MISMO archivo que se sirve en `url`
+  // (original si lo hay): si la proporción no coincide con la
+  // del archivo, la reserva de sitio sale mal y el `contain`
+  // deja franjas. Todas las variantes comparten proporción,
+  // pero la del original es la exacta.
+  const anchoOriginal = Number(img.original?.width);
+  const altoOriginal = Number(img.original?.height);
+
   return {
     provider: 'giphy',
     id: item.id,
     url: original || grande || '',
     previewUrl: preview || grande || original || '',
-    width: Number(img.downsized?.width ?? item.width ?? 480),
-    height: Number(img.downsized?.height ?? item.height ?? 270),
+    width:
+      Number.isFinite(anchoOriginal) && anchoOriginal > 0
+        ? anchoOriginal
+        : Number(img.downsized?.width ?? item.width ?? 480),
+    height:
+      Number.isFinite(altoOriginal) && altoOriginal > 0
+        ? altoOriginal
+        : Number(img.downsized?.height ?? item.height ?? 270),
     title: item.title || undefined,
   };
 }
