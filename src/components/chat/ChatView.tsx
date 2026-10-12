@@ -33,6 +33,9 @@ import {
   Ban,
   Reply,
   Pencil,
+  Compass,
+  Info,
+  VolumeX,
 } from 'lucide-react';
 
 import { textoDeNuevos } from '../../utils/chatLectura';
@@ -46,6 +49,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useChat } from '../../context/ChatContext';
+import { useClubs } from '../../context/ClubsContext';
 import { useCommunity } from '../../context/CommunityContext';
 import { reaccionesDe, useReacciones } from '../../hooks/useReacciones';
 import { reactionKey } from '../../services/reactions';
@@ -56,14 +60,36 @@ import { LocationPicker } from './LocationPicker';
 import { uploadChatImage } from '../../services/imageUpload';
 import { CommentGif } from '../community/CommentGif';
 import { ReactionBar } from '../community/ReactionBar';
+import { ClubDetail } from './ClubDetail';
+import { ClubDiscovery } from './ClubDiscovery';
+import { ClubListItem } from './ClubListItem';
+import { CLUB_CATEGORIES } from '../../types';
 import type {
   ChatMessage,
   ChatRequest,
   ChatRoom,
+  Club,
   GifAttachment,
   LocationAttachment,
   User,
 } from '../../types';
+
+// ======================================================
+// CHATS: TRES VISTAS EN UNA MISMA SECCIÓN
+// ======================================================
+//   privados  -> conversaciones de uno a uno
+//   clubes    -> los clubes del usuario y sus chats grupales
+//   descubrir -> galería para buscar comunidades y unirse
+//
+// No es una sección nueva de la web: sigue siendo «Chats»,
+// con la lista a la izquierda y el chat a la derecha. Los
+// clubes son documentos de `chats/` (type: 'club'), así que
+// sus mensajes usan EXACTAMENTE el mismo sistema que los
+// privados: mismas reglas, mismas suscripciones, mismo
+// historial.
+// ======================================================
+
+type TabChats = 'privados' | 'clubes' | 'descubrir';
 
 export const ChatView: React.FC = () => {
   const { currentUser, getUserByChatId, usersList } = useAuth();
@@ -101,6 +127,11 @@ export const ChatView: React.FC = () => {
   } = useChat();
 
   const [filterType, setFilterType] = useState<'direct' | 'group' | 'all'>('all');
+  // En qué vista de la sección estamos. Empieza en 'privados'
+  // para conservar el comportamiento de siempre: entrar en
+  // «Chats» te deja en tus conversaciones.
+  const [tabChats, setTabChats] = useState<TabChats>('privados');
+  const [clubDetalle, setClubDetalle] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -204,6 +235,10 @@ export const ChatView: React.FC = () => {
    * a quien no puede usarlo, pero la garantía la dan las reglas: si
    * alguien manipula el DOM desde la consola y pulsa el botón, la
    * escritura la rechaza Firestore igual.
+   *
+   * En un club NO se usa este botón: la portada y el icono se cambian
+   * desde el panel de detalles del club, que es donde están el resto de
+   * ajustes. Aquí solo quedaría un hueco roto.
    */
   const puedeCambiarFoto = Boolean(
     activeRoom?.type === 'group' && activeRoom.ownerId && currentUser?.uid === activeRoom.ownerId,
@@ -286,6 +321,76 @@ export const ChatView: React.FC = () => {
   // Solo quien creó el grupo puede añadir o expulsar miembros.
   const isGroupOwner =
     !!activeRoom && activeRoom.type === 'group' && activeRoom.ownerId === currentUser?.uid;
+
+  // ── Clubes ────────────────────────────────────────────
+  //
+  // El chat abierto es de un club cuando su `type` es 'club'.
+  // A partir de ahí todo lo demás sale del contexto: la
+  // ficha, los roles y los permisos.
+  const esChatClub = activeRoom?.type === 'club';
+
+  const misClubes = useClubs().misClubes;
+
+  // Solicitudes de acceso pendientes de los clubes que modero.
+  // Se leen del contexto de clubes, que ya las tiene.
+  const solicitudesDeClubes = useClubs().solicitudesPendientes;
+  const cargandoClubes = useClubs().loading;
+
+  // La ficha del club cuyo chat está abierto, si lo está.
+  const clubDelChat = useMemo(
+    () => (esChatClub ? (misClubes.find((c) => c.chatId === activeRoom?.id) ?? null) : null),
+    [esChatClub, misClubes, activeRoom?.id],
+  );
+
+  // Los permisos de club no tienen nada que ver con el rol
+  // global: un moderador de club no es moderador de la web.
+  const soyDuenoDelClub = !!clubDelChat && clubDelChat.ownerId === currentUser?.uid;
+  const soyModDelClub =
+    !!clubDelChat &&
+    (clubDelChat.members[currentUser?.uid ?? '']?.role === 'moderator' ||
+      soyDuenoDelClub);
+
+  // Si un miembro del club está silenciado, no puede enviar.
+  const estoySilenciado = (() => {
+    if (!clubDelChat || !currentUser) return false;
+    const hasta = clubDelChat.members[currentUser.uid]?.mutedUntil;
+    return !!hasta && Date.parse(hasta) > Date.now();
+  })();
+
+  // Si el usuario ya no es miembro del club, el chat no debe
+  // seguir abierto. Sin esto, al ser expulsado con la pestaña
+  // abierta la conversación se quedaba en pantalla aunque las
+  // reglas ya denegaban cualquier lectura.
+  useEffect(() => {
+    if (!esChatClub) return;
+    if (clubDelChat) return;
+
+    // El chat de club existe pero no está entre «mis clubes»:
+    // o me expulsaron, o salí, o no soy miembro. Se cierra.
+    setActiveRoomId(null);
+    setClubDetalle(null);
+  }, [esChatClub, clubDelChat, setActiveRoomId]);
+
+  // El detalle abierto tiene que seguir siendo un club al que
+  // pertenezco: si dejo de ser miembro, se cierra.
+  useEffect(() => {
+    if (!clubDetalle) return;
+    if (misClubes.some((c) => c.id === clubDetalle)) return;
+    setClubDetalle(null);
+  }, [clubDetalle, misClubes]);
+
+  const clubActivoEnPanel = clubDetalle
+    ? (misClubes.find((c) => c.id === clubDetalle) ?? null)
+    : null;
+
+  // Los clubes NO se muestran en la vista de privados: para
+  // eso está la pestaña «Mis clubes». Si aparecieran en las
+  // dos, el mismo chat estaría duplicado y la lista de
+  // conversaciones perdería el sentido que tiene ahora.
+  const chatsPrivados = useMemo(
+    () => rooms.filter((r) => r.type !== 'club'),
+    [rooms],
+  );
 
   // Create Group modal / state
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -623,7 +728,7 @@ export const ChatView: React.FC = () => {
   };
 
   // Filter rooms
-  const filteredRooms = rooms.filter((r) => {
+  const filteredRooms = chatsPrivados.filter((r) => {
     if (filterType === 'direct') return r.type === 'direct';
     if (filterType === 'group') return r.type === 'group';
     return true;
@@ -1014,20 +1119,35 @@ export const ChatView: React.FC = () => {
           este cartel, la cabecera y el compositor no quedaba
           historial (un mensaje visible). La lista lo sigue
           enseñando, y en escritorio sale siempre. */}
-      <div className={`${activeRoomId ? 'hidden lg:flex' : 'flex'} flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 sm:p-4`}>
+      <div className={`${activeRoomId && tabChats !== 'descubrir' ? 'hidden lg:flex' : 'flex'} flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 sm:p-4`}>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
             <MessageCircle size={20} />
           </div>
           <div>
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <span>Mensajería Privada & Grupal</span>
+              <span>Mensajería Privada &amp; Clubes</span>
               <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                 Cifrado
               </span>
             </h2>
             <p className="text-xs text-zinc-400">
               Tu ID único para recibir mensajes: <strong className="text-violet-300 font-mono">{currentUser.chatId}</strong>
+              {misClubes.length > 0 && (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTabChats('clubes');
+                      setActiveRoomId(null);
+                    }}
+                    className="font-bold text-violet-300 hover:text-violet-200"
+                  >
+                    {misClubes.length} {misClubes.length === 1 ? 'club' : 'clubes'}
+                  </button>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -1039,6 +1159,17 @@ export const ChatView: React.FC = () => {
           >
             <UserPlus size={14} className="text-violet-400" />
             <span>Nuevo Contacto por ID</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setTabChats('descubrir');
+              setActiveRoomId(null);
+            }}
+            className="flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:border-violet-500 hover:text-white transition-all shadow-sm"
+          >
+            <Compass size={14} className="text-violet-400" />
+            <span>Descubrir clubes</span>
           </button>
 
           <button
@@ -1127,65 +1258,150 @@ export const ChatView: React.FC = () => {
         >
           {/* Header & Filter Tabs */}
           <div className="p-3.5 border-b border-zinc-800 space-y-3">
-            <div className="flex rounded-xl bg-zinc-900 p-1 border border-zinc-800 text-xs font-semibold">
+            {/* Las tres vistas de la sección. Van aquí, y no en
+                la barra de arriba, a propósito: los clubes son
+                parte de «Chats», no una sección nueva de la web.
+                La tabla de búsqueda de abajo se mantiene dentro
+                de cada vista, no de forma global. */}
+            <div className="flex rounded-xl bg-zinc-900 p-1 border border-zinc-800 text-[11px] font-semibold">
               <button
-                onClick={() => setFilterType('all')}
+                onClick={() => {
+                  setTabChats('privados');
+                  setActiveRoomId(null);
+                }}
                 className={`flex-1 rounded-lg py-1.5 transition-all ${
-                  filterType === 'all'
+                  tabChats === 'privados'
                     ? 'bg-violet-600 text-white shadow'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                Todos
+                <span className="flex items-center justify-center gap-1">
+                  <MessageCircle size={12} />
+                  <span>Privados</span>
+                </span>
               </button>
               <button
-                onClick={() => setFilterType('direct')}
+                onClick={() => {
+                  setTabChats('clubes');
+                  setActiveRoomId(null);
+                }}
                 className={`flex-1 rounded-lg py-1.5 transition-all ${
-                  filterType === 'direct'
+                  tabChats === 'clubes'
                     ? 'bg-violet-600 text-white shadow'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                1 a 1
+                <span className="flex items-center justify-center gap-1">
+                  <Users size={12} />
+                  <span>Mis clubes</span>
+                </span>
               </button>
               <button
-                onClick={() => setFilterType('group')}
+                onClick={() => {
+                  // Como las otras pestañas: al entrar en la galería
+                  // no hay chat abierto. Sin esto, si había una
+                  // conversación seleccionada, la condición
+                  // `tabChats === 'descubrir' && !activeRoomId` de la
+                  // zona derecha fallaba y salía el vacío de
+                  // "Selecciona o inicia un chat" hasta cambiar de
+                  // pestaña y volver.
+                  setTabChats('descubrir');
+                  setActiveRoomId(null);
+                }}
                 className={`flex-1 rounded-lg py-1.5 transition-all ${
-                  filterType === 'group'
+                  tabChats === 'descubrir'
                     ? 'bg-violet-600 text-white shadow'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                Grupos
+                <span className="flex items-center justify-center gap-1">
+                  <Compass size={12} />
+                  <span>Descubrir</span>
+                </span>
               </button>
             </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowRequests((v) => !v)}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[11px] font-bold transition-colors ${
-                  showRequests
-                    ? 'border-violet-500 bg-violet-950/40 text-violet-300'
-                    : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white'
-                }`}
-              >
-                <UserPlus size={13} />
-                <span>Solicitudes</span>
-                {incomingRequests.length > 0 && (
-                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[9px] font-bold text-white">
-                    {incomingRequests.length}
-                  </span>
-                )}
-              </button>
+            {/* Filtro rápido de conversaciones. Solo en la vista
+                de privados: en las demás no hay nada que
+                filtrar por tipo, y dejarlo ahí sería ofrecer
+                algo que no hace nada. */}
+            {tabChats === 'privados' && (
+              <div className="flex rounded-xl bg-zinc-950 p-1 border border-zinc-800/80 text-xs font-semibold">
+                <button
+                  onClick={() => setFilterType('all')}
+                  className={`flex-1 rounded-lg py-1.5 transition-all ${
+                    filterType === 'all'
+                      ? 'bg-zinc-800 text-white shadow'
+                      : 'text-zinc-500 hover:text-white'
+                  }`}
+                >
+                  Todos
+                </button>
+                <button
+                  onClick={() => setFilterType('direct')}
+                  className={`flex-1 rounded-lg py-1.5 transition-all ${
+                    filterType === 'direct'
+                      ? 'bg-zinc-800 text-white shadow'
+                      : 'text-zinc-500 hover:text-white'
+                  }`}
+                >
+                  1 a 1
+                </button>
+                <button
+                  onClick={() => setFilterType('group')}
+                  className={`flex-1 rounded-lg py-1.5 transition-all ${
+                    filterType === 'group'
+                      ? 'bg-zinc-800 text-white shadow'
+                      : 'text-zinc-500 hover:text-white'
+                  }`}
+                >
+                  Grupos
+                </button>
+              </div>
+            )}
 
+            {tabChats === 'privados' && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowRequests((v) => !v)}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[11px] font-bold transition-colors ${
+                    showRequests
+                      ? 'border-violet-500 bg-violet-950/40 text-violet-300'
+                      : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <UserPlus size={13} />
+                  <span>Solicitudes</span>
+                  {incomingRequests.length > 0 && (
+                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[9px] font-bold text-white">
+                      {incomingRequests.length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setShowGroups(true)}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:text-white"
+                >
+                  <Hash size={13} />
+                  <span>Unirse a grupo</span>
+                </button>
+              </div>
+            )}
+
+            {/* Solicitudes de acceso a mis clubes */}
+            {tabChats === 'clubes' && solicitudesDeClubes.length > 0 && (
               <button
-                onClick={() => setShowGroups(true)}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:text-white"
+                onClick={() => setShowMembers(true)}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-violet-500/30 bg-violet-950/40 px-2 py-2 text-[11px] font-bold text-violet-300 transition-colors hover:bg-violet-950/60"
               >
-                <Hash size={13} />
-                <span>Unirse a grupo</span>
+                <Mail size={13} />
+                <span>
+                  {solicitudesDeClubes.length}{' '}
+                  {solicitudesDeClubes.length === 1 ? 'solicitud' : 'solicitudes'} de acceso
+                </span>
               </button>
-            </div>
+            )}
           </div>
 
           {/* PANEL DE SOLICITUDES */}
@@ -1352,7 +1568,60 @@ export const ChatView: React.FC = () => {
             </div>
           )}
 
-          {/* Rooms Scrollable List */}
+          {/* ── Lista de MIS CLUBES ────────────────────
+              Solo en la pestaña «Mis clubes». Cada fila es un
+              chat grupal del que ya eres miembro, y se distingue
+              de un privado por el icono de personas: nunca se
+              confunde una conversación con un chat de club. */}
+          {tabChats === 'clubes' && (
+            <div className="min-h-0 flex-1 overflow-y-auto divide-y divide-zinc-850">
+              {cargandoClubes && misClubes.length === 0 ? (
+                <div className="flex items-center justify-center gap-2 p-6 text-xs text-zinc-500">
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Cargando tus clubes...</span>
+                </div>
+              ) : misClubes.length === 0 ? (
+                <div className="space-y-3 p-6 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-2xl">
+                    🧭
+                  </div>
+                  <p className="text-xs font-bold text-white">Todavía no estás en ningún club</p>
+                  <p className="text-[11px] leading-relaxed text-zinc-500">
+                    Únete a una comunidad para chatear con gente que comparte tus aficiones.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setTabChats('descubrir')}
+                    className="mx-auto flex items-center gap-1.5 rounded-xl bg-violet-600 px-3.5 py-2 text-[11px] font-bold text-white transition-colors hover:bg-violet-500"
+                  >
+                    <Compass size={13} />
+                    <span>Descubrir clubes</span>
+                  </button>
+                </div>
+              ) : (
+                misClubes.map((club) => (
+                  <ClubListItem
+                    key={club.id}
+                    club={club}
+                    activo={club.chatId === activeRoomId}
+                    sinLeer={unreadRoomIds.includes(club.chatId)}
+                    ultimoMensaje={rooms.find((r) => r.id === club.chatId)?.lastMessage}
+                    ultimaFecha={rooms.find((r) => r.id === club.chatId)?.lastMessageAt}
+                    miRol={club.members[currentUser?.uid ?? ''] ?? null}
+                    solicitudes={solicitudesDeClubes.filter((r) => r.clubId === club.id).length}
+                    onAbrir={() => setActiveRoomId(club.chatId)}
+                    onVerDetalle={() => {
+                      setClubDetalle(club.id);
+                      setActiveRoomId(club.chatId);
+                    }}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Rooms Scrollable List (conversaciones privadas) */}
+          {tabChats === 'privados' && (
           <div className="min-h-0 flex-1 overflow-y-auto divide-y divide-zinc-850">
             {filteredRooms.length === 0 ? (
               <div className="p-6 text-center text-xs text-zinc-500 space-y-2">
@@ -1556,6 +1825,7 @@ export const ChatView: React.FC = () => {
               })
             )}
           </div>
+          )}
         </div>
 
         {/* RIGHT: ACTIVE CHAT CONVERSATION (8 cols)
@@ -1566,10 +1836,27 @@ export const ChatView: React.FC = () => {
             chat". */}
         <div
           className={`${
-            activeRoomId ? 'flex' : 'hidden'
+            tabChats === 'descubrir' || activeRoomId ? 'flex' : 'hidden'
           } lg:flex lg:col-span-8 2xl:col-span-9 relative min-h-0 flex-col bg-zinc-900/90`}
         >
-          {activeRoom ? (
+          {/* ── VISTA: DESCUBRIR CLUBES ─────────────────
+              Ocupa toda la zona derecha. No hay chat abierto:
+              lo que se ve es la galería, y elegir un club no
+              abandona la sección: te lleva a «Mis clubes» con
+              su chat ya abierto.
+              Es un ternario encadenado con el chat y el vacío
+              de abajo: si la galería y el vacío se pintaran a la
+              vez (dos `h-full` en la misma columna), el vacío
+              tapaba la galería. */}
+          {tabChats === 'descubrir' && !activeRoomId ? (
+            <ClubDiscovery />
+          ) : null}
+
+          {/* Cuando se está en la galería sin chat abierto, la
+              zona derecha es la galería (arriba). Si hay chat
+              abierto, manda la conversación. El estado vacío de
+              abajo solo aparece si no hay ni una cosa ni la otra. */}
+          {tabChats === 'descubrir' && !activeRoomId ? null : activeRoom ? (
             <>
               {/* Chat Top Header */}
               <div className="flex items-center justify-between gap-2 border-b border-zinc-800 p-3 sm:p-4 bg-zinc-900">
@@ -1588,6 +1875,20 @@ export const ChatView: React.FC = () => {
                   >
                     <ArrowLeft size={19} />
                   </button>
+
+                  {/* Badge de chat grupal. Lo que distingue un club
+                      de un privado de un vistazo: sin él, un chat de
+                      treinta personas y una conversación de dos se
+                      ven igual. */}
+                  {esChatClub && (
+                    <span
+                      className="hidden flex-shrink-0 items-center gap-1 rounded-lg border border-violet-500/30 bg-violet-600/20 px-2 py-1 text-[10px] font-bold text-violet-300 sm:flex"
+                      title="Chat grupal de club"
+                    >
+                      <Users size={11} />
+                      <span>Club</span>
+                    </span>
+                  )}
 
                   <div className="relative flex-shrink-0">
                     {activeRoomAvatar ? (
@@ -1650,18 +1951,59 @@ export const ChatView: React.FC = () => {
                         que es lo que pasaba en movil. */}
                     <h3 className="flex min-w-0 items-center gap-2 text-sm font-bold text-white">
                       <span className="truncate">{activeRoomName}</span>
-                      {activeRoom.type === 'group' && (
+                      {(activeRoom.type === 'group' || esChatClub) && (
                         <span className="shrink-0 rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-normal text-zinc-400">
-                          {activeRoom.memberIds.length}
+                          {esChatClub
+                            ? (clubDelChat?.memberCount ?? activeRoom.memberIds.length)
+                            : activeRoom.memberIds.length}
                           <span className="hidden sm:inline"> integrantes</span>
                         </span>
                       )}
                     </h3>
-                    <span className="text-[11px] font-medium text-emerald-400">
-                      {activeRoom.type === 'group' ? 'Sala grupal activa' : 'En línea'}
-                    </span>
+
+                    {/* En un club, la segunda linea es la categoría y
+                        el rol del usuario, no "En línea": un chat
+                        grupal no tiene una persona conectada. */}
+                    {esChatClub ? (
+                      <span className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-violet-300">
+                        <span>
+                          {CLUB_CATEGORIES.find((c) => c.id === clubDelChat?.category)?.label ??
+                            'Chat grupal'}
+                        </span>
+                        {soyDuenoDelClub && (
+                          <span className="flex items-center gap-0.5 font-bold text-amber-300">
+                            <Crown size={9} />
+                            Propietario
+                          </span>
+                        )}
+                        {!soyDuenoDelClub && soyModDelClub && (
+                          <span className="flex items-center gap-0.5 font-bold text-violet-300">
+                            <Shield size={9} />
+                            Moderador
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-medium text-emerald-400">
+                        {activeRoom.type === 'group' ? 'Sala grupal activa' : 'En línea'}
+                      </span>
+                    )}
                   </div>
                 </div>
+
+                {/* Botón «Ver detalles»: abre el panel con la
+                    descripción, las normas, los miembros y las
+                    herramientas de moderación del club. */}
+                {esChatClub && clubDelChat && (
+                  <button
+                    type="button"
+                    onClick={() => setClubDetalle(clubDelChat.id)}
+                    className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-violet-600 px-2.5 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-violet-500 sm:px-3 sm:py-1.5"
+                  >
+                    <Info size={13} className="flex-shrink-0" />
+                    <span className="hidden sm:inline">Ver detalles</span>
+                  </button>
+                )}
 
                 {activeRoom.type === 'group' && (
                   /* "shrink-0" para que el boton no se encoja nunca, y
@@ -1681,6 +2023,23 @@ export const ChatView: React.FC = () => {
                   </button>
                 )}
               </div>
+
+              {/* En un club no se enseña el código de invitación:
+                  la entrada se pide desde «Descubrir clubes» o la
+                  gestiona un moderador, así que el código no
+                  aporta nada aquí. */}
+
+              {/* Aviso de miembro silenciado. Lo pone el moderador
+                  desde el panel de miembros, y el envío se bloquea
+                  en la caja de texto. */}
+              {esChatClub && estoySilenciado && (
+                <div className="flex items-center gap-2 border-b border-zinc-800 bg-orange-500/10 px-4 py-2">
+                  <VolumeX size={13} className="flex-shrink-0 text-orange-400" />
+                  <p className="text-[11px] text-orange-300">
+                    Estás silenciado en este club: puedes leer, pero no enviar mensajes.
+                  </p>
+                </div>
+              )}
 
               {/* Código del grupo: es lo que se comparte para que
                   otras personas puedan pedir entrar. */}
@@ -2627,11 +2986,53 @@ export const ChatView: React.FC = () => {
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-8 text-center text-zinc-500">
               <MessageCircle size={36} className="text-zinc-700 mb-3" />
-              <h3 className="text-base font-bold text-white">Selecciona o inicia un chat</h3>
+              <h3 className="text-base font-bold text-white">
+                {tabChats === 'clubes' ? 'Selecciona uno de tus clubes' : 'Selecciona o inicia un chat'}
+              </h3>
               <p className="mt-1 text-xs text-zinc-400 max-w-sm">
-                Puedes iniciar una charla privada añadiendo un usuario mediante su ID único o crear un nuevo grupo de debate.
+                {tabChats === 'clubes'
+                  ? 'Elige un club de la lista para chatear con sus miembros, o descubre nuevas comunidades.'
+                  : 'Puedes iniciar una charla privada añadiendo un usuario mediante su ID único o crear un nuevo grupo de debate.'}
               </p>
+
+              {tabChats === 'clubes' && misClubes.length > 0 && (
+                <ul className="mt-4 w-full max-w-xs space-y-1.5 text-left">
+                  {misClubes.slice(0, 3).map((c) => (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveRoomId(c.chatId)}
+                        className="flex w-full items-center gap-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 p-2 text-left transition-colors hover:border-violet-500/40"
+                      >
+                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-800 text-sm">
+                          {c.iconUrl ? (
+                            <img src={c.iconUrl} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            CLUB_CATEGORIES.find((cat) => cat.id === c.category)?.icon ?? '✨'
+                          )}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[11px] font-bold text-white">
+                            {c.name}
+                          </span>
+                          <span className="block text-[10px] text-zinc-500">
+                            {c.memberCount} {c.memberCount === 1 ? 'miembro' : 'miembros'}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
+          )}
+
+          {/* ── PANEL DE DETALLE DEL CLUB ─────────────────
+              Va DENTRO de la zona del chat y tapándolo: así, al
+              cerrarlo, el chat sigue exactamente donde estaba y
+              no se recarga el historial. */}
+          {clubActivoEnPanel && (
+            <ClubDetail club={clubActivoEnPanel} onClose={() => setClubDetalle(null)} />
           )}
         </div>
       </div>

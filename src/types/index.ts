@@ -748,9 +748,23 @@ export interface ChatMessage {
 
 export interface ChatRoom {
   id: string;
-  type: 'direct' | 'group';
+  /**
+   * 'direct'  → conversación entre dos personas
+   * 'group'   → grupo clásico, por código
+   * 'club'    → chat grupal de un club. Es un grupo con
+   *             ficha propia en `clubs/`: categoría, normas,
+   *             roles y solicitudes. Los mensajes se guardan
+   *             en la misma subcolección que los demás.
+   */
+  type: 'direct' | 'group' | 'club';
   name: string; // for group: group name, for direct: name of other participant
   avatar?: string;
+  /** Solo en clubes: identificador del club (igual que su slug). */
+  slug?: string;
+  /** Solo en clubes: categoría del club. */
+  category?: ClubCategory;
+  /** Solo en clubes: banner de portada. */
+  coverUrl?: string;
   ownerId: string;
   memberIds: string[];
   lastMessage?: string;
@@ -924,4 +938,117 @@ export interface WeeklyWork {
   /** Posición en la lista. Menor número, más arriba. */
   order: number;
   active: boolean;
+}
+
+// ======================================================
+// CLUBES Y COMUNIDADES
+// ======================================================
+//
+// Los clubes son grupos temáticos con su propio chat grupal.
+// Extienden el concepto de "grupo" actual añadiendo:
+// - Categorías temáticas
+// - Imagen de portada e icono
+// - Descripción y normas
+// - Tipos de acceso (público, privado, por solicitud)
+// - Roles de miembro (propietario, moderador, miembro)
+// - Solicitudes de ingreso pendientes
+
+export type ClubCategory =
+  | 'anime-manga'
+  | 'videojuegos'
+  | 'cosplay-fanart'
+  | 'cultura-japonesa'
+  | 'tecnologia-programacion'
+  | 'otros';
+
+export const CLUB_CATEGORIES: { id: ClubCategory; label: string; icon: string }[] = [
+  { id: 'anime-manga', label: 'Anime y Manga', icon: '📺' },
+  { id: 'videojuegos', label: 'Videojuegos', icon: '🎮' },
+  { id: 'cosplay-fanart', label: 'Cosplay y Fanart', icon: '🎭' },
+  { id: 'cultura-japonesa', label: 'Cultura Japonesa', icon: '🗾' },
+  { id: 'tecnologia-programacion', label: 'Tecnología y Programación', icon: '💻' },
+  { id: 'otros', label: 'Otros Intereses Geek', icon: '✨' },
+];
+
+export type ClubAccessType = 'public' | 'private' | 'request';
+
+export type ClubRole = 'owner' | 'moderator' | 'member';
+
+export interface ClubMember {
+  uid: string;
+  role: ClubRole;
+  joinedAt: string; // ISO timestamp
+  mutedUntil?: string; // ISO timestamp, si está silenciado
+}
+
+export interface Club {
+  id: string;
+  /** Identificador único para URLs (slug). */
+  slug: string;
+  name: string;
+  description: string;
+  category: ClubCategory;
+  /** URL de la imagen de portada (banner horizontal). */
+  coverUrl?: string;
+  /** URL del icono del club (avatar cuadrado). */
+  iconUrl?: string;
+  /** Normas de convivencia del club. */
+  rules?: string;
+  /** Tipo de acceso al club. */
+  accessType: ClubAccessType;
+  /** Propietario del club (creador). */
+  ownerId: string;
+  /**
+   * Moderadores del club (además del propietario).
+   *
+   * Vive como array de primer nivel, y no solo dentro de
+   * `members[uid].role`, porque las reglas de Firestore
+   * pueden comparar arrays enteros pero no recorrer un mapa
+   * clave a clave: así se puede impedir que un moderador
+   * ascienda a alguien (o se ascienda a sí mismo) sin
+   * depender de que nadie toque la ficha de otro.
+   *
+   * El campo `members[uid].role` se mantiene como reflejo
+   * para mostrar el rol en la interfaz, pero la autoridad
+   * (reglas) se lee de aquí y de `ownerId`.
+   */
+  moderatorIds: string[];
+  /** Mapa de miembros: uid -> ClubMember. */
+  members: Record<string, ClubMember>;
+  /** Contador de miembros (desnormalizado para consultas rápidas). */
+  memberCount: number;
+  /** Chat grupal asociado (id del documento en chats/). */
+  chatId: string;
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
+}
+
+export interface ClubRequest {
+  id: string;
+  clubId: string;
+  clubName: string;
+  clubSlug: string;
+  fromId: string;
+  fromName: string;
+  fromAvatar: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+  createdAt: string;
+  respondedAt?: string;
+  respondedBy?: string;
+}
+
+export interface ClubListing {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  category: ClubCategory;
+  coverUrl?: string;
+  iconUrl?: string;
+  accessType: ClubAccessType;
+  ownerId: string;
+  ownerName: string;
+  moderatorIds: string[];
+  memberCount: number;
+  createdAt: string;
 }

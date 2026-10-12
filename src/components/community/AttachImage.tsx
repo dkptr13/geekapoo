@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import { ImagePlus, X, Loader2, AlertCircle } from 'lucide-react';
 
-import { uploadCommunityImage } from '../../services/imageUpload';
+import { uploadCommunityImage, esGif } from '../../services/imageUpload';
 import { cargarImagen } from '../../services/imageCanvas';
 import { CropEditor } from '../common/CropEditor';
 
@@ -82,7 +82,7 @@ export const AttachImage: FC<AttachImageProps> = ({
     }
 
     // El GIF no se puede recortar sin matarlo: se sube directo.
-    if (file.type === 'image/gif') {
+    if (esGif(file)) {
       await subir(file);
       return;
     }

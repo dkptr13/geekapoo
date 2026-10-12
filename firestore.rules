@@ -88,6 +88,34 @@ service cloud.firestore {
       return isSignedIn() && chatData(chatId).ownerId == request.auth.uid;
     }
 
+    /**
+     * Moderador del club cuyo chat grupal es este.
+     *
+     * Hace falta porque un moderador que no es el dueño del
+     * chat (el chat lo crea el propietario del club) tiene
+     * que poder aceptar solicitudes y expulsar miembros, y
+     * las dos cosas se hacen tocando `chat.memberIds`.
+     *
+     * Se busca el club por el `slug` que guarda el chat y no
+     * por el id: así un chat privado o un grupo normal nunca
+     * entra por aquí. Si el chat no es de tipo 'club' la
+     * función da false sin más.
+     */
+    function esModeradorClubDeChat(chatId) {
+      return isSignedIn()
+             && chatData(chatId).type == 'club'
+             && chatData(chatId).slug is string
+             && exists(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+             && request.auth.uid in
+                  get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+                    .data.memberIds
+             && (get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+                   .data.ownerId == request.auth.uid
+                 || request.auth.uid in
+                    get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+                      .data.moderatorIds);
+    }
+
     // Solo contadores de "me gusta" y de comentarios: cualquier usuario activo puede tocarlos
     function onlyEngagement() {
       return isActive()
@@ -1660,6 +1688,335 @@ service cloud.firestore {
     }
 
     // ======================================================
+    // CLUBES Y COMUNIDADES
+    // ======================================================
+    // Un club es un grupo temático con su propio chat
+    // grupal. La ficha vive en `clubs/{clubId}` y los
+    // mensajes en `chats/{chatId}/messages/`, reutilizando
+    // el sistema de mensajería que ya tienen los chats
+    // privados.
+    //
+    // La pertenencia está en TRES sitios, y las tres se
+    // escriben juntas (ver `services/clubs.ts`):
+    //
+    //   clubs/{clubId}.members    -> mapa con el rol
+    //   chats/{clubId}.memberIds  -> array para las consultas
+    //   chats/{chatId}.memberIds  -> lo que comprueban las
+    //                                 reglas de los mensajes
+    //
+    // Lo que más importa aquí es que el cliente NO pueda
+    // decidir por sí solo quién es miembro: `memberIds` no
+    // se puede tocar libremente, y entrar en un club
+    // privado pasa por una solicitud que acepta un
+    // moderador.
+    // ======================================================
+
+    function clubData(clubId) {
+      return get(/databases/$(database)/documents/clubs/$(clubId)).data;
+    }
+
+    function clubExiste(clubId) {
+      return exists(/databases/$(database)/documents/clubs/$(clubId));
+    }
+
+    function esMiembroClub(clubId) {
+      return isSignedIn()
+             && clubExiste(clubId)
+             && request.auth.uid in clubData(clubId).memberIds;
+    }
+
+    function esPropietarioClub(clubId) {
+      return isSignedIn()
+             && clubExiste(clubId)
+             && clubData(clubId).ownerId == request.auth.uid;
+    }
+
+    /**
+     * Moderador del club: está en `moderatorsIds` o es el
+     * propietario.
+     *
+     * Es INDEPENDIENTE del rol global de geekapoo.com: ser
+     * moderador de un club no concede ningún permiso en el
+     * panel de administración ni sobre los hilos. Ahí sigue
+     * mandando `users/{uid}.role`.
+     *
+     * La autoridad se lee de `moderatorIds`/`ownerId` y NO de
+     * `members[uid].role` a propósito: las reglas pueden
+     * comparar un array o un campo de primer nivel enteros,
+     * pero no recorrer el mapa `members` clave a clave. Si la
+     * autoridad estuviera en el mapa, un moderador podría
+     * reescribir su propia ficha escalando sin que ninguna
+     * condición pudiera notarlo. El `role` de la ficha se
+     * mantiene solo para mostrarlo en la interfaz.
+     */
+    function esModeradorClub(clubId) {
+      return esMiembroClub(clubId)
+             && (clubData(clubId).ownerId == request.auth.uid
+                 || request.auth.uid in clubData(clubId).moderatorIds);
+    }
+
+    /** Forma válida del mapa de miembros al crear el club. */
+    function miembrosValidos(m) {
+      return m is map
+             && m.size() == 1
+             // El creador tiene que estar dentro y ser
+             // 'owner', y nadie más: el resto entra por
+             // solicitud o por invitación del propietario.
+             && request.auth.uid in m
+             && m[request.auth.uid].role == 'owner';
+    }
+
+    /**
+     * Si el mapa de miembros ha cambiado SOLO en claves
+     * ajenas (nunca en la del que escribe).
+     *
+     * Ahora que los roles viven en `moderatorIds`/`ownerId`,
+     * esta función sirve para que un moderador no se quite
+     * un silencio a sí mismo: su propia ficha en `members`
+     * (joinedAt, mutedUntil) no puede tocarla.
+     */
+    function soloAJenos() {
+      let antes = resource.data.members;
+      let despues = request.resource.data.members;
+      let yo = request.auth.uid;
+      let estaba = yo in antes.keys();
+
+      // Ni me añado ni desaparezco, y si ya estaba mi ficha no cambia.
+      return (estaba == (yo in despues.keys()))
+             && (!estaba || antes[yo] == despues[yo]);
+    }
+
+    /**
+     * Que el mapa de miembros solo pierde o gana gente, y que
+     * NADIE cambia de rol.
+     *
+     * Es lo que reserva «nombrar moderadores» al propietario: un
+     * moderador puede expulsar (quitar una clave) y silenciar
+     * (cambiar `mutedUntil`), pero si pudiera tocar `role` se
+     * haría propietario a sí mismo. Ver `esModeradorClub`.
+     */
+
+    /**
+     * El propietario no puede quedarse fuera de su propio club.
+     *
+     * Si la propiedad sigue siendo suya, el dueño tiene que SEGUIR
+     * en la lista de miembros y en el mapa de roles. Sin esto
+     * podría borrarse a sí mismo de `members` y dejar el club sin
+     * nadie que lo administre, que es justo el caso que la regla
+     * de «salir del club» evita: para salir hay que transferir la
+     * propiedad antes, y al transferirla otra persona ocupa su
+     * sitio (el dueño anterior baja a moderador, no se va).
+     */
+    function duenoSigueDentro() {
+      return request.resource.data.ownerId != resource.data.ownerId
+             || (request.resource.data.ownerId in request.resource.data.memberIds
+                 && request.resource.data.ownerId
+                      in request.resource.data.members.keys());
+    }
+
+    match /clubs/{clubId} {
+      // ── Lectura ─────────────────────────────────────
+      // Los clubes públicos y por solicitud son legibles
+      // para cualquiera con sesión: es lo que permite la
+      // galería de descubrimiento. Los privados solo los
+      // ven sus miembros, igual que sus mensajes.
+      //
+      // El `resource == null` es para el `get` de un slug
+      // que NO existe: sin él, `slugDisponible()` (que hace
+      // `getDoc(clubs/slug)` para comprobar duplicados)
+      // falla con PERMISSION_DENIED en lugar de devolver
+      // "no existe", y el modal enseña el crudo "Missing or
+      // insufficient permissions". Con el null, un slug libre
+      // se puede leer (no hay nada que proteger) y un slug
+      // privado ocupado sigue denegado (el cliente lo trata
+      // como "ocupado").
+      // Para `list` el `resource` nunca es null, así que la
+      // galería sigue sin ver privados ajenos: `listarClubes`
+      // filtra por accessType en la consulta.
+      allow read: if isSignedIn()
+                  && (resource == null
+                      || resource.data.accessType in ['public', 'request']
+                      || request.auth.uid in resource.data.memberIds);
+
+      // ── Creación ────────────────────────────────────
+      // Cualquier usuario con sesión puede crear un club, y al
+      // crearlo queda como único miembro y propietario.
+      //
+      // `moderatorIds` tiene que venir vacío: si no, cualquiera
+      // podría estrenar el club con moderadores inventados.
+      allow create: if isSignedIn()
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.moderatorIds is list
+                    && request.resource.data.moderatorIds.size() == 0
+                    && request.resource.data.memberIds is list
+                    && request.resource.data.memberIds.size() == 1
+                    && request.auth.uid in request.resource.data.memberIds
+                    && request.resource.data.members is map
+                    && miembrosValidos(request.resource.data.members)
+                    && request.resource.data.memberCount == 1
+                    // El id del documento ES el slug.
+                    && clubId == request.resource.data.slug
+                    && request.resource.data.slug is string
+                    && request.resource.data.slug.size() >= 3
+                    && request.resource.data.slug.size() <= 40
+                    && request.resource.data.slug.matches('^[a-z0-9-]+$')
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() >= 3
+                    && request.resource.data.name.size() <= 60
+                    && request.resource.data.description is string
+                    && request.resource.data.description.size() >= 10
+                    && request.resource.data.description.size() <= 500
+                    && request.resource.data.rules is string
+                    && request.resource.data.rules.size() <= 1000
+                    && request.resource.data.accessType in ['public', 'private', 'request']
+                    && request.resource.data.chatId is string
+                    && request.resource.data.chatId.size() > 0;
+
+      // ── Actualización ───────────────────────────────
+      //
+      // Reparto de permisos, y ninguno es "cualquier
+      // miembro puede tocar lo que quiera":
+      //
+      //   · admin global   -> todo
+      //   · propietario    -> configuración Y miembros Y
+      //                       roles Y propiedad (transferirla)
+      //   · moderador      -> la ficha de OTROS miembros
+      //                       (expulsar o silenciar), pero NO
+      //                       la configuración, ni los roles,
+      //                       ni la propiedad
+      //   · cualquier otro -> solo salirse o entrar (si el club
+      //                       es público)
+      //
+      // LOS ROLES NO SE TOCAN DESDE LA FICHA DE MIEMBRO.
+      // `affectedKeys()` sobre un mapa anidado solo devuelve la
+      // clave de primer nivel ("members"), nunca el campo
+      // concreto que cambió dentro, así que ninguna regla
+      // podría distinguir «le han cambiado el rol» de «le han
+      // cambiado el silencio». Por eso la autoridad vive en
+      // `ownerId` y `moderatorIds` (arriba): cambiar un rol es
+      // tocar uno de esos dos campos, y la rama del moderador
+      // no los incluye entre las claves permitidas. No hace
+      // falta ninguna función que compare mapas clave a clave
+      // porque las reglas no saben hacerlo.
+      //
+      // `soloAJenos` impide que un moderador escriba su propia
+      // ficha (por ejemplo para quitarse un silencio él solo).
+      // `duenoSigueDentro` impide que el propietario se borre
+      // a sí mismo y deje el club sin nadie al mando; en la
+      // rama del moderador hace lo mismo con el dueño: un
+      // moderador tampoco puede expulsar al propietario.
+      allow update: if isAdmin()
+                    || (esPropietarioClub(clubId)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(
+                               ['name', 'description', 'coverUrl', 'iconUrl',
+                                'rules', 'accessType', 'members', 'memberIds',
+                                'memberCount', 'moderatorIds', 'ownerId',
+                                'updatedAt'])
+                        && duenoSigueDentro())
+                    || (esModeradorClub(clubId)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(
+                               ['members', 'memberIds', 'memberCount', 'updatedAt'])
+                        && soloAJenos()
+                        && duenoSigueDentro());
+
+      // Salir del club: quitarse a uno mismo de las tres
+      // listas. Exactamente una persona menos, y soy yo.
+      //
+      // El propietario NO puede usar esta vía: si no, un
+      // club se quedaría sin nadie que lo administre. Tiene
+      // que transferir la propiedad o borrarlo antes.
+      allow update: if esMiembroClub(clubId)
+                    && resource.data.ownerId != request.auth.uid
+                    && request.resource.data.memberIds is list
+                    && !(request.auth.uid in request.resource.data.memberIds)
+                    && request.resource.data.memberIds.size()
+                         == resource.data.memberIds.size() - 1
+                    && !(request.auth.uid in request.resource.data.members.keys())
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(['members', 'memberIds', 'memberCount', 'updatedAt']);
+
+      // Entrar en un club PÚBLICO: añadirse a sí mismo sin pasar
+      // por solicitud. Exactamente una persona más, y soy yo.
+      //
+      // Solo para clubes con accessType == 'public'. Las
+      // claves permitidas son las mismas que en «salir».
+      allow update: if isActive()
+                    && clubExiste(clubId)
+                    && resource.data.accessType == 'public'
+                    && !(request.auth.uid in resource.data.memberIds)
+                    && request.auth.uid in request.resource.data.memberIds
+                    && request.resource.data.memberIds.size()
+                         == resource.data.memberIds.size() + 1
+                    && !(request.auth.uid in resource.data.members.keys())
+                    && request.auth.uid in request.resource.data.members.keys()
+                    && request.resource.data.members[request.auth.uid].role == 'member'
+                    && request.resource.data.members[request.auth.uid].uid == request.auth.uid
+                    && resource.data.members.values()
+                         .hasAll(request.resource.data.members.values())
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(['members', 'memberIds', 'memberCount', 'updatedAt']);
+
+      // ── Borrado ─────────────────────────────────────
+      // Solo el propietario (o un admin global). Borrar un
+      // club se lleva por delante el acceso al chat de
+      // todos sus miembros, y eso no lo decide un moderador.
+      allow delete: if esPropietarioClub(clubId) || isAdmin();
+
+      // ── Solicitudes de acceso ───────────────────────
+      //
+      // Un documento por persona y club: el id es
+      // `{slug}_{uid}`. Al ser determinista, repetir la
+      // solicitud no crea un documento nuevo, así que nadie
+      // puede inundar el club pidiendo cien veces.
+      //
+      //   · crear: cualquier usuario activo que no sea ya
+      //     miembro, y solo para un club que admita
+      //     solicitudes.
+      //   · leer: quien la envió, o un moderador del club.
+      //   · aceptar/rechazar: moderador o propietario.
+      //     Aceptar NO crea la membresía aquí: eso se hace
+      //     en el documento del club, cuyas reglas ya
+      //     comprueban quién puede tocar `members`.
+      match /requests/{requestId} {
+        allow read: if isSignedIn()
+                    && (resource.data.fromId == request.auth.uid
+                        || esModeradorClub(clubId));
+
+        allow create: if isActive()
+                      && request.resource.data.fromId == request.auth.uid
+                      && request.resource.data.clubId == clubId
+                      && request.resource.data.status == 'pending'
+                      && request.resource.data.keys().hasOnly(
+                           ['clubId', 'clubName', 'fromId', 'fromName',
+                            'fromAvatar', 'status', 'createdAt'])
+                      && !esMiembroClub(clubId)
+                      && clubExiste(clubId)
+                      && clubData(clubId).accessType != 'public'
+                      && requestId == request.resource.data.clubId
+                                      + '_' + request.auth.uid;
+
+        // Quien la envió puede CANCELARLA, y también puede
+        // volver a pulsar «Solicitar acceso» sin que falle: el
+        // documento es el mismo (id determinista) y solo cambia
+        // la fecha. Sin esta segunda rama, un segundo clic daba
+        // permission-denied y parecía un fallo de la web.
+        allow update: if (esModeradorClub(clubId)
+                          && request.resource.data.diff(resource.data)
+                               .affectedKeys().hasOnly(['status', 'respondedAt', 'respondedBy']))
+                      || (resource.data.fromId == request.auth.uid
+                          && request.resource.data.status == 'cancelled')
+                      || (resource.data.fromId == request.auth.uid
+                          && request.resource.data.status == 'pending'
+                          && request.resource.data.diff(resource.data)
+                               .affectedKeys().hasOnly(['createdAt']));
+
+        allow delete: if isAdmin() || esModeradorClub(clubId);
+      }
+    }
+
+    // ======================================================
     // CHATS PRIVADOS Y GRUPALES
     // ======================================================
     match /chats/{chatId} {
@@ -1705,9 +2062,24 @@ service cloud.firestore {
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(
                                ['name', 'avatar', 'memberIds', 'type',
-                                'hiddenFor', 'ownerId',
+                                'hiddenFor', 'ownerId', 'slug', 'category',
+                                'coverUrl',
                                 'lastMessage', 'lastMessageAt',
                                 'lastMessageSenderId', 'readAt']))
+                    // Moderador de un CLUB cuyo chat es este.
+                    //
+                    // Puede añadir y quitar miembros, que es lo
+                    // que hace al aceptar una solicitud o al
+                    // expulsar a alguien. NADA más: ni renombrar
+                    // el club, ni cambiar la portada, ni tocar los
+                    // mensajes.
+                    //
+                    // Se busca el club por el `slug` que guarda
+                    // el chat, no por el id: así un chat privado
+                    // o un grupo normal nunca pasa por aquí.
+                    || (esModeradorClubDeChat(chatId)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['memberIds', 'hiddenFor']))
                     // Cualquier miembro puede ocultar la conversación
                     // para SÍ MISMO, y vaciarla (los mensajes anteriores
                     // dejan de aparecerle, pero los demás los conservan).
@@ -1737,6 +2109,21 @@ service cloud.firestore {
                         && !(request.auth.uid in request.resource.data.memberIds)
                         && request.resource.data.memberIds.size()
                              == resource.data.memberIds.size() - 1
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['memberIds', 'hiddenFor']))
+
+                    // Entrar en el chat de un CLUB PÚBLICO: añadirse a sí
+                    // mismo. Exactamente una persona más, y me quito de
+                    // hiddenFor si estaba (p.ej. salí antes y vuelvo).
+                    || (isActive()
+                        && resource.data.type == 'club'
+                        && resource.data.slug is string
+                        && clubExiste(resource.data.slug)
+                        && clubData(resource.data.slug).accessType == 'public'
+                        && !(request.auth.uid in resource.data.memberIds)
+                        && request.auth.uid in request.resource.data.memberIds
+                        && request.resource.data.memberIds.size()
+                             == resource.data.memberIds.size() + 1
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(['memberIds', 'hiddenFor']));
 
@@ -1796,7 +2183,30 @@ service cloud.firestore {
         // `deletedForEveryone` a mano saltándose la ventana de 2
         // horas. Por eso actualizar y destruir quedan en manos del
         // admin (la Function usa el Admin SDK y no pasa por aquí).
-        allow update, delete: if isAdmin();
+        //
+        // LA EXCEPCIÓN ES LA MODERACIÓN DE UN CLUB: un moderador
+        // del club al que pertenece el chat puede retirar el
+        // contenido de un mensaje. Solo eso, y con condiciones:
+        //
+        //   · no puede restaurarlo (el contenido se VACÍA, no se
+        //     rellena: `body` pasa a '' y se pone
+        //     `deletedByMod` en true);
+        //   · no puede tocar el autor ni la fecha de creación;
+        //   · solo los cuatro campos del marcador.
+        //
+        // Sin esta rama, el botón de "eliminar mensaje" del
+        // moderador daría permission-denied y el club no podría
+        // mantener el orden del grupo.
+        allow update, delete: if isAdmin()
+                             || (esModeradorClubDeChat(chatId)
+                                 && request.resource.data.body == ''
+                                 && request.resource.data.deletedForEveryone == true
+                                 && request.resource.data.createdAt == resource.data.createdAt
+                                 && request.resource.data.senderId == resource.data.senderId
+                                 && request.resource.data.diff(resource.data)
+                                      .affectedKeys().hasOnly(
+                                        ['body', 'deletedForEveryone', 'deletedAt',
+                                         'deletedBy', 'deletedByMod']));
       }
 
       // Recibos de lectura: se guardan en un mapa "readAt" DENTRO

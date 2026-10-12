@@ -14,7 +14,7 @@ import {
 
 import { useAuth } from '../../context/AuthContext';
 import { useProgression } from '../../context/ProgressionContext';
-import { uploadCommunityImage, deleteReplacedImage } from '../../services/imageUpload';
+import { uploadCommunityImage, deleteReplacedImage, esGif } from '../../services/imageUpload';
 import { validarEditable } from '../../utils/profile';
 import { nivelDesdeXp } from '../../utils/progression';
 import {
@@ -252,6 +252,23 @@ export const CustomizeProfileModal: React.FC<{
     }
   };
 
+  // Subida directa sin recorte (para GIFs animados). Sin
+  // ajustes de recorte: se guarda `avatarCrop` en null para que
+  // no se aplique el encuadre de un avatar anterior al nuevo.
+  const alSubirAvatarDirecto = async (fichero: File) => {
+    setSubiendo(true);
+    setErrorGeneral(null);
+    try {
+      const url = await uploadCommunityImage(fichero, currentUser.uid);
+      cambiar('avatarUrl', url);
+      cambiar('avatarCrop', null);
+    } catch (e) {
+      setErrorGeneral(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
   const alSubirBanner = async (recortada: File) => {
     setSubiendo(true);
     setErrorGeneral(null);
@@ -262,6 +279,20 @@ export const CustomizeProfileModal: React.FC<{
     } catch (e) {
       setErrorGeneral(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
       setBannerSinRecortar(null);
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
+  // Subida directa sin recorte (para GIFs animados).
+  const alSubirBannerDirecto = async (fichero: File) => {
+    setSubiendo(true);
+    setErrorGeneral(null);
+    try {
+      const url = await uploadCommunityImage(fichero, currentUser.uid);
+      cambiar('bannerUrl', url);
+    } catch (e) {
+      setErrorGeneral(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
     } finally {
       setSubiendo(false);
     }
@@ -307,21 +338,44 @@ export const CustomizeProfileModal: React.FC<{
     setErrorGeneral(null);
     try {
       const url = await uploadCommunityImage(recortada, currentUser.uid);
-      if (subidaPj === -1) {
-        cambiar('favoriteCharacterImage', url);
-      } else {
-        setDatos((prev) => ({
-          ...prev,
-          favoriteCharacters: (prev.favoriteCharacters ?? []).map((p, i) =>
-            i === subidaPj ? { ...p, imageUrl: url } : p,
-          ),
-        }));
-        setGuardado(false);
-      }
+      guardarPersonajeUrl(url, subidaPj);
       setPjSinRecortar(null);
     } catch (e) {
       setErrorGeneral(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
       setPjSinRecortar(null);
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
+  // Guarda la URL del personaje en su fila: `-1` es el
+  // principal, el resto son índices de la vitrina.
+  const guardarPersonajeUrl = (url: string, indice: number) => {
+    if (indice === -1) {
+      cambiar('favoriteCharacterImage', url);
+    } else {
+      setDatos((prev) => ({
+        ...prev,
+        favoriteCharacters: (prev.favoriteCharacters ?? []).map((p, i) =>
+          i === indice ? { ...p, imageUrl: url } : p,
+        ),
+      }));
+      setGuardado(false);
+    }
+  };
+
+  // Subida directa sin recorte (para GIFs animados). Lleva el
+  // índice como parámetro porque el diálogo de archivo de la
+  // vitrina se abre a mano y el estado `subidaPj` podría no
+  // haberse actualizado todavía al elegir.
+  const alSubirPersonajeDirecto = async (fichero: File, indice: number) => {
+    setSubiendo(true);
+    setErrorGeneral(null);
+    try {
+      const url = await uploadCommunityImage(fichero, currentUser.uid);
+      guardarPersonajeUrl(url, indice);
+    } catch (e) {
+      setErrorGeneral(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
     } finally {
       setSubiendo(false);
     }
@@ -916,8 +970,14 @@ export const CustomizeProfileModal: React.FC<{
                           className="sr-only"
                           onChange={(e) => {
                             const elegido = e.target.files?.[0];
-                            if (elegido) setBannerSinRecortar(elegido);
                             e.target.value = '';
+                            if (!elegido) return;
+                            // El GIF se sube tal cual, sin recorte.
+                            if (esGif(elegido)) {
+                              void alSubirBannerDirecto(elegido);
+                              return;
+                            }
+                            setBannerSinRecortar(elegido);
                           }}
                         />
                       </label>
@@ -976,8 +1036,14 @@ export const CustomizeProfileModal: React.FC<{
                         className="sr-only"
                         onChange={(e) => {
                           const elegido = e.target.files?.[0];
-                          if (elegido) setAvatarSinRecortar(elegido);
                           e.target.value = '';
+                          if (!elegido) return;
+                          // El GIF se sube tal cual, sin recorte.
+                          if (esGif(elegido)) {
+                            void alSubirAvatarDirecto(elegido);
+                            return;
+                          }
+                          setAvatarSinRecortar(elegido);
                         }}
                       />
                     </label>
@@ -1213,7 +1279,7 @@ export const CustomizeProfileModal: React.FC<{
                             // recorte: el canvas solo guarda el primer
                             // fotograma y mataría la animación. El fondo
                             // se encuadra solo con `object-cover`.
-                            if (elegido.type === 'image/gif') {
+                            if (esGif(elegido)) {
                               void alSubirFondoDirecto(elegido);
                               return;
                             }
@@ -1795,11 +1861,15 @@ export const CustomizeProfileModal: React.FC<{
                             className="sr-only"
                             onChange={(e) => {
                               const elegido = e.target.files?.[0];
-                              if (elegido) {
-                                setSubidaPj(-1);
-                                setPjSinRecortar(elegido);
-                              }
                               e.target.value = '';
+                              if (!elegido) return;
+                              // El GIF se sube tal cual, sin recorte.
+                              if (esGif(elegido)) {
+                                void alSubirPersonajeDirecto(elegido, -1);
+                                return;
+                              }
+                              setSubidaPj(-1);
+                              setPjSinRecortar(elegido);
                             }}
                           />
                         </label>
@@ -1861,7 +1931,13 @@ export const CustomizeProfileModal: React.FC<{
                             input.accept = 'image/*';
                             input.onchange = () => {
                               const f = input.files?.[0];
-                              if (f) setPjSinRecortar(f);
+                              if (!f) return;
+                              // El GIF se sube tal cual, sin recorte.
+                              if (esGif(f)) {
+                                void alSubirPersonajeDirecto(f, i);
+                                return;
+                              }
+                              setPjSinRecortar(f);
                             };
                             input.click();
                           }}

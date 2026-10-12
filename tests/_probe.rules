@@ -1,0 +1,57 @@
+// PROBE TEMPORAL 2
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cambio de rol anidado: ¿affectedKeys devuelve la ruta completa?
+    match /probeA/{id} {
+      allow read: if true;
+      allow update: if request.resource.data.diff(resource.data)
+                      .affectedKeys().hasOnly(['members.a.role']);
+    }
+
+    // ...¿o solo la clave de primer nivel?
+    match /probeA2/{id} {
+      allow read: if true;
+      allow update: if request.resource.data.diff(resource.data)
+                      .affectedKeys().hasOnly(['members']);
+    }
+
+    // Borrar una clave del mapa: ¿"members.a" exacto?
+    match /probeB1/{id} {
+      allow read: if true;
+      allow update: if request.resource.data.diff(resource.data)
+                      .affectedKeys().hasOnly(['members.a']);
+    }
+
+    // ¿o los campos borrados completos?
+    match /probeB2/{id} {
+      allow read: if true;
+      allow update: if request.resource.data.diff(resource.data)
+                      .affectedKeys().hasOnly(['members.a.role', 'members.a.joinedAt']);
+    }
+
+    // ¿o solo "members"?
+    match /probeB3/{id} {
+      allow read: if true;
+      allow update: if request.resource.data.diff(resource.data)
+                      .affectedKeys().hasOnly(['members']);
+    }
+
+    // hasAll con la dirección correcta: lo que sobrevive ya estaba
+    match /probeG/{id} {
+      allow read: if true;
+      allow update: if request.resource.data.members.values()
+                      .hasAll(resource.data.members.values())
+                    && request.resource.data.members.size()
+                         == resource.data.members.size();
+    }
+
+    // ¿Existe map.keyValues()?
+    match /probeI/{id} {
+      allow read: if true;
+      allow update: if resource.data.members.keyValues().size() >= 0;
+    }
+  }
+}

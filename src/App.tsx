@@ -13,6 +13,10 @@ import {
   ChatProvider,
 } from './context/ChatContext';
 
+import {
+  ClubsProvider,
+} from './context/ClubsContext';
+
 import { SiteContentProvider } from './context/SiteContentContext';
 import { ProgressionProvider } from './context/ProgressionContext';
 import { KapoProvider } from './context/KapoContext';
@@ -752,7 +756,8 @@ export default function App() {
       <AuthProvider>
         <CommunityProvider>
           <ChatProvider>
-            <ProgressionProvider>
+            <ClubsProvider>
+              <ProgressionProvider>
               <NotificationsProvider>
                 <SiteContentProvider>
                   <FollowingUidProvider>
@@ -761,9 +766,10 @@ export default function App() {
                 </SiteContentProvider>
               </NotificationsProvider>
             </ProgressionProvider>
-          </ChatProvider>
-        </CommunityProvider>
-      </AuthProvider>
+          </ClubsProvider>
+        </ChatProvider>
+      </CommunityProvider>
+    </AuthProvider>
     </BrowserRouter>
   );
 }

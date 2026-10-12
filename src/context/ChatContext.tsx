@@ -304,11 +304,17 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // bajo demanda al escribir el código.
 
   // Selecciona la primera conversación cuando aún no hay ninguna activa.
+  //
+  // Se prefieren las privadas: con la sección de clubes dentro de
+  // «Chats», el primer documento de la lista puede ser un club, y
+  // entonces entrar en la pestaña «Privados» te dejaría con un chat
+  // grupal abierto. Es un detalle, pero de los que despistan.
   useEffect(() => {
     if (rooms.length === 0) return;
     setActiveRoomId((prev) => {
       if (prev && rooms.some((r) => r.id === prev)) return prev;
-      return rooms[0].id;
+      const privadas = rooms.filter((r) => r.type !== 'club');
+      return (privadas[0] ?? rooms[0]).id;
     });
   }, [rooms]);
 

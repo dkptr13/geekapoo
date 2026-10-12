@@ -146,6 +146,48 @@ service firebase.storage {
       allow delete: if isSignedIn() && (isChatMember(chatId) || isAdmin());
     }
 
+    // Imagenes de los clubes: portada (banner) e icono.
+    //
+    // La carpeta es el slug del club. No comprueba la pertenencia
+    // leyendo el documento del club, sino que exige algo mas
+    // fuerte: la ruta tiene que ser `clubs/{slug}/{imagen}` y el
+    // usuario tiene que existir en el mapa de miembros del club
+    // con rol de moderador o propietario. Es decir, subir aqui
+    // significa poder cambiar la imagen del club.
+    //
+    // `folder` solo puede ser 'portada' o 'icono': sin eso, la
+    // carpeta serviria para colgar cualquier fichero.
+    //
+    // El borrado es lo mas restrictivo de todas las carpetas:
+    // solo el propietario del club. Es lo que permite cambiar la
+    // portada sin que un moderador pueda dejar el club sin
+    // ninguna imagen.
+    function esAdminDeClub(slug) {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/clubs/$(slug))
+        && request.auth.uid in
+             firestore.get(/databases/(default)/documents/clubs/$(slug)).data.memberIds
+        && firestore.get(/databases/(default)/documents/clubs/$(slug))
+               .data.members[request.auth.uid].role in ['moderator', 'owner'];
+    }
+
+    function esPropietarioDeClub(slug) {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/clubs/$(slug))
+        && firestore.get(/databases/(default)/documents/clubs/$(slug)).data.ownerId
+             == request.auth.uid;
+    }
+
+    match /clubs/{slug}/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn()
+                   && !isBanned()
+                   && esImagenSegura()
+                   && folder in ['portada', 'icono']
+                   && esAdminDeClub(slug);
+      allow delete: if esPropietarioDeClub(slug) || isAdmin();
+    }
+
     // Contenido del catalogo (portadas, banners, miniaturas, fanarts)
     match /content/{allPaths=**} {
       allow read: if true;

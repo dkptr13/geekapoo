@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { DragEvent, FC } from 'react';
 import { Link2, Loader2, Check, X, Upload, Trash2 } from 'lucide-react';
 
-import { uploadImage, deleteReplacedImage, type UploadProvider } from '../../services/imageUpload';
+import { uploadImage, deleteReplacedImage, esGif, type UploadProvider } from '../../services/imageUpload';
 import { setField, type CatalogSection } from '../../services/catalogAdmin';
 import { CropEditor } from '../common/CropEditor';
 
@@ -128,6 +128,14 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   };
 
   const handleFile = async (file: File) => {
+    // El GIF se sube tal cual, SIN abrir el editor: recortarlo
+    // lo dejaría fijo (el canvas solo guarda un fotograma) y se
+    // perdería la animación en silencio. Se encuadra solo con
+    // `object-cover` donde se muestra.
+    if (esGif(file)) {
+      await subirRecortada(file);
+      return;
+    }
     // La imagen elegida, SIN recortar todavía. El editor aparece
     // encima y es él quien decide si se sube esta u otra.
     setElegida(file);

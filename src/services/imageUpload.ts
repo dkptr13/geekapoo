@@ -57,6 +57,24 @@ function extensionOf(file: File): string {
   }
 }
 
+/**
+ * Si el archivo es un GIF (o tiene pinta de serlo).
+ *
+ * Se usa en TODOS los puntos de subida para decidir si abrir
+ * el editor de recorte o no: el recorte redibuja en un canvas
+ * y el resultado es una imagen fija, así que pasar un GIF por
+ * él lo dejaría sin animación en silencio. Los GIF se suben
+ * tal cual y se encuadran solo con `object-cover`.
+ *
+ * Se mira el `type` y, como respaldo, la extensión: algunos
+ * navegadores dejan el `type` vacío en archivos arrastrados.
+ */
+export function esGif(file: File): boolean {
+  if (file.type === 'image/gif') return true;
+  if (!file.name.toLowerCase().endsWith('.gif')) return false;
+  return !file.type || file.type.startsWith('image/');
+}
+
 async function uploadToImgBB(file: File): Promise<string> {
   if (!IMGBB_API_KEY) {
     throw new Error(
