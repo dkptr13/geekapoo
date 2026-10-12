@@ -29,7 +29,7 @@ import { CropEditor } from '../common/CropEditor';
 // con veinte imágenes.
 // ======================================================
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 10 * 1024 * 1024;
 
 interface AttachImageProps {
   uid: string | undefined;
@@ -76,7 +76,7 @@ export const AttachImage: FC<AttachImageProps> = ({
     }
     if (file.size > MAX_BYTES) {
       setError(
-        `La imagen pesa ${(file.size / 1024 / 1024).toFixed(1)} MB y el máximo son 5 MB.`,
+        `La imagen pesa ${(file.size / 1024 / 1024).toFixed(1)} MB y el máximo son 10 MB.`,
       );
       return;
     }

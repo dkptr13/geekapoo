@@ -78,7 +78,7 @@ service firebase.storage {
     function esImagenSegura() {
       return request.resource.contentType.matches(
                 'image/(jpeg|png|gif|webp|avif|heic|heif|bmp|x-icon)')
-        && request.resource.size < 5 * 1024 * 1024;
+        && request.resource.size < 10 * 1024 * 1024;
     }
 
     // Si el usuario es miembro de esa conversacion.

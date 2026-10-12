@@ -29,7 +29,7 @@ export type UploadProvider = 'storage' | 'imgbb';
 const IMGBB_API_KEY = (import.meta as { env?: Record<string, string> }).env
   ?.VITE_IMGBB_API_KEY as string | undefined;
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
 function validate(file: File): void {
@@ -40,7 +40,7 @@ function validate(file: File): void {
   }
   if (file.size > MAX_BYTES) {
     throw new Error(
-      `La imagen pesa ${(file.size / 1024 / 1024).toFixed(1)} MB y el máximo son 5 MB.`,
+      `La imagen pesa ${(file.size / 1024 / 1024).toFixed(1)} MB y el máximo son 10 MB.`,
     );
   }
 }

@@ -253,7 +253,7 @@ const ImageChangeDialog: FC<ImageChangeDialogProps> = ({
             </span>
 
             <span className="text-[10px] text-zinc-600">
-              o arrástrala aquí · JPG, PNG, WebP, GIF o AVIF · máx. 5 MB
+              o arrástrala aquí · JPG, PNG, WebP, GIF o AVIF · máx. 10 MB
             </span>
 
             <input

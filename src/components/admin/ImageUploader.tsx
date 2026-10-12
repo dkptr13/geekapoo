@@ -228,7 +228,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           </span>
 
           <span className="text-[10px] text-zinc-600">
-            o arrástrala aquí · máx. 5 MB
+            o arrástrala aquí · máx. 10 MB
           </span>
 
           <span className="text-[10px] text-violet-400/80">

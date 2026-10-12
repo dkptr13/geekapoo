@@ -286,6 +286,22 @@ export const CustomizeProfileModal: React.FC<{
     }
   };
 
+  // Subida directa sin recorte (para GIFs animados). Comparte el
+  // guardado con `alSubirFondo`, pero sin abrir el editor.
+  const alSubirFondoDirecto = async (fichero: File) => {
+    setSubiendo(true);
+    setErrorGeneral(null);
+    try {
+      const url = await uploadCommunityImage(fichero, currentUser.uid);
+      cambiar('backgroundUrl', url);
+      cambiar('backgroundPreset', '');
+    } catch (e) {
+      setErrorGeneral(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
   const alSubirPersonaje = async (recortada: File) => {
     setSubiendo(true);
     setErrorGeneral(null);
@@ -1191,8 +1207,17 @@ export const CustomizeProfileModal: React.FC<{
                           className="sr-only"
                           onChange={(e) => {
                             const elegido = e.target.files?.[0];
-                            if (elegido) setFondoSinRecortar(elegido);
                             e.target.value = '';
+                            if (!elegido) return;
+                            // El GIF se sube tal cual, sin pasar por el
+                            // recorte: el canvas solo guarda el primer
+                            // fotograma y mataría la animación. El fondo
+                            // se encuadra solo con `object-cover`.
+                            if (elegido.type === 'image/gif') {
+                              void alSubirFondoDirecto(elegido);
+                              return;
+                            }
+                            setFondoSinRecortar(elegido);
                           }}
                         />
                       </label>

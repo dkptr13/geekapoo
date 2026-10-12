@@ -82,7 +82,7 @@ export async function createComment(input: NewCommentInput): Promise<string> {
   const gif = input.gif;
 
   // Un comentario es texto + UNA imagen o UN GIF. Si se mandan
-  // las dos cosas, el GIF gana: una foto de 5 MB y un GIF
+  // las dos cosas, el GIF gana: una foto de 10 MB y un GIF
   // animado en el mismo comentario es de todo menos un foro.
   const imagen = gif ? undefined : input.imageUrl;
 
