@@ -21,9 +21,11 @@ import {
 import { db } from '../lib/firebase';
 import { toIsoString } from './firestoreUtils';
 import { deleteStoredImage, storagePathFromUrl } from './imageUpload';
+import { listarCanales } from './canales';
 import type {
   Club,
   ClubCategory,
+  ClubChannel,
   ClubListing,
   ClubMember,
   ClubRequest,
@@ -292,6 +294,29 @@ export async function crearClub(actual: User, datos: NuevoClub): Promise<ClubRes
       updatedAt: serverTimestamp(),
     });
 
+    // El canal `general` nace con el club, apuntando al chat de
+    // arriba: así hay conversación principal desde el primer
+    // minuto. Si falla, no se invalida el club: la migración
+    // (`asegurarGeneral`) lo crea al abrir el club.
+    try {
+      await setDoc(doc(db, CLUBS, slug, 'channels', 'general'), {
+        id: 'general',
+        clubId: slug,
+        chatId: chatRef.id,
+        name: 'General',
+        description: 'Conversación general del club.',
+        type: 'text',
+        visibility: 'all',
+        spoiler: false,
+        order: 0,
+        createdBy: actual.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (e) {
+      console.warn('[Clubes] El club se creó sin su canal general:', e);
+    }
+
     return { ok: true, clubId: slug };
   } catch (e: unknown) {
     // Si el chat se creó pero la ficha falló (p. ej. reglas sin
@@ -515,18 +540,30 @@ export function esModerador(club: Club | null, uid: string | null): boolean {
 }
 
 /**
- * Añade un miembro al club y a su chat grupal.
+ * Añade un miembro al club y a sus chats de canal.
  *
- * Las dos escrituras van juntas en la transacción: si la
- * persona se quedara solo en la ficha, no podría leer los
- * mensajes; si se quedara solo en el chat, no saldría en la
- * lista de miembros del club.
+ * Entran el chat histórico y TODOS los canales públicos
+ * (`all`): si la persona se quedara fuera de alguno, vería
+ * el canal en la lista sin poder leerlo. A los restringidos
+ * (`mods`) no entra: ahí solo está el equipo, y se entra al
+ * ascender (ver `cambiarRol`).
+ *
+ * Todo va junto en la transacción: ficha + N chats. Cada
+ * escritura la comprueban las reglas por separado (rama de
+ * auto-join en clubes públicos).
  */
 export async function anadirMiembro(
   clubId: string,
   nuevo: Speaker,
 ): Promise<ClubResult> {
   try {
+    // Los chats se resuelven FUERA de la transacción: dentro
+    // solo hay gets por documento, que es lo único que una
+    // transacción acepta. Si la lista falla, se aborta el join
+    // entero: entrar a medias (ficha sí, canales no) dejaría
+    // canales visibles sin acceso hasta reentrar.
+    const abiertos = (await listarCanales(clubId)).filter((c) => c.visibility === 'all');
+
     await runTransaction(db, async (tx) => {
       const clubRef = doc(db, CLUBS, clubId);
       const snap = await tx.get(clubRef);
@@ -553,12 +590,20 @@ export async function anadirMiembro(
         updatedAt: serverTimestamp(),
       });
 
-      // Se le quita de `hiddenFor` por si había salido antes:
-      // si no, el chat no le aparecería en su lista.
-      tx.update(doc(db, 'chats', chatId), {
-        memberIds: arrayUnion(nuevo.uid),
-        hiddenFor: arrayRemove(nuevo.uid),
-      });
+      // El histórico más cada canal público, sin duplicar el
+      // chat si el `general` migrado ya lo apunta.
+      const chats = [chatId, ...abiertos.map((c) => c.chatId)].filter(
+        (id, i, arr) => typeof id === 'string' && id.length > 0 && arr.indexOf(id) === i,
+      );
+
+      for (const id of chats) {
+        // Se le quita de `hiddenFor` por si había salido antes:
+        // si no, el chat no le aparecería en su lista.
+        tx.update(doc(db, 'chats', id), {
+          memberIds: arrayUnion(nuevo.uid),
+          hiddenFor: arrayRemove(nuevo.uid),
+        });
+      }
     });
 
     return { ok: true };
@@ -568,18 +613,23 @@ export async function anadirMiembro(
 }
 
 /**
- * Quita a un miembro del club y de su chat.
+ * Quita a un miembro del club y de TODOS sus chats.
  *
  * Sea expulsión o abandono voluntario, el efecto es el mismo
- * y tiene que ser inmediato: quien sale pierde el acceso al
- * chat aunque conserve una pestaña abierta, porque la regla
- * de los mensajes comprueba `chat.memberIds` en cada lectura.
+ * y tiene que ser inmediato: quien sale pierde el acceso a
+ * cada canal aunque conserve una pestaña abierta, porque la
+ * regla de los mensajes comprueba `chat.memberIds` en cada
+ * lectura.
  */
 export async function quitarMiembro(
   clubId: string,
   uid: string,
 ): Promise<ClubResult> {
   try {
+    // Chats de todos los canales (públicos y restringidos):
+    // quien sale, sale de todas partes.
+    const canales = await listarCanales(clubId);
+
     await runTransaction(db, async (tx) => {
       const clubRef = doc(db, CLUBS, clubId);
       const snap = await tx.get(clubRef);
@@ -595,12 +645,6 @@ export async function quitarMiembro(
       delete miembros[uid];
 
       const uids = Object.keys(miembros);
-      const chatRef = doc(db, 'chats', data.chatId as string);
-      const chatSnap = await tx.get(chatRef);
-
-      const miembrosChat = chatSnap.exists()
-        ? ((chatSnap.data().memberIds ?? []) as string[]).filter((m) => m !== uid)
-        : [];
 
       tx.update(clubRef, {
         members: miembros,
@@ -609,10 +653,26 @@ export async function quitarMiembro(
         updatedAt: serverTimestamp(),
       });
 
-      tx.update(chatRef, {
-        memberIds: miembrosChat,
-        hiddenFor: arrayUnion(uid),
-      });
+      // El histórico más cada canal, sin duplicar el chat si el
+      // `general` migrado ya lo apunta. Primero TODOS los gets
+      // (en una transacción no se lee después de escribir).
+      const chats = [(data.chatId as string), ...canales.map((c) => c.chatId)].filter(
+        (id, i, arr) => typeof id === 'string' && id.length > 0 && arr.indexOf(id) === i,
+      );
+      const sinEl: Record<string, string[]> = {};
+      for (const id of chats) {
+        const chatSnap = await tx.get(doc(db, 'chats', id));
+        sinEl[id] = chatSnap.exists()
+          ? ((chatSnap.data().memberIds ?? []) as string[]).filter((m) => m !== uid)
+          : [];
+      }
+
+      for (const id of chats) {
+        tx.update(doc(db, 'chats', id), {
+          memberIds: sinEl[id],
+          hiddenFor: arrayUnion(uid),
+        });
+      }
     });
 
     return { ok: true };
@@ -656,6 +716,29 @@ export async function cambiarRol(
       moderatorIds: nuevosModeradores,
       updatedAt: serverTimestamp(),
     });
+
+    // Los canales restringidos (`mods`) llevan la pertenencia
+    // del equipo: al ascender se entra, al bajar se sale. Sin
+    // esto, un moderador degradado seguiría leyendo el canal
+    // de coordinación, y uno nuevo no lo vería.
+    const restringidos = (await listarCanales(clubId)).filter((c) => c.visibility === 'mods');
+    for (const canal of restringidos) {
+      if (rol === 'moderator') {
+        await updateDoc(doc(db, 'chats', canal.chatId), {
+          memberIds: arrayUnion(uid),
+          hiddenFor: arrayRemove(uid),
+        });
+      } else {
+        const chatSnap = await getDoc(doc(db, 'chats', canal.chatId));
+        const actuales = chatSnap.exists()
+          ? ((chatSnap.data().memberIds ?? []) as string[]).filter((m) => m !== uid)
+          : [];
+        await updateDoc(doc(db, 'chats', canal.chatId), {
+          memberIds: actuales,
+          hiddenFor: arrayUnion(uid),
+        });
+      }
+    }
 
     return { ok: true };
   } catch (e: unknown) {
@@ -729,6 +812,17 @@ export async function transferirPropiedad(
       moderatorIds: nuevosModeradores,
       updatedAt: serverTimestamp(),
     });
+
+    // El nuevo propietario entra en los canales restringidos
+    // (era miembro normal y no los veía). El anterior sigue
+    // como moderador, así que ya está en todos.
+    const restringidos = (await listarCanales(clubId)).filter((c) => c.visibility === 'mods');
+    for (const canal of restringidos) {
+      await updateDoc(doc(db, 'chats', canal.chatId), {
+        memberIds: arrayUnion(nuevoOwnerId),
+        hiddenFor: arrayRemove(nuevoOwnerId),
+      });
+    }
 
     return { ok: true };
   } catch (e: unknown) {
@@ -809,10 +903,10 @@ export function subscribeSolicitudesClub(
 /**
  * Acepta una solicitud de acceso.
  *
- * Al aceptar, la persona pasa a ser miembro del club Y de su
- * chat. Las dos cosas tienen que pasar juntas, porque si se
- * quedara solo en la ficha del club no podría leer los
- * mensajes.
+ * Al aceptar, la persona pasa a ser miembro del club Y de sus
+ * chats de canal públicos. Las dos cosas tienen que pasar
+ * juntas, porque si se quedara solo en la ficha del club no
+ * podría leer los mensajes.
  */
 export async function aceptarSolicitud(
   clubId: string,
@@ -841,12 +935,22 @@ export async function aceptarSolicitud(
       updatedAt: serverTimestamp(),
     });
 
-    // Al entrar al chat se le quita de `hiddenFor` por si
-    // había salido antes: si no, el club no le aparecería en
-    // su lista de conversaciones.
-    await updateDoc(doc(db, 'chats', chatId), {
-      memberIds: arrayUnion(request.fromId),
-    });
+    // Histórico más canales públicos. A los restringidos no
+    // entra: es un miembro normal, no del equipo.
+    const abiertos = (await listarCanales(clubId)).filter((c) => c.visibility === 'all');
+    const chats = [chatId, ...abiertos.map((c) => c.chatId)].filter(
+      (id, i, arr) => typeof id === 'string' && id.length > 0 && arr.indexOf(id) === i,
+    );
+
+    for (const id of chats) {
+      // Al entrar al chat se le quita de `hiddenFor` por si
+      // había salido antes: si no, el club no le aparecería en
+      // su lista de conversaciones.
+      await updateDoc(doc(db, 'chats', id), {
+        memberIds: arrayUnion(request.fromId),
+        hiddenFor: arrayRemove(request.fromId),
+      });
+    }
 
     await updateDoc(doc(db, CLUBS, clubId, 'requests', request.id), {
       status: 'accepted',
@@ -1007,14 +1111,29 @@ export async function eliminarClub(clubId: string): Promise<ClubResult> {
       members?: Record<string, ClubMember>;
     };
 
+    const todos = Object.keys(data.members ?? {});
+
+    // Primero se vacían TODOS los chats (histórico + canales):
+    // aunque algo falle después, nada queda legible por rutas
+    // antiguas. Las fichas de canal se borran con el club.
+    const canales = await listarCanales(clubId).catch(() => [] as ClubChannel[]);
+    const chats = [data.chatId, ...canales.map((c) => c.chatId)].filter(
+      (id, i, arr) => typeof id === 'string' && id.length > 0 && arr.indexOf(id) === i,
+    );
+    for (const id of chats) {
+      await updateDoc(doc(db, 'chats', id), {
+        memberIds: [],
+        hiddenFor: todos,
+      });
+    }
+
+    for (const canal of canales) {
+      await deleteDoc(doc(db, CLUBS, clubId, 'channels', canal.id));
+    }
+
     // Las imágenes se borran DESPUÉS de haber vaciado el club.
     // Si se borraran antes y el vaciado fallara, el club se
     // quedaría sin imagen pero seguiría existiendo.
-    await updateDoc(doc(db, 'chats', data.chatId), {
-      memberIds: [],
-      hiddenFor: Object.keys(data.members ?? {}),
-    });
-
     await deleteDoc(doc(db, CLUBS, clubId));
 
     const borrar = async (url?: string) => {

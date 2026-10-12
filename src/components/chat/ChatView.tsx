@@ -37,6 +37,8 @@ import {
   Compass,
   Info,
   VolumeX,
+  Lock,
+  ChevronDown,
 } from 'lucide-react';
 
 import { textoDeNuevos } from '../../utils/chatLectura';
@@ -65,6 +67,9 @@ import { ReactionBar } from '../community/ReactionBar';
 import { ClubDetail } from './ClubDetail';
 import { ClubDiscovery } from './ClubDiscovery';
 import { ClubListItem } from './ClubListItem';
+import { ClubChannelRail } from './ClubChannelRail';
+import { ClubChannelModal } from './ClubChannelModal';
+import { canalesVisibles } from '../../services/canales';
 import { ChatPollCard } from './ChatPollCard';
 import { PollComposer, POLL_VACIO, draftANewPoll, type PollDraft } from '../community/PollComposer';
 import { normalizarPoll } from '../../services/polls';
@@ -74,6 +79,7 @@ import type {
   ChatRequest,
   ChatRoom,
   Club,
+  ClubChannel,
   GifAttachment,
   LocationAttachment,
   Poll,
@@ -360,6 +366,8 @@ export const ChatView: React.FC = () => {
   const esChatClub = activeRoom?.type === 'club';
 
   const misClubes = useClubs().misClubes;
+  const { canalesPorClub, canalesLoading, asegurarGeneral, eliminarCanal, moverCanal } =
+    useClubs();
 
   // Solicitudes de acceso pendientes de los clubes que modero.
   // Se leen del contexto de clubes, que ya las tiene.
@@ -367,10 +375,18 @@ export const ChatView: React.FC = () => {
   const cargandoClubes = useClubs().loading;
 
   // La ficha del club cuyo chat está abierto, si lo está.
-  const clubDelChat = useMemo(
-    () => (esChatClub ? (misClubes.find((c) => c.chatId === activeRoom?.id) ?? null) : null),
-    [esChatClub, misClubes, activeRoom?.id],
-  );
+  //
+  // Se busca por `slug` (todos los chats de canal lo llevan)
+  // y no por `chatId`: con canales, un club tiene N chats y el
+  // histórico es solo uno más.
+  const clubDelChat = useMemo(() => {
+    if (!esChatClub || !activeRoom) return null;
+    if (activeRoom.slug) {
+      const porSlug = misClubes.find((c) => c.slug === activeRoom.slug);
+      if (porSlug) return porSlug;
+    }
+    return misClubes.find((c) => c.chatId === activeRoom.id) ?? null;
+  }, [esChatClub, misClubes, activeRoom]);
 
   // Los permisos de club no tienen nada que ver con el rol
   // global: un moderador de club no es moderador de la web.
@@ -412,6 +428,78 @@ export const ChatView: React.FC = () => {
   const clubActivoEnPanel = clubDetalle
     ? (misClubes.find((c) => c.id === clubDetalle) ?? null)
     : null;
+
+  // ── Canales del club abierto ───────────────────────
+  //
+  // El canal activo es `general` por defecto. Los restringidos
+  // (`mods`) solo los ve el equipo: `canalesVisibles` los quita
+  // a los miembros normales (las reglas hacen lo propio en el
+  // servidor).
+  const [canalActivoId, setCanalActivoId] = useState<string>('general');
+  // Cajón de canales en móvil (en escritorio es columna fija).
+  const [canalesAbiertos, setCanalesAbiertos] = useState(false);
+  // Modal de crear/editar canal: null = cerrado.
+  const [modalCanal, setModalCanal] = useState<{ channel: ClubChannel | null } | null>(null);
+
+  const canalesVisiblesLista = useMemo(
+    () =>
+      clubDelChat
+        ? canalesVisibles(
+            canalesPorClub[clubDelChat.id] ?? [],
+            clubDelChat,
+            currentUser?.uid ?? null,
+          )
+        : [],
+    [clubDelChat, canalesPorClub, currentUser],
+  );
+
+  const canalActivo = useMemo(
+    () =>
+      canalesVisiblesLista.find((c) => c.id === canalActivoId) ??
+      canalesVisiblesLista.find((c) => c.id === 'general') ??
+      canalesVisiblesLista[0] ??
+      null,
+    [canalesVisiblesLista, canalActivoId],
+  );
+
+  const puedeGestionarCanales = !!clubDelChat && (soyDuenoDelClub || soyModDelClub);
+  const clubConCanales = esChatClub && clubDelChat != null;
+
+  // Migración del `general` en clubes anteriores a los
+  // canales: reutiliza el chat histórico para no perder
+  // mensajes. Es idempotente (si ya existe, no hace nada).
+  useEffect(() => {
+    if (!clubDelChat || canalesLoading) return;
+    if ((canalesPorClub[clubDelChat.id] ?? []).length > 0) return;
+    void asegurarGeneral(clubDelChat);
+  }, [clubDelChat, canalesPorClub, canalesLoading, asegurarGeneral]);
+
+  // Si el canal activo desaparece (borrado) o deja de ser
+  // visible, se vuelve al `general` (o al primero).
+  useEffect(() => {
+    if (!clubDelChat) return;
+    setCanalActivoId((prev) => {
+      if (canalesVisiblesLista.some((c) => c.id === prev)) return prev;
+      return 'general';
+    });
+  }, [clubDelChat, canalesVisiblesLista]);
+
+  // El canal activo manda en la conversación: al elegir (o al
+  // replegarse por borrado) se abre su chat.
+  useEffect(() => {
+    if (!clubDelChat || !canalActivo) return;
+    if (activeRoomId !== canalActivo.chatId) setActiveRoomId(canalActivo.chatId);
+  }, [clubDelChat, canalActivo, activeRoomId, setActiveRoomId]);
+
+  /** Abrir un canal: selecciona y enseña sus mensajes. */
+  const elegirCanal = useCallback(
+    (canal: ClubChannel) => {
+      setCanalActivoId(canal.id);
+      setActiveRoomId(canal.chatId);
+      setCanalesAbiertos(false);
+    },
+    [setActiveRoomId],
+  );
 
   // Los clubes NO se muestran en la vista de privados: para
   // eso está la pestaña «Mis clubes». Si aparecieran en las
@@ -1672,23 +1760,39 @@ export const ChatView: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                misClubes.map((club) => (
-                  <ClubListItem
-                    key={club.id}
-                    club={club}
-                    activo={club.chatId === activeRoomId}
-                    sinLeer={unreadRoomIds.includes(club.chatId)}
-                    ultimoMensaje={rooms.find((r) => r.id === club.chatId)?.lastMessage}
-                    ultimaFecha={rooms.find((r) => r.id === club.chatId)?.lastMessageAt}
-                    miRol={club.members[currentUser?.uid ?? ''] ?? null}
-                    solicitudes={solicitudesDeClubes.filter((r) => r.clubId === club.id).length}
-                    onAbrir={() => setActiveRoomId(club.chatId)}
-                    onVerDetalle={() => {
-                      setClubDetalle(club.id);
-                      setActiveRoomId(club.chatId);
-                    }}
-                  />
-                ))
+                misClubes.map((club) => {
+                  // Actividad del club en TODOS sus canales: la fila
+                  // enseña lo último que se dijo en cualquiera de
+                  // ellos, y marca sin leer si alguno lo está.
+                  const chatsIds = new Set([
+                    club.chatId,
+                    ...(canalesPorClub[club.id] ?? []).map((c) => c.chatId),
+                  ]);
+                  const chatsClub = rooms.filter((r) => chatsIds.has(r.id));
+                  const ultimo = chatsClub
+                    .filter((r) => r.lastMessageAt)
+                    .sort((a, b) =>
+                      (b.lastMessageAt ?? '') > (a.lastMessageAt ?? '') ? 1 : -1,
+                    )[0];
+
+                  return (
+                    <ClubListItem
+                      key={club.id}
+                      club={club}
+                      activo={chatsClub.some((r) => r.id === activeRoomId)}
+                      sinLeer={chatsClub.some((r) => unreadRoomIds.includes(r.id))}
+                      ultimoMensaje={ultimo?.lastMessage}
+                      ultimaFecha={ultimo?.lastMessageAt}
+                      miRol={club.members[currentUser?.uid ?? ''] ?? null}
+                      solicitudes={solicitudesDeClubes.filter((r) => r.clubId === club.id).length}
+                      onAbrir={() => setActiveRoomId(club.chatId)}
+                      onVerDetalle={() => {
+                        setClubDetalle(club.id);
+                        setActiveRoomId(club.chatId);
+                      }}
+                    />
+                  );
+                })
               )}
             </div>
           )}
@@ -1930,7 +2034,29 @@ export const ChatView: React.FC = () => {
               abierto, manda la conversación. El estado vacío de
               abajo solo aparece si no hay ni una cosa ni la otra. */}
           {tabChats === 'descubrir' && !activeRoomId ? null : activeRoom ? (
-            <>
+            <div className={clubConCanales ? 'flex min-h-0 flex-1 flex-row' : 'contents'}>
+              {clubConCanales && clubDelChat ? (
+                <div className="hidden min-h-0 w-60 flex-shrink-0 flex-col border-r border-zinc-800 bg-zinc-950/70 lg:flex 2xl:w-64">
+                  <ClubChannelRail
+                    club={clubDelChat}
+                    canales={canalesVisiblesLista}
+                    canalActivoId={canalActivo?.id ?? null}
+                    sinLeerIds={unreadRoomIds}
+                    cargando={canalesLoading && canalesVisiblesLista.length === 0}
+                    puedeGestionar={puedeGestionarCanales}
+                    onElegir={elegirCanal}
+                    onCrear={() => setModalCanal({ channel: null })}
+                    onEditar={(ch) => setModalCanal({ channel: ch })}
+                    onEliminar={(ch) => eliminarCanal(clubDelChat, ch)}
+                    onMover={(ch, dir) => moverCanal(clubDelChat.id, ch.id, dir)}
+                  />
+                </div>
+              ) : null}
+              <div
+                className={
+                  clubConCanales ? 'flex min-h-0 min-w-0 flex-1 flex-col' : 'contents'
+                }
+              >
               {/* Chat Top Header */}
               <div className="flex items-center justify-between gap-2 border-b border-zinc-800 p-3 sm:p-4 bg-zinc-900">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -2023,7 +2149,12 @@ export const ChatView: React.FC = () => {
                         el boton de "Miembros" se le monta encima,
                         que es lo que pasaba en movil. */}
                     <h3 className="flex min-w-0 items-center gap-2 text-sm font-bold text-white">
-                      <span className="truncate">{activeRoomName}</span>
+                      {/* En un club se enseña el canal (`# teorias`)
+                          y no el nombre interno del chat: el canal
+                          se puede renombrar sin tocar mensajes. */}
+                      <span className="truncate">
+                        {esChatClub && canalActivo ? `# ${canalActivo.name}` : activeRoomName}
+                      </span>
                       {(activeRoom.type === 'group' || esChatClub) && (
                         <span className="shrink-0 rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-normal text-zinc-400">
                           {esChatClub
@@ -2101,6 +2232,36 @@ export const ChatView: React.FC = () => {
                   la entrada se pide desde «Descubrir clubes» o la
                   gestiona un moderador, así que el código no
                   aporta nada aquí. */}
+
+              {/* Selector de canal en móvil: en escritorio está la
+                  columna lateral. Abre el cajón sin tapar la
+                  conversación al cerrarlo. */}
+              {clubConCanales && clubDelChat && (
+                <button
+                  type="button"
+                  onClick={() => setCanalesAbiertos(true)}
+                  className="flex items-center gap-2 border-b border-zinc-800 bg-zinc-950/60 px-4 py-2 text-left lg:hidden"
+                  aria-label="Abrir la lista de canales"
+                >
+                  {canalActivo?.visibility === 'mods' ? (
+                    <Lock size={12} className="flex-shrink-0 text-amber-300/80" />
+                  ) : (
+                    <Hash size={12} className="flex-shrink-0 text-violet-400" />
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-[11px] font-bold text-zinc-200">
+                    #{canalActivo?.name ?? 'general'}
+                  </span>
+                  {canalActivo?.description && (
+                    <span className="hidden min-w-0 flex-1 truncate text-[10px] text-zinc-500 sm:inline">
+                      {canalActivo.description}
+                    </span>
+                  )}
+                  <span className="flex flex-shrink-0 items-center gap-1 text-[10px] font-semibold text-zinc-500">
+                    {canalesVisiblesLista.length} canales
+                    <ChevronDown size={12} />
+                  </span>
+                </button>
+              )}
 
               {/* Aviso de miembro silenciado. Lo pone el moderador
                   desde el panel de miembros, y el envío se bloquea
@@ -3163,7 +3324,8 @@ export const ChatView: React.FC = () => {
                   </>
                 )}
               </form>
-            </>
+              </div>
+            </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-8 text-center text-zinc-500">
               <MessageCircle size={36} className="text-zinc-700 mb-3" />
@@ -3214,6 +3376,47 @@ export const ChatView: React.FC = () => {
               no se recarga el historial. */}
           {clubActivoEnPanel && (
             <ClubDetail club={clubActivoEnPanel} onClose={() => setClubDetalle(null)} />
+          )}
+
+          {/* ── CAJÓN DE CANALES (móvil) ────────────────────
+              La misma lista que la columna de escritorio, en
+              superpuesto para no comerse la conversación. */}
+          {clubConCanales && clubDelChat && canalesAbiertos && (
+            <div className="absolute inset-0 z-40 lg:hidden">
+              <button
+                type="button"
+                aria-label="Cerrar la lista de canales"
+                onClick={() => setCanalesAbiertos(false)}
+                className="absolute inset-0 cursor-default bg-black/60"
+              />
+              <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-zinc-800 bg-zinc-950 shadow-2xl">
+                <ClubChannelRail
+                  club={clubDelChat}
+                  canales={canalesVisiblesLista}
+                  canalActivoId={canalActivo?.id ?? null}
+                  sinLeerIds={unreadRoomIds}
+                  cargando={canalesLoading && canalesVisiblesLista.length === 0}
+                  puedeGestionar={puedeGestionarCanales}
+                  onElegir={elegirCanal}
+                  onCrear={() => setModalCanal({ channel: null })}
+                  onEditar={(ch) => setModalCanal({ channel: ch })}
+                  onEliminar={(ch) => eliminarCanal(clubDelChat, ch)}
+                  onMover={(ch, dir) => moverCanal(clubDelChat.id, ch.id, dir)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ── MODAL DE CREAR / EDITAR CANAL ─────────────── */}
+          {modalCanal && clubDelChat && (
+            <ClubChannelModal
+              club={clubDelChat}
+              channel={modalCanal.channel}
+              slugsEnUso={canalesVisiblesLista.map((c) => c.id)}
+              ordenSugerido={canalesVisiblesLista.length}
+              onCreado={(id) => setCanalActivoId(id)}
+              onClose={() => setModalCanal(null)}
+            />
           )}
         </div>
       </div>

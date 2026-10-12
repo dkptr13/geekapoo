@@ -1028,7 +1028,14 @@ export interface Club {
   members: Record<string, ClubMember>;
   /** Contador de miembros (desnormalizado para consultas rápidas). */
   memberCount: number;
-  /** Chat grupal asociado (id del documento en chats/). */
+  /**
+   * Chat grupal principal del club (id en chats/).
+   *
+   * Es el chat HISTÓRICO: con canales, equivale al canal
+   * `general` (la migración lo reutiliza para no perder
+   * mensajes). Los demás canales tienen su propio `chatId`
+   * en su ficha (`clubs/{id}/channels/`).
+   */
   chatId: string;
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
@@ -1062,4 +1069,63 @@ export interface ClubListing {
   moderatorIds: string[];
   memberCount: number;
   createdAt: string;
+}
+
+/**
+ * Quién puede ver un canal (y sus mensajes).
+ *
+ * - `all`: todos los miembros autorizados del club.
+ * - `mods`: solo propietario y moderadores (p. ej. coordinación).
+ *
+ * La protección es doble: el cliente oculta los `mods` a los
+ * miembros normales, y las reglas de Firestore deniegan la
+ * lectura del canal y de sus mensajes a quien no corresponda.
+ */
+export type ClubChannelVisibility = 'all' | 'mods';
+
+/**
+ * Un canal temático de un club.
+ *
+ * Vive en `clubs/{clubId}/channels/{channelId}` y su historial
+ * en `chats/{chatId}/messages/`, reutilizando TODA la
+ * infraestructura de chats (tiempo real, recibos, sin leer,
+ * encuestas, reacciones, moderación).
+ *
+ * El `id` es un slug estable e INMUTABLE (es el id del
+ * documento): renombrar el canal cambia `name`, nunca `id`,
+ * para no romper los mensajes ya asociados.
+ */
+export interface ClubChannel {
+  /** Identificador estable (slug). Igual que el id del documento. */
+  id: string;
+  /** Club al que pertenece. */
+  clubId: string;
+  /** Chat con el historial: `chats/{chatId}/messages/`. */
+  chatId: string;
+  /** Nombre visible (`# teorias`). Se puede renombrar. */
+  name: string;
+  /** Propósito y normas básicas del canal. */
+  description: string;
+  /** De momento solo hay texto; preparado para más tipos. */
+  type: 'text';
+  visibility: ClubChannelVisibility;
+  /** Si el canal va de spoilers (se avisa en la interfaz). */
+  spoiler: boolean;
+  /** Posición en la lista (menor = más arriba). */
+  order: number;
+  /** Uid de quien lo creó (propietario o moderador). */
+  createdBy: string;
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
+}
+
+/** Datos para crear un canal (el `id`/`chatId` los pone el servicio). */
+export interface NuevoCanal {
+  name: string;
+  /** Identificador interno normalizado (minúsculas, números, guiones). */
+  slug: string;
+  description: string;
+  visibility: ClubChannelVisibility;
+  spoiler: boolean;
+  order: number;
 }

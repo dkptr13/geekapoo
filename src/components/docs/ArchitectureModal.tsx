@@ -358,6 +358,22 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
 { "targetType": "chat_message", "targetId": "messageId",
   "chatId": "chatId", "userId": "uid", "type": "fire" }
 
+// CANALES DE UN CLUB: clubs/{clubId}/channels/{channelId}
+// El id ES el slug interno (inmutable: renombrar cambia el
+// nombre, nunca el id). Cada canal tiene su propio documento
+// de chats/ con el historial en messages/, así que reutiliza
+// tiempo real, recibos, sin leer, encuestas y moderación.
+// La pertenencia de cada chat se sincroniza con la del club:
+// all = todos los miembros, mods = solo el equipo.
+{ "id": "teorias", "clubId": "club-de-frieren", "chatId": "abc123",
+  "name": "teorias", "description": "Teorías y debates",
+  "type": "text", "visibility": "all" | "mods", "spoiler": false,
+  "order": 1, "createdBy": "uid",
+  "createdAt": Timestamp, "updatedAt": Timestamp }
+// El general nace con el club; en clubes antiguos lo migra
+// el primer miembro que lo abre, reutilizando su chat
+// histórico (no se pierde ningún mensaje). No se borra nunca.
+
 // FAVORITOS: lo que el usuario usa siempre, para no buscarlo
 // cada vez. Van colgados del documento del usuario y son
 // PRIVADOS: solo su dueño puede leerlos o escribirlos.

@@ -28,6 +28,17 @@ import {
 } from '../services/clubs';
 
 import {
+  actualizarCanal as actualizarCanalService,
+  asegurarGeneral as asegurarGeneralService,
+  crearCanal as crearCanalService,
+  eliminarCanal as eliminarCanalService,
+  getCanal,
+  moverCanal as moverCanalService,
+  subscribeCanales,
+  type CanalResult,
+} from '../services/canales';
+
+import {
   eliminarMensajeClub,
   esModerador,
   esPropietario,
@@ -38,9 +49,11 @@ import { useAuth } from './AuthContext';
 import type {
   Club,
   ClubCategory,
+  ClubChannel,
   ClubListing,
   ClubMember,
   ClubRequest,
+  NuevoCanal,
 } from '../types';
 
 // ======================================================
@@ -104,6 +117,28 @@ interface ClubsContextType {
   /** Borra un mensaje del chat del club (moderación). */
   borrarMensaje: (chatId: string, messageId: string) => Promise<ClubResult>;
 
+  /** Canales de cada club del usuario, por id de club. */
+  canalesPorClub: Record<string, ClubChannel[]>;
+  /** `true` mientras se cargan los canales. */
+  canalesLoading: boolean;
+  /** Crea un canal (solo equipo del club). */
+  crearCanal: (club: Club, datos: NuevoCanal) => Promise<CanalResult>;
+  /** Edita un canal (solo equipo del club). */
+  actualizarCanal: (
+    clubId: string,
+    channelId: string,
+    cambios: Partial<ClubChannel>,
+  ) => Promise<ClubResult>;
+  /** Elimina un canal con su historial (nunca el `general`). */
+  eliminarCanal: (club: Club, channel: ClubChannel) => Promise<ClubResult>;
+  /** Mueve un canal una posición arriba (-1) o abajo (+1). */
+  moverCanal: (clubId: string, channelId: string, dir: -1 | 1) => Promise<ClubResult>;
+  /**
+   * Asegura el `general` en clubes antiguos y lo devuelve.
+   * Los clubes nuevos ya lo traen de `crearClub`.
+   */
+  asegurarGeneral: (club: Club) => Promise<ClubChannel | null>;
+
   /** Si el usuario es propietario del club. */
   soyPropietario: (club: Club | null) => boolean;
   /** Si el usuario es moderador (o propietario) del club. */
@@ -127,6 +162,8 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [clubActivo, setClubActivo] = useState<Club | null>(null);
+  const [canalesPorClub, setCanalesPorClub] = useState<Record<string, ClubChannel[]>>({});
+  const [canalesLoading, setCanalesLoading] = useState(false);
 
   // ── Clubes del usuario ───────────────────────────────
   //
@@ -161,6 +198,45 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return unsub;
   }, [currentUser]);
+
+  // ── Canales de mis clubes ──────────────────────────
+  //
+  // Una escucha por club (pocos clubes por usuario). Se montan
+  // y desmontan con la lista, y se podan las entradas de clubes
+  // que ya no son míos, para no enseñar canales ajenos.
+  useEffect(() => {
+    if (!currentUser || misClubes.length === 0) {
+      setCanalesPorClub({});
+      setCanalesLoading(false);
+      return;
+    }
+
+    setCanalesPorClub((prev) => {
+      const ids = new Set(misClubes.map((c) => c.id));
+      const podado: Record<string, ClubChannel[]> = {};
+      for (const [id, lista] of Object.entries(prev)) {
+        if (ids.has(id)) podado[id] = lista;
+      }
+      return podado;
+    });
+    setCanalesLoading(true);
+
+    const desuscrs = misClubes.map((club) =>
+      subscribeCanales(
+        club.id,
+        (canales) => {
+          setCanalesPorClub((prev) => ({ ...prev, [club.id]: canales }));
+          setCanalesLoading(false);
+        },
+        (e) => {
+          console.error('[Clubes] Error al leer los canales:', e);
+          setCanalesLoading(false);
+        },
+      ),
+    );
+
+    return () => desuscrs.forEach((d) => d());
+  }, [misClubes, currentUser]);
 
   // ── Solicitudes de los clubes que modero ─────────────
   //
@@ -317,6 +393,42 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [],
   );
 
+  // ── Canales: la lista la sincroniza el listener; aquí solo
+  // se escriben los cambios y la interfaz se entera sola.
+  const crearCanal = useCallback(
+    async (club: Club, datos: NuevoCanal): Promise<CanalResult> => {
+      if (!currentUser) return { ok: false, error: 'Debes iniciar sesión.' };
+      return crearCanalService(club, currentUser, datos);
+    },
+    [currentUser],
+  );
+
+  const actualizarCanal = useCallback(
+    (clubId: string, channelId: string, cambios: Partial<ClubChannel>) =>
+      actualizarCanalService(clubId, channelId, cambios),
+    [],
+  );
+
+  const eliminarCanal = useCallback(
+    (club: Club, channel: ClubChannel) => eliminarCanalService(club, channel),
+    [],
+  );
+
+  const moverCanal = useCallback(
+    (clubId: string, channelId: string, dir: -1 | 1) => moverCanalService(clubId, channelId, dir),
+    [],
+  );
+
+  const asegurarGeneral = useCallback(
+    async (club: Club): Promise<ClubChannel | null> => {
+      if (!currentUser) return null;
+      const res = await asegurarGeneralService(club, currentUser);
+      if (!res.ok || !res.channelId) return null;
+      return getCanal(club.id, res.channelId);
+    },
+    [currentUser],
+  );
+
   const rol = useCallback(
     (clubId: string, uid: string, nuevoRol: 'moderator' | 'member') =>
       cambiarRol(clubId, uid, nuevoRol),
@@ -359,12 +471,13 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const borrarMensaje = useCallback(
     (chatId: string, messageId: string) => {
-      const mod = misClubes
-        .find((c) => c.chatId === chatId)
-        ?.members[currentUser?.uid ?? ''];
-      return eliminarMensajeClub(chatId, messageId, currentUser?.uid ?? mod?.uid ?? '');
+      // Solo se registra quién lo borra; el permiso lo
+      // comprueban las reglas con el rol del club, así que no
+      // hace falta resolver a qué club pertenece el chat (con
+      // canales, un chat ya no es 1:1 con la ficha del club).
+      return eliminarMensajeClub(chatId, messageId, currentUser?.uid ?? '');
     },
-    [misClubes, currentUser],
+    [currentUser],
   );
 
   const soyPropietario = useCallback(
@@ -402,6 +515,13 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       actualizar,
       eliminar,
       borrarMensaje,
+      canalesPorClub,
+      canalesLoading,
+      crearCanal,
+      actualizarCanal,
+      eliminarCanal,
+      moverCanal,
+      asegurarGeneral,
       soyPropietario,
       soyModerador,
       miRolEn,
@@ -427,6 +547,13 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       actualizar,
       eliminar,
       borrarMensaje,
+      canalesPorClub,
+      canalesLoading,
+      crearCanal,
+      actualizarCanal,
+      eliminarCanal,
+      moverCanal,
+      asegurarGeneral,
       soyPropietario,
       soyModerador,
       miRolEn,

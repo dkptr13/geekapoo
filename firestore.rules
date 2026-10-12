@@ -1798,6 +1798,27 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/clubs/$(clubId));
     }
 
+    function clubChannelExiste(clubId, channelId) {
+      return exists(/databases/$(database)/documents/clubs/$(clubId)/channels/$(channelId));
+    }
+
+    /**
+     * Si un canal es restringido (solo propietario y moderadores).
+     *
+     * Se usa desde las reglas de `chats/` para que el auto-join
+     * de clubes públicos NO sirva para colarse en un canal de
+     * moderadores: sin esto, bastaba con añadir el id del chat
+     * para leer lo que solo es del equipo del club.
+     */
+    function canalRestringido(clubSlug, channelId) {
+      return channelId is string
+             && channelId.size() > 0
+             && clubExiste(clubSlug)
+             && clubChannelExiste(clubSlug, channelId)
+             && get(/databases/$(database)/documents/clubs/$(clubSlug)/channels/$(channelId))
+                  .data.visibility == 'mods';
+    }
+
     function esMiembroClub(clubId) {
       return isSignedIn()
              && clubExiste(clubId)
@@ -2100,6 +2121,115 @@ service cloud.firestore {
 
         allow delete: if isAdmin() || esModeradorClub(clubId);
       }
+
+      // ── Canales temáticos ─────────────────────────────
+      //
+      // Un canal es una ficha en `clubs/{clubId}/channels/{id}`
+      // con su historial en `chats/{chatId}/messages/`. El `id`
+      // es un slug estable e inmutable (es el id del documento):
+      // renombrar cambia `name`, nunca `id`, para no romper los
+      // mensajes ya asociados.
+      //
+      //   · leer: cualquier miembro del club. La lista incluye
+      //     los metadatos de los restringidos (como en Discord,
+      //     que enseña los candados); su CONTENIDO lo protegen
+      //     las reglas de los mensajes, no esta lista.
+      //   · crear/editar/ordenar/eliminar: propietario o
+      //     moderador DEL CLUB (nunca global, nunca de otro
+      //     club). El `general` no se puede borrar ni
+      //     restringir: es la conversación principal.
+      //   · migración: cualquier miembro puede crear SOLO el
+      //     `general` apuntando al chat histórico del club, para
+      //     que los clubes anteriores a los canales no pierdan
+      //     su historial. No concede nada: ese chat ya era
+      //     legible para él.
+      match /channels/{channelId} {
+        // Lectura: la LISTA la ve cualquier miembro, y también
+        // quien pueda descubrir el club (públicos o por
+        // solicitud), porque para unirse hay que saber qué
+        // canales hay. Los clubes privados no se listan desde
+        // fuera.
+        //
+        // La lista incluye los metadatos de los restringidos
+        // (como en Discord, que enseña los candados); su
+        // CONTENIDO lo protegen el `get` de aquí y las reglas
+        // de los mensajes, no esta lista.
+        allow get: if esMiembroClub(clubId)
+                   && (resource == null
+                       || resource.data.visibility == 'all'
+                       || esModeradorClub(clubId));
+        allow list: if esMiembroClub(clubId)
+                    || (clubExiste(clubId)
+                        && clubData(clubId).accessType in ['public', 'request']);
+
+        allow create: if (esModeradorClub(clubId) || isAdmin())
+                      && request.resource.data.id == channelId
+                      && request.resource.data.clubId == clubId
+                      && request.resource.data.chatId is string
+                      && request.resource.data.chatId.size() > 0
+                      && request.resource.data.name is string
+                      && request.resource.data.name.size() >= 1
+                      && request.resource.data.name.size() <= 40
+                      && request.resource.data.description is string
+                      && request.resource.data.description.size() <= 280
+                      && request.resource.data.type == 'text'
+                      && request.resource.data.visibility in ['all', 'mods']
+                      && request.resource.data.spoiler is bool
+                      && request.resource.data.order is number
+                      && request.resource.data.createdBy == request.auth.uid
+                      // El `id` es un slug interno: minúsculas,
+                      // números y guiones, sin espacios.
+                      && channelId.size() >= 1
+                      && channelId.size() <= 30
+                      && channelId.matches('^[a-z0-9-]+$');
+
+        // Migración del `general` en clubes antiguos: el chat ya
+        // existe y ya era legible, así que crearlo no abre nada.
+        // Va clavado al `chatId` histórico del club, con
+        // visibilidad pública y sin spoilers.
+        allow create: if esMiembroClub(clubId)
+                      && channelId == 'general'
+                      && !clubChannelExiste(clubId, channelId)
+                      && request.resource.data.id == 'general'
+                      && request.resource.data.clubId == clubId
+                      && request.resource.data.chatId == clubData(clubId).chatId
+                      && request.resource.data.name is string
+                      && request.resource.data.name.size() >= 1
+                      && request.resource.data.name.size() <= 40
+                      && request.resource.data.description is string
+                      && request.resource.data.description.size() <= 280
+                      && request.resource.data.type == 'text'
+                      && request.resource.data.visibility == 'all'
+                      && request.resource.data.spoiler == false
+                      && request.resource.data.order is number
+                      && request.resource.data.createdBy is string;
+
+        // Editar: nombre, descripción, visibilidad, spoilers y
+        // orden. El `id`, el `clubId`, el `chatId`, el creador y
+        // la creación no se tocan nunca. El `general` sigue
+        // público siempre.
+        allow update: if (esModeradorClub(clubId) || isAdmin())
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(
+                             ['name', 'description', 'visibility',
+                              'spoiler', 'order', 'updatedAt'])
+                      && request.resource.data.name is string
+                      && request.resource.data.name.size() >= 1
+                      && request.resource.data.name.size() <= 40
+                      && request.resource.data.description is string
+                      && request.resource.data.description.size() <= 280
+                      && request.resource.data.visibility in ['all', 'mods']
+                      && request.resource.data.spoiler is bool
+                      && request.resource.data.order is number
+                      && (channelId != 'general'
+                          || request.resource.data.visibility == 'all');
+
+        // Borrar: todo menos el `general`. El historial se va
+        // con el canal (el cliente vacía antes el chat para que
+        // no quede legible por rutas antiguas).
+        allow delete: if (esModeradorClub(clubId) || isAdmin())
+                      && channelId != 'general';
+      }
     }
 
     // ======================================================
@@ -2205,11 +2335,20 @@ service cloud.firestore {
                     // Entrar en el chat de un CLUB PÚBLICO: añadirse a sí
                     // mismo. Exactamente una persona más, y me quito de
                     // hiddenFor si estaba (p.ej. salí antes y vuelvo).
+                    //
+                    // NUNCA en un canal restringido (`mods`): sin esta
+                    // condición, cualquier miembro podría auto-añadirse
+                    // al chat de coordinación de moderadores con solo
+                    // saber su id. Los chats sin `channelId` son el
+                    // general histórico, siempre público.
                     || (isActive()
                         && resource.data.type == 'club'
                         && resource.data.slug is string
                         && clubExiste(resource.data.slug)
                         && clubData(resource.data.slug).accessType == 'public'
+                        && (!('channelId' in resource.data)
+                            || !(resource.data.channelId is string)
+                            || !canalRestringido(resource.data.slug, resource.data.channelId))
                         && !(request.auth.uid in resource.data.memberIds)
                         && request.auth.uid in request.resource.data.memberIds
                         && request.resource.data.memberIds.size()
