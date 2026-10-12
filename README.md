@@ -66,7 +66,7 @@
 | **Base de Datos** | Firebase Firestore (NoSQL en tiempo real) |
 | **Autenticación** | Firebase Auth (Email/Contraseña & GitHub OAuth) |
 | **Almacenamiento** | ImgBB API & Firebase Storage |
-| **APIs Externas** | GIPHY API / Tenor API, RSS Feeds |
+| **APIs Externas** | **TheTVDB API**, TMDB API, GIPHY API / Tenor API, RSS Feeds |
 | **Hosting & CI/CD** | Vercel (Frontend), Firebase CLI (Backend & Rules) |
 | **Pruebas** | Vitest + `@firebase/rules-unit-testing` |
 
