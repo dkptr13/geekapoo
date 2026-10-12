@@ -108,6 +108,8 @@ const ANIMES = [
   { id: 'kubo-san-wa-mob-wo-yurusanai', buscar: 'Kubo-san wa Mob wo Yurusanai' },
   { id: 'guilty-crown', buscar: 'Guilty Crown' },
   { id: 'solo-leveling', buscar: 'Ore dake Level Up na Ken' },
+  { id: 'kaiju-no-8', buscar: 'Kaijuu 8-gou' },
+  { id: 'burn-the-witch', buscar: 'BURN THE WITCH' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 // ── Estado ─────────────────────────────────────────────────────────

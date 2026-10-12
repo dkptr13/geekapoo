@@ -1,8 +1,10 @@
 // TEMPORADA 1 - Re:Zero (2016)
 //
-// Veinticinco capitulos, del 4 de abril al 19 de septiembre de 2016.
-// Subaru muere y vuelve a despertar en bucles, sirve en la mansion Roswaal junto a Emilia, Rem, Ram y Beatrice,
+// Veinticinco capitulos, del 4 de abril al 19 de septiembre de 2016,
+// mas el OVA Memory Snow como capitulo 26. Subaru muere y vuelve a
+// despertar en bucles, sirve en la mansion Roswaal junto a Emilia, Rem, Ram y Beatrice,
 // y cierra con el culto de la Bruja, la ballena blanca y la seleccion real.
+// La nota del OVA es la de su ficha propia en IMDb (tt8565186, 7,2).
 
 export const T1 = [
   [1, 'El fin del principio y el principio del fin', '始まりの終わりと終わりの始まり', '2016-04-04', 8.6,
@@ -79,4 +81,7 @@ export const T1 = [
 
   [25, 'Solo de eso trata esta historia', 'ただそれだけの物語', '2016-09-19', 9.2,
    'Julius pelea con Petelgeuse usando los ojos de Subaru para ver las manos. Subaru llama a la bruja con su poder y Petelgeuse pierde su cuerpo al ser negado. Otto lo lleva a la carreta con explosivos, los lanza a los restos de la ballena y despierta con Emilia y le dice que la ama.'],
+
+  [26, 'Nieve de recuerdos (OVA)', 'Re:ゼロから始める異世界生活 Memory Snow', '2018-10-06', 7.2,
+   'OVA de octubre de 2018: la fiesta de la nieve con la mansion entera y un licor que desata verdades. Subaru brinda con todos entre la primera y la segunda temporada.'],
 ];

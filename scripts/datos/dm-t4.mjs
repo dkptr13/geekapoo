@@ -1,8 +1,10 @@
 // TEMPORADA 4 - DanMachi (2020)
 //
-// Doce capitulos, del 3 de octubre al 19 de diciembre de 2020.
+// Doce capitulos, del 3 de octubre al 19 de diciembre de 2020,
+// mas el OVA de abril de 2021 como capitulo 13.
 // El arco de Wiene y los Xenos: Bell esconde y protege a una chica
 // dragon con razon y acaba tachado de necio por defenderla.
+// La nota del OVA es la de IMDb (tt4728568 S3E13, 7,1).
 
 export const T4 = [
   [1, 'Hija del dragon', '竜の少女(ウィーネ)', '2020-10-03', 7.7,
@@ -40,4 +42,7 @@ export const T4 = [
 
   [12, 'Regreso del heroe', '英雄回帰(アルゴノゥト)', '2020-12-19', 8.5,
    'Bell vence fiel a su sueño de heroe y demuestra que salvar tambien es pelear. Wiene queda a salvo y aceptada a escondidas lejos de los ojos de la ciudad. Aunque lo llamen necio, Bell vuelve a casa con la frente alta y su promesa cumplida.'],
+
+  [13, 'Termas en Orario (OVA)', 'オラリオに温泉を求めるのは間違っているだろうか ～おふろの神様フォーエバー～', '2021-04-28', 7.1,
+   'OVA de abril de 2021: Orario estrena baños nuevos y el dios de las termas bendice el invento. Chapuzon general con Bell en medio, como siempre.'],
 ];

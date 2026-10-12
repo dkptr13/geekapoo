@@ -1,9 +1,10 @@
 // TEMPORADA 1 - Armed Girls Machiavellism (2017)
 //
 // Doce capitulos del 5 de abril al 22 de junio de 2017, en SILVER
-// LINK. Fechas de TVDB y notas de IMDb (tt9013220): el 12 es lo
-// mejor con 8,5 y el 4 lo peor con 7,5. El OVA suelto de noviembre
-// no entra: es un extra de disco, como el de Takagi.
+// LINK, mas el OVA de noviembre como capitulo 13. Fechas de TVDB
+// (S0E1 para el OVA) y notas de IMDb (tt9013220): el 12 es lo
+// mejor con 8,5 y el 4 lo peor con 7,5. El OVA si entra: es de la
+// historia con las cinco, con nota propia en IMDb (8,0).
 
 export const T1 = [
   [1, 'La magnífica espada Onigawara', '素晴らしき刃「鬼瓦輪」', '2017-04-05', 7.7, 'Nomura llega expulsado a un instituto donde las chicas llevan espada y mandan. Rin, la primera de las Cinco Espadas, lo recibe a espadazos.'],
@@ -18,4 +19,5 @@ export const T1 = [
   [10, 'La temible espada Inaba', '恐ろしき刃「因幡月夜」', '2017-06-08', 8.4, 'Tsukuyo, ciega y rapidisima, ataca con Amou de espectadora. Nomura sobrevive por instinto mas que por tecnica.'],
   [11, 'La bala que queda en el pecho', '胸に残るあの日の「弾丸」', '2017-06-15', 8.2, 'La bala del pasado de Nomura con Amou, contada entera por fin. Los dos se conocen de antes del instituto.'],
   [12, 'El maquiavelismo de las chicas', '少女達の「マキャヴェリズム」', '2017-06-22', 8.5, 'Todas contra Amou en el cierre, cada espada con su estilo. Nomura se gana el sitio a espadazos. El mejor de la temporada.'],
+  [13, 'Viaje de placer con las Cinco Espadas (OVA)', 'ドキッ！「五剣だらけ」の慰安旅行', '2017-11-25', 8.0, 'OVA de noviembre de 2017 con las Cinco Espadas de viaje de placer. Baños, juegos y pullas entre las cinco, con la Emperatriz mirando de lejos.'],
 ];

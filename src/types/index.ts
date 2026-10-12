@@ -1,6 +1,12 @@
 import type { Timestamp } from 'firebase/firestore';
 
 import type { ImageCropSettings } from '../services/imageCrop';
+import type {
+  Decoracion,
+  FondoPerfil,
+  PersonajeFavorito,
+  TipoVitrina,
+} from '../data/profileCustomization';
 
 export type UserRole = 'user' | 'moderator' | 'admin';
 
@@ -308,6 +314,41 @@ export interface User {
   medals?: Record<string, string>;
   /** Id de la medalla cuyo título lleva puesto. */
   equippedTitle?: string | null;
+
+  // ── Personalizacion del perfil (ver `data/profileCustomization.ts`) ──
+  //
+  // Todo opcional: las cuentas anteriores a esta funcion no los
+  // tienen y se leen con los valores por defecto del modulo de
+  // personalizacion (banner y color de la casa, sin marco, sin
+  // personaje, todas las insignias y sin destacados).
+  //
+  // El cliente SI puede escribirlos (son cosmetica propia); lo que
+  // NO puede tocar sigue bloqueado en `firestore.rules` (xp,
+  // level, medals, stats, role...). Los desbloqueos NO se guardan:
+  // se derivan del nivel y de las medallas, que son del servidor.
+  /** Banner: '' (defecto), 'preset:<id>' o URL https subida. */
+  bannerUrl?: string;
+  /** Color de perfil: uno de los hex de `COLORES_PERFIL`. */
+  profileColor?: string;
+  /** Marco del avatar: id de `MARCOS_AVATAR` o null. */
+  avatarFrame?: string | null;
+  /** Personaje favorito, con su imagen. */
+  favoriteCharacter?: { name: string; imageUrl: string; desc?: string } | null;
+  /** Personajes de la vitrina (nombre, imagen y serie opcional). */
+  favoriteCharacters?: PersonajeFavorito[];
+  /** Medallas a la vista. `undefined` o `null` = todas. `[]` = ninguna. */
+  visibleBadgeIds?: string[] | null;
+  /** Hilos fijados, en orden. Vacio o ausente = ninguno. */
+  featuredPostIds?: string[];
+  /**
+   * Fondo de la página: preset de `BANNERS_PERFIL` o URL propia,
+   * con posición y oscurecido. Ausente = fondo del sitio.
+   */
+  profileBackground?: FondoPerfil | null;
+  /** Decoraciones colocadas sobre la cabecera (x/y en %). */
+  decorations?: Decoracion[];
+  /** Vitrinas activas, en orden. Ausente = logros + destacadas. */
+  showcases?: TipoVitrina[];
 }
 
 export interface StreamingService {

@@ -2,9 +2,10 @@
 //
 // Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
 //
-// Doce capitulos, del 13 de julio al 28 de septiembre de 2019, en J.C.Staff.
+// Doce capitulos, del 13 de julio al 28 de septiembre de 2019, en J.C.Staff,
+// mas el OVA de enero de 2020 como capitulo 13.
 // Las fechas son las de TVDB; las de IMDb van un dia antes por el huso horario.
-// Las notas son las de IMDb para cada capitulo.
+// Las notas son las de IMDb para cada capitulo (tt4728568 S2E13, 6,8 para el OVA).
 
 export const T3 = [
   [1, 'Banquete de los dioses (Party)', '神の宴（パーティー）', '2019-07-13', 7.3,
@@ -42,4 +43,7 @@ export const T3 = [
 
   [12, 'Diosa y familia (cancion de amor)', '女神と眷族（アイノウタ）', '2019-09-28', 7.1,
    'Tras la batalla Hestia canta para los suyos una cancion de amor a su familia y todos brindan juntos. Bell mira al frente con un objetivo claro y la familia cierra filas. La temporada acaba con la promesa de seguir creciendo.'],
+
+  [13, 'Hierbas en la isla desierta (OVA)', '無人島に薬草を求めるのは間違っているだろうか', '2020-01-29', 6.8,
+   'OVA de enero de 2020: el grupo naufraga en una isla desierta buscando hierbas y la expedicion se vuelve playa. Sol, apuros y Bell cocinando para todas.'],
 ];

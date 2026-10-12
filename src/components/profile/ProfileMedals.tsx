@@ -70,6 +70,17 @@ export const ProfileMedals: React.FC<{
   equipado?: string | null;
 
   /**
+   * Medallas que el dueño quiere enseñar.
+   *
+   * Solo se mira en el perfil AJENO: si viene (aunque sea vacío),
+   * el visitante ve esas y solo esas. `undefined` son las cuentas
+   * anteriores a esta función, que enseñan todas las conseguidas
+   * como siempre. En el perfil propio no filtra nada: uno tiene
+   * que ver su vitrina entera para elegir qué enseña.
+   */
+  idsVisibles?: string[] | null;
+
+  /**
    * Aviso de que la gamificación sigue apagada.
    *
    * Se ve mientras `gamification/config` tenga `activo: false`,
@@ -78,12 +89,17 @@ export const ProfileMedals: React.FC<{
    * sube nada, y lo primero que va a pensar es que está roto.
    */
   avisoDesactivada?: boolean;
-}> = ({ catalogo, propio, onEquipar, equipado, avisoDesactivada }) => {
+}> = ({ catalogo, propio, onEquipar, equipado, avisoDesactivada, idsVisibles }) => {
   const [todas, setTodas] = useState(false);
 
   // En el propio, el catálogo entero (las pendientes ya traen su
-  // barra de progreso). En el de otro, solo las conseguidas.
-  const visibles = propio ? catalogo : catalogo.filter((c) => c.desbloqueada);
+  // barra de progreso). En el de otro, solo las conseguidas, y si
+  // el dueño eligió cuáles se ven, solo esas.
+  const base = propio ? catalogo : catalogo.filter((c) => c.desbloqueada);
+  const visibles =
+    !propio && idsVisibles
+      ? base.filter((c) => idsVisibles.includes(c.medal.id))
+      : base;
   const conseguidas = visibles.filter((c) => c.desbloqueada).length;
 
   // En el propio el contador dice "3 de 20": cuántas hay y cuántas

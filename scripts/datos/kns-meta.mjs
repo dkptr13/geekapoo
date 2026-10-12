@@ -56,18 +56,18 @@ export const RATING_SERIE = 7.8;
 /**
  * Capitulos en total, en orden de emision.
  *
- *   T1  10  (enero - marzo de 2016, serie)
- *   T2  10  (enero - marzo de 2017, serie)
+ *   T1  11  (enero - marzo de 2016, 10 de television + el OVA del collar)
+ *   T2  11  (enero - marzo de 2017, 10 de television + el OVA del retrato)
  *   T3   1  (agosto de 2019, pelicula)
  *   T4  12  (abril - junio de 2023, precuela Bakuen)
- *   T5  11  (abril - junio de 2024, serie)
+ *   T5  13  (abril - junio de 2024, 11 de television + 2 BONUS STAGE de 2025)
  *   --
- *       44
+ *       48
  *
- * Las dos OVA sueltas y el especial de 2025 van en S0 de TVDB y aqui
- * no entran: son extras de disco, no historia.
+ * Los OVA van como ultimo capitulo de su temporada, en orden de
+ * emision, con nota propia en IMDb (tt5370118).
  */
-export const EPISODIOS_TOTAL = 44;
+export const EPISODIOS_TOTAL = 48;
 
 /**
  * Donde se emite en España.
@@ -86,7 +86,7 @@ export const TEMPORADAS = [
     estado: 'Finalizado',
     estudio: 'Studio DEEN',
     synopsis:
-      'Diez capitulos entre el 14 de enero y el 17 de marzo de 2016. ' +
+      'Diez capitulos entre el 14 de enero y el 17 de marzo de 2016, mas el OVA del collar. ' +
       'Kazuma renace con Aqua de regalo, ficha a Megumin por barata y a Darkness por bulto, y el grupo debuta contra Beldia. ' +
       'Deudas, invierno y fortaleza final con victoria por los pelos.',
     capitulos: 'T1',
@@ -98,7 +98,7 @@ export const TEMPORADAS = [
     estado: 'Finalizado',
     estudio: 'Studio DEEN',
     synopsis:
-      'Diez capitulos entre el 12 de enero y el 16 de marzo de 2017. ' +
+      'Diez capitulos entre el 12 de enero y el 16 de marzo de 2017, mas el OVA del retrato. ' +
       'Juicio injusto, laberinto con lich, boda concertada de Darkness, caballero enmascarado y termas mixtas. ' +
       'Cierra contra el general Hans con el pueblo en juego.',
     capitulos: 'T2',
@@ -134,7 +134,7 @@ export const TEMPORADAS = [
     estado: 'Finalizado',
     estudio: 'Drive',
     synopsis:
-      'Once capitulos entre el 10 de abril y el 19 de junio de 2024. ' +
+      'Once capitulos entre el 10 de abril y el 19 de junio de 2024, mas dos BONUS STAGE de 2025. ' +
       'Princesa Iris, castillo, lago tragico y boda de Darkness con boicot incluido. ' +
       'La temporada mas redonda, que cierra con el grupo igual de pobre que al principio.',
     capitulos: 'T5',

@@ -3,7 +3,8 @@
 // TVDB 423075 "怪獣8号" (2024, Continuing; la S3 vacia es la
 // tercera anunciada sin fecha ni capitulos y no entra).
 // AniList 153288 (T1, 2024, 12 capitulos) y 178754 (T2, 2025, 11).
-// IMDb tt21975436. El recopilatorio y los especiales cortos van en
+// El especial de Hoshina (179999) va como capitulo 13 de la T1.
+// IMDb tt21975436. El recopilatorio y los cortos van en
 // S0 de TVDB y aqui no entran.
 //
 // El titulo mezcla letras y numero tal cual, en todo el mundo.
@@ -40,12 +41,12 @@ export const RATING_SERIE = 8.2;
 /**
  * Capitulos en total.
  *
- *   T1  12  (abril - junio de 2024)
+ *   T1  13  (abril - junio de 2024, 12 de television + el especial de Hoshina)
  *   T2  11  (julio - septiembre de 2025)
  *   --
- *       23
+ *       24
  */
-export const EPISODIOS_TOTAL = 23;
+export const EPISODIOS_TOTAL = 24;
 
 /**
  * Donde se emite en España.
@@ -64,7 +65,7 @@ export const TEMPORADAS = [
     estado: 'Finalizado',
     estudio: 'Production I.G',
     synopsis:
-      'Doce capitulos entre el 13 de abril y el 29 de junio de 2024. ' +
+      'Doce capitulos entre el 13 de abril y el 29 de junio de 2024, mas el especial de Hoshina. ' +
       'Kafka se convierte, entra en la Tercera de tapadillo y debuta contra el nº 9. ' +
       'Al descubierto al final y juzgado por el alto mando.',
     capitulos: 'T1',

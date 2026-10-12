@@ -57,6 +57,8 @@ export const BUSQUEDAS = {
   'kubo-san-wa-mob-wo-yurusanai': 'Kubo-san wa Mob wo Yurusanai',
   'guilty-crown': 'Guilty Crown',
   'solo-leveling': 'Ore dake Level Up na Ken',
+  'kaiju-no-8': 'Kaijuu 8-gou',
+  'burn-the-witch': 'BURN THE WITCH',
 };
 
 /**

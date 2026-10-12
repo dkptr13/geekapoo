@@ -2,9 +2,11 @@
 //
 // Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
 //
-// Doce capitulos, del 8 de enero al 26 de marzo de 2018.
-// Cada capitulo junta de tres a seis segmentos cortos y el titulo en
-// espanol los une con " / ".
+// Doce capitulos, del 8 de enero al 26 de marzo de 2018, mas el OVA
+// de julio como capitulo 13. Cada capitulo junta de tres a seis
+// segmentos cortos y el titulo en espanol los une con " / ".
+// El OVA si entra: es de la historia con nota propia en IMDb
+// (tt7808344 S1E13, 7,4).
 
 export const T1 = [
   [1, 'Goma de borrar / Delegado / Caras raras / Cien yenes', '消しゴム / 日直 / 変顔 / 百円', '2018-01-08', 7.3,
@@ -42,4 +44,7 @@ export const T1 = [
 
   [12, 'Carta / Ingreso / Cambio de sitio', '手紙 / 入学式 / 席替え', '2018-03-26', 8.7,
    'Takagi escribe una carta que no se atreve a entregar y Nishikata la encuentra. En la ceremonia de ingreso recuerdan como se conocieron al inicio del curso. Con el cambio de sitio del nuevo curso ella logra sentarse junto a el otra vez.'],
+
+  [13, 'Tobogan de agua (OVA)', 'ウォータースライダー', '2018-07-11', 7.4,
+   'OVA de julio de 2018: chapuzon en el tobogan de agua con Takagi vacilando a Nishikata en cada bajada. Verano, risas y el de siempre perdiendo hasta en el agua.'],
 ];

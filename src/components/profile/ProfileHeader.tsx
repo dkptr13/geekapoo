@@ -5,7 +5,13 @@ import { textoTitulo } from '../gamification/AuthorBadge';
 import { formatearNumero } from '../../utils/follows';
 import { textoDias } from '../../utils/profile';
 import { nivelDesdeXp, rangoDeNivel } from '../../utils/progression';
+import {
+  bannerDePerfil,
+  colorDePerfil,
+  marcoDeAvatar,
+} from '../../data/profileCustomization';
 import { FollowButton } from '../follows/FollowButton';
+import { CapaDecoraciones } from './ProfileDecor';
 import type { User } from '../../types';
 import type { GamificationConfig } from '../../types/gamification';
 
@@ -116,6 +122,18 @@ export const ProfileHeader: React.FC<{
   const titulo = textoTitulo(perfil);
   const rol = perfil.role ? (ROL[perfil.role] ?? null) : null;
 
+  // ── Personalización ──────────────────────────────
+  //
+  // Todo con valores por defecto: una cuenta anterior a esta
+  // función se ve como la casa. Si el valor guardado está
+  // bloqueado para su nivel, los resolvedores caen al defecto.
+  const color = colorDePerfil(perfil.profileColor, level);
+  const banner = bannerDePerfil(perfil.bannerUrl, level);
+  const marco = marcoDeAvatar(perfil.avatarFrame, level);
+  const personaje = perfil.favoriteCharacter?.name?.trim()
+    ? perfil.favoriteCharacter
+    : null;
+
   // El nombre visible si existe, y el username debajo. Al revés
   // sería menos útil: el nombre es lo que reconoce la gente, y el
   // username es lo que se usa para mencionar.
@@ -130,6 +148,31 @@ export const ProfileHeader: React.FC<{
     // la tarjeta por arriba. Sin él, la imagen se sale de los
     // bordes redondeados y el efecto se rompe.
     <header className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/90 shadow-xl">
+      {/* ── Banner personalizado ───────────────────────
+          Preset (degradado CSS) o imagen subida. Si no hay nada,
+          el degradado de la casa, que es lo que había antes. */}
+      {banner.tipo === 'url' ? (
+        <img
+          src={banner.url}
+          alt=""
+          aria-hidden="true"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+          className="pointer-events-none absolute inset-x-0 top-0 h-28 w-full object-cover sm:h-36"
+        />
+      ) : (
+        <div
+          aria-hidden="true"
+          style={{ background: banner.css }}
+          className="pointer-events-none absolute inset-x-0 top-0 h-28 sm:h-36"
+        />
+      )}
+      {/* Velo para que el contenido se lea sobre cualquier banner. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-transparent via-zinc-900/40 to-zinc-900 sm:h-36"
+      />
       {/* ── Fondo decorativo ─────────────────────────────
           Un degradado morado muy suave. Es lo que da la
           sensación de "tarjeta" sin necesidad de bordes de
@@ -140,7 +183,8 @@ export const ProfileHeader: React.FC<{
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(139,92,246,0.18),transparent_60%)]"
       />
 
-      <div className="relative flex flex-col gap-6 p-6 sm:flex-row sm:items-start sm:p-8">
+      {/* Con banner hay que bajar el contenido para no pisarlo. */}
+      <div className="relative flex flex-col gap-6 p-6 pt-24 sm:flex-row sm:items-start sm:p-8 sm:pt-28">
         {/* ── Avatar ────────────────────────────────────── */}
         <div className="relative shrink-0 self-center sm:self-start">
           <img
@@ -154,7 +198,8 @@ export const ProfileHeader: React.FC<{
             onError={(e) => {
               e.currentTarget.src = avatarPorDefecto;
             }}
-            className="h-28 w-28 rounded-3xl object-cover ring-4 ring-violet-500/30 shadow-2xl sm:h-32 sm:w-32"
+            style={{ boxShadow: `0 0 0 4px ${color}55, 0 25px 50px -12px rgba(0,0,0,0.8)` }}
+            className={`h-28 w-28 rounded-3xl object-cover ring-4 ${marco} sm:h-32 sm:w-32`}
           />
 
           {/* El nivel sobre el avatar. Es el dato que más se mira
@@ -162,7 +207,8 @@ export const ProfileHeader: React.FC<{
               leerlo. */}
           <span
             title={`Nivel ${level}`}
-            className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-xl border-2 border-zinc-900 bg-violet-600 font-mono text-xs font-black text-white shadow-lg"
+            style={{ backgroundColor: color }}
+            className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-xl border-2 border-zinc-900 font-mono text-xs font-black text-white shadow-lg"
           >
             {level}
           </span>
@@ -236,6 +282,30 @@ export const ProfileHeader: React.FC<{
             </p>
           )}
 
+          {/* ── Personaje favorito ───────────────────────
+              Con imagen, a diferencia del anime favorito que es
+              solo texto: el personaje se reconoce por la cara. */}
+          {personaje && (
+            <p className="mx-auto flex max-w-lg items-center gap-2 text-[11px] text-zinc-500 sm:mx-0">
+              {personaje.imageUrl ? (
+                <img
+                  src={personaje.imageUrl}
+                  alt={personaje.name}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  className="h-6 w-6 flex-shrink-0 rounded-lg object-cover ring-1 ring-zinc-700"
+                />
+              ) : (
+                <Heart size={11} className="flex-shrink-0 fill-pink-500 text-pink-500" />
+              )}
+              <span className="truncate">
+                <span className="text-zinc-600">Personaje favorito:</span>{' '}
+                <span className="font-semibold text-zinc-300">{personaje.name}</span>
+              </span>
+            </p>
+          )}
+
           {/* ── Nivel y barra de XP ────────────────────────
               El "7.240 / 10.000" sale de la misma curva que usa
               el resto de la web (`nivelDesdeXp`), no de un
@@ -263,8 +333,11 @@ export const ProfileHeader: React.FC<{
 
             <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-zinc-800 bg-zinc-950">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 transition-[width] duration-700 ease-out"
-                style={{ width: `${Math.round(progreso * 100)}%` }}
+                className="h-full rounded-full transition-[width] duration-700 ease-out"
+                style={{
+                  width: `${Math.round(progreso * 100)}%`,
+                  background: `linear-gradient(90deg, ${color}, ${color}99)`,
+                }}
               />
             </div>
 
@@ -357,8 +430,31 @@ export const ProfileHeader: React.FC<{
               </span>
             )}
           </div>
+
+          {/* ── Personalizar perfil ──────────────────────────
+              Solo el dueño. Abre el editor por pestañas
+              (`CustomizeProfileModal`), no el modal viejo de
+              cuatro campos. */}
+          {esPropio && onEditar && (
+            <div className="mx-auto pt-1 sm:mx-0">
+              <button
+                type="button"
+                onClick={onEditar}
+                className="flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold text-white transition-all hover:brightness-110"
+                style={{ borderColor: `${color}66`, backgroundColor: `${color}26` }}
+              >
+                <Sparkles size={13} style={{ color }} />
+                Personalizar perfil
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* ── Decoraciones colocadas ─────────────────────
+          Pegatinas, imágenes y medallas del dueño, en su sitio
+          (% sobre la cabecera). No interceptan clics. */}
+      <CapaDecoraciones perfil={perfil} />
     </header>
   );
 };

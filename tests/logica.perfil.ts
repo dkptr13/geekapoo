@@ -31,6 +31,12 @@ import {
   validarEditable,
 } from '../src/utils/profile';
 import { MAX_AVATAR_URL, MAX_BIO, MAX_DISPLAY_NAME } from '../src/types/profile';
+import {
+  COLOR_POR_DEFECTO,
+  MAX_DESTACADAS,
+  MAX_INSIGNIAS_VISIBLES,
+  MAX_NOMBRE_PERSONAJE,
+} from '../src/data/profileCustomization';
 import type { PerfilDatos, PerfilEditable } from '../src/types/profile';
 import type { Comment, Thread, User } from '../src/types';
 
@@ -331,6 +337,21 @@ function editable(extra: Partial<PerfilEditable> = {}): PerfilEditable {
     avatarUrl: '',
     favoriteAnime: 'Kaguya-sama',
     equippedTitle: null,
+    bannerUrl: '',
+    profileColor: '#8b5cf6',
+    avatarFrame: null,
+    favoriteCharacterName: '',
+    favoriteCharacterImage: '',
+    favoriteCharacterDesc: '',
+    favoriteCharacters: [],
+    visibleBadgeIds: null,
+    featuredPostIds: [],
+    backgroundPreset: '',
+    backgroundUrl: '',
+    backgroundPosition: 'center',
+    backgroundDim: 50,
+    decorations: [],
+    showcases: [],
     ...extra,
   };
 }
@@ -404,6 +425,188 @@ assert.ok(
 );
 
 // ──────────────────────────────────────────────────────────
+// 4b. LA VALIDACION DE LA PERSONALIZACION
+// ──────────────────────────────────────────────────────────
+//
+// Los desbloqueos por nivel NO se comprueban aqui (ver
+// `validarEditable`): dependen del nivel de quien edita. Aqui
+// solo los formatos, que es lo que las reglas tambien exigen.
+
+assert.ok(validarEditable(editable()).ok, 'la personalizacion por defecto valida');
+
+assert.ok(
+  validarEditable(editable({ profileColor: COLOR_POR_DEFECTO })).ok,
+  'el color por defecto vale',
+);
+assert.ok(
+  validarEditable(editable({ profileColor: '#ffffff' })).errores.profileColor,
+  'un color fuera de la paleta no vale',
+);
+
+assert.ok(
+  validarEditable(editable({ bannerUrl: '' })).ok,
+  'sin banner es legal (el de la casa)',
+);
+assert.ok(
+  validarEditable(editable({ bannerUrl: 'preset:defecto' })).ok,
+  'un preset valido vale',
+);
+assert.ok(
+  validarEditable(editable({ bannerUrl: 'preset:inventado' })).errores.bannerUrl,
+  'un preset inventado no vale',
+);
+assert.ok(
+  validarEditable(editable({ bannerUrl: 'javascript:alert(1)' })).errores.bannerUrl,
+  'un banner que no es https no vale',
+);
+
+assert.ok(
+  validarEditable(editable({ avatarFrame: null })).ok,
+  'sin marco es legal',
+);
+assert.ok(
+  validarEditable(editable({ avatarFrame: 'dorado' })).ok,
+  'un marco valido vale',
+);
+assert.ok(
+  validarEditable(editable({ avatarFrame: 'inventado' })).errores.avatarFrame,
+  'un marco inventado no vale',
+);
+
+assert.ok(
+  validarEditable(editable({ favoriteCharacterName: 'Spike Spiegel' })).ok,
+  'un personaje con nombre vale',
+);
+assert.ok(
+  validarEditable(editable({ favoriteCharacterName: 'x'.repeat(MAX_NOMBRE_PERSONAJE + 1) })).errores
+    .favoriteCharacterName,
+  'el nombre del personaje tiene tope',
+);
+assert.ok(
+  validarEditable(editable({ favoriteCharacterImage: 'https://x/y.jpg' })).errores
+    .favoriteCharacterName,
+  'imagen sin nombre no vale',
+);
+assert.ok(
+  validarEditable(
+    editable({ favoriteCharacterName: 'Spike', favoriteCharacterImage: 'ftp://x/y.jpg' }),
+  ).errores.favoriteCharacterImage,
+  'la imagen del personaje tiene que ser https',
+);
+
+assert.ok(
+  validarEditable(editable({ visibleBadgeIds: null })).ok,
+  'null son todas las insignias',
+);
+assert.ok(
+  validarEditable(editable({ visibleBadgeIds: ['a', 'b'] })).ok,
+  'una lista corta vale',
+);
+assert.ok(
+  validarEditable(editable({ visibleBadgeIds: Array(MAX_INSIGNIAS_VISIBLES + 1).fill('x') })).errores
+    .visibleBadgeIds,
+  'las insignias tienen tope',
+);
+
+assert.ok(
+  validarEditable(editable({ featuredPostIds: [] })).ok,
+  'sin destacadas es legal',
+);
+assert.ok(
+  validarEditable(editable({ featuredPostIds: Array(MAX_DESTACADAS + 1).fill('x') })).errores
+    .featuredPostIds,
+  'las destacadas tienen tope',
+);
+
+assert.ok(
+  validarEditable(editable({ backgroundPreset: 'ocaso' })).ok,
+  'un fondo de la galeria vale',
+);
+assert.ok(
+  validarEditable(editable({ backgroundPreset: 'inventado' })).errores.backgroundPreset,
+  'un fondo inventado no vale',
+);
+assert.ok(
+  validarEditable(editable({ backgroundUrl: 'https://x/y.jpg' })).ok,
+  'un fondo propio https vale',
+);
+assert.ok(
+  validarEditable(editable({ backgroundUrl: 'ftp://x/y.jpg' })).errores.backgroundUrl,
+  'un fondo propio que no es https no vale',
+);
+assert.ok(
+  validarEditable(editable({ backgroundPosition: 'top' })).ok,
+  'la posicion top vale',
+);
+assert.ok(
+  validarEditable(editable({ backgroundPosition: 'izquierda' })).errores.backgroundPosition,
+  'una posicion inventada no vale',
+);
+assert.ok(
+  validarEditable(editable({ backgroundDim: 80 })).ok,
+  'el oscurecido al maximo vale',
+);
+assert.ok(
+  validarEditable(editable({ backgroundDim: 81 })).errores.backgroundDim,
+  'el oscurecido por encima del tope no vale',
+);
+
+assert.ok(
+  validarEditable(
+    editable({ favoriteCharacters: [{ name: 'Spike', imageUrl: '', serie: 'Cowboy Bebop' }] }),
+  ).ok,
+  'un personaje de vitrina vale',
+);
+assert.ok(
+  validarEditable(
+    editable({ favoriteCharacters: [{ name: '', imageUrl: '', serie: '' }] }),
+  ).errores.favoriteCharacters,
+  'un personaje sin nombre no vale',
+);
+assert.ok(
+  validarEditable(
+    editable({
+      favoriteCharacters: Array(7).fill({ name: 'x', imageUrl: '', serie: '' }),
+    }),
+  ).errores.favoriteCharacters,
+  'los personajes tienen tope',
+);
+assert.ok(
+  validarEditable(editable({ favoriteCharacterDesc: 'x'.repeat(141) })).errores
+    .favoriteCharacterDesc,
+  'la descripcion del principal tiene tope',
+);
+
+const decOk = { id: 'a', kind: 'sticker', ref: 'mando', x: 10, y: 20, size: 'm' } as const;
+assert.ok(validarEditable(editable({ decorations: [decOk] })).ok, 'una decoracion vale');
+assert.ok(
+  validarEditable(editable({ decorations: [{ ...decOk, x: 101 }] })).errores.decorations,
+  'una decoracion fuera del lienzo no vale',
+);
+assert.ok(
+  validarEditable(editable({ decorations: [{ ...decOk, kind: 'nube' }] as never })).errores
+    .decorations,
+  'un tipo inventado no vale',
+);
+assert.ok(
+  validarEditable(editable({ decorations: Array(7).fill(decOk) })).errores.decorations,
+  'las decoraciones tienen tope',
+);
+
+assert.ok(
+  validarEditable(editable({ showcases: ['logros', 'texto'] })).ok,
+  'dos vitrinas validas valen',
+);
+assert.ok(
+  validarEditable(editable({ showcases: ['logros', 'logros'] })).errores.showcases,
+  'una vitrina repetida no vale',
+);
+assert.ok(
+  validarEditable(editable({ showcases: ['inventada'] as never })).errores.showcases,
+  'una vitrina inventada no vale',
+);
+
+// ──────────────────────────────────────────────────────────
 // 5. EL USERNAME
 // ──────────────────────────────────────────────────────────
 //
@@ -437,25 +640,57 @@ assert.ok(!usernameEsValido('@oscar'), 'la arroba no se escribe en el campo');
 const camposEditables = Object.keys(editable()).sort();
 assert.deepEqual(
   camposEditables,
-  ['avatarUrl', 'bio', 'displayName', 'equippedTitle', 'favoriteAnime'],
-  'los unicos campos editables son los cinco de siempre',
+  ['avatarFrame', 'avatarUrl', 'backgroundDim', 'backgroundPosition', 'backgroundPreset', 'backgroundUrl', 'bannerUrl', 'bio', 'decorations', 'displayName', 'equippedTitle', 'favoriteAnime', 'favoriteCharacterDesc', 'favoriteCharacterImage', 'favoriteCharacterName', 'favoriteCharacters', 'featuredPostIds', 'profileColor', 'showcases', 'visibleBadgeIds'],
+  'los unicos campos editables son los de personalizacion',
 );
 
 // Y cada uno tiene que existir en `User`, que es de donde se
 // leen. Si uno se renombrara aqui y no en el tipo, el guardado
 // escribiria un campo que nadie lee y el perfil no cambiaria.
+//
+// `favoriteCharacterName` e `favoriteCharacterImage` son las dos
+// mitades del mapa `favoriteCharacter` de `User` (mas `desc`),
+// `backgroundPreset/Url/Position/Dim` las cuatro del mapa
+// `profileBackground`: el formulario las edita por separado y al
+// guardar las junta.
 const camposDeUser: Array<keyof User> = [
   'displayName',
   'bio',
   'avatarUrl',
   'favoriteAnime',
   'equippedTitle',
+  'bannerUrl',
+  'profileColor',
+  'avatarFrame',
+  'favoriteCharacters',
+  'visibleBadgeIds',
+  'featuredPostIds',
+  'decorations',
+  'showcases',
+];
+const PARTES_DE_MAPA = [
+  'favoriteCharacterName',
+  'favoriteCharacterImage',
+  'favoriteCharacterDesc',
+  'backgroundPreset',
+  'backgroundUrl',
+  'backgroundPosition',
+  'backgroundDim',
 ];
 for (const campo of camposEditables) {
+  if ((PARTES_DE_MAPA as string[]).includes(campo)) continue;
   assert.ok(
     camposDeUser.includes(campo as keyof User),
     `${campo} existe en User`,
   );
 }
+assert.ok(
+  (['favoriteCharacter', 'profileBackground'] as Array<keyof User>).includes('favoriteCharacter'),
+  'favoriteCharacter existe en User',
+);
+assert.ok(
+  (['profileBackground'] as Array<keyof User>).includes('profileBackground'),
+  'profileBackground existe en User',
+);
 
 console.log('logica.perfil: OK');

@@ -60,16 +60,21 @@ export const RATING_SERIE = 8.5;
 /**
  * Capitulos en total.
  *
- *   T1  25  (abril - septiembre de 2016)
+ *   T1  26  (abril - septiembre de 2016, 25 de television + el OVA Memory Snow)
  *   T2  25  (julio 2020 - marzo 2021, en dos partes)
  *   T3  16  (octubre 2024 - marzo 2025, en dos partes)
  *   T4  19  (abril - septiembre de 2026, en dos partes)
+ *   T5   1  (noviembre de 2019, pelicula precuela Frozen Bond)
  *   --
- *       85
+ *       87
  *
- * Coincide con TVDB S1-S4 y con IMDb, que declara 85.
+ * Coincide con TVDB S1-S4 mas los dos de S0, y con IMDb, que declara
+ * 85 de television mas los dos con ficha propia. La T5 sale la ultima
+ * en la wiki aunque la peli sea de 2019, porque el numero es el que
+ * da el orden y no la fecha: el mismo precio que los OVA de Tokyo
+ * Ghoul como T4.
  */
-export const EPISODIOS_TOTAL = 85;
+export const EPISODIOS_TOTAL = 87;
 
 /**
  * Donde se emite en España.
@@ -90,7 +95,7 @@ export const TEMPORADAS = [
     estado: 'Finalizado',
     estudio: 'WHITE FOX',
     synopsis:
-      'Veinticinco capitulos entre el 4 de abril y el 19 de septiembre de 2016. ' +
+      'Veinticinco capitulos entre el 4 de abril y el 19 de septiembre de 2016, mas el OVA Memory Snow. ' +
       'Subaru llega a otro mundo, muere junto a Emilia y descubre que vuelve atras al morir. ' +
       'Sirve en la mansion de Roswaal con Rem, Ram y Beatrice, se mete en la seleccion real como caballero autoproclamado de Emilia y cierra con la ballena blanca y el arzobispo de la pereza. ' +
       'La temporada del bucle, la mansion y la primera muerte de Rem.',
@@ -134,5 +139,17 @@ export const TEMPORADAS = [
       'Julius pierde su nombre, Meili cambia de lado y Ram encara al dios del rayo en lo alto. ' +
       'La temporada de la torre, la perdida y la vuelta con Shaula como heroina.',
     capitulos: 'T4',
+  },
+  {
+    numero: 5,
+    titulo: 'Frozen Bond',
+    anio: 2019,
+    estado: 'Finalizado',
+    estudio: 'WHITE FOX',
+    synopsis:
+      'Pelicula precuela de ochenta minutos estrenada el 8 de noviembre de 2019. ' +
+      'Emilia y Puck en el bosque helado, antes de la mansion Roswaal y de Subaru. ' +
+      'El pacto que los une y el dia que decidio lo que Emilia es.',
+    capitulos: 'T5',
   },
 ];

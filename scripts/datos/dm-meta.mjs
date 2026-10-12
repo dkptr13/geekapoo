@@ -45,14 +45,14 @@ export const ANIME_ID = 'danmachi';
 /**
  * LAS SEIS ENTRADAS (cinco temporadas + pelicula)
  *
- * T1  13 capitulos  (abril-junio de 2015)
+ * T1  14 capitulos  (abril-junio de 2015 + el OVA de las termas)
  * T2   1 capitulo   (pelicula Arrow of the Orion, febrero de 2019)
- * T3  12 capitulos  (julio-septiembre de 2019)
- * T4  12 capitulos  (octubre-diciembre de 2020)
+ * T3  13 capitulos  (julio-septiembre de 2019 + el OVA de la isla)
+ * T4  13 capitulos  (octubre-diciembre de 2020 + el OVA de Orario)
  * T5  22 capitulos  (julio-octubre de 2022 y enero-marzo de 2023)
  * T6  15 capitulos  (octubre de 2024-marzo de 2025)
  * --
- *     75
+ *     78
  *
  * La pelicula va como T2 por orden cronologico (febrero de 2019,
  * antes que la segunda temporada de julio). Eso obligo a renumerar
@@ -170,21 +170,22 @@ export const TEMPORADAS = [
 export const RATING_SERIE = 7.4;
 
 /**
- * Capitulos en total, contando las cinco temporadas.
+ * Capitulos en total, contando las seis entradas y los tres OVA.
  *
- *   T1  13  capitulos  (abril-junio de 2015)
- *   T2  12  capitulos  (julio-septiembre de 2019)
- *   T3  12  capitulos  (octubre-diciembre de 2020)
- *   T4  22  capitulos  (julio-octubre de 2022 y enero-marzo de 2023)
- *   T5  15  capitulos  (octubre de 2024-marzo de 2025)
- *   T6   1  pelicula   (febrero de 2019)
+ *   T1  14  (13 de television + el OVA de las termas, diciembre de 2016)
+ *   T2   1  pelicula   (febrero de 2019)
+ *   T3  13  (12 de television + el OVA de la isla, enero de 2020)
+ *   T4  13  (12 de television + el OVA de Orario, abril de 2021)
+ *   T5  22  (julio-octubre de 2022 y enero-marzo de 2023)
+ *   T6  15  (octubre de 2024-marzo de 2025)
  *   --
- *       75
+ *       78
  *
- * Sin OVAs ni especiales: TVDB los lista en la temporada 0 y aqui
- * no entran, igual que en el resto del catalogo.
+ * Los tres OVA van como ultimo capitulo de su temporada, en orden
+ * de emision, con nota propia en IMDb. Los resumentes y especiales
+ * de S0 (Past & Future, Playback, lyric video) no entran.
  */
-export const EPISODIOS_TOTAL = 75;
+export const EPISODIOS_TOTAL = 78;
 
 /**
  * Donde se emite, verificado uno por uno.

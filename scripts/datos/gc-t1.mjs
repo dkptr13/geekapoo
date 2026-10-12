@@ -1,10 +1,14 @@
 // TEMPORADA 1 - Guilty Crown (2011-2012)
 //
 // Veintidos capitulos del 14 de octubre de 2011 al 23 de marzo de
-// 2012, en Production I.G. Fechas de TVDB (viernes) y notas de
-// IMDb para la serie tt2122656: el 7 es lo mejor con 7,3 y del 1
-// al 6 lo peor. Los especiales de S0 (recap, OVA y chibis) no
-// entran.
+// 2012, en Production I.G, mas el especial Lost Christmas como
+// capitulo 23. Fechas de TVDB (viernes, S0E2 para el especial) y
+// notas de IMDb para la serie tt2122656: el 7 es lo mejor con 7,3
+// y del 1 al 6 lo peor. El especial trae 6,6 como S2E0 en IMDb.
+// El recap y los chibis de S0 no entran.
+//
+// El japones del especial es el nativo de AniList (13411): TVDB lo
+// lista como "Phase 00 LOST XMAS", en ingles, y ese no trae kana.
 
 export const T1 = [
   [1, 'Génesis', 'phase01 発生：genesis', '2011-10-14', 6.7, 'Shu esconde a Inori herida y acaba con el genoma del vacio en la mano derecha. Saca el arma del corazon de la chica sin saber lo que hace.'],
@@ -29,4 +33,5 @@ export const T1 = [
   [20, 'Recuerdo', 'phase20 追想：a diary', '2012-03-09', 7.5, 'El diario de Mana lo explica todo: el pasado que Shu olvido a proposito.'],
   [21, 'Eclosión', 'phase21 羽化：emergence', '2012-03-16', 7.5, 'Lo que dormia despierta del todo y el cielo se abre. No hay marcha atras posible.'],
   [22, 'Plegaria', 'phase22 祈り：convergence', '2012-03-23', 7.4, 'Final con plegaria y precio: Inori se lleva la maldicion y Shu paga con sus ojos. Cierre agridulce.'],
+  [23, 'Lost Christmas (Especial)', 'ギルティクラウン ロストクリスマス', '2012-05-31', 6.6, 'Especial de mayo de 2012: la Navidad Perdida desde dentro, con los niños del orfanato y el dia que Mana rompio el mundo. Precuela del instituto y de Gai.'],
 ];

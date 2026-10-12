@@ -1,8 +1,10 @@
 // TEMPORADA 5 - KonoSuba (2024)
 //
 // Once capitulos del 10 de abril al 19 de junio de 2024, ya en
-// Drive. Princesa Iris, boda de Darkness y lago con jefa final.
-// Notas de IMDb para la serie tt5370118: el 11 es lo mejor con 8,4.
+// Drive, mas los dos BONUS STAGE de abril de 2025 como capitulos
+// 12 y 13. Princesa Iris, boda de Darkness y lago con jefa final.
+// Notas de IMDb para la serie tt5370118: el 11 es lo mejor de
+// television con 8,4; los bonus traen 7,6 y 8,1.
 
 export const T5 = [
   [1, 'Brindis por el futuro brillante', 'この明るい未来に祝杯を！', '2024-04-10', 7.8, 'El grupo vuelve con deudas nuevas y la princesa Iris en escena. Kazuma asciende sin querer mientras Aqua gasta lo que no tiene.'],
@@ -16,4 +18,6 @@ export const T5 = [
   [9, 'Sermón a la fugada', 'この家出娘に説教を！', '2024-06-05', 8.0, 'Iris se fuga del palacio y el grupo la persigue. El sermon se lo lleva Kazuma, como siempre.'],
   [10, 'Bendición a la novia egoísta', 'この身勝手な花嫁に祝福を！', '2024-06-12', 8.1, 'Boda de Darkness con noble seboso a la vista. El grupo monta el boicot nupcial mas cutre y efectivo del reino.'],
   [11, 'Bendición a lo de siempre', 'この変わらない日常に祝福を！', '2024-06-19', 8.4, 'Cierre con el grupo igual que al principio: pobres, juntos e inutiles. El mejor final posible para esta panda.'],
+  [12, 'Explosión del torrente rojo (OVA)', 'この素晴らしい世界に祝福を! 3 -BONUS STAGE- レッドストリーム・エクスプロージョン!', '2025-04-25', 7.6, 'OVA de abril de 2025: Megumin practica el torrente rojo contra quien se ponga delante. Explosion tras explosion hasta dejar el campo liso.'],
+  [13, 'Cuidado con los impostores (OVA)', 'この素晴らしい世界に祝福を! 3 -BONUS STAGE- 偽者注意!', '2025-04-25', 8.1, 'OVA de abril de 2025: un impostor del grupo timando por Axel con la cara de Kazuma. El original tiene que demostrar que el cutre de verdad es el.'],
 ];

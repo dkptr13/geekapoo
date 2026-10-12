@@ -263,6 +263,11 @@ export const AuthProvider = ({
   // estaban vacías, no se volvía a intentar nunca: el directorio
   // se quedaba vacío para siempre y "añadir a un usuario por su
   // ID" no encontraba a nadie.
+  //
+  // La dependencia es el uid, y no el usuario entero: como el
+  // documento propio se escucha en vivo, `currentUser` cambia de
+  // identidad con cada XP o medalla nueva, y con el objeto entero
+  // aquí se re-suscribiría el directorio entero cada vez.
   useEffect(() => {
     if (!currentUser) {
       setUsersList([]);
@@ -300,18 +305,30 @@ export const AuthProvider = ({
     );
 
     return unsubscribe;
-  }, [currentUser]);
+  }, [currentUser?.uid]);
 
 
   // ====================================================
   // ESCUCHAR ESTADO DE AUTENTICACIÓN
   // ====================================================
+  //
+  // El documento propio se ESCUCHA (`onSnapshot`), no se lee una
+  // vez con `getDoc`. Antes era una sola lectura al entrar, y el
+  // perfil seguía enseñando el XP y el nivel viejos hasta
+  // recargar: si el nivel cambiaba al publicar un hilo, la
+  // cabecera no se enteraba (ver `escucharProgreso` en
+  // `services/gamification.ts`, que ya lo advertía).
 
   useEffect(() => {
 
+    let pararDoc: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(
       auth,
-      async (fbUser: FirebaseUser | null) => {
+      (fbUser: FirebaseUser | null) => {
+
+        pararDoc?.();
+        pararDoc = null;
 
         if (!fbUser) {
           setCurrentUser(null);
@@ -331,72 +348,80 @@ export const AuthProvider = ({
           return;
         }
 
-        try {
+        const userDocRef = doc(db, 'users', fbUser.uid);
 
-          const userDocRef = doc(db, 'users', fbUser.uid);
-          const userDoc = await getDoc(userDocRef);
-
-          // ✅ LOG AÑADIDO AQUÍ
-          console.log('onAuthStateChanged - ¿Existe doc?', userDoc.exists());
-          console.log('onAuthStateChanged - UID:', fbUser.uid);
-
-          if (userDoc.exists()) {
-
-            const firestoreUser = userDoc.data() as User;
+        pararDoc = onSnapshot(
+          userDocRef,
+          (userDoc) => {
 
             // ✅ LOG AÑADIDO AQUÍ
-            console.log('onAuthStateChanged - USUARIO FIRESTORE:', firestoreUser);
-            console.log('onAuthStateChanged - ROL:', firestoreUser.role);
+            console.log('perfil en vivo - ¿Existe doc?', userDoc.exists());
+            console.log('perfil en vivo - UID:', fbUser.uid);
 
-            setCurrentUser(firestoreUser);
+            if (userDoc.exists()) {
 
-          } else {
+              const firestoreUser = userDoc.data() as User;
 
-            const username =
-              fbUser.displayName
-                ?.replace(/\s+/g, '_')
-                .trim() ||
-              fbUser.email?.split('@')[0] ||
-              'UserGeek';
+              // ✅ LOG AÑADIDO AQUÍ
+              console.log('perfil en vivo - XP:', firestoreUser.xp, 'NIVEL:', firestoreUser.level);
 
-            const newUser: User = {
-              uid: fbUser.uid,
-              email: fbUser.email || '',
-              username,
-              displayName: fbUser.displayName || username,
-              chatId: `GK-${Math.floor(1000 + Math.random() * 9000)}-${username.substring(0, 4).toUpperCase()}`,
-              avatarUrl: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-              role: 'user',
-              isBanned: false,
-              createdAt: new Date().toISOString(),
-              lastSeen: 'En línea',
-              bio: 'Comunidad geekapoo.com',
-            };
+              // La fecha se guarda como Timestamp y aquí vuelve a
+              // texto ISO, igual que en el directorio de usuarios
+              // de arriba: si no, un `serverTimestamp` recién
+              // escrito llegaría como objeto y no como string.
+              setCurrentUser({
+                ...firestoreUser,
+                createdAt: toIsoString(firestoreUser.createdAt),
+              });
 
-            await setDoc(userDocRef, {
-              ...newUser,
-              createdAt: serverTimestamp(),
-            });
+            } else {
 
-            // ✅ LOG AÑADIDO AQUÍ
-            console.log('onAuthStateChanged - Perfil nuevo creado con rol:', newUser.role);
+              const username =
+                fbUser.displayName
+                  ?.replace(/\s+/g, '_')
+                  .trim() ||
+                fbUser.email?.split('@')[0] ||
+                'UserGeek';
 
-            setCurrentUser(newUser);
-          }
+              const newUser: User = {
+                uid: fbUser.uid,
+                email: fbUser.email || '',
+                username,
+                displayName: fbUser.displayName || username,
+                chatId: `GK-${Math.floor(1000 + Math.random() * 9000)}-${username.substring(0, 4).toUpperCase()}`,
+                avatarUrl: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                role: 'user',
+                isBanned: false,
+                createdAt: new Date().toISOString(),
+                lastSeen: 'En línea',
+                bio: 'Comunidad geekapoo.com',
+              };
 
-        } catch (error) {
+              // Al escribir, este mismo listener salta de nuevo y
+              // pone el documento ya creado. No se espera aquí.
+              setDoc(userDocRef, {
+                ...newUser,
+                createdAt: serverTimestamp(),
+              }).catch((e) => console.error('Error al crear el perfil de Firestore:', e));
 
-          console.error('Error al obtener el perfil de Firestore:', error);
-          setCurrentUser(null);
+              // ✅ LOG AÑADIDO AQUÍ
+              console.log('perfil en vivo - Perfil nuevo creado con rol:', newUser.role);
 
-        } finally {
+              setCurrentUser(newUser);
+            }
 
-          setLoading(false);
-        }
+            setLoading(false);
+          },
+          (error) => {
+            console.error('Error al escuchar el perfil de Firestore:', error);
+            setLoading(false);
+          },
+        );
       }
     );
 
     return () => {
+      pararDoc?.();
       unsubscribe();
     };
 

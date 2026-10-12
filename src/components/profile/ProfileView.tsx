@@ -19,6 +19,9 @@ import { useFollows } from '../../context/FollowsContext';
 import { useProgression } from '../../context/ProgressionContext';
 import { formatearNumero } from '../../utils/follows';
 import { calcularStats } from '../../utils/profile';
+import { nivelDesdeXp } from '../../utils/progression';
+import { VITRINAS, VITRINAS_POR_DEFECTO } from '../../data/profileCustomization';
+import type { TipoVitrina } from '../../data/profileCustomization';
 import { CATALOGO_MEDALLAS } from '../../utils/progression';
 import { readPrivacy } from '../../services/accountSettings';
 import { encuadre } from '../../utils/safeData';
@@ -28,7 +31,15 @@ import { ProfileStats } from './ProfileStats';
 import { ProfileMedals } from './ProfileMedals';
 import { ProfileActivity } from './ProfileActivity';
 import { ProfileContent } from './ProfileContent';
-import { EditProfileModal } from './EditProfileModal';
+import { ProfileFeatured } from './ProfileFeatured';
+import { CustomizeProfileModal } from './CustomizeProfileModal';
+import { PerfilFondo } from './ProfileDecor';
+import {
+  VitrinaColeccion,
+  VitrinaPersonajes,
+  VitrinaPrincipal,
+  VitrinaTexto,
+} from './ProfileShowcases';
 import { AccountSettings } from './AccountSettings';
 import { FollowersModal } from '../follows/FollowersModal';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
@@ -279,6 +290,44 @@ const Perfil: React.FC<{
 
   const stats = useMemo(() => calcularStats(datos), [datos]);
 
+  // ── Hilos propios y destacados ───────────────────
+  //
+  // Los hilos ya están en memoria. Los propios van de más nuevos
+  // a más viejos (es lo que el editor enseña para elegir), y los
+  // destacados en el orden que eligió el dueño. Si un id fijado
+  // ya no existe o no es suyo, se salta: pintar "hilo eliminado"
+  // en la vitrina sería ruido.
+  const hilosPropios = useMemo(
+    () =>
+      threads
+        .filter((t) => t.authorId === perfil.uid)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [threads, perfil.uid],
+  );
+
+  const hilosDestacados = useMemo(() => {
+    const ids = perfil.featuredPostIds ?? [];
+    if (ids.length === 0) return [];
+    const porId = new Map(hilosPropios.map((t) => [t.id, t]));
+    return ids.map((id) => porId.get(id)).filter((t) => t !== undefined);
+  }, [hilosPropios, perfil.featuredPostIds]);
+
+  // ── Orden de vitrinas ────────────────────────────
+  //
+  // Lo que el dueño guardó, en su orden. Ausente o vacío es el
+  // diseño de siempre (logros + destacadas), para no cambiarle
+  // el perfil a nadie por actualizar. Los ids que ya no existen
+  // se saltan en silencio.
+  const ordenVitrinas = useMemo<TipoVitrina[]>(() => {
+    const guardadas = perfil.showcases;
+    if (!guardadas || guardadas.length === 0) return [...VITRINAS_POR_DEFECTO];
+    return guardadas.filter((v): v is TipoVitrina => VITRINAS.some((t) => t.id === v));
+  }, [perfil.showcases]);
+
+  // Nivel del perfil que se mira (la curva es la misma para
+  // todos, así que vale la de la sesión). Solo decide el fondo.
+  const nivelPerfil = nivelDesdeXp(perfil.xp ?? 0, config).level;
+
   // ======================================================
   // LO QUE LE GUSTA
   // ======================================================
@@ -371,7 +420,13 @@ const Perfil: React.FC<{
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 2xl:max-w-4xl">
+    <div className="relative mx-auto max-w-3xl 2xl:max-w-4xl">
+      {/* ── Fondo de página ────────────────────────────
+          El fondo guardado por el dueño, detrás de todo. Sin
+          fondo es transparente y no cambia nada. */}
+      <PerfilFondo perfil={perfil} level={nivelPerfil} />
+
+      <div className="relative space-y-6">
       {/* ══════════════════════════════════════════════════
           LA CABECERA
 
@@ -525,15 +580,51 @@ const Perfil: React.FC<{
           lo que hay en su documento. Para ese caso el bloque de
           arriba ya no pinta nivel (lo pinta la cabecera con su
           barra), y aquí solo salen las medallas. */}
-      {!cargandoProgreso && (
-        <ProfileMedals
-          catalogo={catalogoDePerfil(perfil, esPropio, catalogo)}
-          propio={esPropio}
-          equipado={perfil.equippedTitle ?? null}
-          onEquipar={esPropio ? (id) => void equipar(id) : undefined}
-          avisoDesactivada={!config.activo}
-        />
-      )}
+      {/* ── VITRINAS ─────────────────────────────────
+          Los bloques configurables, en el orden del dueño.
+          Ausentes = logros + destacadas (diseño de siempre).
+
+          `logros` y `destacadas` reutilizan las secciones que ya
+          existían. `coleccion` es opt-in: poner la vitrina ES el
+          permiso para enseñar las series que te gustan. */}
+      {ordenVitrinas.map((tipo) => {
+        if (tipo === 'logros' && !cargandoProgreso) {
+          return (
+            <ProfileMedals
+              key="logros"
+              catalogo={catalogoDePerfil(perfil, esPropio, catalogo)}
+              propio={esPropio}
+              equipado={perfil.equippedTitle ?? null}
+              onEquipar={esPropio ? (id) => void equipar(id) : undefined}
+              avisoDesactivada={!config.activo}
+              idsVisibles={perfil.visibleBadgeIds ?? null}
+            />
+          );
+        }
+        if (tipo === 'destacadas' && showActivity) {
+          return <ProfileFeatured key="destacadas" hilos={hilosDestacados} onIrA={onGoToThread} />;
+        }
+        if (tipo === 'personajes') {
+          return <VitrinaPersonajes key="personajes" perfil={perfil} />;
+        }
+        if (tipo === 'principal') {
+          return <VitrinaPrincipal key="principal" perfil={perfil} />;
+        }
+        if (tipo === 'coleccion') {
+          return (
+            <VitrinaColeccion
+              key="coleccion"
+              perfil={perfil}
+              animes={animes}
+              onGoToAnime={onGoToAnime ? (slug) => goToAnime(slug, slug) : undefined}
+            />
+          );
+        }
+        if (tipo === 'texto') {
+          return <VitrinaTexto key="texto" perfil={perfil} />;
+        }
+        return null;
+      })}
 
       {/* ── ACTIVIDAD RECIENTE ──────────────────────
           La línea de tiempo. Se deriva de los hilos, los
@@ -837,20 +928,18 @@ const Perfil: React.FC<{
         />
       )}
 
-      {/* ── EDITAR PERFIL ──────────────────────────────
-          Un modal, no una sección más en la página. Se abre con el
-          botón de la cámara, sobre el avatar.
-
-          Solo se monta en el perfil propio, y no se monta cerrado:
-          el formulario vive en el modal mientras está abierto, para
-          que al abrir el perfil no haya un `useState` con cinco
-          campos de formulario que nadie está mirando. */}
+      {/* ── PERSONALIZAR PERFIL ────────────────────
+          El editor por pestañas, con vista previa. Solo se monta
+          en el perfil propio y solo mientras está abierto, igual
+          que hacía el modal viejo. */}
       {editorAbierto && (
-        <EditProfileModal
+        <CustomizeProfileModal
           onCerrar={() => setEditorAbierto(false)}
           avatarPorDefecto={AVATAR_POR_DEFECTO}
+          hilosPropios={hilosPropios}
         />
       )}
+      </div>
     </div>
   );
 };

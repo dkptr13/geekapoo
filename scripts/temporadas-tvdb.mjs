@@ -105,6 +105,16 @@ export const TEMPORADA_TVDB = {
   // (S0E5). La T5 es la S3 de TVDB. Bakuen va aparte: es otra serie
   // en TVDB (420657) y sus miniaturas se ponen a mano.
   'konosuba': { 3: 0, 5: 3 },
+
+  // El especial #0.8 de Burn the Witch va como T2 y TVDB lo guarda
+  // en Specials (S0E1). La serie ONA coincide sola.
+  'burn-the-witch': { 2: 0 },
+
+  // La pelicula precuela Frozen Bond de Re:Zero va como T5 y TVDB
+  // la guarda en Specials (S0E28). Las cuatro de television
+  // coinciden solas. Memory Snow no necesita mapa: va como T1E26
+  // y se empareja a mano por titulo.
+  're-zero-comenzando-la-vida-en-otro-mundo': { 5: 0 },
 };
 
 /**

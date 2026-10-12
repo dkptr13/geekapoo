@@ -1,6 +1,11 @@
 import type { Comment, Thread } from './index';
 import type { Medal } from './gamification';
 import type { ImageCropSettings } from '../services/imageCrop';
+import type {
+  Decoracion,
+  PersonajeFavorito,
+  TipoVitrina,
+} from '../data/profileCustomization';
 
 // ======================================================
 // TIPOS DEL PERFIL
@@ -154,6 +159,11 @@ export interface PerfilDatos {
  * Lo que NO está, y no se puede añadir: `uid`, `role`, `xp`,
  * `level`, `medals`, `stats`, `followersCount`, `followingCount`.
  * Los bloquean las reglas, no esta interfaz.
+ *
+ * Los desbloqueos (`unlockedCustomizationIds` que pedía el
+ * enunciado) NO existen como campo: se derivan del nivel y de las
+ * medallas en `data/profileCustomization.ts`. Guardarlos sería un
+ * campo que falsear desde la consola para conseguirlo todo.
  */
 export interface PerfilEditable {
   displayName: string;
@@ -172,6 +182,35 @@ export interface PerfilEditable {
   avatarCrop?: ImageCropSettings | null;
   favoriteAnime: string;
   equippedTitle: string | null;
+  /** Banner: '' (defecto), 'preset:<id>' o URL https. */
+  bannerUrl: string;
+  /** Color de perfil: hex de `COLORES_PERFIL`. */
+  profileColor: string;
+  /** Marco del avatar: id de `MARCOS_AVATAR` o null. */
+  avatarFrame: string | null;
+  /** Personaje favorito (nombre + imagen). */
+  favoriteCharacterName: string;
+  favoriteCharacterImage: string;
+  /** Descripción breve del personaje principal. */
+  favoriteCharacterDesc: string;
+  /** Personajes de la vitrina (nombre, imagen, serie). */
+  favoriteCharacters: PersonajeFavorito[];
+  /** Medallas a la vista: subset de las desbloqueadas, o null (todas). */
+  visibleBadgeIds: string[] | null;
+  /** Hilos fijados, en orden. */
+  featuredPostIds: string[];
+  /** Fondo de página: preset de la galería ('' = ninguno). */
+  backgroundPreset: string;
+  /** Fondo propio subido (URL https, nivel 3+). */
+  backgroundUrl: string;
+  /** Posición del fondo propio: center | top | bottom. */
+  backgroundPosition: string;
+  /** Oscurecido del fondo propio, 0-80. */
+  backgroundDim: number;
+  /** Decoraciones colocadas (x/y en %, tamaño s/m/l). */
+  decorations: Decoracion[];
+  /** Vitrinas activas, en orden. */
+  showcases: TipoVitrina[];
 }
 
 /** Resultado de validar el formulario de edición. */

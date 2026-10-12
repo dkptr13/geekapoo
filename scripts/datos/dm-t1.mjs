@@ -2,9 +2,10 @@
 //
 // Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
 //
-// Trece capitulos, del 4 de abril al 27 de junio de 2015, en J.C.Staff.
+// Trece capitulos, del 4 de abril al 27 de junio de 2015, en J.C.Staff,
+// mas el OVA de diciembre de 2016 como capitulo 14.
 // Las fechas son las de TVDB; las de IMDb van un dia antes por el huso horario.
-// Las notas son las de IMDb para cada capitulo.
+// Las notas son las de IMDb para cada capitulo (tt4728568 S1E14, 7,3 para el OVA).
 
 export const T1 = [
   [1, 'Aventurero (Bell Cranel)', '(ベル・クラネル)冒険者', '2015-04-04', 7.1,
@@ -45,4 +46,7 @@ export const T1 = [
 
   [13, 'Mito de la familia (Familia Myth)', '（ファミリア神話）家族の物語', '2015-06-27', 7.9,
    'La familia celebra lo logrado y Hestia pone por escrito el mito de los suyos, que ya no son unos desconocidos. Bell asume su papel de lider del grupo con el cuchillo en la mano. Al final el dios Apolo reclama a Bell y deja servida una guerra entre familias.'],
+
+  [14, 'Termas en la mazmorra (OVA)', 'ダンジョンに温泉を求めるのは間違つているだろうか', '2016-12-07', 7.3,
+   'OVA de diciembre de 2016: la familia Hestia acaba en unas termas de la mazmorra y el baño mixto lia la de siempre. Bell huye de miradas mientras Hestia marca territorio.'],
 ];

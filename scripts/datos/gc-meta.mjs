@@ -4,8 +4,9 @@
 // AniList 10793 (T1, 2011, 22 capitulos).
 // IMDb tt2122656.
 //
-// El titulo corto es el oficial en todo el mundo. Los especiales
-// de S0 (recap, OVA y chibis) no entran: son extras.
+// El titulo corto es el oficial en todo el mundo. El recap y los
+// chibis de S0 no entran; el especial Lost Christmas si, como
+// capitulo 23 de la T1.
 
 export const ANIME = {
   titulo: 'Guilty Crown',
@@ -39,11 +40,11 @@ export const RATING_SERIE = 6.9;
 /**
  * Capitulos en total.
  *
- *   T1  22  (octubre de 2011 - marzo de 2012)
+ *   T1  23  (octubre de 2011 - marzo de 2012, 22 de television + el especial Lost Christmas)
  *   --
- *       22
+ *       23
  */
-export const EPISODIOS_TOTAL = 22;
+export const EPISODIOS_TOTAL = 23;
 
 /**
  * Donde se emite en España.
@@ -62,7 +63,7 @@ export const TEMPORADAS = [
     estado: 'Finalizado',
     estudio: 'Production I.G',
     synopsis:
-      'Veintidos capitulos entre el 14 de octubre de 2011 y el 23 de marzo de 2012. ' +
+      'Veintidos capitulos entre el 14 de octubre de 2011 y el 23 de marzo de 2012, mas el especial Lost Christmas. ' +
       'Shu saca voids, entra en los Undertakers, pierde y gana elecciones, se vuelve tirano y cae. ' +
       'Navidad Perdida en medio y convergencia final con plegaria.',
     capitulos: 'T1',

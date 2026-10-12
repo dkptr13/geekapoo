@@ -1,8 +1,8 @@
 // META - Armed Girls Machiavellism
 //
 // TVDB 321671 "武装少女マキャヴェリズム" (2017, Ended).
-// AniList 21851 (serie, 2017). El OVA suelto de noviembre va en S0
-// de TVDB y aqui no entra: es un extra de disco, como el de Takagi.
+// AniList 21851 (serie, 2017) y 98856 (OVA, 2017). El OVA de
+// noviembre va como capitulo 13 de la T1, con nota propia en IMDb.
 // IMDb tt9013220.
 //
 // El titulo en ingles es el oficial ("Armed Girl's Machiavellism").
@@ -42,14 +42,11 @@ export const RATING_SERIE = 6.6;
 /**
  * Capitulos en total.
  *
- *   T1  12  (abril - junio de 2017)
+ *   T1  13  (abril - junio de 2017, 12 de television + el OVA de noviembre)
  *   --
- *       12
- *
- * El OVA de noviembre (viaje de placer con las cinco) no entra: va
- * en S0 de TVDB y es un extra de disco.
+ *       13
  */
-export const EPISODIOS_TOTAL = 12;
+export const EPISODIOS_TOTAL = 13;
 
 /**
  * Donde se emite en España.
@@ -68,9 +65,9 @@ export const TEMPORADAS = [
     estado: 'Finalizado',
     estudio: 'SILVER LINK.',
     synopsis:
-      'Doce capitulos entre el 5 de abril y el 22 de junio de 2017. ' +
+      'Doce capitulos entre el 5 de abril y el 22 de junio de 2017, mas el OVA de noviembre. ' +
       'Nomura contra las Cinco Espadas una a una: Rin, Mary, Warabi, Satori y Tsukuyo, con Amou de fondo. ' +
-      'Cierra con todas contra la Emperatriz y la bala del pasado ya contada.',
+      'Cierra con todas contra la Emperatriz y la bala del pasado ya contada, y el OVA las lleva de viaje.',
     capitulos: 'T1',
   },
 ];

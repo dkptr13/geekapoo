@@ -1,7 +1,9 @@
 // TEMPORADA 2 - KonoSuba (2017)
 //
 // Diez capitulos del 12 de enero al 16 de marzo de 2017, en Studio
-// DEEN. El 10 es lo mejor con 8,5 y el 7 lo peor con 7,4.
+// DEEN, mas el OVA del retrato como capitulo 11. El 10 es lo mejor
+// de television con 8,5 y el 7 lo peor con 7,4. Nota del OVA en
+// IMDb (tt5370118 S2E11): 7,7.
 
 export const T2 = [
   [1, 'Rescate del juicio injusto', 'この不当な裁判に救援を！', '2017-01-12', 7.9, 'Kazuma va a juicio por terrorismo magico con pruebas inventadas. Darkness testifica a su manera y el veredicto sale carisimo de todas formas.'],
@@ -14,4 +16,5 @@ export const T2 = [
   [8, 'Turismo por la dolorosa ciudad', 'この痛々しい街で観光を！', '2017-03-02', 7.9, 'Dia de turismo por Axel con paradas en cada tienda que les debe dinero. El paseo acaba en persecucion con guardias detras.'],
   [9, 'Una diosa para el pueblo termal', 'この不浄な温泉街に女神を！', '2017-03-09', 7.5, 'Aguas termales mixtas con succubos de por medio. Kazuma pierde la toalla y la dignidad en el mismo capitulo.'],
   [10, 'Bendición a los compañeros', 'この素晴らしい仲間たちに祝福を！', '2017-03-16', 8.5, 'Cierre contra el general Hans con el pueblo en juego. Todos aportan su inutilidad a la vez y, por una vez, funciona. El mejor de la temporada.'],
+  [11, 'Bendición para este arte (OVA)', 'この素晴らしい芸術に祝福を！', '2017-07-24', 7.7, 'OVA de julio de 2017: el grupo posa para un retrato magico que sale como sale. Aqua posa de mas, Darkness aguanta y Kazuma paga los pinceles.'],
 ];

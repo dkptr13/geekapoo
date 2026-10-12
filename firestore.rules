@@ -540,6 +540,78 @@ service cloud.firestore {
                  && request.resource.data.equippedTitle in yaEsta);
     }
 
+    // ── Personalizacion del perfil ────────────────────
+    //
+    // Solo FORMATOS: tipos, tamanos, https y valores de las
+    // listas de `src/data/profileCustomization.ts` (colores,
+    // presets de banner y marcos). Si esa lista cambia, hay que
+    // cambiarla aqui tambien: las reglas no importan codigo.
+    //
+    // Los desbloqueos por nivel NO se miran aqui. Se miran en el
+    // cliente antes de dejar elegir (con candado) y al guardar se
+    // vuelven a filtrar: son cosmetica que no concede XP, nivel,
+    // medallas ni rol, asi que falsearlos desde la consola no
+    // escala a ningun privilegio. Lo que de verdad protege (no
+    // tocar xp, level, medals, stats...) sigue en las listas de
+    // `hasAny` de abajo, intactas.
+    function personalizacionValida() {
+      let d = request.resource.data;
+
+      return (!('bannerUrl' in d)
+              || (d.bannerUrl is string
+                  && d.bannerUrl.size() <= 500
+                  && (d.bannerUrl == ''
+                      || d.bannerUrl in ['preset:defecto', 'preset:ocaso', 'preset:abismo', 'preset:neon']
+                      || d.bannerUrl.matches('https://.*'))))
+             && (!('profileColor' in d)
+                 || (d.profileColor is string
+                     && d.profileColor in ['#8b5cf6', '#71717a', '#22d3ee', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#eab308']))
+             && (!('avatarFrame' in d)
+                 || d.avatarFrame == null
+                 || (d.avatarFrame is string
+                     && d.avatarFrame in ['ninguno', 'neon', 'dorado']))
+             && (!('favoriteCharacter' in d)
+                 || d.favoriteCharacter == null
+                 || (d.favoriteCharacter is map
+                     && d.favoriteCharacter.name is string
+                     && d.favoriteCharacter.name.size() > 0
+                     && d.favoriteCharacter.name.size() <= 60
+                     && d.favoriteCharacter.imageUrl is string
+                     && d.favoriteCharacter.imageUrl.size() <= 500
+                     && (d.favoriteCharacter.imageUrl == ''
+                         || d.favoriteCharacter.imageUrl.matches('https://.*'))
+                     && (!('desc' in d.favoriteCharacter)
+                         || (d.favoriteCharacter.desc is string
+                             && d.favoriteCharacter.desc.size() <= 140))))
+             && (!('favoriteCharacters' in d)
+                 || (d.favoriteCharacters is list && d.favoriteCharacters.size() <= 6))
+             && (!('profileBackground' in d)
+                 || d.profileBackground == null
+                 || (d.profileBackground is map
+                     && (!('preset' in d.profileBackground)
+                         || (d.profileBackground.preset is string
+                             && d.profileBackground.preset in ['defecto', 'ocaso', 'abismo', 'neon', 'cosmos', 'leyenda']))
+                     && (!('url' in d.profileBackground)
+                         || (d.profileBackground.url is string
+                             && d.profileBackground.url.size() <= 500
+                             && (d.profileBackground.url == '' || d.profileBackground.url.matches('https://.*'))))
+                     && (!('position' in d.profileBackground)
+                         || (d.profileBackground.position is string
+                             && d.profileBackground.position in ['center', 'top', 'bottom']))
+                     && (!('dim' in d.profileBackground)
+                         || (d.profileBackground.dim is number
+                             && d.profileBackground.dim >= 0
+                             && d.profileBackground.dim <= 80))))
+             && (!('decorations' in d)
+                 || (d.decorations is list && d.decorations.size() <= 6))
+             && (!('showcases' in d)
+                 || (d.showcases is list && d.showcases.size() <= 6))
+             && (!('visibleBadgeIds' in d)
+                 || (d.visibleBadgeIds is list && d.visibleBadgeIds.size() <= 6))
+             && (!('featuredPostIds' in d)
+                 || (d.featuredPostIds is list && d.featuredPostIds.size() <= 3));
+    }
+
     match /users/{uid} {
       allow read: if isSignedIn();
 
@@ -621,6 +693,10 @@ service cloud.firestore {
                                   // arriba, que es la que protege de verdad):
                                   // son del servidor, igual que 'xp' o 'stats'.
                                   'equippedTitle']))
+                         // La personalizacion (banner, color, marco,
+                         // personaje, visibles y destacadas) pasa si
+                         // cumple `personalizacionValida()`.
+                         && personalizacionValida()
                     // La unica via para escribir 'equippedTitle' es esta:
                     // que no toque ningun otro campo, y que el titulo
                     // corresponda a una medalla ya desbloqueada.

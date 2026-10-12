@@ -318,7 +318,165 @@ describe('gamificacion: XP y medallas', () => {
   });
 
   // ==========================================================
-  // 4. El libro mayor es inaccesible
+  // 4. Personalizacion del perfil
+  // ==========================================================
+  describe('la personalizacion del perfil', () => {
+    it('puede ponerse banner, color, marco, personaje, visibles y destacadas', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          bannerUrl: 'preset:ocaso',
+          profileColor: '#ec4899',
+          avatarFrame: 'neon',
+          favoriteCharacter: { name: 'Spike Spiegel', imageUrl: 'https://x/y.jpg' },
+          visibleBadgeIds: ['medal_debatiente_pro'],
+          featuredPostIds: ['hilo1', 'hilo2'],
+        }),
+      );
+    });
+
+    it('puede quitarse el personaje y la personalizacion', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          bannerUrl: '',
+          avatarFrame: null,
+          favoriteCharacter: null,
+          visibleBadgeIds: [],
+          featuredPostIds: [],
+        }),
+      );
+    });
+
+    it('NO puede ponerse un color fuera de la paleta', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { profileColor: '#ffffff' }),
+      );
+    });
+
+    it('NO puede ponerse un banner que no sea preset ni https', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { bannerUrl: 'javascript:alert(1)' }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { bannerUrl: 'preset:inventado' }),
+      );
+    });
+
+    it('NO puede ponerse un marco inventado', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { avatarFrame: 'inventado' }),
+      );
+    });
+
+    it('NO puede guardar un personaje sin nombre o con URL rara', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          favoriteCharacter: { name: '', imageUrl: 'https://x/y.jpg' },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          favoriteCharacter: { name: 'Spike', imageUrl: 'ftp://x/y.jpg' },
+        }),
+      );
+    });
+
+    it('NO puede pasarse del tope de visibles ni de destacadas', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          visibleBadgeIds: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          featuredPostIds: ['a', 'b', 'c', 'd'],
+        }),
+      );
+    });
+
+    it('NO puede colar XP dentro de una actualizacion de personalizacion', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          bio: 'hola',
+          profileColor: '#ec4899',
+          xp: 999999,
+        }),
+      );
+    });
+
+    it('NO puede personalizar el perfil de otro', async () => {
+      await assertFails(
+        updateDoc(doc(db(BOB), 'users', ALICE), { profileColor: '#ec4899' }),
+      );
+    });
+
+    it('puede guardar fondo, personajes, decoraciones y vitrinas', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          profileBackground: { preset: 'ocaso', position: 'top', dim: 30 },
+          favoriteCharacters: [{ name: 'Spike', imageUrl: '', serie: 'Cowboy Bebop' }],
+          decorations: [{ id: 'a', kind: 'sticker', ref: 'mando', x: 10, y: 20, size: 'm' }],
+          showcases: ['logros', 'personajes'],
+        }),
+      );
+    });
+
+    it('puede quitarse el fondo y las vitrinas', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          profileBackground: null,
+          favoriteCharacters: [],
+          decorations: [],
+          showcases: [],
+        }),
+      );
+    });
+
+    it('NO puede guardar un fondo con preset inventado ni dim imposible', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          profileBackground: { preset: 'inventado' },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          profileBackground: { url: 'https://x/y.jpg', dim: 81 },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          profileBackground: { url: 'ftp://x/y.jpg' },
+        }),
+      );
+    });
+
+    it('NO puede pasarse del tope de personajes, decoraciones ni vitrinas', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          favoriteCharacters: ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((name) => ({ name })),
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          decorations: ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => ({
+            id,
+            kind: 'sticker',
+            ref: 'mando',
+            x: 1,
+            y: 1,
+            size: 'm',
+          })),
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          showcases: ['logros', 'texto', 'a', 'b', 'c', 'd', 'e'],
+        }),
+      );
+    });
+  });
+
+  // ==========================================================
+  // 5. El libro mayor es inaccesible
   // ==========================================================
   describe('el libro mayor de XP', () => {
     before(async () => {
@@ -353,7 +511,7 @@ describe('gamificacion: XP y medallas', () => {
   });
 
   // ==========================================================
-  // 5. Lo de antes sigue funcionando
+  // 6. Lo de antes sigue funcionando
   // ==========================================================
   describe('no se ha roto nada de lo anterior', () => {
     it('el usuario sigue pudiendo editar su perfil', async () => {

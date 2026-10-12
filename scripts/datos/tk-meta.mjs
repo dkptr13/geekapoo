@@ -37,16 +37,16 @@ export const ANIME_ID = 'teasing-master-takagi-san';
 /**
  * LAS CUATRO TEMPORADAS
  *
- * T1  12 capitulos  (enero-marzo de 2018)
+ * T1  13 capitulos  (enero-marzo de 2018, 12 de television + el OVA de julio)
  * T2  12 capitulos  (julio-septiembre de 2019)
  * T3  12 capitulos  (enero-marzo de 2022)
  * T4   1 pelicula   (junio de 2022)
  * --
- *     37
+ *     38
  *
  * Cada capitulo trae de 3 a 6 segmentos cortos, asi que los titulos
- * unen los segmentos con " / ". La OVA de 2018 no entra: TVDB la
- * lista en S0 y aqui no entran los especiales sueltos.
+ * unen los segmentos con " / ". El OVA de 2018 va como capitulo 13
+ * de la T1: es de la historia y tiene nota propia en IMDb.
  */
 export const TEMPORADAS = [
   {
@@ -58,7 +58,7 @@ export const TEMPORADAS = [
     synopsis:
       'Primer curso: Takagi vacila a Nishikata con gomas, paraguas y caras raras, y el ' +
       'pierde todas. Entre clase y clase asoman Mina, Yukari y Sanae con sus cosas. Cierra ' +
-      'con carta y cambio de sitio: Nishikata sigue sin ganar ni una.',
+      'con carta y cambio de sitio, y el OVA de julio los lleva al tobogan de agua.',
     capitulos: 'T1',
   },
   {
@@ -112,17 +112,14 @@ export const RATING_SERIE = 7.7;
 /**
  * Capitulos en total, contando las tres temporadas y la pelicula.
  *
- *   T1  12  capitulos  (enero-marzo de 2018)
+ *   T1  13  capitulos  (enero-marzo de 2018 + el OVA de julio)
  *   T2  12  capitulos  (julio-septiembre de 2019)
  *   T3  12  capitulos  (enero-marzo de 2022)
  *   T4   1  pelicula   (junio de 2022)
  *   --
- *       37
- *
- * Sin la OVA de 2018: va en S0 de TVDB y aqui no entran los
- * especiales sueltos.
+ *       38
  */
-export const EPISODIOS_TOTAL = 37;
+export const EPISODIOS_TOTAL = 38;
 
 // Sin plataformas verificadas en Espana: JustWatch dice que aqui no
 // hay ninguna (Crunchyroll la lleva en Suiza y otros 26 paises,

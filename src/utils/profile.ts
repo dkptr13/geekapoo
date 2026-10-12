@@ -9,6 +9,25 @@ import {
   type PerfilStats,
   type ValidacionEditable,
 } from '../types/profile';
+import {
+  BANNERS_PERFIL,
+  COLORES_PERFIL,
+  DIM_MAXIMO,
+  MARCOS_AVATAR,
+  MAX_DECORACIONES,
+  MAX_DESC_PERSONAJE,
+  MAX_DESTACADAS,
+  MAX_INSIGNIAS_VISIBLES,
+  MAX_NOMBRE_PERSONAJE,
+  MAX_PERSONAJES,
+  MAX_SERIE_PERSONAJE,
+  MAX_URL_IMAGEN_PERFIL,
+  MAX_VITRINAS,
+  POSICIONES_FONDO,
+  PREFIJO_BANNER,
+  VITRINAS,
+  type PosicionFondo,
+} from '../data/profileCustomization';
 import type { Comment } from '../types';
 
 // ======================================================
@@ -314,6 +333,184 @@ export function validarEditable(
   const anime = (datos.favoriteAnime ?? '').trim();
   if (anime.length > MAX_FAVORITE_ANIME) {
     errores.favoriteAnime = `Maximo ${MAX_FAVORITE_ANIME} caracteres.`;
+  }
+
+  // ── Personalizacion ──────────────────────────────
+  //
+  // Los desbloqueos por nivel NO se comprueban aqui: dependen del
+  // nivel de quien edita, y esta funcion no lo recibe para seguir
+  // siendo pura y comprobable sin red (ver `desbloqueadoPorNivel`
+  // en `data/profileCustomization.ts`, que es lo que mira el
+  // editor antes de dejar elegir). Aqui solo los FORMATOS, que es
+  // lo que las reglas tambien exigen.
+
+  const color = (datos.profileColor ?? '').trim().toLowerCase();
+  if (!COLORES_PERFIL.some((c) => c.hex === color)) {
+    errores.profileColor = 'Ese color no existe.';
+  }
+
+  const banner = (datos.bannerUrl ?? '').trim();
+  if (banner) {
+    if (banner.startsWith(PREFIJO_BANNER)) {
+      const id = banner.slice(PREFIJO_BANNER.length);
+      if (!BANNERS_PERFIL.some((b) => b.id === id)) {
+        errores.bannerUrl = 'Ese banner no existe.';
+      }
+    } else if (banner.length > MAX_URL_IMAGEN_PERFIL) {
+      errores.bannerUrl = `La URL del banner es demasiado larga (maximo ${MAX_URL_IMAGEN_PERFIL}).`;
+    } else if (!/^https:\/\//.test(banner)) {
+      // Minusculas a proposito, igual que las reglas: alli el
+      // `matches('https://.*')` es sensible a mayusculas, y lo que
+      // aqui pase tiene que pasar alli.
+      errores.bannerUrl = 'El banner tiene que ser uno de la lista o una URL https://';
+    }
+  }
+
+  const marco = datos.avatarFrame ?? null;
+  if (marco !== null && marco !== '' && !MARCOS_AVATAR.some((m) => m.id === marco)) {
+    errores.avatarFrame = 'Ese marco no existe.';
+  }
+
+  const pjNombre = (datos.favoriteCharacterName ?? '').trim();
+  const pjImagen = (datos.favoriteCharacterImage ?? '').trim();
+  if (pjNombre.length > MAX_NOMBRE_PERSONAJE) {
+    errores.favoriteCharacterName = `Maximo ${MAX_NOMBRE_PERSONAJE} caracteres.`;
+  }
+  if (pjImagen) {
+    if (!pjNombre) {
+      errores.favoriteCharacterName = 'Ponle nombre al personaje para guardar su imagen.';
+    }
+    if (pjImagen.length > MAX_URL_IMAGEN_PERFIL) {
+      errores.favoriteCharacterImage = `La URL es demasiado larga (maximo ${MAX_URL_IMAGEN_PERFIL}).`;
+    } else if (!/^https:\/\//.test(pjImagen)) {
+      errores.favoriteCharacterImage = 'La URL tiene que empezar por https://';
+    }
+  }
+
+  const insignias = datos.visibleBadgeIds ?? [];
+  if (!Array.isArray(insignias)) {
+    errores.visibleBadgeIds = 'Las insignias no son validas.';
+  } else if (insignias.length > MAX_INSIGNIAS_VISIBLES) {
+    errores.visibleBadgeIds = `Como maximo ${MAX_INSIGNIAS_VISIBLES} insignias visibles.`;
+  } else if (insignias.some((id) => typeof id !== 'string' || !id)) {
+    errores.visibleBadgeIds = 'Las insignias no son validas.';
+  }
+
+  const destacadas = datos.featuredPostIds ?? [];
+  if (!Array.isArray(destacadas)) {
+    errores.featuredPostIds = 'Las destacadas no son validas.';
+  } else if (destacadas.length > MAX_DESTACADAS) {
+    errores.featuredPostIds = `Como maximo ${MAX_DESTACADAS} publicaciones destacadas.`;
+  } else if (destacadas.some((id) => typeof id !== 'string' || !id)) {
+    errores.featuredPostIds = 'Las destacadas no son validas.';
+  }
+
+  // ── Fondo de pagina ────────────────────────────
+
+  const fondoPreset = (datos.backgroundPreset ?? '').trim();
+  if (fondoPreset && !BANNERS_PERFIL.some((b) => b.id === fondoPreset)) {
+    errores.backgroundPreset = 'Ese fondo no existe.';
+  }
+
+  const fondoUrl = (datos.backgroundUrl ?? '').trim();
+  if (fondoUrl) {
+    if (fondoUrl.length > MAX_URL_IMAGEN_PERFIL) {
+      errores.backgroundUrl = `La URL es demasiado larga (maximo ${MAX_URL_IMAGEN_PERFIL}).`;
+    } else if (!/^https:\/\//.test(fondoUrl)) {
+      errores.backgroundUrl = 'La URL tiene que empezar por https://';
+    }
+  }
+
+  if (!POSICIONES_FONDO.includes(datos.backgroundPosition as PosicionFondo)) {
+    errores.backgroundPosition = 'Posicion no valida.';
+  }
+
+  if (
+    typeof datos.backgroundDim !== 'number' ||
+    !Number.isFinite(datos.backgroundDim) ||
+    datos.backgroundDim < 0 ||
+    datos.backgroundDim > DIM_MAXIMO
+  ) {
+    errores.backgroundDim = `El oscurecido va de 0 a ${DIM_MAXIMO}.`;
+  }
+
+  // ── Personajes de la vitrina ───────────────────
+
+  const personajes = datos.favoriteCharacters ?? [];
+  if (!Array.isArray(personajes)) {
+    errores.favoriteCharacters = 'Los personajes no son validos.';
+  } else if (personajes.length > MAX_PERSONAJES) {
+    errores.favoriteCharacters = `Como maximo ${MAX_PERSONAJES} personajes.`;
+  } else {
+    for (const p of personajes) {
+      const nombre = (p?.name ?? '').trim();
+      const imagen = (p?.imageUrl ?? '').trim();
+      const serie = (p?.serie ?? '').trim();
+      if (!nombre || nombre.length > MAX_NOMBRE_PERSONAJE || serie.length > MAX_SERIE_PERSONAJE) {
+        errores.favoriteCharacters = 'Cada personaje lleva nombre (y serie corta).';
+        break;
+      }
+      if (imagen && (imagen.length > MAX_URL_IMAGEN_PERFIL || !/^https:\/\//.test(imagen))) {
+        errores.favoriteCharacters = 'La imagen del personaje tiene que ser https://';
+        break;
+      }
+    }
+  }
+
+  if ((datos.favoriteCharacterDesc ?? '').trim().length > MAX_DESC_PERSONAJE) {
+    errores.favoriteCharacterDesc = `Maximo ${MAX_DESC_PERSONAJE} caracteres.`;
+  }
+
+  // ── Decoraciones ───────────────────────────────
+  //
+  // Las reglas no pueden recorrer la lista, asi que aqui se mira
+  // cada elemento: tipo conocido, referencia no vacia y numeros
+  // en rango. Lo que salga de aqui pasa las reglas.
+
+  const decoraciones = datos.decorations ?? [];
+  if (!Array.isArray(decoraciones)) {
+    errores.decorations = 'Las decoraciones no son validas.';
+  } else if (decoraciones.length > MAX_DECORACIONES) {
+    errores.decorations = `Como maximo ${MAX_DECORACIONES} decoraciones.`;
+  } else {
+    const kinds = ['sticker', 'image', 'medal'];
+    const sizes = ['s', 'm', 'l'];
+    for (const d of decoraciones) {
+      const ok =
+        d &&
+        typeof d.id === 'string' &&
+        d.id &&
+        kinds.includes(d.kind) &&
+        typeof d.ref === 'string' &&
+        d.ref &&
+        typeof d.x === 'number' &&
+        Number.isFinite(d.x) &&
+        d.x >= 0 &&
+        d.x <= 100 &&
+        typeof d.y === 'number' &&
+        Number.isFinite(d.y) &&
+        d.y >= 0 &&
+        d.y <= 100 &&
+        sizes.includes(d.size);
+      if (!ok) {
+        errores.decorations = 'Hay una decoracion mal colocada.';
+        break;
+      }
+    }
+  }
+
+  // ── Vitrinas ───────────────────────────────────
+
+  const vitrinas = datos.showcases ?? [];
+  if (!Array.isArray(vitrinas)) {
+    errores.showcases = 'Las vitrinas no son validas.';
+  } else if (vitrinas.length > MAX_VITRINAS) {
+    errores.showcases = `Como maximo ${MAX_VITRINAS} vitrinas.`;
+  } else if (
+    vitrinas.some((v) => typeof v !== 'string' || !VITRINAS.some((t) => t.id === v)) ||
+    new Set(vitrinas).size !== vitrinas.length
+  ) {
+    errores.showcases = 'Hay una vitrina desconocida o repetida.';
   }
 
   // El username NO se edita desde el perfil (ver `PerfilEditable`),
