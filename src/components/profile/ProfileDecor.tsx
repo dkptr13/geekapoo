@@ -100,7 +100,7 @@ export const CapaDecoraciones: React.FC<{ perfil: User }> = ({ perfil }) => {
   if (lista.length === 0) return null;
 
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
       {lista.map((d) => {
         const contenido = contenidoDe(d, perfil);
         if (!contenido) return null;
@@ -108,6 +108,7 @@ export const CapaDecoraciones: React.FC<{ perfil: User }> = ({ perfil }) => {
         return (
           <span
             key={d.id}
+            data-decor-id={d.id}
             style={{
               left: `${d.x}%`,
               top: `${d.y}%`,

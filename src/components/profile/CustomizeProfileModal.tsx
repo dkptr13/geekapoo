@@ -175,9 +175,11 @@ export const CustomizeProfileModal: React.FC<{
   const lienzoRef = React.useRef<HTMLDivElement | null>(null);
 
   // Arrastre en curso: id + desplazamiento entre el cursor y el
-  // centro del elemento al agarrar. Sin ese desplazamiento, el
-  // elemento saltaría con el centro al cursor al empezar a mover.
-  const agarreRef = React.useRef<{ id: string; dx: number; dy: number } | null>(null);
+  // centro del elemento al agarrar, más la última posición
+  // pintada (NaN hasta el primer movimiento).
+  const agarreRef = React.useRef<{ id: string; dx: number; dy: number; x: number; y: number } | null>(
+    null,
+  );
 
   // Ancho del marco del lienzo, para encoger la cabecera con
   // `zoom`. Se mide al abrir la pestaña (antes no existe).
@@ -383,42 +385,62 @@ export const CustomizeProfileModal: React.FC<{
 
   // ── Arrastre en el lienzo ────────────────────────
   //
-  // Al pulsar se anota el agarre y el movimiento se escucha en la
-  // VENTANA, no en el lienzo: así no depende de que la captura de
-  // puntero sobreviva a los re-renders (cada movimiento repinta
-  // la cabecera) ni de que el cursor siga encima del lienzo. Las
-  // coordenadas salen siempre del mismo rectángulo que ve el
-  // usuario, así que el elemento sigue al dedo sin saltos.
+  // Durante el gesto NO se toca el estado de React: la posición
+  // se escribe directa en el DOM (zona de agarre + elemento
+  // visible, los dos llevan `data-decor-id`). Repintar el modal
+  // entero en cada movimiento es lo que dejaba el elemento por
+  // detrás del cursor al mover rápido. Al soltar, un solo
+  // `tocarDecoracion` guarda el sitio final.
   //
-  // El `preventDefault` del inicio impide el arrastre nativo de
-  // la imagen fantasma al pulsar sobre una imagen o un icono.
+  // El movimiento se escucha en la VENTANA: no depende de que la
+  // captura sobreviva a los re-renders ni de seguir encima del
+  // lienzo. El `preventDefault` del inicio impide el arrastre
+  // nativo de la imagen fantasma.
 
   const alAgarrar = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
     const caja = e.currentTarget.getBoundingClientRect();
-    agarreRef.current = {
+    const agarre = {
       id,
       dx: e.clientX - (caja.left + caja.width / 2),
       dy: e.clientY - (caja.top + caja.height / 2),
+      x: NaN,
+      y: NaN,
     };
+    agarreRef.current = agarre;
     setDecoracionSel(id);
 
+    const pintar = (x: number, y: number) => {
+      agarre.x = x;
+      agarre.y = y;
+      lienzoRef.current
+        ?.querySelectorAll(`[data-decor-id="${CSS.escape(id)}"]`)
+        .forEach((el) => {
+          (el as HTMLElement).style.left = `${x}%`;
+          (el as HTMLElement).style.top = `${y}%`;
+        });
+    };
     const mover = (ev: PointerEvent) => {
-      const g = agarreRef.current;
       const el = lienzoRef.current;
-      if (!g || !el) return;
+      if (!el) return;
       const r = el.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0) return;
-      tocarDecoracion(g.id, {
-        x: ((ev.clientX - r.left - g.dx) / r.width) * 100,
-        y: ((ev.clientY - r.top - g.dy) / r.height) * 100,
-      });
+      pintar(
+        Math.min(100, Math.max(0, ((ev.clientX - r.left - agarre.dx) / r.width) * 100)),
+        Math.min(100, Math.max(0, ((ev.clientY - r.top - agarre.dy) / r.height) * 100)),
+      );
     };
     const soltar = () => {
+      const g = agarreRef.current;
       agarreRef.current = null;
       window.removeEventListener('pointermove', mover);
       window.removeEventListener('pointerup', soltar);
       window.removeEventListener('pointercancel', soltar);
+      // Sin moverse no hay nada que guardar: sería llevar el
+      // elemento al 0,0 con un simple clic.
+      if (g && Number.isFinite(g.x) && Number.isFinite(g.y)) {
+        tocarDecoracion(g.id, { x: g.x, y: g.y });
+      }
     };
     window.addEventListener('pointermove', mover);
     window.addEventListener('pointerup', soltar);
@@ -1338,6 +1360,7 @@ export const CustomizeProfileModal: React.FC<{
                         return (
                           <span
                             key={d.id}
+                            data-decor-id={d.id}
                             role="button"
                             tabIndex={0}
                             aria-label={`Mover decoración ${d.ref}`}

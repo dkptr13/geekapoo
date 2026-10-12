@@ -173,6 +173,13 @@ export const ProfileHeader: React.FC<{
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-transparent via-zinc-900/40 to-zinc-900 sm:h-36"
       />
+
+      {/* ── Decoraciones colocadas ─────────────────────
+          Pegatinas, imágenes y medallas del dueño. Van AQUÍ,
+          antes del contenido y sin `z-index`: así quedan por
+          encima del banner pero siempre por DEBAJO de las
+          letras y la foto. No interceptan clics. */}
+      <CapaDecoraciones perfil={perfil} />
       {/* ── Fondo decorativo ─────────────────────────────
           Un degradado morado muy suave. Es lo que da la
           sensación de "tarjeta" sin necesidad de bordes de
@@ -450,11 +457,6 @@ export const ProfileHeader: React.FC<{
           )}
         </div>
       </div>
-
-      {/* ── Decoraciones colocadas ─────────────────────
-          Pegatinas, imágenes y medallas del dueño, en su sitio
-          (% sobre la cabecera). No interceptan clics. */}
-      <CapaDecoraciones perfil={perfil} />
     </header>
   );
 };
