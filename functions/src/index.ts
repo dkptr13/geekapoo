@@ -1751,10 +1751,30 @@ export const eliminarMensajeParaTodos = onCall(async (request) => {
     imageUrl: FieldValue.delete(),
     gif: FieldValue.delete(),
     location: FieldValue.delete(),
+    // La encuesta también se quita: un mensaje borrado no vota.
+    // Sus votos se limpian justo debajo, acotados a un lote, para
+    // no dejar una subcolección huérfana que nadie puede ver pero
+    // que seguiría contando cuota.
+    poll: FieldValue.delete(),
     deletedForEveryone: true,
     deletedAt: FieldValue.serverTimestamp(),
     deletedBy: uid,
   });
+
+  try {
+    const votos = await ref.collection('pollVotes').limit(400).get();
+    if (!votos.empty) {
+      const lote = db.batch();
+      votos.docs.forEach((d) => lote.delete(d.ref));
+      await lote.commit();
+    }
+  } catch (e) {
+    logger.error('No se pudieron limpiar los votos de la encuesta al borrar', {
+      chatId,
+      messageId,
+      error: e,
+    });
+  }
 
   // Si era el último, la vista previa no puede seguir enseñando el
   // texto borrado. Se deja este marcador sin tocar la fecha: el

@@ -16,6 +16,7 @@ export interface MensajeCitable {
   gif?: unknown;
   imageUrl?: string;
   location?: unknown;
+  poll?: { question?: unknown } | null;
 }
 
 /** Cuánto del texto se guarda en la cita. */
@@ -36,6 +37,10 @@ export function fragmentoParaCita(mensaje: MensajeCitable): string {
   if (mensaje.imageUrl) return '[Foto]';
   if (mensaje.gif) return 'GIF';
   if (mensaje.location) return 'Ubicación';
+  if (mensaje.poll) {
+    const pregunta = typeof mensaje.poll.question === 'string' ? mensaje.poll.question.trim() : '';
+    return pregunta ? `📊 ${pregunta}`.slice(0, MAX_CITA) : '📊 Encuesta';
+  }
 
   return '';
 }

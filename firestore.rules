@@ -253,6 +253,84 @@ service cloud.firestore {
     }
 
     // ======================================================
+    // ENCUESTAS EN LOS CHATS
+    // ======================================================
+    //
+    // El mismo modelo que las encuestas de los hilos, pero
+    // colgando de un mensaje: la configuración viaja dentro
+    // del documento (`messages/{id}.poll`) y los votos van en
+    // `messages/{id}/pollVotes/{uid}`, un documento por
+    // persona. Sin contadores y sin resumen del servidor: los
+    // votos se cuentan en el cliente, que es la verdad.
+    //
+    // Solo vota quien es miembro del chat, y solo cierra el
+    // autor del mensaje (o un moderador del club, en chats de
+    // club). Todo lo demás sigue igual: el autor NO puede
+    // editar el texto de su mensaje desde el cliente.
+    // ======================================================
+
+    function pollDelMensaje(chatId, messageId) {
+      return get(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId)).data.poll;
+    }
+
+    function hayPollMensaje(chatId, messageId) {
+      return exists(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId))
+             && 'poll' in get(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId)).data
+             && pollDelMensaje(chatId, messageId) is map;
+    }
+
+    /**
+     * Una encuesta abierta: existe, no está cerrada y no ha caducado.
+     *
+     * Igual que `pollAbierto` de los hilos: se comprueba que la
+     * clave exista antes de leerla, porque leer una clave ausente
+     * lanza un error de evaluación y deniega la operación entera.
+     */
+    function pollMensajeAbierto(chatId, messageId) {
+      return hayPollMensaje(chatId, messageId)
+             && pollDelMensaje(chatId, messageId).isClosed == false
+             && (!('expiresAt' in pollDelMensaje(chatId, messageId))
+                 || pollDelMensaje(chatId, messageId).expiresAt == null
+                 || pollDelMensaje(chatId, messageId).expiresAt > request.time);
+    }
+
+    /** Permite cambiar de opción (solo se mira si ya hay voto). */
+    function pollMensajeCambiaVotos(chatId, messageId) {
+      return hayPollMensaje(chatId, messageId)
+             && ('allowChangeVote' in pollDelMensaje(chatId, messageId))
+             && pollDelMensaje(chatId, messageId).allowChangeVote == true;
+    }
+
+    /**
+     * Que lo único que cambia al cerrar una encuesta sea su cierre.
+     *
+     * Igual que `pollSoloCambiaIsClosed` de los hilos pero leyendo
+     * el mensaje: el resto de la encuesta (pregunta, opciones,
+     * caducidad, cambio de voto) tiene que quedar idéntico, o el
+     * autor podría reescribir las opciones dejando los votos
+     * apuntando a otro lado.
+     */
+    function pollMensajeSoloCambiaIsClosed(chatId, messageId) {
+      return hayPollMensaje(chatId, messageId)
+             && request.resource.data.poll is map
+             && request.resource.data.poll.question == pollDelMensaje(chatId, messageId).question
+             && request.resource.data.poll.options == pollDelMensaje(chatId, messageId).options
+             && (('allowChangeVote' in request.resource.data.poll)
+                 == ('allowChangeVote' in pollDelMensaje(chatId, messageId)))
+             && (!('allowChangeVote' in request.resource.data.poll)
+                 || request.resource.data.poll.allowChangeVote
+                    == pollDelMensaje(chatId, messageId).allowChangeVote)
+             && (('expiresAt' in request.resource.data.poll)
+                 == ('expiresAt' in pollDelMensaje(chatId, messageId)))
+             && (!('expiresAt' in request.resource.data.poll)
+                 || request.resource.data.poll.expiresAt
+                    == pollDelMensaje(chatId, messageId).expiresAt)
+             && request.resource.data.poll.isClosed is bool
+             && request.resource.data.poll.isClosed
+                != pollDelMensaje(chatId, messageId).isClosed;
+    }
+
+    // ======================================================
     // REACCIONES
     // ======================================================
     //
@@ -422,7 +500,8 @@ service cloud.firestore {
       return m.body.size() > 0
              || ('gif' in m)
              || ('location' in m)
-             || ('imageUrl' in m);
+             || ('imageUrl' in m)
+             || ('poll' in m);
     }
 
     // ======================================================
@@ -2056,6 +2135,10 @@ service cloud.firestore {
       // Reparto de permisos:
       //   - admin           → todo
       //   - dueño del grupo → datos del grupo Y lista de miembros
+      //     (incluido `code`: los grupos antiguos no tienen
+      //     código de invitación y el dueño tiene que poder
+      //     generarlo después; sin `code` en esta lista ese
+      //     grupo se quedaba sin código para siempre)
       //   - cualquier miembro → vista previa, recibos y ocultar
       //   - cualquier miembro → puede quitarse a SÍ MISMO de un
       //     grupo (salir). Se comprueba que el tamaño baja en
@@ -2070,7 +2153,7 @@ service cloud.firestore {
                              .affectedKeys().hasOnly(
                                ['name', 'avatar', 'memberIds', 'type',
                                 'hiddenFor', 'ownerId', 'slug', 'category',
-                                'coverUrl',
+                                'coverUrl', 'code',
                                 'lastMessage', 'lastMessageAt',
                                 'lastMessageSenderId', 'readAt']))
                     // Moderador de un CLUB cuyo chat es este.
@@ -2148,7 +2231,8 @@ service cloud.firestore {
 
         // Un mensaje puede no tener texto si lleva un GIF (un
         // "respondió con un GIF" es un meme más viejo que los
-        // chats), pero tiene que llevar algo.
+        // chats), pero tiene que llevar algo. Lo mismo vale para
+        // una encuesta: un mensaje puede ser SOLO la encuesta.
         //
         // El GIF no se sube a Storage: se guarda su ficha y el
         // archivo se sigue sirviendo desde el CDN del proveedor,
@@ -2156,8 +2240,8 @@ service cloud.firestore {
         // verdad de media.giphy.com o media.tenor.com. Sin eso,
         // el campo serviría para colgar cualquier URL.
         //
-        // `tieneAlgo` recoge los tres tipos de adjunto. Se usa una
-        // función en vez de repetir la condición porque son tres
+        // `tieneAlgo` recoge los cuatro tipos de adjunto. Se usa una
+        // función en vez de repetir la condición porque son cuatro
         // ramas y el motivo de cada una ya está commented en la
         // definición.
         allow create: if isChatMember(chatId)
@@ -2169,6 +2253,12 @@ service cloud.firestore {
                           || gifValido(request.resource.data.gif))
                       && (!('location' in request.resource.data)
                           || ubicacionValida(request.resource.data.location))
+                      // La encuesta viaja dentro del mensaje. Se
+                      // exige forma válida (`pollValido`, la misma
+                      // que en los hilos) para que no sirva para
+                      // colar datos arbitrarios en el documento.
+                      && (!('poll' in request.resource.data)
+                          || pollValido(request.resource.data.poll))
                       // La cita es una foto fija del citado que escribe
                       // el cliente: se exige forma (mapa con id, autor
                       // y fragmento acotado) para que no sirva para
@@ -2214,6 +2304,63 @@ service cloud.firestore {
                                       .affectedKeys().hasOnly(
                                         ['body', 'deletedForEveryone', 'deletedAt',
                                          'deletedBy', 'deletedByMod']));
+
+        // Cerrar (o reabrir) la encuesta del mensaje.
+        //
+        // Lo puede hacer el AUTOR del mensaje y, en chats de
+        // club, un moderador del club. Solo cambia `isClosed`:
+        // `pollMensajeSoloCambiaIsClosed` comprueba que la
+        // pregunta, las opciones, la caducidad y el cambio de
+        // voto queden idénticos, igual que en los hilos.
+        //
+        // Se acepta tanto "poll.isClosed" como "poll" entero
+        // porque `affectedKeys()` no informa siempre igual.
+        allow update: if (isChatMember(chatId)
+                           && resource.data.senderId == request.auth.uid
+                           && request.resource.data.diff(resource.data)
+                                .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
+                           && pollMensajeSoloCambiaIsClosed(chatId, messageId))
+                        || (esModeradorClubDeChat(chatId)
+                            && request.resource.data.diff(resource.data)
+                                 .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
+                            && pollMensajeSoloCambiaIsClosed(chatId, messageId));
+
+        // ── VOTOS DE LA ENCUESTA ────────────────────────
+        //
+        // Un documento por persona (el id es el uid), igual que
+        // en los hilos: no hay forma física de tener dos votos.
+        // Solo vota quien es miembro del chat, y la opción tiene
+        // que existir en la encuesta del mensaje.
+        match /pollVotes/{uid} {
+          allow read: if isChatMember(chatId);
+
+          allow create: if isChatMember(chatId)
+                        && request.auth.uid == uid
+                        && pollMensajeAbierto(chatId, messageId)
+                        && request.resource.data.userId == request.auth.uid
+                        && request.resource.data.optionId is string
+                        && request.resource.data.optionId
+                             in pollDelMensaje(chatId, messageId).options
+                        && request.resource.data.keys().hasOnly(
+                             ['userId', 'optionId', 'createdAt']);
+
+          // Cambiar de opción, solo si el autor lo permitió. Los
+          // campos de identification (userId, createdAt) son
+          // intocables.
+          allow update: if isChatMember(chatId)
+                        && request.auth.uid == uid
+                        && pollMensajeAbierto(chatId, messageId)
+                        && pollMensajeCambiaVotos(chatId, messageId)
+                        && request.resource.data.optionId
+                             in pollDelMensaje(chatId, messageId).options
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['optionId', 'updatedAt']);
+
+          // Desvotar no existe, igual que en los hilos. Borrar un
+          // voto es moderación: el admin global o un moderador
+          // del club.
+          allow delete: if isAdmin() || esModeradorClubDeChat(chatId);
+        }
       }
 
       // Recibos de lectura: se guardan en un mapa "readAt" DENTRO

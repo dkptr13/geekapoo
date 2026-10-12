@@ -36,12 +36,17 @@ interface PollComposerProps {
   onChange: (value: PollDraft) => void;
   /** Texto de error que viene de `normalizarPoll` al publicar. */
   error?: string;
+  /**
+   * Ayuda cuando el borrador está vacío. Por defecto habla del
+   * hilo; en el chat se pasa la versión de mensaje.
+   */
+  ayudaVacio?: string;
 }
 
 /** Dos opciones de arranque, que es el mínimo que admite la encuesta. */
 const MIN = LIMITS.minOptions;
 
-export const PollComposer: FC<PollComposerProps> = ({ value, onChange, error }) => {
+export const PollComposer: FC<PollComposerProps> = ({ value, onChange, error, ayudaVacio }) => {
   const cambiar = (parcial: Partial<PollDraft>) => onChange({ ...value, ...parcial });
 
   const cambiarOpcion = (i: number, texto: string) => {
@@ -177,8 +182,8 @@ export const PollComposer: FC<PollComposerProps> = ({ value, onChange, error }) 
 
       {!valida && !error && (
         <p className="text-[10px] leading-relaxed text-zinc-500">
-          Escribe la pregunta y deja al menos {MIN} opciones. Si la dejas sin
-          escribir, el hilo se publica igual y sin encuesta.
+          {ayudaVacio ??
+            `Escribe la pregunta y deja al menos ${MIN} opciones. Si la dejas sin escribir, el hilo se publica igual y sin encuesta.`}
         </p>
       )}
     </div>

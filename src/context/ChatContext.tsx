@@ -46,6 +46,7 @@ import {
   ChatRoom,
   GifAttachment,
   LocationAttachment,
+  Poll,
   User,
 } from '../types';
 import { SIN_NUEVOS, corteDeNuevos, type CorteNuevos } from '../utils/chatLectura';
@@ -93,6 +94,7 @@ interface ChatContextType {
     gif?: GifAttachment,
     adjunto?: { imageUrl?: string; location?: LocationAttachment },
     respuesta?: ChatReplyTo | null,
+    encuesta?: Poll | null,
   ) => void;
 
   // ── Solicitudes ────────────────────────────────────
@@ -531,15 +533,17 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       gif?: GifAttachment,
       adjunto?: { imageUrl?: string; location?: LocationAttachment },
       respuesta?: ChatReplyTo | null,
+      encuesta?: Poll | null,
     ) => {
       // Sin sesión no se envía nada, y sin texto ni adjunto tampoco:
-      // un mensaje vacío no es un mensaje.
+      // un mensaje vacío no es un mensaje. La encuesta cuenta como
+      // contenido, igual que el GIF o la foto.
       const vacio =
-        !text.trim() && !gif && !adjunto?.imageUrl && !adjunto?.location;
+        !text.trim() && !gif && !adjunto?.imageUrl && !adjunto?.location && !encuesta;
 
       if (!currentUser || vacio) return;
 
-      sendChatMessageService(roomId, currentUser, text, gif, adjunto, respuesta)
+      sendChatMessageService(roomId, currentUser, text, gif, adjunto, respuesta, encuesta)
         .then(() => setSendError(null))
         .catch((e: unknown) => {
           console.error('[Chats] Error al enviar mensaje:', e);

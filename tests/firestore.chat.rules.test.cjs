@@ -374,6 +374,41 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
       updateDoc(doc(db(BOB), 'chats', 'g1'), { name: 'nombre ajeno' }),
     );
   });
+
+  it('el dueno puede ponerle codigo a un grupo antiguo que no lo tiene', async () => {
+    // Los grupos de antes del codigo existen sin el campo, y la
+    // barra del chat no se pinta sin el. Sin esta rama ese grupo
+    // se quedaba sin codigo para siempre.
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'chats', 'g1'), { code: 'GRP-A1B2-C3D4' }),
+    );
+
+    await assertSucceeds(
+      setDoc(doc(db(ALICE), 'groupCodes', 'GRP-A1B2-C3D4'), {
+        code: 'GRP-A1B2-C3D4',
+        groupId: 'g1',
+        name: 'Grupo de prueba',
+        ownerId: ALICE,
+        ownerName: ALICE,
+        memberCount: 2,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }),
+    );
+  });
+
+  it('pero un miembro que no es dueno NO puede poner el codigo', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chats', 'g1'), { code: 'GRP-X9Y9-Z9Z9' }),
+    );
+  });
 });
 
 // ═══════════════════════════════════════════════════════════

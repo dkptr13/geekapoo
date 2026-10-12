@@ -27,6 +27,7 @@ import {
   ArrowLeft,
   Smile,
   ImagePlus,
+  BarChart3,
   Camera,
   ArrowDown,
   Trash2,
@@ -44,6 +45,7 @@ import { citaVisible, fragmentoParaCita } from '../../utils/chatCita';
 import {
   editarMensajeChat,
   eliminarMensajeParaTodos,
+  ensureGroupCode,
   ocultarMensajeParaMi,
 } from '../../services/chats';
 import { useAuth } from '../../context/AuthContext';
@@ -63,6 +65,9 @@ import { ReactionBar } from '../community/ReactionBar';
 import { ClubDetail } from './ClubDetail';
 import { ClubDiscovery } from './ClubDiscovery';
 import { ClubListItem } from './ClubListItem';
+import { ChatPollCard } from './ChatPollCard';
+import { PollComposer, POLL_VACIO, draftANewPoll, type PollDraft } from '../community/PollComposer';
+import { normalizarPoll } from '../../services/polls';
 import { CLUB_CATEGORIES } from '../../types';
 import type {
   ChatMessage,
@@ -71,8 +76,21 @@ import type {
   Club,
   GifAttachment,
   LocationAttachment,
+  Poll,
   User,
 } from '../../types';
+
+/**
+ * Si el borrador de encuesta tiene algo escrito (pregunta u
+ * opciones). Un panel abierto pero vacío se ignora al enviar;
+ * a medio escribir bloquea con error en el propio panel.
+ */
+function borradorConContenido(borrador: PollDraft): boolean {
+  return (
+    borrador.question.trim().length > 0 ||
+    borrador.options.some((o) => o.trim().length > 0)
+  );
+}
 
 // ======================================================
 // CHATS: TRES VISTAS EN UNA MISMA SECCIÓN
@@ -290,6 +308,11 @@ export const ChatView: React.FC = () => {
   const [showGroups, setShowGroups] = useState(false);
   const [groupCodeInput, setGroupCodeInput] = useState('');
   const [copiedGroupCode, setCopiedGroupCode] = useState(false);
+  // Generar el código de un grupo antiguo que no lo tiene. Al
+  // cambiar de conversación se limpia el error, como el resto
+  // de avisos de la vista.
+  const [generatingCode, setGeneratingCode] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
   const [openMenuFor, setOpenMenuFor] = useState<string | null>(null);
   // Usuario a punto de ser eliminado. No se borra al pulsar el
   // menú: primero sale una confirmación, porque el error de
@@ -317,6 +340,13 @@ export const ChatView: React.FC = () => {
   const [citaA, setCitaA] = useState<ChatMessage | null>(null);
   const [editando, setEditando] = useState<ChatMessage | null>(null);
   const [editandoBusy, setEditandoBusy] = useState(false);
+
+  // Borrador de la encuesta que viaja con el próximo mensaje.
+  // `null` = panel cerrado (sin encuesta). Se edita con el mismo
+  // formulario que en los hilos (`PollComposer`) y al enviar se
+  // normaliza con `normalizarPoll`, que es quien valida.
+  const [encuestaBorrador, setEncuestaBorrador] = useState<PollDraft | null>(null);
+  const [errorEncuesta, setErrorEncuesta] = useState<string | undefined>(undefined);
 
   // Solo quien creó el grupo puede añadir o expulsar miembros.
   const isGroupOwner =
@@ -488,6 +518,9 @@ export const ChatView: React.FC = () => {
     setCitaA(null);
     setEditando(null);
     setInputText('');
+    setEncuestaBorrador(null);
+    setErrorEncuesta(undefined);
+    setCodeError(null);
   }, [activeRoomId]);
 
   // Abrir la conversación que pide la URL (`?tab=chats&chat=...`).
@@ -592,10 +625,30 @@ export const ChatView: React.FC = () => {
     const gif = ubicacion ? null : chatGif;
     const foto = ubicacion ? null : chatImageUrl;
 
-    // Texto, GIF, foto o ubicación: un mensaje sin texto es válido si
-    // lleva cualquiera de los tres adjuntos, y uno sin nada no se
-    // envía.
-    const hayAlgo = Boolean(inputText.trim()) || Boolean(gif) || Boolean(foto) || Boolean(sitio);
+    // La encuesta del borrador, si lo hay. Un panel abierto pero
+    // vacío no es una encuesta: se ignora y el texto se manda
+    // solo. A medio escribir sí bloquea el envío, con el motivo
+    // en el propio panel, para no mandar un texto huérfano
+    // mientras la encuesta se queda a medias.
+    let encuesta: Poll | null = null;
+    if (!ubicacion && encuestaBorrador && borradorConContenido(encuestaBorrador)) {
+      try {
+        encuesta = normalizarPoll(draftANewPoll(encuestaBorrador));
+      } catch (e) {
+        setErrorEncuesta(e instanceof Error ? e.message : 'La encuesta no es válida.');
+        return;
+      }
+    }
+
+    // Texto, GIF, foto, ubicación o encuesta: un mensaje sin texto
+    // es válido si lleva cualquiera de los adjuntos, y uno sin
+    // nada no se envía.
+    const hayAlgo =
+      Boolean(inputText.trim()) ||
+      Boolean(gif) ||
+      Boolean(foto) ||
+      Boolean(sitio) ||
+      encuesta !== null;
 
     if (!activeRoomId || !hayAlgo) return;
 
@@ -614,10 +667,16 @@ export const ChatView: React.FC = () => {
     sendMessage(activeRoomId, inputText, gif ?? undefined, {
       ...(foto ? { imageUrl: foto } : {}),
       ...(sitio ? { location: sitio } : {}),
-    }, respuesta);
+    }, respuesta, encuesta);
 
     setInputText('');
     setCitaA(null);
+    // La encuesta sí se manda con el mensaje: el borrador se vacía
+    // para no repetirla en el siguiente.
+    if (encuesta) {
+      setEncuestaBorrador(null);
+      setErrorEncuesta(undefined);
+    }
 
     // Lo que no se ha mandado no se borra: si la ubicación se ha
     // enviado aparte, la foto y el GIF siguen ahí para el siguiente
@@ -893,6 +952,7 @@ export const ChatView: React.FC = () => {
       gif: undefined,
       location: undefined,
       replyTo: undefined,
+      poll: undefined,
       deletedForEveryone: true,
       deletedAt: new Date().toISOString(),
       deletedBy: currentUser.uid,
@@ -1085,6 +1145,19 @@ export const ChatView: React.FC = () => {
     } else {
       reportActionError(result);
     }
+  };
+
+  // Genera el código de invitación de un grupo antiguo que no
+  // lo tiene. Al crearse, el listener refresca `activeRoom` y
+  // la barra de "Generar código" se cambia sola por la normal
+  // con el código y el botón de copiar.
+  const handleGenerateCode = async () => {
+    if (!activeRoom || !currentUser || generatingCode) return;
+    setGeneratingCode(true);
+    setCodeError(null);
+    const result = await ensureGroupCode(activeRoom, currentUser);
+    setGeneratingCode(false);
+    if (!result.ok) setCodeError(result.error);
   };
 
   return (
@@ -2077,6 +2150,38 @@ export const ChatView: React.FC = () => {
                 </div>
               )}
 
+              {/* Grupo SIN código (grupos antiguos): el dueño puede
+                  generarlo aquí. Sin esta barra, ese grupo no
+                  enseñaba nada y no había forma de invitar con
+                  código, porque las reglas tampoco dejaban añadir
+                  el campo después. */}
+              {activeRoom.type === 'group' && !activeRoom.code && isGroupOwner && (
+                <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 bg-zinc-950/60 px-4 py-2">
+                  <Hash size={12} className="flex-shrink-0 text-zinc-500" />
+                  <span className="text-[11px] text-zinc-500">
+                    Este grupo aún no tiene código de invitación.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleGenerateCode}
+                    disabled={generatingCode}
+                    className="flex items-center gap-1 rounded-lg bg-violet-600 px-2.5 py-1 text-[10px] font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
+                  >
+                    {generatingCode ? (
+                      <>
+                        <Loader2 size={11} className="animate-spin" />
+                        <span>Generando...</span>
+                      </>
+                    ) : (
+                      <span>Generar código</span>
+                    )}
+                  </button>
+                  {codeError && (
+                    <span className="text-[10px] text-red-400">{codeError}</span>
+                  )}
+                </div>
+              )}
+
               {/* CONFIRMACIÓN DE ELIMINAR USUARIO */}
               {pendingBlock && (
                 <div className="flex flex-wrap items-center gap-2 border-b border-red-500/30 bg-red-500/10 px-4 py-3">
@@ -2358,6 +2463,23 @@ export const ChatView: React.FC = () => {
 
                           {/* Ubicación compartida. */}
                           {msg.location && <LocationCard ubicacion={msg.location} />}
+
+                          {/* Encuesta del mensaje. Se pinta fuera de la
+                              burbuja, como el GIF o la foto: la tarjeta
+                              trae su propio fondo y estiraría el
+                              degradado de "mi mensaje". Cerrar la dejan
+                              el autor y (en clubes) los moderadores. */}
+                          {msg.poll && (
+                            <ChatPollCard
+                              chatId={msg.chatId}
+                              messageId={msg.id}
+                              poll={msg.poll}
+                              puedeCerrar={
+                                msg.senderId === currentUser.uid ||
+                                (esChatClub && soyModDelClub)
+                              }
+                            />
+                          )}
 
                           {/* Reacciones del mensaje */}
                           <ReactionBar
@@ -2796,6 +2918,35 @@ export const ChatView: React.FC = () => {
                   </div>
                 )}
 
+                {/* Encuesta del próximo mensaje. Mismo formulario que
+                    en los hilos: al enviar se normaliza y viaja
+                    dentro del mensaje. Un mensaje puede ser SOLO la
+                    encuesta, sin texto. */}
+                {encuestaBorrador && !editando && (
+                  <div className="relative mb-2">
+                    <PollComposer
+                      value={encuestaBorrador}
+                      onChange={(v) => {
+                        setEncuestaBorrador(v);
+                        setErrorEncuesta(undefined);
+                      }}
+                      error={errorEncuesta}
+                      ayudaVacio="Escribe la pregunta y deja al menos 2 opciones. Si la dejas sin escribir, el mensaje se envía igual y sin encuesta."
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEncuestaBorrador(null);
+                        setErrorEncuesta(undefined);
+                      }}
+                      aria-label="Descartar la encuesta"
+                      className="absolute right-2 top-2 rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
                 
         {/* Con "flex-wrap" los dos botones pasan a una columna en
             pantallas estrechas. Sin esto, a 390px se quedaban sin
@@ -2861,6 +3012,30 @@ export const ChatView: React.FC = () => {
                     />
                   </div>
 
+                  {/* Encuesta: abre el borrador encima de la caja. En
+                      edición no aplica: la encuesta viaja con el
+                      mensaje nuevo, no se edita después. */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEncuestaBorrador((prev) =>
+                        prev
+                          ? null
+                          : { ...POLL_VACIO, options: [...POLL_VACIO.options] },
+                      )
+                    }
+                    disabled={!!editando}
+                    aria-label="Añadir una encuesta al mensaje"
+                    title="Añadir una encuesta"
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+                      encuestaBorrador
+                        ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
+                        : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300'
+                    } disabled:opacity-40`}
+                  >
+                    <BarChart3 size={17} />
+                  </button>
+
                   <button
                     type="submit"
                     disabled={
@@ -2868,7 +3043,13 @@ export const ChatView: React.FC = () => {
                       (editando
                         ? !inputText.trim() &&
                           !(editando.imageUrl || editando.gif || editando.location)
-                        : !inputText.trim() && !chatGif && !chatImageUrl)
+                        : !inputText.trim() &&
+                          !chatGif &&
+                          !chatImageUrl &&
+                          !(
+                            encuestaBorrador &&
+                            borradorConContenido(encuestaBorrador)
+                          ))
                     }
                     aria-label={editando ? 'Guardar edición' : 'Enviar mensaje'}
                     className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600 text-white hover:bg-violet-500 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-md shadow-violet-600/30"

@@ -685,13 +685,14 @@ export interface ChatMessage {
   body: string;
   createdAt: string;
   /**
-   * 'text' | 'image' | 'gif' | 'location' (según lo que lleve adjunto).
+   * 'text' | 'image' | 'gif' | 'location' | 'poll' (según lo que lleve adjunto).
    *
    * 'location' se añadió después que los demás, así que los mensajes
    * antiguos no lo tienen. Todo el que lo pinte tiene que tolerar
    * que venga vacío: se comprueba `msg.location` y no `msg.type`.
+   * Lo mismo vale para 'poll': se comprueba `msg.poll`.
    */
-  type: 'text' | 'image' | 'gif' | 'location';
+  type: 'text' | 'image' | 'gif' | 'location' | 'poll';
   /**
    * GIF adjunto al mensaje.
    *
@@ -710,6 +711,16 @@ export interface ChatMessage {
   imageUrl?: string;
   /** Ubicación adjunta al mensaje. */
   location?: LocationAttachment;
+  /**
+   * Encuesta adjunta al mensaje.
+   *
+   * Es el mismo `Poll` de los hilos (pregunta, opciones como
+   * mapa, caducidad y cierre), pero vive dentro del mensaje y
+   * sus votos van en `chats/{chatId}/messages/{id}/pollVotes/`.
+   * Se cuenta igual que allí: los documentos de voto son la
+   * verdad, sin contadores que el cliente pueda mentir.
+   */
+  poll?: Poll;
   /**
    * Cita a otro mensaje (responder).
    *

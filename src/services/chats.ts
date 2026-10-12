@@ -30,6 +30,7 @@ import type {
   GifAttachment,
   GroupListing,
   LocationAttachment,
+  Poll,
   User,
 } from '../types';
 
@@ -333,6 +334,100 @@ export async function syncGroupMemberCount(
   }
 }
 
+/**
+ * Genera el código de invitación de un grupo que aún no lo
+ * tiene (grupos antiguos) o cuyo índice se perdió.
+ *
+ * Solo quien creó el grupo: las reglas solo le dejan tocar
+ * `code` a él (y al admin). Hace las DOS escrituras que
+ * necesita un código para funcionar:
+ *
+ *   1. `groupCodes/{code}` → índice público para entrar con
+ *      el código sin ser miembro.
+ *   2. `chats/{id}.code`  → lo que enseña la barra del chat.
+ *
+ * Si el chat ya trae un código con su índice en regla, no
+ * toca nada. Si el índice es de otro grupo (código repetido
+ * a mano), se genera uno nuevo en vez de pisarlo.
+ */
+export async function ensureGroupCode(
+  room: ChatRoom,
+  owner: Speaker,
+): Promise<{ ok: true; code: string } | { ok: false; error: string }> {
+  if (room.type !== 'group') {
+    return { ok: false, error: 'Solo los grupos tienen código de invitación.' };
+  }
+  if (room.ownerId !== owner.uid) {
+    return { ok: false, error: 'Solo quien creó el grupo puede generar su código.' };
+  }
+
+  // El código que ya trae, si su índice sigue siendo el suyo.
+  if (room.code) {
+    try {
+      const snap = await getDoc(doc(db, 'groupCodes', room.code));
+      if (snap.exists()) {
+        const data = snap.data() as { groupId?: string; ownerId?: string };
+        if (data.groupId === room.id && data.ownerId === owner.uid) {
+          return { ok: true, code: room.code };
+        }
+      }
+    } catch (e) {
+      console.warn('[Chats] No se pudo comprobar el índice del código:', e);
+    }
+  }
+
+  // Uno nuevo que no pise a nadie: si el índice ya existe
+  // (otra persona lo cogió primero), se prueba con otro.
+  for (let intento = 0; intento < 3; intento++) {
+    const code = generateGroupCode();
+
+    try {
+      const previo = await getDoc(doc(db, 'groupCodes', code));
+      if (previo.exists()) continue;
+
+      await setDoc(doc(db, 'groupCodes', code), {
+        code,
+        groupId: room.id,
+        name: room.name,
+        ownerId: owner.uid,
+        ownerName: nameOf(owner),
+        memberCount: room.memberIds.length,
+        createdAt: serverTimestamp(),
+      });
+
+      await updateDoc(doc(db, CHATS, room.id), { code });
+
+      // Limpieza del índice viejo, si era nuestro: que no
+      // queden dos códigos vivos para el mismo grupo.
+      if (room.code && room.code !== code) {
+        try {
+          const viejo = await getDoc(doc(db, 'groupCodes', room.code));
+          if (
+            viejo.exists() &&
+            (viejo.data() as { ownerId?: string }).ownerId === owner.uid
+          ) {
+            await deleteDoc(doc(db, 'groupCodes', room.code));
+          }
+        } catch (e) {
+          console.warn('[Chats] No se pudo limpiar el código anterior:', e);
+        }
+      }
+
+      return { ok: true, code };
+    } catch (e: unknown) {
+      const ferr = (e as { code?: string })?.code ?? '';
+      // Sin permiso no hay nada que reintentar: las reglas
+      // mandan y el error vuelve al usuario tal cual.
+      if (ferr === 'permission-denied' || ferr === 'unauthenticated') {
+        return { ok: false, error: messageOf(e, 'No se pudo generar el código.') };
+      }
+      console.warn('[Chats] Reintentando la generación del código:', e);
+    }
+  }
+
+  return { ok: false, error: 'No se pudo generar un código libre. Inténtalo de nuevo.' };
+}
+
 export async function sendChatMessage(
   chatId: string,
   sender: Speaker,
@@ -340,14 +435,15 @@ export async function sendChatMessage(
   gif?: GifAttachment,
   adjunto?: { imageUrl?: string; location?: LocationAttachment },
   respuesta?: ChatReplyTo | null,
+  encuesta?: Poll | null,
 ): Promise<void> {
   const text = body.trim();
 
   // Se puede mandar un mensaje SOLO con un GIF (" responded with a
   // GIF" es un meme tan viejo como los foros), y también solo con una
-  // foto o con una ubicación. Un mensaje sin texto y sin nada más sí
-  // es vacío y no vale.
-  if (!text && !gif && !adjunto?.imageUrl && !adjunto?.location) return;
+  // foto, con una ubicación o con una encuesta. Un mensaje sin texto
+  // y sin nada más sí es vacío y no vale.
+  if (!text && !gif && !adjunto?.imageUrl && !adjunto?.location && !encuesta) return;
 
   if (text.length > MAX_BODY) {
     throw new Error(`El mensaje no puede superar los ${MAX_BODY} caracteres.`);
@@ -379,10 +475,23 @@ export async function sendChatMessage(
     // El tipo dice qué se tiene que PINTAR. Lo que va en su sitio es
     // lo que va: un mensaje puede llevar texto Y una ubicación, y el
     // texto sigue siendo texto.
-    type: adjunto?.location ? 'location' : gif ? 'gif' : adjunto?.imageUrl ? 'image' : 'text',
+    type: encuesta
+      ? 'poll'
+      : adjunto?.location
+        ? 'location'
+        : gif
+          ? 'gif'
+          : adjunto?.imageUrl
+            ? 'image'
+            : 'text',
     ...(gif ? { gif } : {}),
     ...(adjunto?.imageUrl ? { imageUrl: adjunto.imageUrl } : {}),
     ...(adjunto?.location ? { location: adjunto.location } : {}),
+    // La encuesta viaja dentro del mensaje, igual que el GIF o la
+    // ubicación. Las reglas exigen que tenga forma válida
+    // (`pollValido`): aquí llega ya normalizada desde el
+    // compositor, que es quien enseña los errores al escribir.
+    ...(encuesta ? { poll: encuesta } : {}),
     // La cita es una foto fija del citado. Se recorta aquí porque
     // la escribe el cliente y las reglas solo dejan pasar forma y
     // tamaños sanos; la garantía final está allí.
@@ -423,7 +532,10 @@ export async function sendChatMessage(
   // es tuyo.
   try {
     await updateDoc(doc(db, CHATS, chatId), {
-      lastMessage: text,
+      // Sin texto pero con encuesta, la vista previa enseña la
+      // pregunta: si no, la lista lateral diría "Conversación
+      // vacía" para un mensaje que sí tiene contenido.
+      lastMessage: text || (encuesta ? `📊 ${encuesta.question}` : ''),
       lastMessageAt: serverTimestamp(),
       lastMessageSenderId: sender.uid,
     });
