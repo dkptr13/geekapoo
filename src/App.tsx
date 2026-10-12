@@ -230,6 +230,21 @@ const {
       }
     : null;
 
+  /**
+   * Consume el destino una vez llegado: borra `hilo` y
+   * `comentario` de la URL para que volver a inicio (o
+   * remontar el feed) no repita el salto. Igual que el
+   * `accion` del perfil: de un solo uso.
+   *
+   * Recargar ANTES de llegar conserva el destino (los
+   * parámetros siguen ahí hasta que el salto se completa), y
+   * pulsar el mismo aviso otra vez lo repone y vuelve a
+   * funcionar por el `nonce`.
+   */
+  const limpiarFoco = () => {
+    setUrl({ hilo: null, comentario: null });
+  };
+
   const goToThread = (
     threadId: string,
     commentId?: string,
@@ -327,6 +342,8 @@ const {
                 }
 
                 focusTarget={focusTarget}
+
+                onLimpiarFoco={limpiarFoco}
 
                 onClearCategoryFilter={() =>
                   setUrl({ categoria: null })

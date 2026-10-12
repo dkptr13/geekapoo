@@ -59,12 +59,19 @@ interface HomeFeedProps {
     commentId?: string;
     nonce: number;
   } | null;
+  /**
+   * Borra el destino de la URL una vez llegado, para que no se
+   * repita el salto al volver o remontar. Lo llama HomeFeed
+   * cuando el desplazamiento se completa de verdad.
+   */
+  onLimpiarFoco?: () => void;
 }
 
 export const HomeFeed: React.FC<HomeFeedProps> = ({
   selectedCategoryFilter,
   onClearCategoryFilter,
   focusTarget,
+  onLimpiarFoco,
 }) => {
   // `usersList` es el directorio de usuarios vivo, con un
   // `onSnapshot` encima. Se necesita para el avatar y el nombre de
@@ -286,6 +293,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       const el = document.getElementById(`thread-${highlightThreadId}`);
       if (el || ++intentos > 240) {
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Llegado (o rendido): se consume el destino para que
+        // volver o remontar no repita el salto.
+        if (el) onLimpiarFoco?.();
         return;
       }
       raf = requestAnimationFrame(paso);
@@ -321,6 +331,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       const el = document.getElementById(`comment-${highlightCommentId}`);
       if (el || ++intentos > 240) {
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (el) onLimpiarFoco?.();
         return;
       }
       raf = requestAnimationFrame(paso);
