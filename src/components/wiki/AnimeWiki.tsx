@@ -244,6 +244,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   const [characterFilter, setCharacterFilter] = useState<'all' | 'destacados' | 'likes' | 'related'>('all');
   const [expandedCharacterId, setExpandedCharacterId] = useState<string | null>(null);
   const [characterCommentText, setCharacterCommentText] = useState('');
+  // Respuesta a una opinión de personaje: a qué comentario y con qué texto.
+  const [replyingToCharId, setReplyingToCharId] = useState<string | null>(null);
+  const [charReplyText, setCharReplyText] = useState('');
 
   // Todo lo que sigue usa "currentAnime", que puede no existir
   // mientras se está en el catálogo. Se protege aquí para que el
@@ -339,6 +342,20 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     if (!characterCommentText.trim()) return;
     const ok = await addComment('character', characterId, characterCommentText);
     if (ok) setCharacterCommentText('');
+  };
+
+  const handleCharacterReply = async (
+    characterId: string,
+    parentId: string,
+    e: React.FormEvent,
+  ) => {
+    e.preventDefault();
+    if (!charReplyText.trim()) return;
+    const ok = await addComment('character', characterId, charReplyText, parentId);
+    if (ok) {
+      setCharReplyText('');
+      setReplyingToCharId(null);
+    }
   };
 
   // Filtered characters
@@ -1277,7 +1294,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                     >
                       <span className="flex items-center gap-1.5">
                         <MessageCircle size={14} />
-                        Opiniones y Críticas ({charComments.length})
+                        Opiniones y Críticas ({charComments.filter((c) => !c.parentId).length})
                       </span>
                       <span>{isExpanded ? 'Ocultar' : 'Ver y comentar'}</span>
                     </button>
@@ -1313,26 +1330,179 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                               Sé el primero en dejar una opinión sobre este personaje.
                             </p>
                           ) : (
-                            charComments.map((c) => (
-                              <div
-                                key={c.id}
-                                className="rounded-xl bg-zinc-900 p-2.5 text-xs border border-zinc-800"
-                              >
-<div className="mb-1 flex items-center justify-between gap-2 text-[11px] text-zinc-400">
-                                  <div className="min-w-0 flex-1">
-                                    <AuthorBadge
-                                      authorId={c.authorId}
-                                      nombre={`@${c.authorName}`}
-                                      tamano="sm"
-                                    />
+                            charComments
+                              .filter((c) => !c.parentId)
+                              .map((c) => {
+                                const respuestas = charComments.filter((r) => r.parentId === c.id);
+                                return (
+                                  <div
+                                    key={c.id}
+                                    className="rounded-xl bg-zinc-900 p-2.5 text-xs border border-zinc-800"
+                                  >
+                                    <div className="mb-1 flex items-center justify-between gap-2 text-[11px] text-zinc-400">
+                                      <div className="min-w-0 flex-1">
+                                        <AuthorBadge
+                                          authorId={c.authorId}
+                                          nombre={`@${c.authorName}`}
+                                          tamano="sm"
+                                        />
+                                      </div>
+                                      <span className="flex-shrink-0">
+                                        {new Date(c.createdAt).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    <p className="text-zinc-300 text-xs">{c.body}</p>
+
+                                    {/* Responder y borrar, como en el
+                                        resto de comentarios de la web:
+                                        borrar lo ve quien escribió o
+                                        el equipo, con confirmación. */}
+                                    <div className="mt-1.5 flex items-center gap-2.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (replyingToCharId === c.id) {
+                                            setReplyingToCharId(null);
+                                          } else if (requireAuth('responder a esta opinión')) {
+                                            setReplyingToCharId(c.id);
+                                          }
+                                        }}
+                                        className="text-[11px] font-semibold text-zinc-400 transition-colors hover:text-violet-300"
+                                      >
+                                        Responder
+                                      </button>
+
+                                      {(puedeModerar || c.authorId === currentUser?.uid) &&
+                                        (confirmandoBorrar === c.id ? (
+                                          <span className="flex items-center gap-1.5">
+                                            <span className="text-[11px] font-semibold text-zinc-300">
+                                              ¿Seguro?
+                                            </span>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleBorrarComment(c.id)}
+                                              disabled={borrandoAhora === c.id}
+                                              className="rounded-md bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-60"
+                                            >
+                                              {borrandoAhora === c.id ? (
+                                                <Loader2 size={10} className="animate-spin" />
+                                              ) : (
+                                                'Sí, borrar'
+                                              )}
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => setConfirmandoBorrar(null)}
+                                              disabled={borrandoAhora === c.id}
+                                              className="rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 disabled:opacity-60"
+                                            >
+                                              Cancelar
+                                            </button>
+                                          </span>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => setConfirmandoBorrar(c.id)}
+                                            title="Borrar opinión"
+                                            aria-label="Borrar opinión"
+                                            className="flex items-center gap-1 text-[11px] font-semibold text-zinc-500 transition-colors hover:text-red-400"
+                                          >
+                                            <Trash2 size={11} />
+                                          </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Responder a esta opinión */}
+                                    {replyingToCharId === c.id && (
+                                      <form
+                                        onSubmit={(e) => handleCharacterReply(char.id, c.id, e)}
+                                        className="mt-2 flex gap-2"
+                                      >
+                                        <input
+                                          type="text"
+                                          value={charReplyText}
+                                          onChange={(e) => setCharReplyText(e.target.value)}
+                                          placeholder={`Respondiendo a @${c.authorName}...`}
+                                          className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                                        />
+                                        <button
+                                          type="submit"
+                                          className="rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-500"
+                                        >
+                                          Enviar
+                                        </button>
+                                      </form>
+                                    )}
+
+                                    {/* Respuestas anidadas */}
+                                    {respuestas.length > 0 && (
+                                      <div className="ml-3 mt-2 space-y-1.5 border-l-2 border-zinc-800 pl-2.5">
+                                        {respuestas.map((r) => (
+                                          <div key={r.id} className="text-xs">
+                                            <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] text-zinc-400">
+                                              <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                                                <CornerDownRight
+                                                  size={11}
+                                                  className="flex-shrink-0 text-violet-400"
+                                                />
+                                                <div className="min-w-0 flex-1">
+                                                  <AuthorBadge
+                                                    authorId={r.authorId}
+                                                    nombre={`@${r.authorName}`}
+                                                    tamano="sm"
+                                                  />
+                                                </div>
+                                              </div>
+                                              <span className="flex-shrink-0">
+                                                {new Date(r.createdAt).toLocaleDateString()}
+                                              </span>
+                                            </div>
+                                            <p className="pl-5 text-zinc-300">{r.body}</p>
+                                            {(puedeModerar || r.authorId === currentUser?.uid) &&
+                                              (confirmandoBorrar === r.id ? (
+                                                <span className="mt-1 flex items-center gap-1.5 pl-5">
+                                                  <span className="text-[11px] font-semibold text-zinc-300">
+                                                    ¿Seguro?
+                                                  </span>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => handleBorrarComment(r.id)}
+                                                    disabled={borrandoAhora === r.id}
+                                                    className="rounded-md bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-60"
+                                                  >
+                                                    {borrandoAhora === r.id ? (
+                                                      <Loader2 size={10} className="animate-spin" />
+                                                    ) : (
+                                                      'Sí, borrar'
+                                                    )}
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setConfirmandoBorrar(null)}
+                                                    disabled={borrandoAhora === r.id}
+                                                    className="rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 disabled:opacity-60"
+                                                  >
+                                                    Cancelar
+                                                  </button>
+                                                </span>
+                                              ) : (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setConfirmandoBorrar(r.id)}
+                                                  title="Borrar respuesta"
+                                                  aria-label="Borrar respuesta"
+                                                  className="ml-5 mt-1 flex items-center gap-1 text-[11px] font-semibold text-zinc-500 transition-colors hover:text-red-400"
+                                                >
+                                                  <Trash2 size={11} />
+                                                </button>
+                                              ))}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
-                                  <span className="flex-shrink-0">
-                                    {new Date(c.createdAt).toLocaleDateString()}
-                                  </span>
-                                </div>
-                                <p className="text-zinc-300 text-xs">{c.body}</p>
-                              </div>
-                            ))
+                                );
+                              })
                           )}
                         </div>
                       </div>
