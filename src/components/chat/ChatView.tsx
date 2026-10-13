@@ -39,6 +39,8 @@ import {
   VolumeX,
   Lock,
   ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 import { textoDeNuevos } from '../../utils/chatLectura';
@@ -156,6 +158,36 @@ export const ChatView: React.FC = () => {
   // «Chats» te deja en tus conversaciones.
   const [tabChats, setTabChats] = useState<TabChats>('privados');
   const [clubDetalle, setClubDetalle] = useState<string | null>(null);
+
+  // ── Barra lateral plegable ────────────────────────
+  //
+  // Solo VISUAL: contraer no toca rooms, filtros, pestañas,
+  // clubes, solicitudes ni suscripciones; los mismos elementos
+  // siguen montados y solo cambian sus clases. La elección se
+  // guarda en el navegador (sin Firestore) para mantenerla al
+  // volver a entrar.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return globalThis.localStorage?.getItem('geekapoo:chats:sidebar') === 'collapsed';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        globalThis.localStorage?.setItem(
+          'geekapoo:chats:sidebar',
+          next ? 'collapsed' : 'open',
+        );
+      } catch {
+        // Sin almacenamiento la preferencia no persiste. Nada más.
+      }
+      return next;
+    });
+  };
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -1396,9 +1428,22 @@ export const ChatView: React.FC = () => {
           panel a la vez (ver los dos "hidden" de abajo), el que
           se ve cae en la fila 1 y la toma entera.
 
-          A partir de lg vuelve a ser "grid-cols-12" y los dos
-          paneles se reparten las doce columnas, como siempre. */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-1 lg:grid-cols-12 rounded-3xl border border-zinc-800 bg-zinc-900 overflow-hidden shadow-2xl">
+          A partir de lg hay dos pistas proporcionales (4/8, y
+          3/9 en 2xl, como las doce columnas de antes) y cada
+          panel cae en la suya por orden.
+
+          Desde la barra plegable, esas pistas "fr" se animan:
+          al contraer, la primera pasa a 0fr con transición y
+          el chat ocupa todo el ancho. El "minmax(0, …)" es lo
+          que deja que la pista llegue a cero sin que el
+          contenido la sujete abierta. */}
+      <div
+        className={`grid min-h-0 flex-1 grid-cols-1 grid-rows-1 rounded-3xl border border-zinc-800 bg-zinc-900 overflow-hidden shadow-2xl transition-[grid-template-columns] duration-300 ease-in-out ${
+          sidebarCollapsed
+            ? 'lg:grid-cols-[minmax(0,0fr)_minmax(0,8fr)] 2xl:grid-cols-[minmax(0,0fr)_minmax(0,9fr)]'
+            : 'lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] 2xl:grid-cols-[minmax(0,3fr)_minmax(0,9fr)]'
+        }`}
+      >
         {/* LEFT: ROOMS LIST.
             En pantallas anchas baja a 3 columnas: con 4 de 12
             sobre un contenedor de 1900px serían 630px para una
@@ -1415,8 +1460,26 @@ export const ChatView: React.FC = () => {
         <div
           className={`${
             activeRoomId ? 'hidden' : 'flex'
-          } lg:flex lg:col-span-4 2xl:col-span-3 min-h-0 border-r border-zinc-800 flex-col bg-zinc-950/70`}
+          } lg:flex min-h-0 min-w-0 border-r border-zinc-800 flex-col bg-zinc-950/70 relative overflow-hidden transition-opacity duration-300 ${
+            sidebarCollapsed ? 'lg:pointer-events-none lg:opacity-0' : 'lg:opacity-100'
+          }`}
         >
+          {/* Botón para contraer la barra. Flota en el borde
+              derecho del panel; solo en escritorio, porque en
+              móvil la lista ya ocupa todo o la oculta el chat
+              abierto (con su botón de volver). */}
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            title="Contraer la lista"
+            aria-label="Contraer la lista de conversaciones"
+            tabIndex={sidebarCollapsed ? -1 : 0}
+            className={`absolute right-2 top-1/2 z-30 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900/95 text-zinc-400 shadow-lg backdrop-blur transition-all hover:border-violet-500/60 hover:text-violet-300 lg:flex ${
+              sidebarCollapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
+            }`}
+          >
+            <PanelLeftClose size={14} />
+          </button>
           {/* Header & Filter Tabs */}
           <div className="p-3.5 border-b border-zinc-800 space-y-3">
             {/* Las tres vistas de la sección. Van aquí, y no en
@@ -2014,8 +2077,23 @@ export const ChatView: React.FC = () => {
         <div
           className={`${
             tabChats === 'descubrir' || activeRoomId ? 'flex' : 'hidden'
-          } lg:flex lg:col-span-8 2xl:col-span-9 relative min-h-0 flex-col bg-zinc-900/90`}
+          } lg:flex relative min-h-0 min-w-0 flex-col bg-zinc-900/90`}
         >
+          {/* Botón para volver a abrir la barra cuando está
+              contraída. Flota en el borde izquierdo del chat;
+              solo en escritorio, por el mismo motivo que el de
+              contraer. Aparece con fundido (geo-aparece). */}
+          {sidebarCollapsed && (
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              title="Mostrar la lista"
+              aria-label="Mostrar la lista de conversaciones"
+              className="geo-aparece absolute left-2 top-1/2 z-30 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900/95 text-zinc-400 shadow-lg backdrop-blur transition-all hover:border-violet-500/60 hover:text-violet-300 lg:flex"
+            >
+              <PanelLeftOpen size={14} />
+            </button>
+          )}
           {/* ── VISTA: DESCUBRIR CLUBES ─────────────────
               Ocupa toda la zona derecha. No hay chat abierto:
               lo que se ve es la galería, y elegir un club no
