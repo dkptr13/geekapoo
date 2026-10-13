@@ -252,6 +252,107 @@ service cloud.firestore {
                  || p.expiresAt is timestamp);
     }
 
+    /**
+     * Forma válida de una tier list al CREARLA o EDITARLA.
+     *
+     * Como en `pollValido`, no se comprueba el texto de cada
+     * nivel o elemento (las reglas no recorren mapas), pero sí
+     * los tamaños y los campos que deciden permisos: sin tope
+     * o sin `visibility` válida, el documento serviría para
+     * colar datos arbitrarios o para exponer contenido de club.
+     */
+    function tierValido(t) {
+      return t.title is string
+             && t.title.size() > 0
+             && t.title.size() <= 80
+             && t.description is string
+             && t.description.size() <= 500
+             && t.category in ['anime-manga', 'videojuegos', 'cosplay-fanart',
+                               'cultura-japonesa', 'tecnologia-programacion', 'otros']
+             && t.tiers is map
+             && t.tiers.size() >= 1
+             && t.tiers.size() <= 12
+             && t.items is map
+             && t.items.size() >= 1
+             && t.items.size() <= 100
+             && t.placement is map
+             && t.poolOrder is map
+             && t.visibility in ['public', 'club']
+             && (t.visibility == 'public'
+                 || (('clubId' in t) && t.clubId is string && t.clubId.size() > 0))
+             && t.voting is map
+             && t.voting.enabled is bool
+             && t.voting.allowChange is bool
+             && (!('coverUrl' in t)
+                 || (t.coverUrl is string && t.coverUrl.size() <= 1000))
+             && (!('originId' in t)
+                 || (t.originId is string && t.originId.size() <= 150))
+             && (!('originTitle' in t)
+                 || (t.originTitle is string && t.originTitle.size() <= 80))
+             && (!('threadId' in t)
+                 || (t.threadId is string && t.threadId.size() <= 150));
+    }
+
+    /**
+     * Referencia compacta que viaja en hilos y mensajes.
+     *
+     * Solo forma (id y título acotados): que la tier list
+     * exista y se pueda leer lo comprueba el cliente al
+     * pintarla, enseñando "ya no disponible" si no.
+     */
+    function tierRefValida(r) {
+      return r is map
+             && r.tierListId is string
+             && r.tierListId.size() > 0
+             && r.tierListId.size() <= 150
+             && (!('title' in r)
+                 || (r.title is string && r.title.size() <= 160));
+    }
+
+    function tierExiste(tierId) {
+      return exists(/databases/$(database)/documents/tierlists/$(tierId));
+    }
+
+    function datosTier(tierId) {
+      return get(/databases/$(database)/documents/tierlists/$(tierId)).data;
+    }
+
+    /** Niveles de la tier list (mapa id → definición). */
+    function tiersDeTier(tierId) {
+      return datosTier(tierId).tiers;
+    }
+
+    /** Se puede votar: existe y el autor activó la votación. */
+    function tierVotable(tierId) {
+      return tierExiste(tierId)
+             && 'voting' in datosTier(tierId)
+             && datosTier(tierId).voting.enabled == true;
+    }
+
+    /** Se puede cambiar de nivel (solo se mira si ya hay voto). */
+    function tierPermiteCambio(tierId) {
+      return tierVotable(tierId)
+             && 'allowChange' in datosTier(tierId).voting
+             && datosTier(tierId).voting.allowChange == true;
+    }
+
+    /**
+     * Quién puede ver una tier list (y sus votos).
+     *
+     * Pública para cualquiera; de club solo para sus
+     * miembros; las propias siempre para su autor. Un
+     * documento que no existe o sin `visibility` no lo ve
+     * nadie: el error de evaluación deniega, que es lo seguro.
+     */
+    function tierLegible(tierId) {
+      return tierExiste(tierId)
+             && (datosTier(tierId).visibility == 'public'
+                 || (isSignedIn() && datosTier(tierId).authorId == request.auth.uid)
+                 || (isSignedIn() && datosTier(tierId).visibility == 'club'
+                     && 'clubId' in datosTier(tierId)
+                     && esMiembroClub(datosTier(tierId).clubId)));
+    }
+
     // ======================================================
     // ENCUESTAS EN LOS CHATS
     // ======================================================
@@ -501,7 +602,8 @@ service cloud.firestore {
              || ('gif' in m)
              || ('location' in m)
              || ('imageUrl' in m)
-             || ('poll' in m);
+             || ('poll' in m)
+             || ('tierList' in m);
     }
 
     // ======================================================
@@ -1605,6 +1707,12 @@ service cloud.firestore {
                             && request.resource.data.imageUrl.size() <= 1000))
                     && (!('poll' in request.resource.data)
                         || pollValido(request.resource.data.poll))
+                    // La tier list adjunta, si viene, con forma
+                    // válida (id y título acotados). Solo forma:
+                    // que exista y se pueda leer lo comprueba el
+                    // cliente al pintarla.
+                    && (!('tierList' in request.resource.data)
+                        || tierRefValida(request.resource.data.tierList))
                     // Nadie se crea a sí mismo una encuesta ya
                     // cerrada: da igual, no hay forma de abrirla
                     // después.
@@ -1631,6 +1739,16 @@ service cloud.firestore {
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
                         && pollSoloCambiaIsClosed(threadId))
+                    // Adjuntar (cambiar o quitar) la tier list del
+                    // hilo propio. Solo la referencia: el contenido
+                    // vive en su documento y lo gobiernan sus reglas.
+                    || (isSignedIn()
+                        && resource.data.authorId == request.auth.uid
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['tierList'])
+                        && (!('tierList' in request.resource.data)
+                            || request.resource.data.tierList == null
+                            || tierRefValida(request.resource.data.tierList)))
                     || onlyEngagement();
 
       allow delete: if isAdmin() || isModerator()
@@ -1764,6 +1882,105 @@ service cloud.firestore {
 
       allow delete: if isAdmin() || isModerator()
                     || (isSignedIn() && resource.data.authorId == request.auth.uid);
+    }
+
+    // ======================================================
+    // TIER LISTS
+    // ======================================================
+    //
+    // Una clasificación visual por niveles. Vive en
+    // `tierlists/{id}` y se comparte en hilos (campo
+    // `tierList` del thread) y en chats (campo `tierList` del
+    // mensaje): esos dos guardan solo `{tierListId, title}` y
+    // la leen de aquí. Borrar un hilo o un mensaje NO borra la
+    // tier list, porque puede estar publicada en otro sitio.
+    //
+    // Los niveles y elementos son MAPAS id → definición, y no
+    // listas, por el mismo motivo que las opciones de las
+    // encuestas: es lo único que las reglas saben comprobar.
+    // Con un mapa, un voto tiene que ir a un nivel que existe
+    // de verdad (`tierId in tiers`); con una lista no habría
+    // forma de exigirlo.
+    //
+    // No se puede comprobar el contenido de cada nivel o
+    // elemento (las reglas no recorren mapas), pero sí los
+    // tamaños, que es lo que de verdad protege: sin tope, un
+    // mapa con mil entradas se colaría en el documento.
+    // ======================================================
+    match /tierlists/{tierId} {
+      // Públicas para cualquiera; de club solo para sus
+      // miembros; las propias siempre para su autor. La lista
+      // de "mis tier lists" filtra por `authorId`, que es la
+      // misma condición de aquí: así la consulta no devuelve
+      // listas ajenas.
+      allow read: if resource.data.visibility == 'public'
+                  || (isSignedIn() && resource.data.authorId == request.auth.uid)
+                  || (isSignedIn() && resource.data.visibility == 'club'
+                      && 'clubId' in resource.data
+                      && esMiembroClub(resource.data.clubId));
+
+      allow create: if isActive()
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.authorName is string
+                    && tierValido(request.resource.data);
+
+      // Solo el autor (o un admin) toca su clasificación, y
+      // sin cambiarle el dueño ni el origen. El resto de
+      // campos editables van en el `hasOnly`.
+      allow update: if isAdmin()
+                    || (isSignedIn()
+                        && resource.data.authorId == request.auth.uid
+                        && request.resource.data.authorId == resource.data.authorId
+                        && tierValido(request.resource.data)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(
+                               ['title', 'description', 'category',
+                                'tiers', 'items', 'placement', 'poolOrder',
+                                'coverUrl', 'visibility', 'clubId',
+                                'voting', 'threadId', 'updatedAt']));
+
+      // Borrar no arrastra hilos ni mensajes: esos pintan "ya
+      // no disponible" en vez de romperse.
+      allow delete: if isAdmin()
+                    || (isSignedIn() && resource.data.authorId == request.auth.uid);
+
+      // ── VOTOS (nivel favorito) ──────────────────────
+      //
+      // Un documento por persona (el id es el uid), sin
+      // borrado para nadie salvo el equipo. De ahí sale la
+      // garantía de "un solo voto": no es que alguien lo
+      // compruebe, es que no hay forma física de tener dos.
+      // Cambiar de nivel solo si el autor lo permitió.
+      match /votes/{uid} {
+        // Solo quien puede ver la tier list ve sus votos: en
+        // una de club, los resultados no salen de ahí.
+        allow read: if tierLegible(tierId);
+
+        // Votar exige poder verla: sin esto, cualquiera con el
+        // id votaría a ciegas en una tier list de club.
+        allow create: if isActive()
+                      && request.auth.uid == uid
+                      && tierLegible(tierId)
+                      && tierVotable(tierId)
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.tierId is string
+                      && request.resource.data.tierId in tiersDeTier(tierId)
+                      && request.resource.data.keys().hasOnly(
+                           ['userId', 'tierId', 'createdAt']);
+
+        allow update: if isActive()
+                      && request.auth.uid == uid
+                      && tierLegible(tierId)
+                      && tierVotable(tierId)
+                      && tierPermiteCambio(tierId)
+                      && request.resource.data.tierId in tiersDeTier(tierId)
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(['tierId', 'updatedAt']);
+
+        // Desvotar no existe, igual que en las encuestas. El
+        // equipo sí puede borrar un voto problemático.
+        allow delete: if isModerator();
+      }
     }
 
     // ======================================================
@@ -2379,8 +2596,8 @@ service cloud.firestore {
         // verdad de media.giphy.com o media.tenor.com. Sin eso,
         // el campo serviría para colgar cualquier URL.
         //
-        // `tieneAlgo` recoge los cuatro tipos de adjunto. Se usa una
-        // función en vez de repetir la condición porque son cuatro
+        // `tieneAlgo` recoge los cinco tipos de adjunto. Se usa una
+        // función en vez de repetir la condición porque son cinco
         // ramas y el motivo de cada una ya está commented en la
         // definición.
         allow create: if isChatMember(chatId)
@@ -2398,6 +2615,10 @@ service cloud.firestore {
                       // colar datos arbitrarios en el documento.
                       && (!('poll' in request.resource.data)
                           || pollValido(request.resource.data.poll))
+                      // La tier list viaja igual: solo id y título
+                      // acotados. El contenido vive en su documento.
+                      && (!('tierList' in request.resource.data)
+                          || tierRefValida(request.resource.data.tierList))
                       // La cita es una foto fija del citado que escribe
                       // el cliente: se exige forma (mapa con id, autor
                       // y fragmento acotado) para que no sirva para

@@ -14,6 +14,7 @@ import {
   Check,
   Trash2,
   BarChart3,
+  Trophy,
   X,
   Flag,
   Loader2,
@@ -33,7 +34,20 @@ import { CommentGif } from '../community/CommentGif';
 import { GifPicker } from '../community/GifPicker';
 import { ReportDialog } from '../community/ReportDialog';
 import { StableImage } from '../common/StableImage';
+import { TierListCard } from '../tierlists/TierListCard';
+import { TierListEditor } from '../tierlists/TierListEditor';
+import { TierListViewer } from '../tierlists/TierListViewer';
 import type { ImageDims } from '../../utils/imagenes';
+import { borradorDesdeDoc } from '../../utils/tierlists';
+import type { EditorDraft } from '../../utils/tierlists';
+import {
+  crearTierList,
+  getTierList,
+  guardarEdicionTierList,
+  type TierResult,
+} from '../../services/tierlists';
+import { adjuntarTierList } from '../../services/threads';
+import type { TierListRef } from '../../types';
 import {
   POLL_VACIO,
   PollComposer,
@@ -179,6 +193,22 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [conEncuesta, setConEncuesta] = useState(false);
   const [borradorEncuesta, setBorradorEncuesta] = useState<PollDraft>(POLL_VACIO);
   const [errorEncuesta, setErrorEncuesta] = useState('');
+
+  // Tier list adjunta al hilo que se está escribiendo.
+  const [tierAdjunta, setTierAdjunta] = useState<TierListRef | null>(null);
+  // Editor de tier lists: crear, plantilla, editar o adjuntar.
+  const [editorTier, setEditorTier] = useState<{
+    modo: 'nuevo' | 'editar';
+    initial?: Partial<EditorDraft>;
+    originId?: string;
+    originTitle?: string;
+    tierListId?: string;
+    attachThreadId?: string;
+    /** Si viene del composer: al guardar queda adjunta al hilo. */
+    paraComposer?: boolean;
+  } | null>(null);
+  // Visor de tier list.
+  const [visorTierId, setVisorTierId] = useState<string | null>(null);
 
   // Las categorías llegan de Firestore, o sea después del primer render.
   // Antes esto era useState(CATEGORIES[0].id) sobre una constante de
@@ -347,6 +377,53 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     };
   }, [highlightCommentId, expandedThreadId]);
 
+  // ── Tier lists: guardar desde el editor ──────────
+  //
+  // Un solo camino para los tres casos: crear (composer o
+  // plantilla) y editar. Al guardar para el composer o para
+  // adjuntar a un hilo existente, la referencia queda puesta
+  // sin recargar nada.
+  const guardarTierList = async (
+    datos: EditorDraft & { originId?: string; originTitle?: string; clubId?: string },
+  ): Promise<TierResult> => {
+    if (!currentUser) {
+      requireAuth('crear una tier list');
+      return { ok: false, error: 'Debes iniciar sesión.' };
+    }
+    if (editorTier?.modo === 'editar' && editorTier.tierListId) {
+      return guardarEdicionTierList(editorTier.tierListId, datos);
+    }
+    return crearTierList(currentUser, {
+      ...datos,
+      clubId: undefined,
+    });
+  };
+
+  const trasGuardarTier = async (tierListId: string) => {
+    // Adjuntar a un hilo existente propio.
+    if (editorTier?.attachThreadId) {
+      try {
+        const tier = await getTierList(tierListId);
+        await adjuntarTierList(editorTier.attachThreadId, {
+          tierListId,
+          title: tier?.title ?? 'Tier list',
+        });
+      } catch (e) {
+        console.error('[Hilos] No se pudo adjuntar la tier list:', e);
+      }
+      return;
+    }
+    // Solo si el editor se abrió desde el composer: plantilla y
+    // edición no tocan el hilo que se esté escribiendo.
+    if (!editorTier?.paraComposer) return;
+    try {
+      const tier = await getTierList(tierListId);
+      if (tier) setTierAdjunta({ tierListId, title: tier.title });
+    } catch (e) {
+      console.error('[Hilos] No se pudo leer la tier list creada:', e);
+    }
+  };
+
   const handleCreateThreadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !body.trim()) return;
@@ -381,7 +458,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       }
     }
 
-    const success = await createThread(title, body, category, tags, threadImageUrl, poll, threadImageDims);
+    const success = await createThread(title, body, category, tags, threadImageUrl, poll, threadImageDims, tierAdjunta);
 
     if (success) {
       setTitle('');
@@ -389,6 +466,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       setTagsInput('');
       setThreadImageUrl('');
       setThreadImageDims(null);
+      setTierAdjunta(null);
       setConEncuesta(false);
       setBorradorEncuesta(POLL_VACIO);
       setErrorEncuesta('');
@@ -766,6 +844,40 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               )}
             </div>
 
+            {/* ── Tier list (opcional) ──────────────── */}
+            <div>
+              {tierAdjunta ? (
+                <div className="flex items-center gap-2 rounded-xl border border-violet-500/40 bg-violet-950/30 px-3 py-2">
+                  <Trophy size={13} className="flex-shrink-0 text-violet-400" />
+                  <span className="min-w-0 flex-1 truncate text-[11px] font-bold text-white">
+                    {tierAdjunta.title}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setTierAdjunta(null)}
+                    className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition-colors hover:text-red-400"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!currentUser) {
+                      requireAuth('crear una tier list');
+                      return;
+                    }
+                    setEditorTier({ modo: 'nuevo', paraComposer: true });
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-violet-500/40 px-3 py-2 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-500/70 hover:bg-violet-500/10 hover:text-violet-300"
+                >
+                  <Trophy size={13} />
+                  Crear tier list
+                </button>
+              )}
+            </div>
+
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
@@ -917,6 +1029,32 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     puedeCerrar={canEditThread(thread)}
                     onCerrar={setPollClosed}
                   />
+                )}
+
+                {/* Tier list adjunta: se renderiza dentro del hilo. */}
+                {thread.tierList && (
+                  <TierListCard
+                    referencia={thread.tierList}
+                    onAbrir={(id) => setVisorTierId(id)}
+                  />
+                )}
+
+                {/* Adjuntar tier list a un hilo propio sin ella. */}
+                {!thread.tierList && canEditThread(thread) && thread.authorId === currentUser?.uid && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!currentUser) {
+                        requireAuth('adjuntar una tier list');
+                        return;
+                      }
+                      setEditorTier({ modo: 'nuevo', attachThreadId: thread.id });
+                    }}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-dashed border-zinc-700 px-3 py-1.5 text-[11px] font-semibold text-zinc-500 transition-colors hover:border-violet-500/50 hover:text-violet-300"
+                  >
+                    <Trophy size={12} />
+                    Adjuntar tier list
+                  </button>
                 )}
               </div>
 
@@ -1540,6 +1678,47 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   : 'Reporte enviado. Gracias por avisar.',
               )
             }
+          />
+        )}
+
+        {/* Visor de tier list (desde tarjetas de hilos). */}
+        {visorTierId && (
+          <TierListViewer
+            tierListId={visorTierId}
+            onUsarPlantilla={(tier) => {
+              setVisorTierId(null);
+              setEditorTier({
+                modo: 'nuevo',
+                initial: {
+                  ...borradorDesdeDoc(tier),
+                  title: `Mi versión: ${tier.title}`.slice(0, 80),
+                },
+                originId: tier.id,
+                originTitle: tier.title,
+              });
+            }}
+            onEditar={(tier) => {
+              setVisorTierId(null);
+              setEditorTier({
+                modo: 'editar',
+                tierListId: tier.id,
+                initial: borradorDesdeDoc(tier),
+              });
+            }}
+            onClose={() => setVisorTierId(null)}
+          />
+        )}
+
+        {/* Editor de tier lists (crear, plantilla, editar, adjuntar). */}
+        {editorTier && (
+          <TierListEditor
+            modo={editorTier.modo}
+            initial={editorTier.initial}
+            originId={editorTier.originId}
+            originTitle={editorTier.originTitle}
+            onGuardar={guardarTierList}
+            onGuardado={trasGuardarTier}
+            onClose={() => setEditorTier(null)}
           />
         )}
       </div>

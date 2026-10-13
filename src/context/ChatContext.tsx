@@ -47,6 +47,7 @@ import {
   GifAttachment,
   LocationAttachment,
   Poll,
+  TierListRef,
   User,
 } from '../types';
 import { SIN_NUEVOS, corteDeNuevos, type CorteNuevos } from '../utils/chatLectura';
@@ -95,6 +96,7 @@ interface ChatContextType {
     adjunto?: { imageUrl?: string; location?: LocationAttachment },
     respuesta?: ChatReplyTo | null,
     encuesta?: Poll | null,
+    tier?: TierListRef | null,
   ) => void;
 
   // ── Solicitudes ────────────────────────────────────
@@ -534,16 +536,22 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       adjunto?: { imageUrl?: string; location?: LocationAttachment },
       respuesta?: ChatReplyTo | null,
       encuesta?: Poll | null,
+      tier?: TierListRef | null,
     ) => {
       // Sin sesión no se envía nada, y sin texto ni adjunto tampoco:
-      // un mensaje vacío no es un mensaje. La encuesta cuenta como
-      // contenido, igual que el GIF o la foto.
+      // un mensaje vacío no es un mensaje. La encuesta y la tier
+      // list cuentan como contenido, igual que el GIF o la foto.
       const vacio =
-        !text.trim() && !gif && !adjunto?.imageUrl && !adjunto?.location && !encuesta;
+        !text.trim() &&
+        !gif &&
+        !adjunto?.imageUrl &&
+        !adjunto?.location &&
+        !encuesta &&
+        !tier;
 
       if (!currentUser || vacio) return;
 
-      sendChatMessageService(roomId, currentUser, text, gif, adjunto, respuesta, encuesta)
+      sendChatMessageService(roomId, currentUser, text, gif, adjunto, respuesta, encuesta, tier)
         .then(() => setSendError(null))
         .catch((e: unknown) => {
           console.error('[Chats] Error al enviar mensaje:', e);

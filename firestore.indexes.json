@@ -92,6 +92,15 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "_comment": "Mis tier lists: las del autor, de la más reciente a la más antigua. Lo exige el where authorId == + orderBy updatedAt de subscribeMisTierLists.",
+      "collectionGroup": "tierlists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "authorId", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

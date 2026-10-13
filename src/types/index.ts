@@ -148,6 +148,147 @@ export interface PollSummary {
 }
 
 // ======================================================
+// TIER LISTS
+// ======================================================
+//
+// Una clasificación visual por niveles (S/A/B/C/D/F...). Vive
+// en `tierlists/{id}` y se comparte en hilos (campo `tierList`
+// del thread) y en chats (campo `tierList` del mensaje). Los
+// votos van en `tierlists/{id}/votes/{uid}`, un documento por
+// persona, igual que las encuestas: sin contadores que el
+// cliente pueda mentir.
+//
+// Los elementos reutilizan imágenes del catálogo (con `ref` a
+// su ficha) o subidas propias (solo URL, el archivo sigue en
+// Storage). Nunca se guarda Base64 en Firestore.
+
+/** Un nivel de la clasificación (fila S, A, B...). */
+export interface TierRow {
+  /** Id estable (`t1`, `t2`...). Lo compone el cliente al crear. */
+  id: string;
+  /** Nombre visible. */
+  label: string;
+  /** Color de la etiqueta (hex, p. ej. `#ff7f7f`). */
+  color: string;
+  /** Posición en la lista (menor = más arriba). */
+  order: number;
+}
+
+/**
+ * Niveles como MAPA id → definición, y no como lista.
+ *
+ * Igual que las opciones de las encuestas: es lo único que
+ * las reglas de Firestore saben comprobar. Con un mapa, el
+ * servidor exige que un voto vaya a un nivel que existe de
+ * verdad (`tierId in tiers`); con una lista no podría.
+ */
+export type TierRowMap = Record<string, { label: string; color: string; order: number }>;
+
+/** Un elemento clasificable (personaje, anime, opening...). */
+export interface TierItem {
+  /** Id estable dentro de la tier list. */
+  id: string;
+  /** Nombre visible. */
+  name: string;
+  /** Imagen del elemento (catálogo o subida propia). */
+  imageUrl: string;
+  /** Dimensiones para reservar sitio sin saltos (si se conocen). */
+  width?: number;
+  height?: number;
+  /**
+   * Referencia a la ficha del catálogo, si viene de ahí.
+   * Evita duplicar datos: la imagen se reutiliza, no se copia.
+   */
+  ref?: { kind: 'anime' | 'character'; id: string };
+}
+
+/**
+ * Elementos como MAPA id → definición, por el mismo motivo
+ * que los niveles: las reglas no recorren listas.
+ */
+export type TierItemMap = Record<
+  string,
+  {
+    name: string;
+    imageUrl: string;
+    width?: number;
+    height?: number;
+    ref?: { kind: 'anime' | 'character'; id: string };
+  }
+>;
+
+/** Dónde está cada elemento: id de nivel o `'pool'` (sin clasificar). */
+export type TierPlacement = Record<string, string>;
+
+/** Una tier list completa, tal cual vive en Firestore. */
+export interface TierList {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  title: string;
+  description: string;
+  category: ClubCategory;
+  /** Niveles (mapa id → definición, ordenados por `order`). */
+  tiers: TierRowMap;
+  /** Elementos (mapa id → definición). */
+  items: TierItemMap;
+  placement: TierPlacement;
+  /**
+   * Orden de los elementos dentro de cada nivel (incluido el
+   * pool): nivel → ids en orden. Así reordenar no reescribe
+   * los elementos, solo esta lista.
+   */
+  poolOrder: Record<string, string[]>;
+  /** Portada opcional. */
+  coverUrl?: string;
+  /** Quién puede verla: todos o solo un club. */
+  visibility: 'public' | 'club';
+  /** Club que puede verla (solo si `visibility` es `club`). */
+  clubId?: string;
+  /** Votación por nivel favorito. */
+  voting: { enabled: boolean; allowChange: boolean };
+  /** Tier list de origen, si nació como copia/plantilla. */
+  originId?: string;
+  originTitle?: string;
+  /** Hilo donde se publicó (informativo, si lo hay). */
+  threadId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Borrador que envía el editor al guardar. */
+export interface NuevoTierList {
+  title: string;
+  description: string;
+  category: ClubCategory;
+  tiers: TierRow[];
+  items: TierItem[];
+  placement: TierPlacement;
+  poolOrder: Record<string, string[]>;
+  coverUrl?: string;
+  visibility: 'public' | 'club';
+  clubId?: string;
+  voting: { enabled: boolean; allowChange: boolean };
+  originId?: string;
+  originTitle?: string;
+  threadId?: string;
+}
+
+/** Voto por nivel favorito. */
+export interface TierVote {
+  id: string;
+  userId: string;
+  tierId: string;
+}
+
+/** Referencia compacta que viaja en hilos y mensajes. */
+export interface TierListRef {
+  tierListId: string;
+  title: string;
+}
+
+// ======================================================
 // GIFs EN COMENTARIOS
 // ======================================================
 //
@@ -608,6 +749,11 @@ export interface Thread {
    */
   poll?: Poll;
   /**
+   * Tier list adjunta (solo referencia: vive en su documento).
+   * Se pinta dentro del hilo con `TierListCard`.
+   */
+  tierList?: TierListRef;
+  /**
    * Recuento de reacciones. Lo escribe la Cloud Function al
    * leer `reactions`; el cliente solo lo LEE.
    *
@@ -707,14 +853,15 @@ export interface ChatMessage {
   body: string;
   createdAt: string;
   /**
-   * 'text' | 'image' | 'gif' | 'location' | 'poll' (según lo que lleve adjunto).
+   * 'text' | 'image' | 'gif' | 'location' | 'poll' | 'tier' (según lo que lleve adjunto).
    *
    * 'location' se añadió después que los demás, así que los mensajes
    * antiguos no lo tienen. Todo el que lo pinte tiene que tolerar
    * que venga vacío: se comprueba `msg.location` y no `msg.type`.
-   * Lo mismo vale para 'poll': se comprueba `msg.poll`.
+   * Lo mismo vale para 'poll' (se comprueba `msg.poll`) y para
+   * 'tier' (se comprueba `msg.tierList`).
    */
-  type: 'text' | 'image' | 'gif' | 'location' | 'poll';
+  type: 'text' | 'image' | 'gif' | 'location' | 'poll' | 'tier';
   /**
    * GIF adjunto al mensaje.
    *
@@ -743,6 +890,14 @@ export interface ChatMessage {
    * verdad, sin contadores que el cliente pueda mentir.
    */
   poll?: Poll;
+  /**
+   * Tier list adjunta al mensaje (solo referencia: vive en su documento).
+   *
+   * Se pinta como tarjeta compacta con `ChatTierCard` y se abre
+   * en el visor. Como el resto de adjuntos, se comprueba
+   * `msg.tierList` y no `msg.type`.
+   */
+  tierList?: TierListRef;
   /**
    * Cita a otro mensaje (responder).
    *

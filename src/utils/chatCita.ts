@@ -17,6 +17,7 @@ export interface MensajeCitable {
   imageUrl?: string;
   location?: unknown;
   poll?: { question?: unknown } | null;
+  tierList?: { title?: unknown } | null;
 }
 
 /** Cuánto del texto se guarda en la cita. */
@@ -40,6 +41,10 @@ export function fragmentoParaCita(mensaje: MensajeCitable): string {
   if (mensaje.poll) {
     const pregunta = typeof mensaje.poll.question === 'string' ? mensaje.poll.question.trim() : '';
     return pregunta ? `📊 ${pregunta}`.slice(0, MAX_CITA) : '📊 Encuesta';
+  }
+  if (mensaje.tierList) {
+    const titulo = typeof mensaje.tierList.title === 'string' ? mensaje.tierList.title.trim() : '';
+    return titulo ? `🏆 ${titulo}`.slice(0, MAX_CITA) : '🏆 Tier list';
   }
 
   return '';

@@ -31,6 +31,7 @@ import type {
   GroupListing,
   LocationAttachment,
   Poll,
+  TierListRef,
   User,
 } from '../types';
 
@@ -436,14 +437,15 @@ export async function sendChatMessage(
   adjunto?: { imageUrl?: string; location?: LocationAttachment },
   respuesta?: ChatReplyTo | null,
   encuesta?: Poll | null,
+  tier?: TierListRef | null,
 ): Promise<void> {
   const text = body.trim();
 
   // Se puede mandar un mensaje SOLO con un GIF (" responded with a
   // GIF" es un meme tan viejo como los foros), y también solo con una
-  // foto, con una ubicación o con una encuesta. Un mensaje sin texto
-  // y sin nada más sí es vacío y no vale.
-  if (!text && !gif && !adjunto?.imageUrl && !adjunto?.location && !encuesta) return;
+  // foto, con una ubicación, con una encuesta o con una tier list.
+  // Un mensaje sin texto y sin nada más sí es vacío y no vale.
+  if (!text && !gif && !adjunto?.imageUrl && !adjunto?.location && !encuesta && !tier) return;
 
   if (text.length > MAX_BODY) {
     throw new Error(`El mensaje no puede superar los ${MAX_BODY} caracteres.`);
@@ -475,15 +477,17 @@ export async function sendChatMessage(
     // El tipo dice qué se tiene que PINTAR. Lo que va en su sitio es
     // lo que va: un mensaje puede llevar texto Y una ubicación, y el
     // texto sigue siendo texto.
-    type: encuesta
-      ? 'poll'
-      : adjunto?.location
-        ? 'location'
-        : gif
-          ? 'gif'
-          : adjunto?.imageUrl
-            ? 'image'
-            : 'text',
+    type: tier
+      ? 'tier'
+      : encuesta
+        ? 'poll'
+        : adjunto?.location
+          ? 'location'
+          : gif
+            ? 'gif'
+            : adjunto?.imageUrl
+              ? 'image'
+              : 'text',
     ...(gif ? { gif } : {}),
     ...(adjunto?.imageUrl ? { imageUrl: adjunto.imageUrl } : {}),
     ...(adjunto?.location ? { location: adjunto.location } : {}),
@@ -492,6 +496,10 @@ export async function sendChatMessage(
     // (`pollValido`): aquí llega ya normalizada desde el
     // compositor, que es quien enseña los errores al escribir.
     ...(encuesta ? { poll: encuesta } : {}),
+    // La tier list viaja como referencia (id + título): el
+    // contenido vive en su documento. Las reglas exigen forma
+    // válida (`tierRefValida`).
+    ...(tier ? { tierList: { tierListId: tier.tierListId, title: tier.title.slice(0, 160) } } : {}),
     // La cita es una foto fija del citado. Se recorta aquí porque
     // la escribe el cliente y las reglas solo dejan pasar forma y
     // tamaños sanos; la garantía final está allí.
@@ -532,10 +540,16 @@ export async function sendChatMessage(
   // es tuyo.
   try {
     await updateDoc(doc(db, CHATS, chatId), {
-      // Sin texto pero con encuesta, la vista previa enseña la
-      // pregunta: si no, la lista lateral diría "Conversación
-      // vacía" para un mensaje que sí tiene contenido.
-      lastMessage: text || (encuesta ? `📊 ${encuesta.question}` : ''),
+      // Sin texto pero con encuesta o tier list, la vista previa
+      // enseña de qué va: si no, la lista lateral diría
+      // "Conversación vacía" para un mensaje con contenido.
+      lastMessage:
+        text ||
+        (tier
+          ? `🏆 ${tier.title}`
+          : encuesta
+            ? `📊 ${encuesta.question}`
+            : ''),
       lastMessageAt: serverTimestamp(),
       lastMessageSenderId: sender.uid,
     });

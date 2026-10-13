@@ -41,6 +41,7 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
+  Trophy,
 } from 'lucide-react';
 
 import { textoDeNuevos } from '../../utils/chatLectura';
@@ -73,6 +74,19 @@ import { ClubChannelRail } from './ClubChannelRail';
 import { ClubChannelModal } from './ClubChannelModal';
 import { canalesVisibles } from '../../services/canales';
 import { ChatPollCard } from './ChatPollCard';
+import { ChatTierCard } from '../tierlists/ChatTierCard';
+import { TierListEditor } from '../tierlists/TierListEditor';
+import { TierListViewer } from '../tierlists/TierListViewer';
+import {
+  crearTierList,
+  getTierList,
+  guardarEdicionTierList,
+  subscribeMisTierLists,
+  type TierResult,
+} from '../../services/tierlists';
+import { borradorDesdeDoc } from '../../utils/tierlists';
+import type { EditorDraft } from '../../utils/tierlists';
+import type { TierList, TierListRef } from '../../types';
 import { PollComposer, POLL_VACIO, draftANewPoll, type PollDraft } from '../community/PollComposer';
 import { normalizarPoll } from '../../services/polls';
 import { CLUB_CATEGORIES } from '../../types';
@@ -386,6 +400,40 @@ export const ChatView: React.FC = () => {
   const [encuestaBorrador, setEncuestaBorrador] = useState<PollDraft | null>(null);
   const [errorEncuesta, setErrorEncuesta] = useState<string | undefined>(undefined);
 
+  // ── Tier lists en el chat ─────────────────────────────
+  //
+  // `tierAdjunta` viaja con el próximo mensaje (como la
+  // encuesta). El selector ofrece crear una nueva o elegir
+  // una propia; el visor y el editor son modales que no
+  // desmontan la conversación.
+  const [tierAdjunta, setTierAdjunta] = useState<TierListRef | null>(null);
+  const [selectorTierAbierto, setSelectorTierAbierto] = useState(false);
+  const [misTiers, setMisTiers] = useState<TierList[]>([]);
+  const [editorTierChat, setEditorTierChat] = useState<{
+    modo: 'nuevo' | 'editar';
+    initial?: Partial<EditorDraft>;
+    originId?: string;
+    originTitle?: string;
+    tierListId?: string;
+    clubId?: string;
+    clubName?: string;
+  } | null>(null);
+  const [visorTierId, setVisorTierId] = useState<string | null>(null);
+
+  // Mis tier lists, solo mientras el selector está abierto:
+  // fuera de él no hace falta ninguna suscripción.
+  useEffect(() => {
+    if (!selectorTierAbierto || !currentUser) {
+      setMisTiers([]);
+      return;
+    }
+    return subscribeMisTierLists(
+      currentUser.uid,
+      (tiers) => setMisTiers(tiers),
+      () => setMisTiers([]),
+    );
+  }, [selectorTierAbierto, currentUser]);
+
   // Solo quien creó el grupo puede añadir o expulsar miembros.
   const isGroupOwner =
     !!activeRoom && activeRoom.type === 'group' && activeRoom.ownerId === currentUser?.uid;
@@ -641,6 +689,10 @@ export const ChatView: React.FC = () => {
     setEncuestaBorrador(null);
     setErrorEncuesta(undefined);
     setCodeError(null);
+    // La tier list adjunta también es por conversación: si no,
+    // se enviaría al chat equivocado al cambiar rápido.
+    setTierAdjunta(null);
+    setSelectorTierAbierto(false);
   }, [activeRoomId]);
 
   // Abrir la conversación que pide la URL (`?tab=chats&chat=...`).
@@ -740,6 +792,38 @@ export const ChatView: React.FC = () => {
    *
    * @param {LocationAttachment} [ubicacion] el punto a mandar
    */
+  /**
+   * Guarda desde el editor de tier lists del chat (crear o editar).
+   *
+   * El club del chat abierto decide la visibilidad por defecto;
+   * el editor la enseña y el autor puede cambiarla.
+   */
+  const guardarTierListChat = async (
+    datos: EditorDraft & { originId?: string; originTitle?: string; clubId?: string },
+  ): Promise<TierResult> => {
+    if (!currentUser) return { ok: false, error: 'Debes iniciar sesión.' };
+    if (editorTierChat?.modo === 'editar' && editorTierChat.tierListId) {
+      return guardarEdicionTierList(editorTierChat.tierListId, datos);
+    }
+    return crearTierList(currentUser, {
+      ...datos,
+      originId: editorTierChat?.originId,
+      originTitle: editorTierChat?.originTitle,
+      clubId: editorTierChat?.clubId,
+    });
+  };
+
+  const trasGuardarTierChat = async (tierListId: string) => {
+    // La recién creada queda adjunta al mensaje siguiente.
+    try {
+      const tier = await getTierList(tierListId);
+      if (tier) setTierAdjunta({ tierListId, title: tier.title });
+    } catch (e) {
+      console.error('[Chats] No se pudo leer la tier list creada:', e);
+    }
+    setSelectorTierAbierto(false);
+  };
+
   const enviar = (ubicacion?: LocationAttachment) => {
     const sitio = ubicacion ?? null;
     const gif = ubicacion ? null : chatGif;
@@ -760,15 +844,17 @@ export const ChatView: React.FC = () => {
       }
     }
 
-    // Texto, GIF, foto, ubicación o encuesta: un mensaje sin texto
-    // es válido si lleva cualquiera de los adjuntos, y uno sin
-    // nada no se envía.
+    // Texto, GIF, foto, ubicación, encuesta o tier list: un
+    // mensaje sin texto es válido si lleva cualquiera de los
+    // adjuntos, y uno sin nada no se envía.
+    const tier = !ubicacion ? tierAdjunta : null;
     const hayAlgo =
       Boolean(inputText.trim()) ||
       Boolean(gif) ||
       Boolean(foto) ||
       Boolean(sitio) ||
-      encuesta !== null;
+      encuesta !== null ||
+      tier !== null;
 
     if (!activeRoomId || !hayAlgo) return;
 
@@ -787,7 +873,7 @@ export const ChatView: React.FC = () => {
     sendMessage(activeRoomId, inputText, gif ?? undefined, {
       ...(foto ? { imageUrl: foto } : {}),
       ...(sitio ? { location: sitio } : {}),
-    }, respuesta, encuesta);
+    }, respuesta, encuesta, tier);
 
     setInputText('');
     setCitaA(null);
@@ -796,6 +882,11 @@ export const ChatView: React.FC = () => {
     if (encuesta) {
       setEncuestaBorrador(null);
       setErrorEncuesta(undefined);
+    }
+    // Igual con la tier list adjunta: una vez enviada, fuera.
+    if (tier) {
+      setTierAdjunta(null);
+      setSelectorTierAbierto(false);
     }
 
     // Lo que no se ha mandado no se borra: si la ubicación se ha
@@ -2720,6 +2811,16 @@ export const ChatView: React.FC = () => {
                             />
                           )}
 
+                          {/* Tier list del mensaje. Tarjeta compacta
+                              fuera de la burbuja, como la encuesta:
+                              la vista completa se abre en el visor. */}
+                          {msg.tierList && (
+                            <ChatTierCard
+                              referencia={msg.tierList}
+                              onAbrir={(id) => setVisorTierId(id)}
+                            />
+                          )}
+
                           {/* Reacciones del mensaje */}
                           <ReactionBar
                             compacta
@@ -3186,6 +3287,96 @@ export const ChatView: React.FC = () => {
                   </div>
                 )}
 
+                {/* Tier list del próximo mensaje. Adjunta una ya
+                    creada o abre el editor para hacer una nueva. Un
+                    mensaje puede ser SOLO la tier list. */}
+                {tierAdjunta && !editando && (
+                  <div className="mb-2 flex items-center gap-2 rounded-xl border border-violet-500/40 bg-violet-950/30 px-3 py-2">
+                    <Trophy size={13} className="flex-shrink-0 text-violet-400" />
+                    <span className="min-w-0 flex-1 truncate text-[11px] font-bold text-white">
+                      {tierAdjunta.title}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setTierAdjunta(null)}
+                      aria-label="Quitar la tier list"
+                      className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Selector: crear una nueva o elegir una propia. */}
+                {selectorTierAbierto && !editando && (
+                  <div className="mb-2 space-y-2 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 text-[11px] font-bold text-white">
+                        <Trophy size={13} className="text-violet-400" />
+                        Compartir tier list
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectorTierAbierto(false)}
+                        aria-label="Cerrar el selector"
+                        className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!currentUser) return;
+                        const club =
+                          activeRoom?.type === 'club' ? clubDelChat : null;
+                        setSelectorTierAbierto(false);
+                        setEditorTierChat({
+                          modo: 'nuevo',
+                          ...(club
+                            ? { clubId: club.id, clubName: club.name }
+                            : {}),
+                        });
+                      }}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-violet-600 px-3 py-2 text-[11px] font-bold text-white transition-colors hover:bg-violet-500"
+                    >
+                      <Plus size={13} />
+                      Crear una nueva
+                    </button>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                      Mis tier lists
+                    </p>
+                    {misTiers.length === 0 ? (
+                      <p className="text-[11px] text-zinc-600">
+                        Aún no tienes ninguna. Crea la primera arriba.
+                      </p>
+                    ) : (
+                      <ul className="max-h-44 space-y-1.5 overflow-y-auto">
+                        {misTiers.map((t) => (
+                          <li
+                            key={t.id}
+                            className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-2.5 py-1.5"
+                          >
+                            <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-zinc-200">
+                              {t.title}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTierAdjunta({ tierListId: t.id, title: t.title });
+                                setSelectorTierAbierto(false);
+                              }}
+                              className="flex-shrink-0 rounded-lg bg-zinc-800 px-2.5 py-1 text-[10px] font-bold text-zinc-200 transition-colors hover:bg-violet-600 hover:text-white"
+                            >
+                              Adjuntar
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
                 
         {/* Con "flex-wrap" los dos botones pasan a una columna en
             pantallas estrechas. Sin esto, a 390px se quedaban sin
@@ -3275,6 +3466,24 @@ export const ChatView: React.FC = () => {
                     <BarChart3 size={17} />
                   </button>
 
+                  {/* Tier list: abre el selector encima de la caja
+                      (crear o elegir una propia). En edición no
+                      aplica, igual que la encuesta. */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectorTierAbierto((v) => !v)}
+                    disabled={!!editando}
+                    aria-label="Adjuntar una tier list al mensaje"
+                    title="Adjuntar una tier list"
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+                      tierAdjunta || selectorTierAbierto
+                        ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
+                        : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300'
+                    } disabled:opacity-40`}
+                  >
+                    <Trophy size={17} />
+                  </button>
+
                   <button
                     type="submit"
                     disabled={
@@ -3288,7 +3497,8 @@ export const ChatView: React.FC = () => {
                           !(
                             encuestaBorrador &&
                             borradorConContenido(encuestaBorrador)
-                          ))
+                          ) &&
+                          !tierAdjunta)
                     }
                     aria-label={editando ? 'Guardar edición' : 'Enviar mensaje'}
                     className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600 text-white hover:bg-violet-500 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-md shadow-violet-600/30"
@@ -3494,6 +3704,54 @@ export const ChatView: React.FC = () => {
               ordenSugerido={canalesVisiblesLista.length}
               onCreado={(id) => setCanalActivoId(id)}
               onClose={() => setModalCanal(null)}
+            />
+          )}
+
+          {/* ── VISOR DE TIER LIST ──────────────────────────
+              Modal por encima del chat: al cerrarlo, la
+              conversación sigue donde estaba. */}
+          {visorTierId && (
+            <TierListViewer
+              tierListId={visorTierId}
+              onUsarPlantilla={(tier) => {
+                setVisorTierId(null);
+                const club =
+                  activeRoom?.type === 'club' ? clubDelChat : null;
+                setEditorTierChat({
+                  modo: 'nuevo',
+                  initial: {
+                    ...borradorDesdeDoc(tier),
+                    title: `Mi versión: ${tier.title}`.slice(0, 80),
+                  },
+                  originId: tier.id,
+                  originTitle: tier.title,
+                  ...(club ? { clubId: club.id, clubName: club.name } : {}),
+                });
+              }}
+              onEditar={(tier) => {
+                setVisorTierId(null);
+                setEditorTierChat({
+                  modo: 'editar',
+                  tierListId: tier.id,
+                  initial: borradorDesdeDoc(tier),
+                });
+              }}
+              onClose={() => setVisorTierId(null)}
+            />
+          )}
+
+          {/* ── EDITOR DE TIER LISTS ──────────────────────── */}
+          {editorTierChat && (
+            <TierListEditor
+              modo={editorTierChat.modo}
+              initial={editorTierChat.initial}
+              originId={editorTierChat.originId}
+              originTitle={editorTierChat.originTitle}
+              clubId={editorTierChat.clubId}
+              clubName={editorTierChat.clubName}
+              onGuardar={guardarTierListChat}
+              onGuardado={trasGuardarTierChat}
+              onClose={() => setEditorTierChat(null)}
             />
           )}
         </div>

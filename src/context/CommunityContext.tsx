@@ -27,6 +27,7 @@ import {
 
 import { mergeCategories } from '../data/animeCategories';
 
+import type { ImageDims } from '../utils/imagenes';
 import {
   Anime,
   CategoryItem,
@@ -41,10 +42,9 @@ import {
   ReactionType,
   Season,
   Thread,
+  TierListRef,
   TriviaExtra,
 } from '../types';
-
-import type { ImageDims } from '../utils/imagenes';
 
 import { useAuth } from './AuthContext';
 
@@ -79,6 +79,8 @@ export interface CommunityContextType {
     poll?: NewPollInput,
     /** Dimensiones de la imagen, medidas al subir. */
     imageDims?: ImageDims | null,
+    /** Tier list adjunta (solo referencia). */
+    tierList?: TierListRef | null,
   ) => Promise<boolean>;
 
   deleteThread: (threadId: string) => Promise<boolean>;
@@ -385,6 +387,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       imageUrl?: string,
       poll?: NewPollInput,
       imageDims?: ImageDims | null,
+      tierList?: TierListRef | null,
     ): Promise<boolean> => {
       if (!currentUser) {
         requireAuth('crear un hilo en la comunidad');
@@ -408,6 +411,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           imageUrl,
           poll,
           imageDims,
+          tierList,
         });
         return true;
       } catch (e) {

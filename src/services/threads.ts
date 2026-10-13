@@ -16,7 +16,7 @@ import { db } from '../lib/firebase';
 import { toggleLike, type WithId } from './firestoreUtils';
 import { normalizarPoll } from './polls';
 import { dimsValidas, type ImageDims } from '../utils/imagenes';
-import type { NewPollInput, Poll, Thread } from '../types';
+import type { NewPollInput, Poll, Thread, TierListRef } from '../types';
 
 // ======================================================
 // HILOS DEL FORO
@@ -49,6 +49,8 @@ export interface NewThreadInput {
    * imagen se sirve igual, sin reserva.
    */
   imageDims?: ImageDims | null;
+  /** Tier list adjunta (solo referencia: vive en su documento). */
+  tierList?: TierListRef | null;
   /**
    * Encuesta opcional.
    *
@@ -119,6 +121,15 @@ export async function createThread(input: NewThreadInput): Promise<string> {
     }
   }
 
+  // La tier list viaja como referencia (id + título): el
+  // contenido vive en su documento y se lee al pintar.
+  if (input.tierList) {
+    payload.tierList = {
+      tierListId: input.tierList.tierListId,
+      title: input.tierList.title.slice(0, 160),
+    };
+  }
+
   // La encuesta se escribe DENTRO del hilo, en el mismo lote. Si
   // fuera un documento aparte, un fallo entre medias dejaría un
   // hilo con una encuesta a la que no apunta nadie (o al revés,
@@ -147,6 +158,23 @@ export async function createThread(input: NewThreadInput): Promise<string> {
 
 export async function toggleThreadLike(threadId: string, uid: string): Promise<boolean> {
   return toggleLike(doc(db, THREADS, threadId), uid, 'likesCount');
+}
+
+/**
+ * Adjunta (o cambia) la tier list de un hilo propio ya publicado.
+ *
+ * Solo la referencia: las reglas solo dejan tocar `tierList`
+ * al autor, y el contenido sigue en su documento.
+ */
+export async function adjuntarTierList(
+  threadId: string,
+  ref: TierListRef | null,
+): Promise<void> {
+  await updateDoc(doc(db, THREADS, threadId), {
+    tierList: ref
+      ? { tierListId: ref.tierListId, title: ref.title.slice(0, 160) }
+      : null,
+  });
 }
 
 export interface EditThreadInput {
