@@ -3437,7 +3437,16 @@ async function contarMotivosDelLibro(
  * (`thread_created_x`, `like_thread_y_z`), asi que si se repite
  * sobre un usuario al que ya se le concedio, no vuelve a pagar.
  */
-export const recalcularUsuario = onCall(async (request) => {
+export const recalcularUsuario = onCall(
+  // Recalcular recorre TODO el contenido de una persona (hilos,
+  // comentarios, likes, seguidores, clubes, mensajes...), con
+  // lecturas secuenciales. Con 60 s (el defecto) una cuenta
+  // activa muere a mitad sin dejar rastro útil: el cliente ve
+  // un error de plazo y los contadores quedan a medias. 5 min y
+  // memoria de sobra para un botón que pulsa un admin de vez
+  // en cuando.
+  { timeoutSeconds: 300, memory: '512MiB' },
+  async (request) => {
   const adminUid = await exigirAdmin(request.auth);
 
   const uid = typeof request.data?.uid === 'string' ? request.data.uid : '';
@@ -3806,9 +3815,87 @@ export const recalcularUsuario = onCall(async (request) => {
     likesReceived,
   });
 
-  logger.info('Recalculo terminado', { objetivo: uid, concedidas, omitidas });
+  // ── Concesión final de medallas ──────────────────────
+  //
+  // ESTO es lo que faltaba y por lo que recalcular no daba
+  // medallas: el recorrido de arriba solo evalúa medallas al
+  // PAGAR algo nuevo (`concederXP`), y el recuento solo
+  // escribe números. Quien ya lo tenía todo pagado (o pagado
+  // con contadores clavados) se quedaba con los números
+  // corregidos pero sin las medallas que esos números dan.
+  //
+  // Se lee el documento recién escrito y se evalúa todo el
+  // catálogo una vez. `medallasNuevas` ya filtra las que
+  // estaban: solo entran las que faltan, con su fecha, y se
+  // avisa una sola vez. Idempotente por construcción: repetir
+  // el recálculo no duplica nada.
+  const frescoSnap = await db.doc(`${USERS}/${uid}`).get();
+  let medallasPorRecuento = 0;
+  if (frescoSnap.exists) {
+    const fd = frescoSnap.data() ?? {};
+    const fx = num(fd.xp);
+    const fnivel = nivelDesdeXp(fx, {
+      base: config.base,
+      exponente: config.exponente,
+      nivelesMaximos: config.nivelesMaximos,
+    });
+    const fest = leerEstadisticas(fd);
+    const fya =
+      fd.medals && typeof fd.medals === 'object'
+        ? (fd.medals as Record<string, unknown>)
+        : {};
+    const noVacioFinal = (v: unknown): boolean =>
+      typeof v === 'string' && v.trim().length > 0;
+    const faltantes = medallasNuevas(fest, fnivel.level, fya, config.animeMedallas, fx, {
+      antiguedadDias: diasDesde(fd.createdAt, Date.now()),
+      perfilCompleto:
+        noVacioFinal(fd.displayName) && noVacioFinal(fd.bio) && noVacioFinal(fd.avatarUrl),
+      perfilCustom: tieneCustom(fd),
+    });
 
-  return { concedidas, omitidas };
+    if (faltantes.length > 0) {
+      const medals = { ...fya };
+      faltantes.forEach((id) => {
+        medals[id] = ahoraIso();
+      });
+      await db.doc(`${USERS}/${uid}`).update({ medals });
+      medallasPorRecuento = faltantes.length;
+
+      logger.info('Medallas concedidas por recuento', {
+        objetivo: uid,
+        medallas: faltantes,
+      });
+
+      try {
+        const mejor = faltantes[0];
+        const nombre = NOMBRES_DE_MEDALLA[mejor] ?? mejor;
+        await notificar({
+          id: `achievement_${uid}_${mejor}`,
+          type: 'achievement',
+          recipientId: uid,
+          actorId: uid,
+          actorName: '',
+          actorAvatar: '',
+          medalId: mejor,
+          medalName: nombre,
+          title: `Has desbloqueado la medalla "${nombre}"`,
+        });
+      } catch (e) {
+        logger.error('Fallo notificando medalla de recuento', { objetivo: uid, error: e });
+      }
+    } else {
+      logger.info('Sin medallas pendientes tras el recuento', { objetivo: uid });
+    }
+  }
+
+  logger.info('Recalculo terminado', {
+    objetivo: uid,
+    concedidas,
+    omitidas,
+    medallasPorRecuento,
+  });
+
+  return { concedidas, omitidas, medallasPorRecuento };
 });
 
 

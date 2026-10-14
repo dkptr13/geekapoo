@@ -352,11 +352,15 @@ export async function concederMedallaAdmin(
  */
 export async function recalcular(
   uid: string,
-): Promise<{ concedidas: number; omitidas: number }> {
-  const llamar = httpsCallable<{ uid: string }, { concedidas: number; omitidas: number }>(
-    functions,
-    'recalcularUsuario',
-  );
+): Promise<{ concedidas: number; omitidas: number; medallasPorRecuento?: number }> {
+  // El recálculo recorre todo el contenido y puede tardar
+  // minutos: el plazo del cliente (60 s por defecto) cortaría
+  // antes que el servidor (5 min) y parecería un fallo aunque
+  // el trabajo siguiera y terminara detrás.
+  const llamar = httpsCallable<
+    { uid: string },
+    { concedidas: number; omitidas: number; medallasPorRecuento?: number }
+  >(functions, 'recalcularUsuario', { timeout: 300000 });
   const res = await llamar({ uid });
   return res.data;
 }

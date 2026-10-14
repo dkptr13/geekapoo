@@ -758,7 +758,11 @@ export const GamificationSection: React.FC = () => {
               onClick={async () => {
                 await accionRecalculo.ejecutar(async () => {
                   const r = await recalcular(recalculoUid);
-                  return `Concedidas ${r.concedidas}, omitidas ${r.omitidas}.`;
+                  const medallas =
+                    r.medallasPorRecuento != null && r.medallasPorRecuento > 0
+                      ? ` Medallas concedidas por recuento: ${r.medallasPorRecuento}.`
+                      : '';
+                  return `Concedidas ${r.concedidas}, omitidas ${r.omitidas}.${medallas}`;
                 });
               }}
               className="flex items-center gap-2 rounded-xl border border-violet-500/40 bg-violet-600/15 px-4 py-2 text-xs font-bold text-violet-300 transition-colors hover:bg-violet-600/25 disabled:opacity-50"
