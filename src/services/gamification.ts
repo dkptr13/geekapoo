@@ -352,15 +352,33 @@ export async function concederMedallaAdmin(
  */
 export async function recalcular(
   uid: string,
-): Promise<{ concedidas: number; omitidas: number; medallasPorRecuento?: number }> {
+): Promise<{ concedidas: number; omitidas: number; medallasPorRecuento?: number; fases?: Record<string, string> }> {
   // El recálculo recorre todo el contenido y puede tardar
   // minutos: el plazo del cliente (60 s por defecto) cortaría
   // antes que el servidor (5 min) y parecería un fallo aunque
   // el trabajo siguiera y terminara detrás.
   const llamar = httpsCallable<
     { uid: string },
-    { concedidas: number; omitidas: number; medallasPorRecuento?: number }
+    { concedidas: number; omitidas: number; medallasPorRecuento?: number; fases?: Record<string, string> }
   >(functions, 'recalcularUsuario', { timeout: 300000 });
-  const res = await llamar({ uid });
-  return res.data;
+  try {
+    const res = await llamar({ uid });
+    if (res.data.fases) {
+      const fallos = Object.entries(res.data.fases).filter(([, v]) => v !== 'ok');
+      if (fallos.length > 0) {
+        console.warn('[Gamificacion] Recalculo con fases fallidas:', Object.fromEntries(fallos));
+      } else {
+        console.info('[Gamificacion] Recalculo ok:', res.data.fases);
+      }
+    }
+    return res.data;
+  } catch (e) {
+    // El 500 mudo de antes: si el servidor responde INTERNAL sin
+    // `fases`, aquí se normaliza a un texto con el código para que
+    // el panel no enseñe solo "internal". Con el servidor ya
+    // parcheado, este catch casi no se toca: las fases fallidas
+    // llegan como 200 con `fases.<nombre> = mensaje`.
+    console.error('[Gamificacion] Fallo recalculando:', e);
+    throw e;
+  }
 }

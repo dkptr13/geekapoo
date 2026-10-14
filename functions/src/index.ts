@@ -3462,6 +3462,28 @@ export const recalcularUsuario = onCall(
 
   logger.info('Recalculando progreso', { objetivo: uid, por: adminUid });
 
+  // ── Fases aisladas con diagnóstico ───────────────────
+  //
+  // Cada fase corre en su propio try/catch y deja constancia
+  // de si pasó o con qué mensaje falló. Si un documento raro
+  // tumba una fase, las demás siguen y la respuesta dice CUÁL
+  // falló, en vez de un INTERNAL mudo que no dice nada. Todo
+  // lo que se escribe aquí es idempotente (libro mayor,
+  // recuentos absolutos, merges por clave, medallas ya
+  // filtradas), así que reintentarlo no duplica nada.
+  const fases: Record<string, string> = {};
+  const paso = async (nombre: string, fn: () => Promise<void>): Promise<void> => {
+    try {
+      await fn();
+      fases[nombre] = 'ok';
+      logger.info(`Recalculo: fase ${nombre} ok`, { objetivo: uid });
+    } catch (e) {
+      const mensaje = e instanceof Error ? e.message : String(e);
+      fases[nombre] = mensaje.slice(0, 300);
+      logger.error(`Recalculo: fase ${nombre} fallo`, { objetivo: uid, error: e });
+    }
+  };
+
   // Se recogen los ids del libro mayor de una vez, en vez de
   // comprobar documento a documento: son muchos, y asi se sabe de
   // antemano que ya estaba concedido.
@@ -3471,22 +3493,25 @@ export const recalcularUsuario = onCall(
   // del limite de 1 MB que tiene una lectura de Firestore.
   const concedidos = new Set<string>();
   const userRef = db.doc(`${USERS}/${uid}`);
-  let ultimaPagina: FirebaseFirestore.QueryDocumentSnapshot | null = null;
 
-  for (;;) {
-    let consulta = userRef.collection(LEDGER).orderBy(FieldPath.documentId()).limit(500);
-    if (ultimaPagina) consulta = consulta.startAfter(ultimaPagina);
+  await paso('libro', async () => {
+    let ultimaPagina: FirebaseFirestore.QueryDocumentSnapshot | null = null;
 
-    const page = await consulta.get();
-    page.docs.forEach((d) => concedidos.add(d.id));
+    for (;;) {
+      let consulta = userRef.collection(LEDGER).orderBy(FieldPath.documentId()).limit(500);
+      if (ultimaPagina) consulta = consulta.startAfter(ultimaPagina);
 
-    if (page.docs.length < 500) break;
-    ultimaPagina = page.docs[page.docs.length - 1];
-  }
+      const page = await consulta.get();
+      page.docs.forEach((d) => concedidos.add(d.id));
 
-  logger.info('El usuario ya tiene estas recompensas', {
-    objetivo: uid,
-    total: concedidos.size,
+      if (page.docs.length < 500) break;
+      ultimaPagina = page.docs[page.docs.length - 1];
+    }
+
+    logger.info('El usuario ya tiene estas recompensas', {
+      objetivo: uid,
+      total: concedidos.size,
+    });
   });
 
   let concedidas = 0;
@@ -3525,8 +3550,13 @@ export const recalcularUsuario = onCall(
   };
 
   // ── Hilos ─────────────────────────────────────────────
-  const hilos = await db.collection(THREADS).where('authorId', '==', uid).get();
-  for (const doc of hilos.docs) {
+  // Los documentos se guardan para la fase de encuestas, que
+  // mira cuáles traían `poll` sin volver a leerlos.
+  let hilosDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+  await paso('hilos', async () => {
+    const hilos = await db.collection(THREADS).where('authorId', '==', uid).get();
+    hilosDocs = hilos.docs;
+    for (const doc of hilos.docs) {
     // Antes de mirar el libro mayor: el hilo cuenta aunque su XP ya
     // estuviera pagado hace meses.
     recuento.threadsCreated += 1;
@@ -3557,9 +3587,11 @@ export const recalcularUsuario = onCall(
         { threadsCreated: 1 },
       ),
     );
-  }
+    }
+  });
 
   // ── Comentarios ───────────────────────────────────────
+  await paso('comentarios', async () => {
   const comentarios = await db
     .collection(COMMENTS)
     .where('authorId', '==', uid)
@@ -3602,6 +3634,7 @@ export const recalcularUsuario = onCall(
       ),
     );
   }
+  });
 
   // ── "Me gusta" recibidos ─────────────────────────────
   //
@@ -3609,6 +3642,7 @@ export const recalcularUsuario = onCall(
   // XP de un "Me gusta" se lo lleva quien ha escrito, no quien ha
   // pulsado el corazon. Por eso se filtran las colecciones enteras
   // por "authorId" y no por "likedBy".
+  await paso('likes', async () => {
   for (const coleccion of [THREADS, COMMENTS]) {
     const motivo = recompensaDeLike(coleccion);
     if (!motivo) continue;
@@ -3655,6 +3689,7 @@ export const recalcularUsuario = onCall(
       }
     }
   }
+  });
 
   // ── Seguidores ────────────────────────────────────────
   //
@@ -3667,6 +3702,7 @@ export const recalcularUsuario = onCall(
   // recalculo pagaria de mas a quien ya lo cobró en su momento, y
   // `followersReceived` (que es un maximo, no una suma) se
   // actualiza igualmente con `Math.max` dentro de `concederXP`.
+  await paso('seguidores', async () => {
   const seguidores = await db.collection(USERS).doc(uid).collection(FOLLOWERS).get();
   const cuantos = seguidores.size;
 
@@ -3692,6 +3728,7 @@ export const recalcularUsuario = onCall(
       );
     }
   }
+  });
 
   // ── Recontar los contadores ─────────────────────────────
   //
@@ -3709,27 +3746,66 @@ export const recalcularUsuario = onCall(
   // Que se escriba siempre, y no solo cuando ha cambiado, es a
   // propósito: el botón de recalcular del panel tiene que servir
   // también para esto, y no solo para pagar lo que faltaba.
-  const likesReceived = await contarMotivosDelLibro(uid, MOTIVOS_DE_LIKE);
+  // ── Recontar los contadores ─────────────────────────────
+  //
+  // Esta es la parte que arregla de verdad el fallo. El recorrido
+  // anterior paga lo que falta, pero los contadores que se habían
+  // quedado clavados no se arreglan reproduciéndolo: los hechos que
+  // los dejaron en 1 ya están en el libro mayor, así que el recorrido
+  // se los salta y nunca vuelven a pasar por la línea que los suma.
+  //
+  // Por eso aquí no se vuelve a conceder nada: se escribe el número
+  // que sale de contar el contenido. Es un valor ABSOLUTO, no un
+  // incremento, y por eso va directo al documento y no por
+  // `concederXP`, que lo sumaría encima de lo que ya hubiera.
+  //
+  // Que se escriba siempre, y no solo cuando ha cambiado, es a
+  // propósito: el botón de recalcular del panel tiene que servir
+  // también para esto, y no solo para pagar lo que faltaba.
+  //
+  // ── UNA FASE POR FUENTE, NO UNA SOLA ───────────────────
+  //
+  // Antes todo esto era un único `paso('recuento')`. El problema:
+  // si una sola fuente fallaba (un `collectionGroup` sin índice,
+  // un documento con forma rara), la fase entera se marcaba como
+  // fallida y no se sabía si los contadores se habían escrito o
+  // no. Peor: en producción desplegada sin este aislamiento, ese
+  // mismo fallo era un 500 mudo en el cliente.
+  //
+  // Ahora cada fuente tiene su fase: `recuento-contadores` escribe
+  // los 4 números sí o sí; `recuento-clubes`, `recuento-canales`,
+  // `recuento-mensajes`, `recuento-tiers` y `recuento-marcas`
+  // solo AÑADEN claves. Si una falla, las demás siguen y `fases`
+  // dice cuál fue.
+  await paso('recuento-contadores', async () => {
+    const likesReceived = await contarMotivosDelLibro(uid, MOTIVOS_DE_LIKE);
 
-  // ── CON RUTAS DE CAMPO, Y NO CON EL MAPA ENTERO ─────────
-  //
-  // Esto parece un detalle y no lo es. Si se escribiera
-  // `update({ stats: { ...recuento, likesReceived } })`, el resultado
-  // dependeria de como interpreta la API los mapas anidados en un
-  // `update`: si los MERGEA, se pierde lo de al lado; si los REEMPLAZA,
-  // desaparecen `animeXp`, los cuatro contadores de trivia y
-  // `followersReceived`, y el admin que pulsa "recalcular" le acaba de
-  // borrar el progreso a un usuario sin que salga ningun aviso.
-  //
-  // Con rutas de campo no hay interpretacion que discutir: se
-  // escriben esas cuatro hojas y punto. Lo demas se queda como estaba,
-  // que es lo unico aceptable en un boton que el panel presenta como
-  // "recalcular lo que ya tienes".
-  await db.doc(`${USERS}/${uid}`).update({
-    'stats.threadsCreated': recuento.threadsCreated,
-    'stats.commentsCreated': recuento.commentsCreated,
-    'stats.commentsInThreads': recuento.commentsInThreads,
-    'stats.likesReceived': likesReceived,
+    // ── CON RUTAS DE CAMPO, Y NO CON EL MAPA ENTERO ─────────
+    //
+    // Esto parece un detalle y no lo es. Si se escribiera
+    // `update({ stats: { ...recuento, likesReceived } })`, el resultado
+    // dependeria de como interpreta la API los mapas anidados en un
+    // `update`: si los MERGEA, se pierde lo de al lado; si los REEMPLAZA,
+    // desaparecen `animeXp`, los cuatro contadores de trivia y
+    // `followersReceived`, y el admin que pulsa "recalcular" le acaba de
+    // borrar el progreso a un usuario sin que salga ningun aviso.
+    //
+    // Con rutas de campo no hay interpretacion que discutir: se
+    // escriben esas cuatro hojas y punto. Lo demas se queda como estaba,
+    // que es lo unico aceptable en un boton que el panel presenta como
+    // "recalcular lo que ya tienes".
+    await db.doc(`${USERS}/${uid}`).update({
+      'stats.threadsCreated': recuento.threadsCreated,
+      'stats.commentsCreated': recuento.commentsCreated,
+      'stats.commentsInThreads': recuento.commentsInThreads,
+      'stats.likesReceived': likesReceived,
+    });
+
+    logger.info('Contadores recalculados desde el contenido', {
+      objetivo: uid,
+      ...recuento,
+      likesReceived,
+    });
   });
 
   // ── Mapas de comunidad: MERGE, nunca reemplazo ───────
@@ -3746,73 +3822,86 @@ export const recalcularUsuario = onCall(
   // antigüedad no necesita nada: se calcula de `createdAt` al
   // evaluar, y el perfil se evalúa en cada concesión.
 
-  // Clubes creados y clubes donde está.
-  const clubesPropios = await db.collection(CLUBS).where('ownerId', '==', uid).get();
-  for (const doc of clubesPropios.docs) {
-    marcarRecalculo('stats.clubesCreados', doc.id);
-    marcarRecalculo('stats.clubesUnidos', doc.id);
-  }
-  const clubesMiembro = await db
-    .collection(CLUBS)
-    .where('memberIds', 'array-contains', uid)
-    .get();
-  for (const doc of clubesMiembro.docs) {
-    marcarRecalculo('stats.clubesUnidos', doc.id);
-  }
-
-  // Canales creados (subcolección: grupo de colección).
-  const canales = await db
-    .collectionGroup(CHANNELS)
-    .where('createdBy', '==', uid)
-    .get();
-  for (const doc of canales.docs) {
-    marcarRecalculo('stats.canalesCreados', doc.id);
-  }
-
-  // Conversaciones donde ha escrito (acotado: solo alimenta un
-  // mapa, y con mil mensajes sobra para cualquier medalla).
-  const mensajes = await db
-    .collectionGroup('messages')
-    .where('senderId', '==', uid)
-    .limit(1000)
-    .get();
-  for (const doc of mensajes.docs) {
-    const chatId = doc.ref.parent.parent?.id;
-    if (chatId) marcarRecalculo('stats.chatsPropios', chatId);
-  }
-
-  // Tier lists creadas, y las que llegaron a populares (mismo
-  // umbral que el trigger: votantes distintos en `votes`).
-  const umbralRecalculo = Math.max(
-    1,
-    num((await leerConfig()).votosTierPopular ?? 10),
-  );
-  const tiers = await db.collection(TIERLISTS).where('authorId', '==', uid).get();
-  for (const doc of tiers.docs) {
-    marcarRecalculo('stats.tiersCreadas', doc.id);
-    const votos = await doc.ref.collection('votes').limit(umbralRecalculo + 1).get();
-    if (new Set(votos.docs.map((v) => v.id)).size >= umbralRecalculo) {
-      marcarRecalculo('stats.tiersPopularesIds', doc.id);
+  await paso('recuento-clubes', async () => {
+    // Clubes creados y clubes donde está.
+    const clubesPropios = await db.collection(CLUBS).where('ownerId', '==', uid).get();
+    for (const doc of clubesPropios.docs) {
+      marcarRecalculo('stats.clubesCreados', doc.id);
+      marcarRecalculo('stats.clubesUnidos', doc.id);
     }
-  }
-
-  // Hilos creados CON encuesta (el bucle de hilos de arriba no la
-  // miraba: aquí solo se marcan, el XP ya está pagado o contado).
-  for (const doc of hilos.docs) {
-    const poll = doc.data()?.poll;
-    if (poll && typeof poll === 'object') {
-      marcarRecalculo('stats.encuestasCreadas', doc.id);
+    const clubesMiembro = await db
+      .collection(CLUBS)
+      .where('memberIds', 'array-contains', uid)
+      .get();
+    for (const doc of clubesMiembro.docs) {
+      marcarRecalculo('stats.clubesUnidos', doc.id);
     }
-  }
+  });
 
-  if (Object.keys(marcasRecalculo).length > 0) {
-    await db.doc(`${USERS}/${uid}`).update(marcasRecalculo);
-  }
+  await paso('recuento-canales', async () => {
+    // Canales creados (subcolección: grupo de colección).
+    //
+    // Este `collectionGroup` necesita un índice COLLECTION_GROUP
+    // sobre `createdBy` (ver `firestore.indexes.json`). Si el
+    // índice falta, Firestore lanza FAILED_PRECONDITION con el
+    // enlace para crearlo: se deja constancia en `fases` y se
+    // sigue, sin tumbar los contadores que ya se escribieron.
+    const canales = await db
+      .collectionGroup(CHANNELS)
+      .where('createdBy', '==', uid)
+      .get();
+    for (const doc of canales.docs) {
+      marcarRecalculo('stats.canalesCreados', doc.id);
+    }
+  });
 
-  logger.info('Contadores recalculados desde el contenido', {
-    objetivo: uid,
-    ...recuento,
-    likesReceived,
+  await paso('recuento-mensajes', async () => {
+    // Conversaciones donde ha escrito (acotado: solo alimenta un
+    // mapa, y con mil mensajes sobra para cualquier medalla).
+    //
+    // Igual que arriba: necesita índice COLLECTION_GROUP sobre
+    // `senderId`. Si falta, la fase lo dice y se sigue.
+    const mensajes = await db
+      .collectionGroup('messages')
+      .where('senderId', '==', uid)
+      .limit(1000)
+      .get();
+    for (const doc of mensajes.docs) {
+      const chatId = doc.ref.parent.parent?.id;
+      if (chatId) marcarRecalculo('stats.chatsPropios', chatId);
+    }
+  });
+
+  await paso('recuento-tiers', async () => {
+    // Tier lists creadas, y las que llegaron a populares (mismo
+    // umbral que el trigger: votantes distintos en `votes`).
+    const umbralRecalculo = Math.max(
+      1,
+      num((await leerConfig()).votosTierPopular ?? 10),
+    );
+    const tiers = await db.collection(TIERLISTS).where('authorId', '==', uid).get();
+    for (const doc of tiers.docs) {
+      marcarRecalculo('stats.tiersCreadas', doc.id);
+      const votos = await doc.ref.collection('votes').limit(umbralRecalculo + 1).get();
+      if (new Set(votos.docs.map((v) => v.id)).size >= umbralRecalculo) {
+        marcarRecalculo('stats.tiersPopularesIds', doc.id);
+      }
+    }
+  });
+
+  await paso('recuento-marcas', async () => {
+    // Hilos creados CON encuesta (el bucle de hilos de arriba no la
+    // miraba: aquí solo se marcan, el XP ya está pagado o contado).
+    for (const doc of hilosDocs) {
+      const poll = doc.data()?.poll;
+      if (poll && typeof poll === 'object') {
+        marcarRecalculo('stats.encuestasCreadas', doc.id);
+      }
+    }
+
+    if (Object.keys(marcasRecalculo).length > 0) {
+      await db.doc(`${USERS}/${uid}`).update(marcasRecalculo);
+    }
   });
 
   // ── Concesión final de medallas ──────────────────────
@@ -3829,9 +3918,16 @@ export const recalcularUsuario = onCall(
   // estaban: solo entran las que faltan, con su fecha, y se
   // avisa una sola vez. Idempotente por construcción: repetir
   // el recálculo no duplica nada.
-  const frescoSnap = await db.doc(`${USERS}/${uid}`).get();
+  //
+  // Va en su propia fase por el mismo motivo que el resto: si
+  // el documento trae una forma heredada que rompe un helper
+  // (`stats` con un array donde se espera un mapa, `medals`
+  // con null...), el 500 mudo se convierte en
+  // `fases.medallas = "<mensaje>"` y el cliente lo ve.
   let medallasPorRecuento = 0;
-  if (frescoSnap.exists) {
+  await paso('medallas', async () => {
+    const frescoSnap = await db.doc(`${USERS}/${uid}`).get();
+    if (!frescoSnap.exists) return;
     const fd = frescoSnap.data() ?? {};
     const fx = num(fd.xp);
     const fnivel = nivelDesdeXp(fx, {
@@ -3886,16 +3982,17 @@ export const recalcularUsuario = onCall(
     } else {
       logger.info('Sin medallas pendientes tras el recuento', { objetivo: uid });
     }
-  }
+  });
 
   logger.info('Recalculo terminado', {
     objetivo: uid,
     concedidas,
     omitidas,
     medallasPorRecuento,
+    fases,
   });
 
-  return { concedidas, omitidas, medallasPorRecuento };
+  return { concedidas, omitidas, medallasPorRecuento, fases };
 });
 
 

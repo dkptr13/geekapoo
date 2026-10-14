@@ -146,7 +146,6 @@ export const MEDALLAS: EntradaMedalla[] = [
   { id: 'medal_conector_social', requisito: { tipo: 'chats', valor: 5 } },
   { id: 'medal_arquitecto_tiers', requisito: { tipo: 'tiers', valor: 5 } },
   { id: 'medal_encuestador', requisito: { tipo: 'encuestas', valor: 10 } },
-  { id: 'medal_comentario_oro', requisito: { tipo: 'likes', valor: 25 } },
   { id: 'medal_memes', requisito: { tipo: 'visuales', valor: 10 } },
   { id: 'medal_rey_ranking', requisito: { tipo: 'tiersPopulares', valor: 1 } },
   { id: 'medal_perfil_leyenda', requisito: { tipo: 'perfilCustom', valor: 1 } },
