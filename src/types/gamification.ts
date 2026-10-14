@@ -9,7 +9,13 @@
 // esos campos (ver `firestore.rules` y `functions/src/index.ts`).
 
 /** Rareza de una medalla. El orden va de menos a más. */
-export type MedalRarity = 'comun' | 'rara' | 'epica' | 'legendaria';
+export type MedalRarity =
+  | 'comun'
+  | 'poco_comun'
+  | 'rara'
+  | 'epica'
+  | 'legendaria'
+  | 'mitica';
 
 /**
  * Motivo por el que se concede XP.
@@ -104,6 +110,11 @@ export interface GamificationConfig extends LevelCurveConfig {
   /** Recompensa por cada hito de nivel (hitos = 5, 10, 25, 50...). */
   xpPorHito: number;
   /**
+   * Votantes distintos para que una tier list cuente como popular
+   * (medalla Rey del Ranking). Lo pone el admin; 10 por defecto.
+   */
+  votosTierPopular: number;
+  /**
    * Ids reales de los animes de las medallas temáticas.
    *
    * El catálogo de código escribe marcadores (`CONFIGURAR_FRIEREN`)
@@ -133,6 +144,7 @@ export const CONFIG_POR_DEFECTO: GamificationConfig = {
   exponente: 1.5,
   nivelesMaximos: 60,
   xpPorHito: 100,
+  votosTierPopular: 10,
   animeMedallas: {},
   activo: false,
   version: 1,
@@ -172,6 +184,11 @@ export const CONFIG_POR_DEFECTO: GamificationConfig = {
  *                   de Temporada" (que participa en los debates).
  * - `likes`       → "Me gusta" recibidos en total
  * - `nivel`       → nivel alcanzado
+ * - `xp`          → XP total acumulado (`users/{uid}.xp`). Lo lee la
+ *                   función al conceder, no un contador de `stats`.
+ * - `seriesDiferentes` → series distintas con actividad (`stats.animeXp`
+ *                   con XP mayor que cero). Es "en cuántos animes has
+ *                   participado", sin importar cuánto en cada uno.
  * - `xpEnAnime`   → XP acumulado en un anime concreto
  *                   (`stats.animeXp[animeId]`). Es la base de las
  *                  medallas temáticas: en vez de mirar títulos
@@ -185,6 +202,8 @@ export type MedalRequirement =
   | { tipo: 'debates'; valor: number }
   | { tipo: 'likes'; valor: number }
   | { tipo: 'nivel'; valor: number }
+  | { tipo: 'xp'; valor: number }
+  | { tipo: 'seriesDiferentes'; valor: number }
   | { tipo: 'xpEnAnime'; animeId: string; valor: number }
   // ── Comunidad: seguidores ─────────────────────────────
   //
@@ -204,7 +223,22 @@ export type MedalRequirement =
   | { tipo: 'trivias'; valor: number }
   | { tipo: 'aciertosTrivia'; valor: number }
   | { tipo: 'triviasPerfectas'; valor: number }
-  | { tipo: 'rachaTrivia'; valor: number };
+  | { tipo: 'rachaTrivia'; valor: number }
+  // ── Comunidad y funciones (Fase 2) ───────────────────
+  | { tipo: 'dias'; valor: number }
+  | { tipo: 'clubes'; valor: number }
+  | { tipo: 'clubesCreados'; valor: number }
+  | { tipo: 'canales'; valor: number }
+  | { tipo: 'chats'; valor: number }
+  | { tipo: 'tiers'; valor: number }
+  | { tipo: 'encuestas'; valor: number }
+  | { tipo: 'antiguedadDias'; valor: number }
+  | { tipo: 'perfilCompleto'; valor: 1 }
+  | { tipo: 'perfilCustom'; valor: 1 }
+  | { tipo: 'visuales'; valor: number }
+  | { tipo: 'tiersPopulares'; valor: number }
+  | { tipo: 'hilosTopico'; topico: string; valor: number }
+  | { tipo: 'topicosDistintos'; valor: number };
 
 /**
  * Una medalla del catálogo.
@@ -239,6 +273,25 @@ export interface Medal {
   requisito: MedalRequirement | null;
   /** Si es `true`, el título que se puede equipar al desbloquearla. */
   titulo?: string;
+  /**
+   * Si es `false`, la medalla existe en el catálogo pero todavía no
+   * se puede conseguir: su sistema no está implementado (clubes,
+   * chats, tier lists, retos de Kapo-chan...) o depende de una
+   * revisión que aún no existe.
+   *
+   * La galería la enseña como "Próximamente" y las funciones no la
+   * conceden ni a mano: `concederMedalla` la rechaza. Así el
+   * catálogo documenta lo que viene sin fingir que ya funciona.
+   */
+  disponible?: boolean;
+  /** Por qué está pendiente, en una frase para la galería. */
+  motivoPendiente?: string;
+  /**
+   * Si es `true`, no se enseña el nombre ni el requisito hasta
+   * desbloquearla: sale como "???". Es la base de los títulos
+   * secretos futuros, que se definen igual que las demás.
+   */
+  secreta?: boolean;
 }
 
 /**

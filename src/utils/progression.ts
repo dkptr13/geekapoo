@@ -353,6 +353,450 @@ export const CATALOGO_MEDALLAS: Medal[] = [
     requisito: null,
     titulo: 'Miembro Fundador',
   },
+  // ── Progresión y conocimiento (automáticas) ──────────
+  //
+  // Requisitos que las funciones ya pueden comprobar con los
+  // contadores que existen: comentarios, nivel, XP total y series
+  // distintas con actividad. Nada de esto pide triggers nuevos.
+  {
+    id: 'medal_rompehielos',
+    nombre: 'Rompehielos',
+    descripcion: 'Has publicado 10 comentarios.',
+    rareza: 'comun',
+    icono: '🧊',
+    requisito: { tipo: 'comentarios', valor: 10 },
+  },
+  {
+    id: 'medal_novato_multiverso',
+    nombre: 'Novato del Multiverso',
+    descripcion: 'Has alcanzado el nivel 1. Todo multiverso empieza aquí.',
+    rareza: 'comun',
+    icono: '🌌',
+    requisito: { tipo: 'nivel', valor: 1 },
+    titulo: 'Novato del Multiverso',
+  },
+  {
+    id: 'medal_otaku_ascenso',
+    nombre: 'Otaku en Ascenso',
+    descripcion: 'Has alcanzado el nivel 5.',
+    rareza: 'poco_comun',
+    icono: '🚀',
+    requisito: { tipo: 'nivel', valor: 5 },
+    titulo: 'Otaku en Ascenso',
+  },
+  {
+    id: 'medal_guardian_lore',
+    nombre: 'Guardián del Lore',
+    descripcion: 'Has alcanzado el nivel 10.',
+    rareza: 'rara',
+    icono: '📜',
+    requisito: { tipo: 'nivel', valor: 10 },
+    titulo: 'Guardián del Lore',
+  },
+  {
+    id: 'medal_coleccionista_xp',
+    nombre: 'Coleccionista de XP',
+    descripcion: 'Has acumulado 10.000 XP en total.',
+    rareza: 'rara',
+    icono: '💰',
+    requisito: { tipo: 'xp', valor: 10000 },
+  },
+  {
+    id: 'medal_biblioteca',
+    nombre: 'Biblioteca Viviente',
+    descripcion: 'Has participado en 10 series diferentes.',
+    rareza: 'epica',
+    icono: '📚',
+    requisito: { tipo: 'seriesDiferentes', valor: 10 },
+  },
+  {
+    id: 'medal_enciclopedia',
+    nombre: 'Enciclopedia Anime',
+    descripcion: 'Has participado en 25 series diferentes.',
+    rareza: 'epica',
+    icono: '🧭',
+    requisito: { tipo: 'seriesDiferentes', valor: 25 },
+  },
+  {
+    id: 'medal_elite_geekapoo',
+    nombre: 'Élite de Geekapoo',
+    descripcion: 'Has alcanzado el nivel 20.',
+    rareza: 'epica',
+    icono: '🎖️',
+    requisito: { tipo: 'nivel', valor: 20 },
+    titulo: 'Élite de Geekapoo',
+  },
+  {
+    id: 'medal_leyenda_multiverso',
+    nombre: 'Leyenda del Multiverso',
+    descripcion: 'Has alcanzado el nivel 35.',
+    rareza: 'legendaria',
+    icono: '🌠',
+    requisito: { tipo: 'nivel', valor: 35 },
+    titulo: 'Leyenda del Multiverso',
+  },
+  {
+    id: 'medal_entidad_otro_mundo',
+    nombre: 'Entidad de Otro Mundo',
+    descripcion: 'Has alcanzado el nivel 55, casi en el tope.',
+    rareza: 'mitica',
+    icono: '👁️',
+    requisito: { tipo: 'nivel', valor: 55 },
+    titulo: 'Entidad de Otro Mundo',
+  },
+  // ── Manuales (las concede el equipo) ────────────────
+  //
+  // Requisito `null` como la de Miembro Fundador: dependen de
+  // criterios que solo una persona puede comprobar (trayectoria
+  // de moderación, guías aprobadas, respuestas útiles). La
+  // descripción lo dice para no fingir un automatismo.
+  {
+    id: 'medal_moderador_confianza',
+    nombre: 'Moderador de Confianza',
+    descripcion:
+      'Reconocimiento del equipo tras una trayectoria de moderación responsable. Se concede a mano.',
+    rareza: 'legendaria',
+    icono: '🛡️',
+    requisito: null,
+    titulo: 'Moderador de Confianza',
+  },
+  {
+    id: 'medal_guia_comunidad',
+    nombre: 'Guía de la Comunidad',
+    descripcion:
+      'Publicaste una guía aprobada por la moderación. Se concede a mano tras la revisión.',
+    rareza: 'epica',
+    icono: '🗺️',
+    requisito: null,
+    titulo: 'Guía de la Comunidad',
+  },
+  {
+    id: 'medal_comentario_oro',
+    nombre: 'Comentario de Oro',
+    descripcion: 'Tus comentarios han recibido 25 reacciones positivas.',
+    rareza: 'rara',
+    icono: '🥇',
+    requisito: { tipo: 'likes', valor: 25 },
+  },
+  {
+    id: 'medal_mano_amiga',
+    nombre: 'Mano Amiga',
+    descripcion:
+      'Diez reconocimientos por respuestas útiles. Se concede a mano mientras no haya sistema automático.',
+    rareza: 'rara',
+    icono: '🤝',
+    requisito: null,
+    titulo: 'Mano Amiga',
+  },
+  // ── Pendientes (su sistema no existe todavía) ───────
+  //
+  // `disponible: false` y las funciones las ignoran: ni se
+  // conceden solas ni a mano. La galería las enseña como
+  // "Próximamente" con el motivo, para documentar lo que viene
+  // sin fingir que ya funciona.
+  {
+    id: 'medal_habitante',
+    nombre: 'Habitante de Geekapoo',
+    descripcion: 'Completa los datos básicos de tu perfil.',
+    rareza: 'comun',
+    icono: '🏠',
+    requisito: { tipo: 'perfilCompleto', valor: 1 },
+  },
+  {
+    id: 'medal_otaku_formacion',
+    nombre: 'Otaku en Formación',
+    descripcion: 'Participa en tu primer hilo sobre anime o manga.',
+    rareza: 'comun',
+    icono: '🎒',
+    requisito: { tipo: 'seriesDiferentes', valor: 1 },
+  },
+  {
+    id: 'medal_siempre_presente',
+    nombre: 'Siempre Presente',
+    descripcion: 'Participa en 7 días diferentes.',
+    rareza: 'poco_comun',
+    icono: '📅',
+    requisito: { tipo: 'dias', valor: 7 },
+  },
+  {
+    id: 'medal_veterano_comunidad',
+    nombre: 'Veterano de la Comunidad',
+    descripcion: 'Cumple un año desde el registro.',
+    rareza: 'rara',
+    icono: '🎂',
+    requisito: { tipo: 'antiguedadDias', valor: 365 },
+  },
+  {
+    id: 'medal_maestro_manga',
+    nombre: 'Maestro del Manga',
+    descripcion: 'Crea 10 hilos sobre manga.',
+    rareza: 'poco_comun',
+    icono: '📖',
+    requisito: { tipo: 'hilosTopico', topico: 'manga', valor: 10 },
+  },
+  {
+    id: 'medal_cazador_referencias',
+    nombre: 'Cazador de Referencias',
+    descripcion: 'Completa 5 trivias diarias.',
+    rareza: 'rara',
+    icono: '🔎',
+    requisito: { tipo: 'trivias', valor: 5 },
+  },
+  {
+    id: 'medal_bienvenida',
+    nombre: 'Bienvenida Cálida',
+    descripcion: 'Ayuda a 5 usuarios nuevos con interacciones válidas.',
+    rareza: 'poco_comun',
+    icono: '💐',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Próximamente: ayuda a novatos',
+  },
+  {
+    id: 'medal_puentes',
+    nombre: 'Constructor de Puentes',
+    descripcion: 'Participa en 5 clubes diferentes (unirse cuenta).',
+    rareza: 'rara',
+    icono: '🌉',
+    requisito: { tipo: 'clubes', valor: 5 },
+    titulo: 'Embajador Geek',
+  },
+  {
+    id: 'medal_explorador_social',
+    nombre: 'Explorador Social',
+    descripcion: 'Únete a 5 clubes diferentes.',
+    rareza: 'poco_comun',
+    icono: '🧭',
+    requisito: { tipo: 'clubes', valor: 5 },
+  },
+  {
+    id: 'medal_fundador_club',
+    nombre: 'Fundador',
+    descripcion: 'Crea tu primer club.',
+    rareza: 'rara',
+    icono: '🏗️',
+    requisito: { tipo: 'clubesCreados', valor: 1 },
+  },
+  {
+    id: 'medal_arquitecto_canales',
+    nombre: 'Arquitecto de Canales',
+    descripcion: 'Crea 5 canales en clubes que puedas gestionar.',
+    rareza: 'epica',
+    icono: '🧱',
+    requisito: { tipo: 'canales', valor: 5 },
+    titulo: 'Señor de los Canales',
+  },
+  {
+    id: 'medal_conector_social',
+    nombre: 'Conector Social',
+    descripcion: 'Participa de forma válida en 5 chats diferentes.',
+    rareza: 'rara',
+    icono: '🔌',
+    requisito: { tipo: 'chats', valor: 5 },
+  },
+  {
+    id: 'medal_arquitecto_tiers',
+    nombre: 'Arquitecto de Tier Lists',
+    descripcion: 'Crea 5 tier lists válidas.',
+    rareza: 'poco_comun',
+    icono: '📊',
+    requisito: { tipo: 'tiers', valor: 5 },
+  },
+  {
+    id: 'medal_rey_ranking',
+    nombre: 'Rey del Ranking',
+    descripcion: 'Una de tus tier lists llegó a popular (votos configurados).',
+    rareza: 'epica',
+    icono: '👑',
+    requisito: { tipo: 'tiersPopulares', valor: 1 },
+    titulo: 'Rey de las Tier Lists',
+  },
+  {
+    id: 'medal_encuestador',
+    nombre: 'Encuestador Profesional',
+    descripcion: 'Crea 10 encuestas válidas.',
+    rareza: 'rara',
+    icono: '🗳️',
+    requisito: { tipo: 'encuestas', valor: 10 },
+  },
+  {
+    id: 'medal_perfil_leyenda',
+    nombre: 'Perfil de Leyenda',
+    descripcion: 'Equipa personalización en tu perfil (marco, pegatinas, vitrinas o insignias).',
+    rareza: 'epica',
+    icono: '✨',
+    requisito: { tipo: 'perfilCustom', valor: 1 },
+  },
+  {
+    id: 'medal_kapo_master',
+    nombre: 'Kapo-chan Master',
+    descripcion: 'Completa 30 retos diarios de Kapo-chan.',
+    rareza: 'legendaria',
+    icono: '🤖',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Próximamente: retos de Kapo-chan',
+  },
+  {
+    id: 'medal_kapo_reconoce',
+    nombre: 'Kapo-chan te Reconoce',
+    descripcion: 'Completa el desafío especial de Kapo-chan.',
+    rareza: 'legendaria',
+    icono: '🏵️',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Próximamente: retos de Kapo-chan',
+    titulo: 'Kapo-chan te Reconoce',
+  },
+  {
+    id: 'medal_fundador_leyendas',
+    nombre: 'Fundador de Leyendas',
+    descripcion: 'Crea un club y cumple sus hitos comunitarios.',
+    rareza: 'legendaria',
+    icono: '🏰',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Próximamente: clubes',
+    titulo: 'Fundador de Leyendas',
+  },
+  {
+    id: 'medal_arquitecto_comunidades',
+    nombre: 'Arquitecto de Comunidades',
+    descripcion: 'Crea un club y cumple sus objetivos de participación.',
+    rareza: 'epica',
+    icono: '🌐',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Próximamente: clubes',
+    titulo: 'Arquitecto de Comunidades',
+  },
+  {
+    id: 'medal_recomendador',
+    nombre: 'El Recomendador',
+    descripcion: 'Publica 10 hilos de recomendaciones.',
+    rareza: 'poco_comun',
+    icono: '💡',
+    requisito: { tipo: 'hilosTopico', topico: 'recomendacion', valor: 10 },
+    titulo: 'El Recomendador',
+  },
+  {
+    id: 'medal_explorador_generos',
+    nombre: 'Explorador de Géneros',
+    descripcion: 'Publica en 5 tópicos distintos.',
+    rareza: 'poco_comun',
+    icono: '🧪',
+    requisito: { tipo: 'topicosDistintos', valor: 5 },
+  },
+  {
+    id: 'medal_teorico',
+    nombre: 'Teórico Profesional',
+    descripcion: 'Publica 5 hilos de teorías.',
+    rareza: 'epica',
+    icono: '🔬',
+    requisito: { tipo: 'hilosTopico', topico: 'teoria', valor: 5 },
+  },
+  {
+    id: 'medal_coleccionista_historias',
+    nombre: 'Coleccionista de Historias',
+    descripcion: 'Participa en conversaciones sobre 20 series.',
+    rareza: 'rara',
+    icono: '🗂️',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Próximamente: series en chats',
+  },
+  {
+    id: 'medal_memes',
+    nombre: 'Maestro de los Memes',
+    descripcion: 'Publica 10 hilos con imagen.',
+    rareza: 'rara',
+    icono: '🐸',
+    requisito: { tipo: 'visuales', valor: 10 },
+  },
+  {
+    id: 'medal_protagonista',
+    nombre: 'El Protagonista',
+    descripcion: 'Crea tu primer hilo y completa tu perfil.',
+    rareza: 'comun',
+    icono: '🌟',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Próximamente: perfil completado',
+    titulo: 'El Protagonista',
+  },
+  // ── Secretas (arquitectura lista, contenido futuro) ─
+  //
+  // `secreta: true` oculta nombre y requisito hasta
+  // desbloquearla. De momento están pendientes: sirven para
+  // validar el formato sin conceder nada.
+  {
+    id: 'medal_secreto_guardado',
+    nombre: 'El Secreto Mejor Guardado',
+    descripcion: '???',
+    rareza: 'epica',
+    icono: '❔',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Secreto',
+    secreta: true,
+  },
+  {
+    id: 'medal_leyenda_fundadora',
+    nombre: 'Leyenda Fundadora',
+    descripcion: '???',
+    rareza: 'legendaria',
+    icono: '❔',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Secreto',
+    secreta: true,
+  },
+  {
+    id: 'medal_maestro_multiverso',
+    nombre: 'Maestro del Multiverso',
+    descripcion: '???',
+    rareza: 'legendaria',
+    icono: '❔',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Secreto',
+    secreta: true,
+    titulo: 'Maestro del Multiverso',
+  },
+  {
+    id: 'medal_incatalogable',
+    nombre: 'El Incatalogable',
+    descripcion: '???',
+    rareza: 'epica',
+    icono: '❔',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Secreto',
+    secreta: true,
+  },
+  {
+    id: 'medal_kapo_eligio',
+    nombre: 'Kapo-chan te Eligió',
+    descripcion: '???',
+    rareza: 'mitica',
+    icono: '❔',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Secreto',
+    secreta: true,
+    titulo: 'Kapo-chan te Eligió',
+  },
+  {
+    id: 'medal_cronista',
+    nombre: 'Cronista de Geekapoo',
+    descripcion: '???',
+    rareza: 'epica',
+    icono: '❔',
+    requisito: null,
+    disponible: false,
+    motivoPendiente: 'Secreto',
+    secreta: true,
+  },
 ];
 
 /** Índice por id, para no recorrer el catálogo en cada consulta. */
@@ -370,7 +814,14 @@ export function medallaPorId(id: string | null | undefined): Medal | null {
 }
 
 /** Orden de rareza, para pintar la galería de la más rara a la menos. */
-export const ORDEN_RAREZA: MedalRarity[] = ['legendaria', 'epica', 'rara', 'comun'];
+export const ORDEN_RAREZA: MedalRarity[] = [
+  'mitica',
+  'legendaria',
+  'epica',
+  'rara',
+  'poco_comun',
+  'comun',
+];
 
 /**
  * Ajusta los ids de anime de las medallas temáticas.
@@ -409,6 +860,22 @@ export function progresoDeMedalla(
     debates: number;
     likes: number;
     nivel: number;
+    xp: number;
+    seriesDiferentes: number;
+    dias: number;
+    clubes: number;
+    clubesCreados: number;
+    canales: number;
+    chats: number;
+    tiers: number;
+    encuestas: number;
+    antiguedadDias: number;
+    perfilCompleto: boolean;
+    perfilCustom: boolean;
+    visuales: number;
+    tiersPopulares: number;
+    hilosTopico: (topico: string) => number;
+    topicosDistintos: number;
     xpEnAnime: (animeId: string) => number;
     trivias: number;
     aciertosTrivia: number;
@@ -431,12 +898,28 @@ export function progresoDeMedalla(
     debates: 'debates',
     likes: '"Me gusta" recibidos',
     nivel: 'niveles',
+    xp: 'XP',
+    seriesDiferentes: 'series',
     xpEnAnime: 'XP en ese anime',
     trivias: 'trivias',
     aciertosTrivia: 'aciertos en la trivia',
     triviasPerfectas: 'trivias perfectas',
     rachaTrivia: 'días de racha',
     seguidores: 'seguidores',
+    dias: 'días activos',
+    clubes: 'clubes',
+    clubesCreados: 'clubes creados',
+    canales: 'canales creados',
+    chats: 'conversaciones',
+    tiers: 'tier lists',
+    encuestas: 'encuestas',
+    antiguedadDias: 'días registrado',
+    perfilCompleto: 'perfil completado',
+    perfilCustom: 'personalización equipada',
+    visuales: 'aportes visuales',
+    tiersPopulares: 'tiers populares',
+    hilosTopico: 'hilos de ese tópico',
+    topicosDistintos: 'tópicos distintos',
   };
 
   let actual: number;
@@ -456,6 +939,24 @@ export function progresoDeMedalla(
     case 'nivel':
       actual = medidas.nivel;
       break;
+    case 'xp':
+      actual = medidas.xp;
+      break;
+    case 'seriesDiferentes':
+      actual = medidas.seriesDiferentes;
+      break;
+    case 'visuales':
+      actual = medidas.visuales;
+      break;
+    case 'tiersPopulares':
+      actual = medidas.tiersPopulares;
+      break;
+    case 'hilosTopico':
+      actual = medidas.hilosTopico(requisito.topico);
+      break;
+    case 'topicosDistintos':
+      actual = medidas.topicosDistintos;
+      break;
     case 'xpEnAnime':
       actual = medidas.xpEnAnime(requisito.animeId);
       break;
@@ -474,6 +975,38 @@ export function progresoDeMedalla(
     case 'seguidores':
       actual = medidas.seguidores;
       break;
+    case 'dias':
+      actual = medidas.dias;
+      break;
+    case 'clubes':
+      actual = medidas.clubes;
+      break;
+    case 'clubesCreados':
+      actual = medidas.clubesCreados;
+      break;
+    case 'canales':
+      actual = medidas.canales;
+      break;
+    case 'chats':
+      actual = medidas.chats;
+      break;
+    case 'tiers':
+      actual = medidas.tiers;
+      break;
+    case 'encuestas':
+      actual = medidas.encuestas;
+      break;
+    case 'antiguedadDias':
+      actual = medidas.antiguedadDias;
+      break;
+    case 'perfilCompleto':
+      return medidas.perfilCompleto
+        ? { progreso: 1, falta: 'Completada' }
+        : { progreso: 0, falta: 'Completa tu nombre, bio y avatar' };
+    case 'perfilCustom':
+      return medidas.perfilCustom
+        ? { progreso: 1, falta: 'Completada' }
+        : { progreso: 0, falta: 'Equipa marco, pegatinas, vitrinas o insignias' };
   }
 
   const objetivo = requisito.valor;

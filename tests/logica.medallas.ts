@@ -36,6 +36,11 @@ import {
   detectarSubidaNivel,
   laMasRara,
 } from '../src/utils/medallas';
+import {
+  CATALOGO_MEDALLAS,
+  ORDEN_RAREZA,
+  progresoDeMedalla,
+} from '../src/utils/progression';
 
 // ═══════════════════════════════════════════════════════════
 // EL CASO QUE SE VIO
@@ -226,12 +231,14 @@ assert.deepEqual(
 
   assert.equal(laMasRara([], catalogo), undefined, 'sin ids no hay nada');
 
-  // Y una rareza desconocida se trata como la más común, no como la
-  // mejor: no se elige un id raro por escribirlo raro.
+  // Y una rareza que de verdad no está en la lista se trata como
+  // la más común, no como la mejor: no se elige un id raro por
+  // escribirlo raro. ('mitica' sí está en ORDEN_RAREZA desde las
+  // seis rarezas, así que aquí se usa una que no existe.)
   const conDesconocida = laMasRara(
     ['raro', 'comun'],
     [
-      { id: 'raro', rareza: 'mitica' },
+      { id: 'raro', rareza: 'inexistente' },
       { id: 'comun', rareza: 'comun' },
     ],
   );
@@ -240,6 +247,26 @@ assert.deepEqual(
     conDesconocida?.id,
     'comun',
     'una rareza que no está en la lista no gana por ser rara',
+  );
+
+  // Con seis rarezas, la mítica gana a la legendaria.
+  const conMitica = laMasRara(
+    ['legendaria', 'comun'],
+    [
+      { id: 'legendaria', rareza: 'legendaria' },
+      { id: 'comun', rareza: 'comun' },
+    ],
+  );
+
+  assert.equal(conMitica?.id, 'legendaria', 'sin mitica candidata gana la legendaria');
+
+  assert.equal(
+    laMasRara(['legendaria', 'mitica'], [
+      { id: 'legendaria', rareza: 'legendaria' },
+      { id: 'mitica', rareza: 'mitica' },
+    ])?.id,
+    'mitica',
+    'la mitica gana a la legendaria',
   );
 }
 
@@ -288,3 +315,106 @@ assert.deepEqual(
 }
 
 console.log('  avisos de medalla: OK');
+
+// ═══════════════════════════════════════════════════════════
+// SEIS RAREZAS Y CATÁLOGO COHERENTE
+// ═══════════════════════════════════════════════════════════
+
+assert.deepEqual(
+  ORDEN_RAREZA,
+  ['mitica', 'legendaria', 'epica', 'rara', 'poco_comun', 'comun'],
+  'el orden va de más a menos rara con las seis',
+);
+
+{
+  // Todas las rarezas del catálogo tienen que estar en el orden:
+  // una que falte no se pinta (MedalCard indexa por clave).
+  const raras = new Set(ORDEN_RAREZA);
+
+  for (const m of CATALOGO_MEDALLAS) {
+    assert.ok(raras.has(m.rareza), `${m.id} usa una rareza conocida (${m.rareza})`);
+  }
+
+  // Ids únicos: dos medallas con el mismo id pisarían el registro
+  // de la otra en `users/{uid}.medals`.
+  const ids = CATALOGO_MEDALLAS.map((m) => m.id);
+
+  assert.equal(
+    new Set(ids).size,
+    ids.length,
+    'los ids de medalla no se repiten',
+  );
+
+  // Las pendientes llevan motivo y las secretas van pendientes:
+  // una secreta concedible enseñaría el nombre al concederse sin
+  // aviso previo, y eso no es lo acordado.
+  for (const m of CATALOGO_MEDALLAS) {
+    if (m.disponible === false) {
+      assert.ok(
+        m.motivoPendiente,
+        `${m.id} pendiente sin motivo para la galería`,
+      );
+    }
+
+    if (m.secreta) {
+      assert.equal(
+        m.disponible,
+        false,
+        `${m.id} secreta tiene que estar pendiente de momento`,
+      );
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROGRESO DE LOS TIPOS NUEVOS
+// ═══════════════════════════════════════════════════════════
+
+const MEDIDAS_BASE = {
+  hilos: 0,
+  comentarios: 0,
+  debates: 0,
+  likes: 0,
+  nivel: 1,
+  xp: 0,
+  seriesDiferentes: 0,
+  xpEnAnime: () => 0,
+  trivias: 0,
+  aciertosTrivia: 0,
+  triviasPerfectas: 0,
+  rachaTrivia: 0,
+  seguidores: 0,
+  dias: 0,
+  clubes: 0,
+  clubesCreados: 0,
+  canales: 0,
+  chats: 0,
+  tiers: 0,
+  encuestas: 0,
+  antiguedadDias: 0,
+  perfilCompleto: false,
+  perfilCustom: false,
+  visuales: 0,
+  tiersPopulares: 0,
+  hilosTopico: () => 0,
+  topicosDistintos: 0,
+};
+
+{
+  const r = progresoDeMedalla({ tipo: 'xp', valor: 10000 }, { ...MEDIDAS_BASE, xp: 9999 });
+
+  assert.equal(r.progreso, 9999 / 10000, 'a 1 de XP del objetivo');
+  assert.equal(r.falta, 'Faltan 1 XP', 'y dice cuánto falta en XP');
+}
+
+{
+  const r = progresoDeMedalla(
+    { tipo: 'seriesDiferentes', valor: 10 },
+    { ...MEDIDAS_BASE, seriesDiferentes: 10 },
+  );
+
+  assert.equal(r.progreso, 1, 'diez series de diez, completo');
+  assert.equal(r.falta, 'Completada', 'y lo dice');
+}
+
+console.log('  rarezas y catálogo: OK');

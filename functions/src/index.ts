@@ -42,7 +42,7 @@
 
 import { initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore, FieldPath } from 'firebase-admin/firestore';
-import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
@@ -50,11 +50,17 @@ import { logger } from 'firebase-functions';
 import {
   leerEstadisticas,
   num,
+  conMarca,
+  esCampoMapa,
+  marcarTopico,
+  pasarDia,
+  diasDesde,
   ponerTotales,
   sumarContadores,
   subirTecho,
   type Estadisticas,
 } from './stats';
+import { topicosDe } from './topicos';
 
 // `rss-parser` y `createHash` viven en `functions/src/rss.ts`, que es
 // donde se usan. Aquí no hacen falta: lo que se importa de `./rss` son
@@ -81,6 +87,9 @@ const COMMENTS = 'comments';
 const EPISODES = 'episodes';
 const CHARACTERS = 'characters';
 const CHATS = 'chats';
+const CLUBS = 'clubs';
+const CHANNELS = 'channels';
+const TIERLISTS = 'tierlists';
 const REACTIONS = 'reactions';
 const DAILY_QUIZZES = 'dailyQuizzes';
 const TRIVIA_RESULTS = 'triviaResults';
@@ -166,6 +175,7 @@ interface Config {
   nivelesMaximos: number;
   xp: Record<string, number>;
   xpPorHito: number;
+  votosTierPopular: number;
   activo: boolean;
   /** Ids reales de los animes de las medallas tematicas. */
   animeMedallas: Record<string, string>;
@@ -175,6 +185,7 @@ const CONFIG_POR_DEFECTO: Config = {
   ...CURVA_POR_DEFECTO,
   xp: XP_POR_DEFECTO,
   xpPorHito: XP_POR_HITO_POR_DEFECTO,
+  votosTierPopular: 10,
   activo: false,
   animeMedallas: {},
 };
@@ -207,116 +218,19 @@ async function leerConfig(): Promise<Config> {
 // MEDALLAS
 // ======================================================
 //
-// COPIA del catalogo de `src/utils/progression.ts`. Los ids
-// TIENEN que coincidir: son la clave con la que se guarda
-// `users/{uid}.medals`.
+// Viven en `./medallas`, que es puro y testeable
+// (`tests/logica.logros.ts`): `index.ts` importa `firebase-admin`
+// y Node no puede cargarlo en una prueba. Los ids TIENEN que
+// coincidir con los de `src/utils/progression.ts`: son la clave
+// con la que se guarda `users/{uid}.medals`.
+import {
+  MEDALLAS,
+  medallasNuevas,
+  tieneCustom,
+} from './medallas';
 
-const MEDALLAS = [
-  { id: 'medal_primer_hilo', requisito: { tipo: 'hilos', valor: 1 } },
-  { id: 'medal_primera_voz', requisito: { tipo: 'comentarios', valor: 1 } },
-  { id: 'medal_debatiente_pro', requisito: { tipo: 'comentarios', valor: 50 } },
-  { id: 'medal_creador_comunidad', requisito: { tipo: 'hilos', valor: 25 } },
-  { id: 'medal_voz_comunidad', requisito: { tipo: 'likes', valor: 100 } },
-  { id: 'medal_critico_temporada', requisito: { tipo: 'debates', valor: 15 } },
-  // ── Comunidad: seguidores ─────────────────────────────
-  //
-  // Los ids tienen que coincidir con los de
-  // `src/utils/progression.ts`. Se conceden por
-  // `stats.followersReceived`, que es el MAXIMO de seguidores que
-  // ha tenido, no el numero vivo: un follow se deshace con un clic y
-  // una medalla que desaparece por eso parece un castigo.
-  { id: 'medal_primer_fan', requisito: { tipo: 'seguidores', valor: 1 } },
-  { id: 'medal_popular', requisito: { tipo: 'seguidores', valor: 10 } },
-  { id: 'medal_figura_comunidad', requisito: { tipo: 'seguidores', valor: 100 } },
-  { id: 'medal_icono_geekapoo', requisito: { tipo: 'seguidores', valor: 500 } },
-  {
-    id: 'medal_mago_frieren',
-    requisito: { tipo: 'xpEnAnime', animeId: 'CONFIGURAR_FRIEREN', valor: 150 },
-  },
-  {
-    id: 'medal_netrunner_night_city',
-    requisito: { tipo: 'xpEnAnime', animeId: 'CONFIGURAR_CYBERPUNK', valor: 150 },
-  },
-  { id: 'medal_veterano_geek', requisito: { tipo: 'nivel', valor: 25 } },
-  { id: 'medal_leyenda_otaku', requisito: { tipo: 'nivel', valor: 50 } },
-  { id: 'medal_geek_de_geeks', requisito: { tipo: 'nivel', valor: 60 } },
-  // ── Trivia diaria ─────────────────────────────────────
-  //
-  // Los ids tienen que coincidir con los de
-  // `src/utils/progression.ts`: es la clave con la que se guarda
-  // `users/{uid}.medals`. Si uno de los dos cambia, la medalla se
-  // sigue concediendo pero no aparece en el perfil.
-  { id: 'medal_cerebro_otaku', requisito: { tipo: 'trivias', valor: 10 } },
-  { id: 'medal_maestro_anime', requisito: { tipo: 'aciertosTrivia', valor: 100 } },
-  { id: 'medal_racha_inparable', requisito: { tipo: 'rachaTrivia', valor: 7 } },
-  { id: 'medal_leyenda_trivia', requisito: { tipo: 'rachaTrivia', valor: 30 } },
-  { id: 'medal_perfect_score', requisito: { tipo: 'triviasPerfectas', valor: 10 } },
-  { id: 'medal_sabio_otaku', requisito: { tipo: 'aciertosTrivia', valor: 500 } },
-  // Sin requisito: la concede el administrador a mano.
-  { id: 'medal_miembro_fundador', requisito: null },
-] as const;
-
-type Requisito =
-  | { tipo: 'hilos'; valor: number }
-  | { tipo: 'comentarios'; valor: number }
-  | { tipo: 'likes'; valor: number }
-  | { tipo: 'nivel'; valor: number }
-  | { tipo: 'debates'; valor: number }
-  | { tipo: 'xpEnAnime'; animeId: string; valor: number }
-  | { tipo: 'seguidores'; valor: number }
-  | { tipo: 'trivias'; valor: number }
-  | { tipo: 'aciertosTrivia'; valor: number }
-  | { tipo: 'triviasPerfectas'; valor: number }
-  | { tipo: 'rachaTrivia'; valor: number };
-
-/** ¿Se cumple este requisito con las estadísticas de este usuario? */
-function cumpleRequisito(
-  req: Requisito | null,
-  stats: Estadisticas,
-  nivel: number,
-  config: Config,
-): boolean {
-  if (!req) return false; // Las medallas manuales no se conceden solas.
-
-  switch (req.tipo) {
-    case 'hilos':
-      return stats.threadsCreated >= req.valor;
-    case 'comentarios':
-      return stats.commentsCreated >= req.valor;
-    case 'debates':
-      return stats.commentsInThreads >= req.valor;
-    case 'likes':
-      return stats.likesReceived >= req.valor;
-    case 'nivel':
-      return nivel >= req.valor;
-    case 'xpEnAnime': {
-      // El id del anime se resuelve desde la configuracion, porque
-      // el catalogo lo escribe con un marcador de texto.
-      const animeId = config.animeMedallas[req.animeId] ?? req.animeId;
-      if (animeId.startsWith('CONFIGURAR_')) return false;
-      return num(stats.animeXp[animeId]) >= req.valor;
-    }
-    // Comunidad. Es el MAXIMO de seguidores que ha tenido, asi que
-    // la medalla se queda aunque la persona deje de seguirle.
-    case 'seguidores':
-      return stats.followersReceived >= req.valor;
-    // ── Trivia diaria ─────────────────────────────────
-    //
-    // Se leen de contadores que solo escribe esta misma función al
-    // corregir un resultado, así que no hay forma de que el cliente
-    // se los suba: se ganan jugando.
-    case 'trivias':
-      return stats.triviaCompleted >= req.valor;
-    case 'aciertosTrivia':
-      return stats.triviaCorrect >= req.valor;
-    case 'triviasPerfectas':
-      return stats.triviaPerfect >= req.valor;
-    case 'rachaTrivia':
-      return stats.triviaStreakBest >= req.valor;
-    default:
-      return false;
-  }
-}
+// (Requisito, cumpleRequisito y medallasNuevas viven en
+// `./medallas`, que es puro y testeable. Aquí solo se usan.)
 
 /** Nivel que corresponde a una cantidad de XP. */
 function nivelDesdeXp(
@@ -354,28 +268,7 @@ function xpParaNivel(nivel: number, curva: { base: number; exponente: number; ni
   return Math.round(curva.base * Math.pow(n, curva.exponente));
 }
 
-/**
- * Que medallas faltan y ya se cumplen.
- *
- * Devuelve solo las NUEVAS: las que ya estaban no se vuelven a
- * escribir, para no tocar la fecha de desbloqueo.
- */
-function medallasNuevas(
-  stats: Estadisticas,
-  nivel: number,
-  yaDesbloqueadas: Record<string, unknown>,
-  config: Config,
-): string[] {
-  return MEDALLAS.filter((m) => {
-    if (yaDesbloqueadas[m.id]) return false;
-    return cumpleRequisito(
-      m.requisito as Requisito | null,
-      stats,
-      nivel,
-      config,
-    );
-  }).map((m) => m.id);
-}
+// (medallasNuevas vive en `./medallas`.)
 
 // ======================================================
 // NOTIFICACIONES
@@ -440,6 +333,30 @@ const NOMBRES_DE_MEDALLA: Record<string, string> = {
   medal_perfect_score: 'Perfect Score',
   medal_sabio_otaku: 'Sabio Otaku',
   medal_miembro_fundador: 'Miembro Fundador',
+  medal_rompehielos: 'Rompehielos',
+  medal_novato_multiverso: 'Novato del Multiverso',
+  medal_otaku_ascenso: 'Otaku en Ascenso',
+  medal_guardian_lore: 'Guardián del Lore',
+  medal_coleccionista_xp: 'Coleccionista de XP',
+  medal_biblioteca: 'Biblioteca Viviente',
+  medal_enciclopedia: 'Enciclopedia Anime',
+  medal_elite_geekapoo: 'Élite de Geekapoo',
+  medal_leyenda_multiverso: 'Leyenda del Multiverso',
+  medal_entidad_otro_mundo: 'Entidad de Otro Mundo',
+  medal_moderador_confianza: 'Moderador de Confianza',
+  medal_guia_comunidad: 'Guía de la Comunidad',
+  medal_mano_amiga: 'Mano Amiga',
+  medal_habitante: 'Habitante de Geekapoo',
+  medal_otaku_formacion: 'Otaku en Formación',
+  medal_siempre_presente: 'Siempre Presente',
+  medal_veterano_comunidad: 'Veterano de la Comunidad',
+  medal_comentario_oro: 'Comentario de Oro',
+  medal_explorador_social: 'Explorador Social',
+  medal_fundador_club: 'Fundador',
+  medal_arquitecto_canales: 'Arquitecto de Canales',
+  medal_conector_social: 'Conector Social',
+  medal_arquitecto_tiers: 'Arquitecto de Tier Lists',
+  medal_encuestador: 'Encuestador Profesional',
 };
 
 /** Lo que se guarda en un aviso. Todo opcional menos lo básico. */
@@ -765,6 +682,7 @@ async function concederXP(
   r: Recompensa,
   stats: Partial<Estadisticas>,
   opciones: { permitirNegativo?: boolean } = {},
+  marcas: Record<string, string> = {},
 ): Promise<ResultadoXP> {
   const config = await leerConfig();
   if (!config.activo) {
@@ -865,12 +783,56 @@ est = ponerTotales(est, stats);
       est.animeXp[r.animeId] = num(est.animeXp[r.animeId]) + cantidad;
     }
 
+    // ── Marcas de pertenencia y creación ─────────────
+    //
+    // Los triggers que no dan XP (clubes, canales, chats, tier
+    // lists, encuestas creadas con el hilo) marcan ids en los
+    // mapas de `stats`. Un id que ya está no cuenta dos veces, y
+    // nada se resta nunca: la medalla no se pierde por salir de
+    // un club o borrar un canal.
+    for (const [campo, id] of Object.entries(marcas)) {
+      if (campo.startsWith('topico:') && id) {
+        est = marcarTopico(est, campo.slice('topico:'.length), id);
+      } else if (esCampoMapa(campo) && id) {
+        est = conMarca(est, campo, id);
+      }
+    }
+
+    // ── Día de actividad ─────────────────────────────
+    //
+    // Cada acción que da XP cuenta el día una sola vez (hora del
+    // servidor). No hay trigger diario que recorrer usuarios: el
+    // día se marca al pasar por aquí, que es por donde pasan
+    // todas las acciones que puntúan.
+    const hoy = new Date().toISOString().slice(0, 10);
+    const dia = pasarDia(est.diasActivosTotal, est.diasActivosUltimo, hoy);
+    est.diasActivosTotal = dia.total;
+    est.diasActivosUltimo = dia.ultimo;
+
     // ── Medallas ───────────────────────────────────────────
     const yaDesbloqueadas =
       data.medals && typeof data.medals === 'object'
         ? (data.medals as Record<string, unknown>)
         : {};
-    const nuevas = medallasNuevas(est, nivel.level, yaDesbloqueadas, config);
+    // Antigüedad y perfil se calculan del documento, no de
+    // `stats`: la fecha de registro y los datos básicos no son
+    // contadores. El criterio de perfil completo es el mismo que
+    // el cliente usa para la barra (ver `ProgressionContext`).
+    const noVacio = (v: unknown): boolean =>
+      typeof v === 'string' && v.trim().length > 0;
+    const nuevas = medallasNuevas(
+      est,
+      nivel.level,
+      yaDesbloqueadas,
+      config.animeMedallas,
+      xpDespues,
+      {
+        antiguedadDias: diasDesde(data.createdAt, Date.now()),
+        perfilCompleto:
+          noVacio(data.displayName) && noVacio(data.bio) && noVacio(data.avatarUrl),
+        perfilCustom: tieneCustom(data),
+      },
+    );
 
     const update: Record<string, unknown> = {
       xp: xpDespues,
@@ -1005,9 +967,9 @@ async function concederConHitos(
   idLibro: string,
   r: Recompensa,
   stats: Partial<Estadisticas>,
-  opciones: { permitirNegativo?: boolean } = {},
+  opciones: { permitirNegativo?: boolean; marcas?: Record<string, string> } = {},
 ): Promise<ResultadoXP> {
-  const primero = await concederXP(uid, idLibro, r, stats, opciones);
+  const primero = await concederXP(uid, idLibro, r, stats, opciones, opciones.marcas ?? {});
 
   // En un retiro no hay hito que celebrar.
   if (!primero.aplicado || opciones.permitirNegativo) return primero;
@@ -1052,6 +1014,105 @@ async function concederConHitos(
   }
 
   return resultado;
+}
+
+// ======================================================
+// MARCAR PERTENENCIA SIN DAR XP
+// ======================================================
+//
+// Crear un club, unirse a uno, abrir un canal, escribir en un
+// chat, publicar una tier list o una encuesta NO dan XP (no hay
+// motivo en la configuración para eso): solo marcan el id en los
+// mapas de `stats`, que es lo que miran esas medallas.
+//
+// Va separado de `concederXP` porque ahí todo pasa por el libro
+// mayor, y aquí no hay nada que pagar ni que impedir que se
+// repita: el mapa ya es idempotente por construcción. Lo que sí
+// se comparte es la evaluación de medallas y el aviso.
+//
+// Los triggers llaman aquí con el id ya validado por las reglas
+// (solo el dueño crea el club, solo miembros escriben...): si el
+// documento existe, la acción fue legítima.
+async function marcarMapa(
+  uid: string,
+  marcas: Record<string, string>,
+): Promise<string[]> {
+  const config = await leerConfig();
+  if (!config.activo) return [];
+
+  const userRef = db.doc(`${USERS}/${uid}`);
+
+  return db.runTransaction(async (tx) => {
+    const userSnap = await tx.get(userRef);
+    if (!userSnap.exists) return [];
+
+    const data = userSnap.data() ?? {};
+    let est = leerEstadisticas(data);
+
+    for (const [campo, id] of Object.entries(marcas)) {
+      if (campo.startsWith('topico:') && id) {
+        est = marcarTopico(est, campo.slice('topico:'.length), id);
+      } else if (esCampoMapa(campo) && id) {
+        est = conMarca(est, campo, id);
+      }
+    }
+
+    const nivel = num(data.level) || 1;
+    const noVacio = (v: unknown): boolean =>
+      typeof v === 'string' && v.trim().length > 0;
+    const nuevas = medallasNuevas(
+      est,
+      nivel,
+      data.medals && typeof data.medals === 'object'
+        ? (data.medals as Record<string, unknown>)
+        : {},
+      config.animeMedallas,
+      num(data.xp),
+      {
+        antiguedadDias: diasDesde(data.createdAt, Date.now()),
+        perfilCompleto:
+          noVacio(data.displayName) && noVacio(data.bio) && noVacio(data.avatarUrl),
+        perfilCustom: tieneCustom(data),
+      },
+    );
+
+    const update: Record<string, unknown> = { stats: est };
+
+    if (nuevas.length > 0) {
+      const medals = { ...(data.medals as Record<string, unknown>) };
+      nuevas.forEach((id) => {
+        medals[id] = ahoraIso();
+      });
+      update.medals = medals;
+    }
+
+    tx.update(userRef, update);
+
+    if (nuevas.length > 0) {
+      const mejor = nuevas[0];
+      const nombre = NOMBRES_DE_MEDALLA[mejor] ?? mejor;
+
+      try {
+        await notificar({
+          id: `achievement_${uid}_${mejor}`,
+          type: 'achievement',
+          recipientId: uid,
+          actorId: uid,
+          actorName: '',
+          actorAvatar: '',
+          title: `¡Medalla desbloqueada: ${nombre}!`,
+        });
+      } catch (e) {
+        logger.error('Fallo notificando medalla por marca', {
+          uid,
+          medalla: mejor,
+          error: e,
+        });
+      }
+    }
+
+    return nuevas;
+  });
 }
 
 
@@ -1168,6 +1229,22 @@ export const onThreadCreated = onDocumentCreated(
     const threadId = event.params['threadId'];
     const titulo = typeof data.title === 'string' ? data.title : '';
 
+    // Marcas sin XP: encuesta creada con el hilo, imagen en el
+    // hilo y tópicos oficiales de sus tags (medallas Encuestador,
+    // Maestro de los Memes, Manga, Recomendador, Teórico y
+    // Explorador de Géneros). Solo hilos: los comentarios no
+    // llevan imagen en este modelo.
+    const marcas: Record<string, string> = {};
+    if (data.poll && typeof data.poll === 'object') {
+      marcas.encuestasCreadas = threadId;
+    }
+    if (typeof data.imageUrl === 'string' && data.imageUrl.trim() !== '') {
+      marcas.visualesIds = threadId;
+    }
+    for (const topico of topicosDe(data.tags)) {
+      marcas[`topico:${topico}`] = threadId;
+    }
+
     try {
       await concederConHitos(
         authorId,
@@ -1180,6 +1257,11 @@ export const onThreadCreated = onDocumentCreated(
           animeId: null,
         },
         { threadsCreated: 1 },
+        // Un hilo creado CON encuesta cuenta también como encuesta
+        // creada (medalla Encuestador). Si la encuesta se añade
+        // después, este trigger no la ve: es la limitación
+        // documentada, y por eso la medalla pide 10 y no 1.
+        Object.keys(marcas).length > 0 ? { marcas } : {},
       );
     } catch (e) {
       logger.error('Fallo concediendo XP por hilo nuevo', { threadId, error: e });
@@ -2770,6 +2852,14 @@ export const configurarGamificacion = onCall(async (request) => {
     siguiente.xpPorHito = hito;
   }
 
+  if (d.votosTierPopular !== undefined) {
+    const umbral = Math.floor(num(d.votosTierPopular));
+    if (umbral < 1 || umbral > 500) {
+      throw new HttpsError('invalid-argument', 'El umbral de tier popular debe estar entre 1 y 500.');
+    }
+    siguiente.votosTierPopular = umbral;
+  }
+
   if (d.activo !== undefined) {
     siguiente.activo = d.activo === true;
   }
@@ -2815,6 +2905,165 @@ export const configurarGamificacion = onCall(async (request) => {
 
   return siguiente;
 });
+
+// ======================================================
+// COMUNIDAD: CLUBES, CANALES, CHATS, TIER LISTS
+// ======================================================
+//
+// Estos triggers NO dan XP (no hay motivo en la configuración
+// para crear un club o escribir en un chat): solo marcan el id
+// en los mapas de `stats` mediante `marcarMapa`, que es lo que
+// miran esas medallas.
+//
+// La legitimidad la dan las reglas, no el trigger: si el
+// documento existe es que las reglas dejaron crearlo (solo el
+// dueño crea el club, solo miembros escriben...). Y el mapa es
+// idempotente por construcción, así que reintentos y
+// re-ejecuciones no cuentan dos veces.
+
+/** Crear un club: cuenta como creado y como unido (el dueño entra). */
+export const onClubCreated = onDocumentCreated(
+  `${CLUBS}/{clubId}`,
+  async (event) => {
+    try {
+      const data = event.data?.data();
+      if (!data) return;
+      const ownerId = typeof data.ownerId === 'string' ? data.ownerId : '';
+      if (!ownerId) return;
+      const clubId = event.params['clubId'];
+      await marcarMapa(ownerId, { clubesCreados: clubId, clubesUnidos: clubId });
+    } catch (e) {
+      logger.error('Fallo marcando club creado', { error: e });
+    }
+  },
+);
+
+/**
+ * Entrar o salir de un club: solo suman los que ENTRAN.
+ *
+ * Se comparan los `memberIds` de antes y después, y se marca a
+ * cada miembro nuevo. Salir no resta nada: la medalla no se
+ * pierde por irse, igual que con los seguidores.
+ */
+export const onClubMembersChanged = onDocumentUpdated(
+  `${CLUBS}/{clubId}`,
+  async (event) => {
+    try {
+      const antes = event.data?.before?.data();
+      const despues = event.data?.after?.data();
+      if (!antes || !despues) return;
+      const eran = new Set(
+        (Array.isArray(antes.memberIds) ? antes.memberIds : []).filter(
+          (m): m is string => typeof m === 'string',
+        ),
+      );
+      const son = (Array.isArray(despues.memberIds) ? despues.memberIds : []).filter(
+        (m): m is string => typeof m === 'string',
+      );
+      const clubId = event.params['clubId'];
+      for (const uid of son) {
+        if (eran.has(uid)) continue;
+        try {
+          await marcarMapa(uid, { clubesUnidos: clubId });
+        } catch (e) {
+          logger.error('Fallo marcando miembro de club', { clubId, uid, error: e });
+        }
+      }
+    } catch (e) {
+      logger.error('Fallo en cambio de miembros de club', { error: e });
+    }
+  },
+);
+
+/** Crear un canal en un club: cuenta para quien lo crea. */
+export const onChannelCreated = onDocumentCreated(
+  `${CLUBS}/{clubId}/${CHANNELS}/{channelId}`,
+  async (event) => {
+    try {
+      const data = event.data?.data();
+      if (!data) return;
+      const creador = typeof data.createdBy === 'string' ? data.createdBy : '';
+      if (!creador) return;
+      await marcarMapa(creador, {
+        canalesCreados: event.params['channelId'],
+      });
+    } catch (e) {
+      logger.error('Fallo marcando canal creado', { error: e });
+    }
+  },
+);
+
+/** Escribir en un chat: la conversación cuenta para quien escribe. */
+export const onChatParticipado = onDocumentCreated(
+  `${CHATS}/{chatId}/messages/{messageId}`,
+  async (event) => {
+    try {
+      const data = event.data?.data();
+      if (!data) return;
+      const senderId = typeof data.senderId === 'string' ? data.senderId : '';
+      if (!senderId) return;
+      await marcarMapa(senderId, { chatsPropios: event.params['chatId'] });
+    } catch (e) {
+      logger.error('Fallo marcando chat participado', { error: e });
+    }
+  },
+);
+
+/** Crear una tier list: cuenta para su autor. */
+export const onTierListCreated = onDocumentCreated(
+  `${TIERLISTS}/{tierListId}`,
+  async (event) => {
+    try {
+      const data = event.data?.data();
+      if (!data) return;
+      const authorId = typeof data.authorId === 'string' ? data.authorId : '';
+      if (!authorId) return;
+      await marcarMapa(authorId, { tiersCreadas: event.params['tierListId'] });
+    } catch (e) {
+      logger.error('Fallo marcando tier list creada', { error: e });
+    }
+  },
+);
+
+/**
+ * Votar en una tier list: si llega al umbral de votantes distintos,
+ * la tier entra en `tiersPopularesIds` de su autor (medalla Rey del
+ * Ranking).
+ *
+ * El umbral (`votosTierPopular`, 10 por defecto) lo pone el admin
+ * en la configuración: es "participación legítima" con número, y
+ * los votos son un documento por persona (ver `tierlists.ts`), así
+ * que coordinarse para inflarlo deja rastro por votante.
+ */
+export const onTierListVoteChanged = onDocumentWritten(
+  `${TIERLISTS}/{tierListId}/votes/{uid}`,
+  async (event) => {
+    try {
+      const tierListId = event.params['tierListId'];
+      const tierSnap = await db.doc(`${TIERLISTS}/${tierListId}`).get();
+      if (!tierSnap.exists) return;
+      const authorId = tierSnap.data()?.authorId;
+      if (typeof authorId !== 'string' || !authorId) return;
+
+      const config = await leerConfig();
+      const umbral = Math.max(1, num(config.votosTierPopular ?? 10));
+
+      const votos = await db
+        .doc(`${TIERLISTS}/${tierListId}`)
+        .collection('votes')
+        .limit(umbral + 1)
+        .get();
+
+      // Votantes distintos: el id del documento es el uid.
+      const distintos = new Set(votos.docs.map((d) => d.id)).size;
+      if (distintos < umbral) return;
+
+      await marcarMapa(authorId, { tiersPopularesIds: tierListId });
+    } catch (e) {
+      logger.error('Fallo evaluando popularidad de tier list', { error: e });
+    }
+  },
+);
 
 /**
  * Suma o resta XP a mano.
@@ -3253,6 +3502,14 @@ export const recalcularUsuario = onCall(async (request) => {
   // cuenta exista o no exista su premio.
   const recuento = { threadsCreated: 0, commentsCreated: 0, commentsInThreads: 0 };
 
+  // Marcas de comunidad para el merge final (ver abajo): se van
+  // juntando durante el recorrido y se escriben por clave, nunca
+  // reemplazando mapas enteros.
+  const marcasRecalculo: Record<string, true> = {};
+  const marcarRecalculo = (campo: string, id: string) => {
+    marcasRecalculo[`${campo}.${id}`] = true;
+  };
+
   const anotar = (res: { aplicado: boolean }) => {
     if (res.aplicado) concedidas += 1;
     else omitidas += 1;
@@ -3264,6 +3521,13 @@ export const recalcularUsuario = onCall(async (request) => {
     // Antes de mirar el libro mayor: el hilo cuenta aunque su XP ya
     // estuviera pagado hace meses.
     recuento.threadsCreated += 1;
+
+    // Tópicos oficiales de sus tags (medallas temáticas). Merge por
+    // clave, como los mapas de comunidad: nunca reemplazo.
+    const dHilo = doc.data() ?? {};
+    for (const topico of topicosDe(dHilo.tags)) {
+      marcasRecalculo[`stats.hilosPorTopico.${topico}.${doc.id}`] = true;
+    }
 
     const id = `thread_created_${doc.id}`;
     if (concedidos.has(id)) {
@@ -3458,6 +3722,83 @@ export const recalcularUsuario = onCall(async (request) => {
     'stats.commentsInThreads': recuento.commentsInThreads,
     'stats.likesReceived': likesReceived,
   });
+
+  // ── Mapas de comunidad: MERGE, nunca reemplazo ───────
+  //
+  // A diferencia de los contadores de arriba, estos mapas son
+  // "lo que alguna vez fue": si alguien salió de un club, el
+  // recuento por `memberIds` ya no lo trae, pero la medalla no se
+  // puede perder por irse. Por eso aquí se AÑADEN claves
+  // (`stats.clubesUnidos.${id}: true`) y jamás se escribe el mapa
+  // entero, que borraría lo que el contenido actual ya no dice.
+  //
+  // Los días activos no se recalculan: el pasado no se puede
+  // reconstruir y el contador solo sube desde ahora. La
+  // antigüedad no necesita nada: se calcula de `createdAt` al
+  // evaluar, y el perfil se evalúa en cada concesión.
+
+  // Clubes creados y clubes donde está.
+  const clubesPropios = await db.collection(CLUBS).where('ownerId', '==', uid).get();
+  for (const doc of clubesPropios.docs) {
+    marcarRecalculo('stats.clubesCreados', doc.id);
+    marcarRecalculo('stats.clubesUnidos', doc.id);
+  }
+  const clubesMiembro = await db
+    .collection(CLUBS)
+    .where('memberIds', 'array-contains', uid)
+    .get();
+  for (const doc of clubesMiembro.docs) {
+    marcarRecalculo('stats.clubesUnidos', doc.id);
+  }
+
+  // Canales creados (subcolección: grupo de colección).
+  const canales = await db
+    .collectionGroup(CHANNELS)
+    .where('createdBy', '==', uid)
+    .get();
+  for (const doc of canales.docs) {
+    marcarRecalculo('stats.canalesCreados', doc.id);
+  }
+
+  // Conversaciones donde ha escrito (acotado: solo alimenta un
+  // mapa, y con mil mensajes sobra para cualquier medalla).
+  const mensajes = await db
+    .collectionGroup('messages')
+    .where('senderId', '==', uid)
+    .limit(1000)
+    .get();
+  for (const doc of mensajes.docs) {
+    const chatId = doc.ref.parent.parent?.id;
+    if (chatId) marcarRecalculo('stats.chatsPropios', chatId);
+  }
+
+  // Tier lists creadas, y las que llegaron a populares (mismo
+  // umbral que el trigger: votantes distintos en `votes`).
+  const umbralRecalculo = Math.max(
+    1,
+    num((await leerConfig()).votosTierPopular ?? 10),
+  );
+  const tiers = await db.collection(TIERLISTS).where('authorId', '==', uid).get();
+  for (const doc of tiers.docs) {
+    marcarRecalculo('stats.tiersCreadas', doc.id);
+    const votos = await doc.ref.collection('votes').limit(umbralRecalculo + 1).get();
+    if (new Set(votos.docs.map((v) => v.id)).size >= umbralRecalculo) {
+      marcarRecalculo('stats.tiersPopularesIds', doc.id);
+    }
+  }
+
+  // Hilos creados CON encuesta (el bucle de hilos de arriba no la
+  // miraba: aquí solo se marcan, el XP ya está pagado o contado).
+  for (const doc of hilos.docs) {
+    const poll = doc.data()?.poll;
+    if (poll && typeof poll === 'object') {
+      marcarRecalculo('stats.encuestasCreadas', doc.id);
+    }
+  }
+
+  if (Object.keys(marcasRecalculo).length > 0) {
+    await db.doc(`${USERS}/${uid}`).update(marcasRecalculo);
+  }
 
   logger.info('Contadores recalculados desde el contenido', {
     objetivo: uid,

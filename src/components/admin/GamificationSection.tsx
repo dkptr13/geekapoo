@@ -318,6 +318,7 @@ export const GamificationSection: React.FC = () => {
         exponente: config.exponente,
         nivelesMaximos: config.nivelesMaximos,
         xpPorHito: config.xpPorHito,
+        votosTierPopular: config.votosTierPopular,
         xp: config.xp,
         animeMedallas,
       });
@@ -566,6 +567,12 @@ export const GamificationSection: React.FC = () => {
             onChange={(n) => setConfig({ ...config, xpPorHito: n })}
             ayuda="Al cruzar el nivel 5, 10, 25 y 50"
           />
+          <Num
+            label="Votos para tier popular"
+            value={config.votosTierPopular}
+            onChange={(n) => setConfig({ ...config, votosTierPopular: n })}
+            ayuda="Votantes distintos para la medalla Rey del Ranking"
+          />
         </div>
 
         {/* Animes de las medallas temáticas */}
@@ -777,7 +784,8 @@ export const GamificationSection: React.FC = () => {
           <p className="max-w-2xl text-[11px] leading-relaxed text-zinc-500">
             Para "Miembro Fundador" y para corregir olvidos. Si quitas una medalla con
             requisito automático, el usuario volverá a ganarla en cuanto lo cumpla: solo
-            las manuales se pueden quitar de verdad.
+            las manuales se pueden quitar de verdad. Las marcadas como "Próximamente"
+            no salen aquí porque su sistema todavía no existe.
           </p>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -790,7 +798,7 @@ export const GamificationSection: React.FC = () => {
                 onChange={(e) => setMedallaId(e.target.value)}
                 className="mt-1 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white outline-none focus:border-violet-500"
               >
-                {CATALOGO_MEDALLAS.map((m) => (
+                {CATALOGO_MEDALLAS.filter((m) => m.disponible !== false).map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.icono} {m.nombre}
                   </option>

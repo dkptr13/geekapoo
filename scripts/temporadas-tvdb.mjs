@@ -110,6 +110,88 @@ export const TEMPORADA_TVDB = {
   // en Specials (S0E1). La serie ONA coincide sola.
   'burn-the-witch': { 2: 0 },
 
+  // La OVA für die Liebe de Kämpfer va como T2 y TVDB la guarda en
+  // Specials (el 13 como S0E9 y el 14 como S0E10). La serie
+  // coincide sola.
+  'kampfer': { 2: 0 },
+
+  // El OVA de Masamune va como T2 y TVDB lo guarda en Specials
+  // (S0E1). La R va como T3 y TVDB la guarda como S2. La serie
+  // coincide sola.
+  'masamune-kun-no-revenge': { 2: 0, 3: 2 },
+
+  // Kimetsu va en orden cronologico: serie, pelis y arcos. TVDB
+  // guarda las pelis en Specials (S0E2 el Tren, S0E16 el Castillo
+  // 1) y numera los arcos uno por delante (la S2 de TVDB es la
+  // version de tele del Tren, que aqui no entra).
+  //
+  //   catalogo T1  serie (2019)              TVDB S1
+  //   catalogo T2  peli Tren (2020)          TVDB S0E2
+  //   catalogo T3  Yuukaku                   TVDB S3
+  //   catalogo T4  Herreros                  TVDB S4
+  //   catalogo T5  Pilar                     TVDB S5
+  //   catalogo T6  peli Castillo 1 (2025)    TVDB S0E16
+  'kimetsu-no-yaiba': { 2: 0, 3: 3, 4: 4, 5: 5, 6: 0 },
+
+  // Oregairu va en orden de emision: tres series y tres OVAs. TVDB
+  // guarda las series en S1 a S3 y los OVAs en Specials (S0E1 a
+  // S0E3).
+  'yahari-ore-no-seishun-love-come-wa-machigatteiru': { 2: 0, 3: 2, 4: 0, 5: 3, 6: 0 },
+
+  // Nisekoi va en orden de emision: dos series y dos OVAs. TVDB
+  // guarda las series en S1 y S2 y los OVAs en Specials (S0E1 a
+  // S0E3 los de 2014-2015 y S0E5 y S0E7 los de 2016).
+  'nisekoi': { 2: 0, 3: 2, 4: 0 },
+
+  // K-On! va en orden de emision: dos series, dos OVAs y la peli.
+  // TVDB guarda las series en S1 y S2 y el resto en Specials
+  // (S0E19 Live House, S0E17 Keikaku, S0E18 la peli). Los cortos
+  // Ura-On no entran.
+  'k-on': { 2: 0, 3: 2, 4: 0, 5: 0 },
+
+  // Goblin Slayer va en orden de emision: dos series y la peli.
+  // TVDB guarda las series en S1 y S2 y la peli en Specials
+  // (S0E2). El resumen de S0E1 no entra.
+  'goblin-slayer': { 2: 0, 3: 2 },
+
+  // Mirai Nikki: serie en S1 y Redial en Specials (S0E2). El
+  // piloto y los chibis no entran.
+  'mirai-nikki': { 2: 0 },
+
+  // Kabaneri: serie en S1 y peli Unato en Specials (S0E6 entera;
+  // los S0E3 a S0E5 son su version partida). Los recopilatorios
+  // no entran.
+  'kabaneri-of-the-iron-fortress': { 2: 0 },
+
+  // SPY×FAMILY va en orden cronologico: serie junta, peli y dos
+  // temporadas. TVDB guarda la S1 junta (25), la peli en Specials
+  // (S0E3) y las otras en S2 y S3. El cursillo, el anuncio y la
+  // publi no entran.
+  //
+  //   catalogo T1  serie 2022 (dos partes)  TVDB S1
+  //   catalogo T2  peli CODE: White (2023)  TVDB S0E3
+  //   catalogo T3  Season 2                 TVDB S2
+  //   catalogo T4  Season 3                 TVDB S3
+  'spy-family': { 2: 0, 3: 2, 4: 3 },
+
+  // Date A Live va en orden de emision: cinco series, dos OVAs y
+  // tres pelis. TVDB guarda las series en S1 a S5 y el resto en
+  // Specials (S0E1 DATE TO DATE, S0E2 Kurumi, S0E3 Mayuri, S0E4
+  // Bullet 1, S0E5 Bullet 2).
+  'date-a-live': { 2: 0, 3: 2, 4: 0, 5: 0, 6: 3, 7: 0, 8: 0, 9: 4, 10: 5 },
+
+  // High School of the Dead: serie en S1 y OVA en Specials (S0E1).
+  // El videoclip no entra.
+  'high-school-of-the-dead': { 2: 0 },
+
+  // To Love Ru va en orden de emision: cuatro series, cuatro OVAs
+  // y los especiales. TVDB guarda las series en S1 a S4 y el resto
+  // en Specials (S0E1 a S0E6 el OVA, S0E7 a S0E12 el OVA
+  // Darkness, S0E13 a S0E15 el OVA 2nd, S0E16 Multiplication).
+  // Los especiales van al final de la S4 (E13 y E14): eso lo dice
+  // CAPITULO_TVDB. El archivo de Momo no entra.
+  'to-love-ru': { 2: 0, 3: 2, 4: 3, 5: 0, 6: 4, 7: 4, 8: 0, 9: 0 },
+
   // La pelicula precuela Frozen Bond de Re:Zero va como T5 y TVDB
   // la guarda en Specials (S0E28). Las cuatro de television
   // coinciden solas. Memory Snow no necesita mapa: va como T1E26
@@ -169,6 +251,12 @@ export const CAPITULO_TVDB = {
     5: { temporada: 4, desde: 1 },
     6: { temporada: 4, desde: 17 },
     7: { temporada: 4, desde: 29 },
+  },
+  // Los especiales de Darkness 2nd van al final de la S4 de TVDB
+  // (E13 y E14), no en Specials. Sin esto, el capitulo 1 de la T7
+  // buscaria el S0E1, que es del OVA de 2009.
+  'to-love-ru': {
+    7: { temporada: 4, desde: 13 },
   },
 };
 

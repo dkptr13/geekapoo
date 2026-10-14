@@ -36,6 +36,13 @@ export const ESTILO_RAREZA: Record<
     fondo: 'bg-zinc-800/40',
     glow: '',
   },
+  poco_comun: {
+    etiqueta: 'Poco comun',
+    chip: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
+    borde: 'border-emerald-500/40',
+    fondo: 'bg-emerald-500/5',
+    glow: 'shadow-emerald-500/10',
+  },
   rara: {
     etiqueta: 'Rara',
     chip: 'border-sky-500/40 bg-sky-500/15 text-sky-300',
@@ -56,6 +63,13 @@ export const ESTILO_RAREZA: Record<
     borde: 'border-amber-500/40',
     fondo: 'bg-amber-500/5',
     glow: 'shadow-amber-500/20',
+  },
+  mitica: {
+    etiqueta: 'Mitica',
+    chip: 'border-rose-500/40 bg-rose-500/15 text-rose-300',
+    borde: 'border-rose-500/40',
+    fondo: 'bg-rose-500/5',
+    glow: 'shadow-rose-500/20',
   },
 };
 
@@ -82,6 +96,17 @@ export const MedalCard: React.FC<{
   // que este ya desbloqueada.
   const equipable = desbloqueada && Boolean(medal.titulo) && Boolean(onEquipar);
 
+  // Pendiente = su sistema no existe todavía. Secreta + bloqueada =
+  // no se enseña ni el nombre ni el requisito.
+  const pendiente = medal.disponible === false;
+  const oculta = !desbloqueada && medal.secreta === true;
+  const nombreVisible = oculta ? '???' : medal.nombre;
+  const descripcionVisible = oculta
+    ? 'Un secreto por descubrir.'
+    : pendiente && medal.motivoPendiente
+      ? `${medal.descripcion} (${medal.motivoPendiente}.)`
+      : medal.descripcion;
+
   return (
     <div
       className={`flex flex-col gap-2.5 rounded-2xl border p-4 transition-all ${
@@ -89,7 +114,7 @@ export const MedalCard: React.FC<{
           ? `${estilo.borde} ${estilo.fondo} ${estilo.glow}`
           : 'border-zinc-800/80 bg-zinc-900/50 opacity-70'
       }`}
-      title={medal.descripcion}
+      title={descripcionVisible}
     >
       <div className="flex items-start gap-3">
         <div
@@ -112,7 +137,7 @@ export const MedalCard: React.FC<{
               desbloqueada ? 'text-white' : 'text-zinc-500'
             }`}
           >
-            {medal.nombre}
+            {nombreVisible}
           </p>
 
           <span
@@ -124,7 +149,7 @@ export const MedalCard: React.FC<{
       </div>
 
       {!compacto && (
-        <p className="text-[11px] leading-relaxed text-zinc-400">{medal.descripcion}</p>
+        <p className="text-[11px] leading-relaxed text-zinc-400">{descripcionVisible}</p>
       )}
 
       {desbloqueada ? (

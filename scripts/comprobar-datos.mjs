@@ -79,6 +79,9 @@ const ANGELESAS = [
  * Chainsaw Man daba fallos en casi todas sus lineas, y lo unico que se
  * podia hacer era no escribir el nombre de la protagonista.
  *
+ * Green es el mismo caso en SPY×FAMILY: asi se llama el personaje en
+ * AniList y en la serie, y traducirlo seria inventarse otro nombre.
+ *
  * Solo se perdona la palabra si sale con mayuscula, es decir, como
  * nombre propio. "Power" en minuscula en medio de una frase sigue
  * saltando, que es justo el caso que la comprobacion quiere pillar. Y
@@ -89,7 +92,7 @@ const ANGELESAS = [
  * Revengers: una excepcion explicita y con su motivo, no relajar el
  * filtro hasta que deje de molestar.
  */
-const PROPIOS_EN_INGLES = ['power'];
+const PROPIOS_EN_INGLES = ['power', 'green'];
 
 /**
  * Si una palabra inglesa sale como NOMBRE PROPIO y no como palabra.

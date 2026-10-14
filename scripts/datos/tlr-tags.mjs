@@ -1,0 +1,53 @@
+// ETIQUETAS - To Love Ru
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+//
+// Maximo 40 caracteres por etiqueta. Haren contra planeta ordena
+// el catalogo: aqui cada uno es de a quien quiere o a quien sirve.
+
+export const TAGS = {
+  "Rito Yuuki": ["Protagonista", "Accidentes", "Puras"],
+  "Lala Deviluke": ["Protagonista", "Princesa", "Cola"],
+  "Haruna Sairenji": ["Protagonista", "Timida", "Clase"],
+  "Konjiki no Yami": ["Protagonista", "Dorada", "Asesina"],
+  "Momo Deviluke": ["Protagonista", "Haren", "Plan"],
+  "Mea Kurosaki": ["Protagonista", "Oscura", "Pequeña"],
+  "Mikan Yuuki": ["Protagonista", "Hermana", "Temple"],
+  "Yui Kotegawa": ["Protagonista", "Moral", "Regla"],
+  "Nana Deviluke": ["Protagonista", "Gemela", "Odia"],
+  "Run Elsie Jewelria": ["Protagonista", "Idol", "Cambia"],
+  "Saki Tenjouin": ["Protagonista", "Reina", "Corte"],
+  "Rin Kujou": ["Protagonista", "Espada", "Leal"],
+  "Aya Fujisaki": ["Protagonista", "Gafas", "Calma"],
+  "Nemesis": ["Protagonista", "Oscuridad", "Jefa"],
+  "Gid Lucion Deviluke": ["Rey", "Diablo", "Broma"],
+  "Zastin": ["Espada", "Bigote", "Escolta"],
+  "Taizou Motemitsu": ["Presumido", "Insti", "Saki"],
+  "Peke": ["Robot", "Formas", "Lala"],
+  "Ryouko Mikado": ["Enfermera", "Alien", "Insti"],
+  "Kenichi Saruyama": ["Pervertido", "Amigo", "Haren"],
+  "Risa Momioka": ["Guarra", "Amiga", "Sin filtro"],
+  "Mio Sawada": ["Amiga", "Gafas", "Haruna"],
+  "Shizu Murasame": ["Fantasma", "Insti", "Oshizu"],
+  "Principal": ["Director", "Estatua", "Discursos"],
+  "Akiho Sairenji": ["Hermana", "Bebe", "Liga"],
+  "Kyouko Kirisaki": ["Idol", "Magical", "Fan"],
+  "Honekawa": ["Esqueleto", "Huesos", "Insti"],
+  "Lacospo": ["Alien", "Pasa", "Serie"],
+  "Ren Elsie Jewelria": ["Chico", "Run", "Cuando toca"],
+  "Buwatts": ["Alien", "Pasa", "Serie"],
+  "Maul": ["Alien", "Pasa", "Serie"],
+  "Marron": ["Perro", "Alien", "Voz"],
+  "Stella": ["Alien", "Pasa", "Serie"],
+  "Celine": ["Planta", "Escupe", "Rito"],
+  "Mami Nogiwa": ["Amiga", "Haruna", "Caracter"],
+  "Sachie Kogure": ["Amiga", "Haruna", "Gafas"],
+  "Ringo Yuuki": ["Madre", "Manga", "Editora"],
+  "Saibai Yuuki": ["Padre", "Mangaka", "Ausente"],
+  "Yuu Kotegawa": ["Hermano", "Pequeño", "Yui"],
+  "Haruko Nitta": ["Profe", "Clase", "Insti"],
+  "Tearju Lunatique": ["Cientifica", "Madre", "Yami"],
+  "Azenda": ["Mercado", "Negro", "Alien"],
+  "Nakajima": ["Compañero", "Clase"],
+  "Sephie Michaela Deviluke": ["Reina", "Madre", "Tres"],
+};

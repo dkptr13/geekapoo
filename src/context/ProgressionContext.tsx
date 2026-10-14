@@ -306,6 +306,12 @@ export const ProgressionProvider: React.FC<{
       debates: stats?.commentsInThreads ?? 0,
       likes: stats?.likesReceived ?? 0,
       nivel: calculos.nivel,
+      xp: progreso?.xp ?? 0,
+      // Series distintas con actividad: claves de animeXp con XP
+      // mayor que cero. Es "en cuántos animes has participado".
+      seriesDiferentes: Object.values(stats?.animeXp ?? {}).filter(
+        (v) => typeof v === 'number' && v > 0,
+      ).length,
       xpEnAnime: (animeId: string) => stats?.animeXp?.[animeId] ?? 0,
       // Trivia: contadores que escribe la Cloud Function al
       // corregir el resultado. Aquí solo se leen para la barra.
@@ -317,12 +323,41 @@ export const ProgressionProvider: React.FC<{
       // ahora: las medallas de comunidad no se pierden por dejar de
       // seguirte (ver `MedalRequirement` en `types/gamification.ts`).
       seguidores: stats?.followersReceived ?? 0,
+      dias: stats?.diasActivosTotal ?? 0,
+      clubes: Object.keys(stats?.clubesUnidos ?? {}).length,
+      clubesCreados: Object.keys(stats?.clubesCreados ?? {}).length,
+      canales: Object.keys(stats?.canalesCreados ?? {}).length,
+      chats: Object.keys(stats?.chatsPropios ?? {}).length,
+      tiers: Object.keys(stats?.tiersCreadas ?? {}).length,
+      encuestas: Object.keys(stats?.encuestasCreadas ?? {}).length,
+      antiguedadDias: progreso?.antiguedadDias ?? 0,
+      perfilCompleto: progreso?.perfilCompleto ?? false,
+      perfilCustom: progreso?.perfilCustom ?? false,
+      visuales: Object.keys(stats?.visualesIds ?? {}).length,
+      tiersPopulares: Object.keys(stats?.tiersPopularesIds ?? {}).length,
+      hilosTopico: (topico: string) =>
+        Object.keys(stats?.hilosPorTopico?.[topico] ?? {}).length,
+      topicosDistintos: Object.values(stats?.hilosPorTopico ?? {}).filter(
+        (m) => m && typeof m === 'object' && Object.keys(m).length > 0,
+      ).length,
     };
 
     return conIds.map((medal) => {
       const fecha = medals[medal.id];
       const desbloqueada = Boolean(fecha);
       const { progreso: p, falta } = progresoDeMedalla(medal.requisito, medidas);
+
+      // Pendiente = su sistema no existe todavía: sin barra que
+      // confunda, solo el motivo.
+      if (!desbloqueada && medal.disponible === false) {
+        return {
+          medal,
+          desbloqueada,
+          fecha: null,
+          progreso: 0,
+          falta: medal.motivoPendiente ?? 'Próximamente',
+        };
+      }
 
       return {
         medal,

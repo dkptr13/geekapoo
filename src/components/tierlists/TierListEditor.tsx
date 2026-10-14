@@ -160,10 +160,12 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Autoguardado con espera.
+  // Autoguardado con espera. Solo al crear desde cero: una
+  // plantilla descartada no debe contaminar el próximo borrador
+  // nuevo con su contenido.
   const timerBorrador = useRef<number | null>(null);
   useEffect(() => {
-    if (modo !== 'nuevo' || !claveBorrador) return;
+    if (modo !== 'nuevo' || !claveBorrador || initial) return;
     if (timerBorrador.current !== null) window.clearTimeout(timerBorrador.current);
     timerBorrador.current = window.setTimeout(() => {
       try {
@@ -175,7 +177,7 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
     return () => {
       if (timerBorrador.current !== null) window.clearTimeout(timerBorrador.current);
     };
-  }, [draft, modo, claveBorrador]);
+  }, [draft, modo, claveBorrador, initial]);
 
   const niveles = useMemo(
     () =>

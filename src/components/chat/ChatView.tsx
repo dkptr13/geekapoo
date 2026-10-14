@@ -814,7 +814,14 @@ export const ChatView: React.FC = () => {
   };
 
   const trasGuardarTierChat = async (tierListId: string) => {
-    // La recién creada queda adjunta al mensaje siguiente.
+    // Solo lo recién CREADO queda adjunto al mensaje siguiente.
+    // Al editar (desde el visor) no se toca lo adjuntado: si no,
+    // guardar cambios engancharía la tier list al próximo envío
+    // sin haberlo pedido.
+    if (editorTierChat?.modo !== 'nuevo') {
+      setSelectorTierAbierto(false);
+      return;
+    }
     try {
       const tier = await getTierList(tierListId);
       if (tier) setTierAdjunta({ tierListId, title: tier.title });

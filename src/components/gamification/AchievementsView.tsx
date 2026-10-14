@@ -27,9 +27,11 @@ const FILTROS: { id: Filtro; etiqueta: string }[] = [
   { id: 'todas', etiqueta: 'Todas' },
   { id: 'conseguidas', etiqueta: 'Conseguidas' },
   { id: 'pendientes', etiqueta: 'Pendientes' },
+  { id: 'mitica', etiqueta: 'Miticas' },
   { id: 'legendaria', etiqueta: 'Legendarias' },
   { id: 'epica', etiqueta: 'Epicas' },
   { id: 'rara', etiqueta: 'Raras' },
+  { id: 'poco_comun', etiqueta: 'Poco comunes' },
   { id: 'comun', etiqueta: 'Comunes' },
 ];
 
@@ -196,14 +198,15 @@ export const AchievementsView: React.FC = () => {
             </div>
           )}
 
-          {/* ── Nota sobre las manuales ───────────────────── */}
+          {/* ── Nota sobre las manuales y las pendientes ── */}
           {CATALOGO_MEDALLAS.some((m) => !m.requisito) && (
             <p className="flex items-start gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-[11px] leading-relaxed text-zinc-500">
               <Lock size={13} className="mt-0.5 flex-shrink-0" />
               <span>
                 Las medallas con candado no se consiguen jugando: las concede el equipo a
                 mano segun criterios historicos. Son las que no se pueden ganar con barra
-                de progreso.
+                de progreso. Las marcadas como "Próximamente" corresponden a funciones
+                que todavía no existen en la web.
               </span>
             </p>
           )}

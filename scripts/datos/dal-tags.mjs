@@ -1,0 +1,55 @@
+// ETIQUETAS - Date A Live
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+//
+// Maximo 40 caracteres por etiqueta. Citas contra espiritus
+// ordena el catalogo: aqui cada uno es de a quien liga o a quien
+// sirve.
+
+export const TAGS = {
+  "Shidou Itsuka": ["Protagonista", "Liga", "Besa"],
+  "Tooka Yatogami": ["Protagonista", "Espada", "Hambre"],
+  "Origami Tobiichi": ["Protagonista", "AST", "Obsesion"],
+  "Kotori Itsuka": ["Protagonista", "Jefa", "Chupachups"],
+  "Kurumi Tokisaki": ["Protagonista", "Sombras", "Reloj"],
+  "Mayuri": ["Protagonista", "Esfera", "Peli"],
+  "Natsumi": ["Protagonista", "Cambia", "Verde"],
+  "Miku Izayoi": ["Protagonista", "Idol", "Voz"],
+  "Kaguya Yamai": ["Protagonista", "Gemela", "Viento"],
+  "Yuzuru Yamai": ["Protagonista", "Gemela", "Callada"],
+  "Nia Honjou": ["Protagonista", "Otaku", "Segunda"],
+  "Mukuro Hoshimiya": ["Protagonista", "Llave", "Espacio"],
+  "Reine Murasame": ["Protagonista", "Dormida", "Secretos"],
+  "Mio": ["Protagonista", "Origen", "Madre"],
+  "Hibiki Higoromo": ["Protagonista", "Blanca", "Juego"],
+  "Shiro no Joou": ["Protagonista", "Reina", "Blanca"],
+  "Yoshino": ["Lluvia", "Conejo", "Pequeña"],
+  "Narrator": ["Voz", "Cuenta", "Off"],
+  "Tamae Okamine": ["Profe", "Llora", "Clase"],
+  "Mana Takamiya": ["AST", "As", "Tiempo"],
+  "Hiroto Tonomachi": ["Amigo", "Pervertido", "Clase"],
+  "Kyouhei Kannazuki": ["Segundo", "Masoca", "Nave"],
+  "Kyouji Kawagoe": ["Compañero", "Clase"],
+  "Masaomi Mikimoto": ["Compañero", "Clase"],
+  "Hinako Shiizaki": ["Compañera", "Clase"],
+  "Munechika Nakatsugawa": ["Compañero", "Clase"],
+  "Kozue Minowa": ["Compañera", "Clase"],
+  "Ryouko Kusakabe": ["Jefa", "AST", "Ciudad"],
+  "Ai Yamabuki": ["Amiga", "Trio", "Tohka"],
+  "Mai Hazakura": ["Amiga", "Trio", "Tohka"],
+  "Mii Fujibakama": ["Amiga", "Trio", "Tohka"],
+  "Mikie Okamine": ["Sobrina", "Profe", "Clase"],
+  "Ellen Mira Mathers": ["DEM", "Fuerte", "Westcott"],
+  "Mildred F. Fujimura": ["DEM", "Ellen", "Aparato"],
+  "Isaac Ray Peram Westcott": ["Jefe", "DEM", "Poder"],
+  "Elliot Baldwin Woodman": ["Fundador", "Nave", "Ratatoskr"],
+  "Karen Nora Mathers": ["DEM", "Hermana", "Ellen"],
+  "Artemisia Bell Ashcroft": ["DEM", "As", "Espada"],
+  "Nibelcole": ["DEM", "Muñecas", "Enjambre"],
+  "MARIA": ["IA", "Nave", "Bordo"],
+  "Sawa Yamauchi": ["Compañera", "Clase"],
+  "Isami Hijikata": ["Juego", "Vecino", "Cuasi"],
+  "Yui Sagakure": ["Juego", "Vecino", "Cuasi"],
+  "Tsang": ["Juego", "Vecino", "Cuasi"],
+  "Panie Ibusuki": ["Juego", "Vecino", "Cuasi"],
+};

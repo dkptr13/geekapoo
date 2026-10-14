@@ -59,7 +59,26 @@ export interface ProgresoCrudo {
      * comunidad no se pierden al dejar de seguirte.
      */
     followersReceived: number;
+    /** Días distintos con actividad que dio XP. Solo sube. */
+    diasActivosTotal: number;
+    /** Mapas de ids (`clubId: true`): pertenencia y creación. */
+    clubesUnidos: Record<string, true>;
+    clubesCreados: Record<string, true>;
+    canalesCreados: Record<string, true>;
+    chatsPropios: Record<string, true>;
+    tiersCreadas: Record<string, true>;
+    encuestasCreadas: Record<string, true>;
+    visualesIds: Record<string, true>;
+    tiersPopularesIds: Record<string, true>;
+    /** Hilos creados por tópico oficial (`topicoId: {threadId: true}`). */
+    hilosPorTopico: Record<string, Record<string, true>>;
   };
+  /** Días desde el registro. 0 si no hay fecha fiable. */
+  antiguedadDias: number;
+  /** Nombre, bio y avatar no vacíos (mismo criterio que el servidor). */
+  perfilCompleto: boolean;
+  /** Personalización equipada (mismo criterio que el servidor). */
+  perfilCustom: boolean;
   /** ISO de la ultima subida de nivel, para el aviso. */
   lastLevelUpAt: string | null;
   /** Nivel al que se subio en ese momento. */
@@ -83,6 +102,28 @@ export function aProgreso(data: Record<string, unknown> | undefined): ProgresoCr
 
   const medals = (d.medals ?? {}) as Record<string, string>;
 
+  const mapa = (v: unknown): Record<string, true> =>
+    v && typeof v === 'object' && !Array.isArray(v)
+      ? (v as Record<string, true>)
+      : {};
+
+  const noVacio = (v: unknown): boolean =>
+    typeof v === 'string' && v.trim().length > 0;
+
+  // Días desde el registro para la barra de Veterano. Acepta
+  // Timestamp de Firestore o ISO en texto; lo demás es cero.
+  const creado = d.createdAt as { toMillis?: unknown } | string | undefined;
+  const msCreado =
+    typeof creado === 'string'
+      ? Date.parse(creado)
+      : typeof creado?.toMillis === 'function'
+        ? Number((creado as { toMillis: () => number }).toMillis())
+        : NaN;
+  const antiguedadDias =
+    Number.isFinite(msCreado) && msCreado > 0
+      ? Math.max(0, Math.floor((Date.now() - msCreado) / 86400000))
+      : 0;
+
   return {
     xp: numero(d.xp),
     level: numero(d.level),
@@ -101,7 +142,33 @@ export function aProgreso(data: Record<string, unknown> | undefined): ProgresoCr
       triviaPerfect: numero(stats.triviaPerfect),
       triviaStreakBest: numero(stats.triviaStreakBest),
       followersReceived: numero(stats.followersReceived),
+      diasActivosTotal: numero(stats.diasActivosTotal),
+      clubesUnidos: mapa(stats.clubesUnidos),
+      clubesCreados: mapa(stats.clubesCreados),
+      canalesCreados: mapa(stats.canalesCreados),
+      chatsPropios: mapa(stats.chatsPropios),
+      tiersCreadas: mapa(stats.tiersCreadas),
+      encuestasCreadas: mapa(stats.encuestasCreadas),
+      visualesIds: mapa(stats.visualesIds),
+      tiersPopularesIds: mapa(stats.tiersPopularesIds),
+      hilosPorTopico:
+        stats.hilosPorTopico && typeof stats.hilosPorTopico === 'object'
+          ? (stats.hilosPorTopico as Record<string, Record<string, true>>)
+          : {},
     },
+    antiguedadDias,
+    // Mismo criterio que el servidor al conceder Habitante:
+    // nombre, bio y avatar no vacíos.
+    perfilCompleto: noVacio(d.displayName) && noVacio(d.bio) && noVacio(d.avatarUrl),
+    // Mismo criterio que el servidor al conceder Perfil de
+    // Leyenda: marco distinto de ninguno, alguna decoración,
+    // vitrinas distintas de las de defecto o insignias elegidas.
+    perfilCustom:
+      (typeof d.avatarFrame === 'string' && d.avatarFrame !== '' && d.avatarFrame !== 'ninguno') ||
+      (Array.isArray(d.decorations) && d.decorations.length > 0) ||
+      (Array.isArray(d.showcases) &&
+        (d.showcases.length !== 2 || d.showcases.join(',') !== 'logros,destacadas')) ||
+      (d.visibleBadgeIds !== null && d.visibleBadgeIds !== undefined),
     lastLevelUpAt:
       d.lastLevelUpAt instanceof Date ? d.lastLevelUpAt.toISOString() : null,
     lastLevelUpLevel:
