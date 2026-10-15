@@ -140,7 +140,12 @@ export const ProgressionProvider: React.FC<{
       setError(null);
     });
     return cancelar;
-  }, []);
+    // Depende de la sesión: si se montó sin haber entrado, la
+    // primera lectura sale denegada (`isSignedIn()` en las reglas)
+    // y se queda con `activo: false` para siempre, pintando el
+    // aviso aunque el panel ya lo activara. Al entrar se vuelve a
+    // suscribir, ya con token, y el aviso desaparece.
+  }, [currentUser?.uid]);
 
   // ====================================================
   // AVISOS
