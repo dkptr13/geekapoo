@@ -165,8 +165,14 @@ const v = {
  * Con esta lista, `--actualizar` deja esos campos como estaban. Es la
  * diferencia entre "actualiza lo que ha cambiado en el fichero" y
  * "actualiza todo, incluido lo que el fichero nunca tuvo".
+ *
+ * `posterUrl` y `bannerUrl` de la temporada son de la misma familia:
+ * los pone `enlazar-imagenes.mjs` desde AniList. En Rent-a-Girlfriend
+ * se enlazaron los diez y la recarga del arreglo de numeracion los
+ * dejo a cadena vacia, con lo que la wiki enseño la portada de la
+ * serie en las cinco temporadas.
  */
-const CAMPOS_DE_FUERA = ['imageUrl', 'thumbnailUrl'];
+const CAMPOS_DE_FUERA = ['imageUrl', 'thumbnailUrl', 'posterUrl', 'bannerUrl'];
 
 /**
  * Escribe un documento si no existe, o lo actualiza con `--actualizar`.
