@@ -3839,36 +3839,76 @@ export const recalcularUsuario = onCall(
   });
 
   await paso('recuento-canales', async () => {
-    // Canales creados (subcolección: grupo de colección).
-    //
-    // Este `collectionGroup` necesita un índice COLLECTION_GROUP
-    // sobre `createdBy` (ver `firestore.indexes.json`). Si el
-    // índice falta, Firestore lanza FAILED_PRECONDITION con el
-    // enlace para crearlo: se deja constancia en `fases` y se
-    // sigue, sin tumbar los contadores que ya se escribieron.
-    const canales = await db
-      .collectionGroup(CHANNELS)
-      .where('createdBy', '==', uid)
-      .get();
-    for (const doc of canales.docs) {
-      marcarRecalculo('stats.canalesCreados', doc.id);
+    // Canales creados. Intento rápido por `collectionGroup` y, si el
+    // índice COLLECTION_GROUP aún se está creando, repliegue por club
+    // (ámbito COLLECTION, sin índice extra) para no dejar la fase en
+    // rojo mientras Firestore lo construye.
+    try {
+      const canales = await db
+        .collectionGroup(CHANNELS)
+        .where('createdBy', '==', uid)
+        .get();
+      for (const doc of canales.docs) {
+        marcarRecalculo('stats.canalesCreados', doc.id);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      const codigo = (e as { code?: unknown })?.code;
+      const esIndice = codigo === 9 || msg.includes('index') || msg.includes('FAILED_PRECONDITION');
+      if (!esIndice) throw e;
+      logger.warn('Indice COLLECTION_GROUP de canales aun no listo; repliegue por club', {
+        objetivo: uid,
+      });
+      const vistos = new Set<string>();
+      const propios = await db.collection(CLUBS).where('ownerId', '==', uid).get();
+      for (const d of propios.docs) vistos.add(d.id);
+      const miembro = await db.collection(CLUBS).where('memberIds', 'array-contains', uid).get();
+      for (const d of miembro.docs) vistos.add(d.id);
+      for (const clubId of vistos) {
+        const cs = await db
+          .collection(`${CLUBS}/${clubId}/${CHANNELS}`)
+          .where('createdBy', '==', uid)
+          .get();
+        for (const doc of cs.docs) {
+          marcarRecalculo('stats.canalesCreados', doc.id);
+        }
+      }
     }
   });
 
   await paso('recuento-mensajes', async () => {
-    // Conversaciones donde ha escrito (acotado: solo alimenta un
-    // mapa, y con mil mensajes sobra para cualquier medalla).
-    //
-    // Igual que arriba: necesita índice COLLECTION_GROUP sobre
-    // `senderId`. Si falta, la fase lo dice y se sigue.
-    const mensajes = await db
-      .collectionGroup('messages')
-      .where('senderId', '==', uid)
-      .limit(1000)
-      .get();
-    for (const doc of mensajes.docs) {
-      const chatId = doc.ref.parent.parent?.id;
-      if (chatId) marcarRecalculo('stats.chatsPropios', chatId);
+    // Conversaciones donde ha escrito. Igual que arriba: primero el
+    // `collectionGroup` (completo, hasta 1000 mensajes) y si el índice
+    // aún se está creando, repliegue por chat con `limit(1)` por
+    // conversación — basta para saber "estuvo aquí", que es lo que
+    // alimenta `chatsPropios`.
+    try {
+      const mensajes = await db
+        .collectionGroup('messages')
+        .where('senderId', '==', uid)
+        .limit(1000)
+        .get();
+      for (const doc of mensajes.docs) {
+        const chatId = doc.ref.parent.parent?.id;
+        if (chatId) marcarRecalculo('stats.chatsPropios', chatId);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      const codigo = (e as { code?: unknown })?.code;
+      const esIndice = codigo === 9 || msg.includes('index') || msg.includes('FAILED_PRECONDITION');
+      if (!esIndice) throw e;
+      logger.warn('Indice COLLECTION_GROUP de messages aun no listo; repliegue por chat', {
+        objetivo: uid,
+      });
+      const chats = await db.collection(CHATS).where('memberIds', 'array-contains', uid).get();
+      for (const chat of chats.docs) {
+        const uno = await chat.ref
+          .collection('messages')
+          .where('senderId', '==', uid)
+          .limit(1)
+          .get();
+        if (!uno.empty) marcarRecalculo('stats.chatsPropios', chat.id);
+      }
     }
   });
 

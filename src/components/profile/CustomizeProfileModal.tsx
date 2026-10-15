@@ -390,11 +390,16 @@ export const CustomizeProfileModal: React.FC<{
     // `null` son todas: al tocar una se pasa a explícito con esa
     // quitada o puesta según estuviera.
     const base: string[] = actual ?? desbloqueadas.map((m) => m.id);
-    const siguiente = base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
-    if (siguiente.length > MAX_INSIGNIAS_VISIBLES) {
+    const quitando = base.includes(id);
+    const siguiente = quitando ? base.filter((x) => x !== id) : [...base, id];
+    // Quitar siempre se permite (es como se sale de un estado con
+    // más de 6 marcadas, p. ej. cuentas con `null` = todas y más de
+    // 6 desbloqueadas). Solo añadir por encima del tope se bloquea.
+    if (!quitando && siguiente.length > MAX_INSIGNIAS_VISIBLES) {
       setErrorGeneral(`Como máximo ${MAX_INSIGNIAS_VISIBLES} insignias visibles.`);
       return;
     }
+    setErrorGeneral(null);
     cambiar('visibleBadgeIds', siguiente);
   };
 
@@ -596,6 +601,22 @@ export const CustomizeProfileModal: React.FC<{
     const validacion = validarEditable(datos);
     if (!validacion.ok) {
       setErrores(validacion.errores);
+      return;
+    }
+
+    // `null` son todas: solo vale si las desbloqueadas caben en el
+    // tope. Con más de 6, guardar `null` enseñaría más de 6 (y las
+    // reglas lo deniegan: `visibleBadgeIds` lista de ≤6). Se obliga
+    // a elegir cuáles 6 en vez de guardar un estado inválido.
+    if (datos.visibleBadgeIds === null && desbloqueadas.length > MAX_INSIGNIAS_VISIBLES) {
+      setErrores((prev) => ({
+        ...prev,
+        visibleBadgeIds: `Tienes ${desbloqueadas.length} insignias: elige cuáles ${MAX_INSIGNIAS_VISIBLES} mostrar.`,
+      }));
+      setErrorGeneral(
+        `Como máximo ${MAX_INSIGNIAS_VISIBLES} insignias visibles. Quita hasta quedarte con ${MAX_INSIGNIAS_VISIBLES}.`,
+      );
+      setPestana('insignias');
       return;
     }
 
@@ -2100,20 +2121,50 @@ export const CustomizeProfileModal: React.FC<{
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <p className="text-[11px] text-zinc-500">
                     Elige cuáles ven los visitantes
-                    {datos.visibleBadgeIds !== null && (
-                      <span className="ml-1 font-mono text-zinc-400">
-                        ({datos.visibleBadgeIds.length}/{MAX_INSIGNIAS_VISIBLES})
-                      </span>
-                    )}
+                    {(() => {
+                      const efectivas =
+                        datos.visibleBadgeIds ?? desbloqueadas.map((m) => m.id);
+                      return (
+                        <span
+                          className={`ml-1 font-mono ${
+                            efectivas.length > MAX_INSIGNIAS_VISIBLES
+                              ? 'font-bold text-red-400'
+                              : 'text-zinc-400'
+                          }`}
+                        >
+                          ({efectivas.length}/{MAX_INSIGNIAS_VISIBLES})
+                        </span>
+                      );
+                    })()}
                   </p>
                   <button
                     type="button"
                     onClick={() => cambiar('visibleBadgeIds', null)}
-                    className="flex-shrink-0 text-[11px] font-bold text-violet-400 hover:text-violet-300"
+                    disabled={desbloqueadas.length > MAX_INSIGNIAS_VISIBLES}
+                    title={
+                      desbloqueadas.length > MAX_INSIGNIAS_VISIBLES
+                        ? `Tienes ${desbloqueadas.length} desbloqueadas: elige cuáles ${MAX_INSIGNIAS_VISIBLES} mostrar`
+                        : 'Mostrar todas'
+                    }
+                    className={`flex-shrink-0 text-[11px] font-bold transition-colors ${
+                      desbloqueadas.length > MAX_INSIGNIAS_VISIBLES
+                        ? 'cursor-not-allowed text-zinc-600'
+                        : 'text-violet-400 hover:text-violet-300'
+                    }`}
                   >
                     Mostrar todas
                   </button>
                 </div>
+                {(() => {
+                  const efectivas =
+                    datos.visibleBadgeIds ?? desbloqueadas.map((m) => m.id);
+                  return efectivas.length > MAX_INSIGNIAS_VISIBLES ? (
+                    <p className="mb-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] leading-relaxed text-red-400">
+                      Tienes {efectivas.length} marcadas. Quita hasta quedarte con{' '}
+                      {MAX_INSIGNIAS_VISIBLES} para poder guardar.
+                    </p>
+                  ) : null;
+                })()}
                 {desbloqueadas.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
                     Todavía no tienes medallas. Publica, comenta y participa para
