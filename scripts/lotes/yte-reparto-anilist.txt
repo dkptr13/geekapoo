@@ -1,0 +1,551 @@
+  reparto util: 76   (de 81 en total)
+  descartados por ser de fondo: 5
+
+  main        Fushi
+              id: 136548
+              ja: フシ
+              voz: Reiji Kawashima
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136548-FjWExC5ScBqW.jpg
+              aka: Immortal / Holy Fushi / Immortal Demon
+
+  main        Mizuha
+              id: 204189
+              ja: ミズハ
+              voz: Tomori Kusunoki
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204189-iVPQKXGGG6Ed.png
+
+  supporting  March
+              id: 136541
+              ja: マーチ
+              voz: Rie Hikisaka
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136541-gXKd6OtbuffL.png
+
+  supporting  Parona
+              id: 136544
+              ja: パロナ
+              voz: Aya Uchida
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136544-LGUvcdc4cyPY.jpg
+
+  supporting  Hayase
+              id: 136545
+              ja: ハヤセ
+              voz: Mitsuki Saiga
+              en: 114535:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136545-KsqBpXbhEUCd.png
+
+  supporting  Hisame
+              id: 136547
+              ja: ヒサメ
+              voz: Tomori Kusunoki
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136547-BSA0y0dU2e00.jpg
+
+  supporting  Tonari
+              id: 136550
+              ja: トナリ
+              voz: Eri Inagawa
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136550-fJiwFtdKLyCf.jpg
+              aka: Chief
+
+  supporting  Rean Cropp
+              id: 136551
+              ja: リーン・クロップ
+              voz: Manaka Iwami
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136551-DgY4fAbFcW6A.jpg
+              aka: Rynn
+
+  supporting  Sander
+              id: 136552
+              ja: サンデル
+              voz: Yuu Kobayashi
+              en: 114535:TV 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136552-xiLFH6HRjLTE.jpg
+
+  supporting  Kansatsu-sha
+              id: 136553
+              ja: 観察者
+              voz: Kenjirou Tsuda
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136553-9LprfeXY6qYP.png
+              aka: The Beholder
+
+  supporting  Gugu
+              id: 136554
+              ja: グーグー
+              voz: Ryouko Shiraishi
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136554-qySbbPp9nunx.jpg
+
+  supporting  Sakejii
+              id: 136555
+              ja: 酒爺
+              voz: Kentarou Tone
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136555-q0JF1MY0Mo9r.jpg
+              aka: Beer Gramps / Booze Man
+
+  supporting  Pyoran
+              id: 136556
+              ja: ピオラン
+              voz: Rikako Aikawa
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b136556-UUQtEPFxqpQM.jpg
+              aka: Pioran
+
+  supporting  Kahaku
+              id: 138875
+              ja: カハク
+              voz: Mitsuki Saiga
+              en: 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b138875-H8EkrxQsUnx4.png
+
+  supporting  Bonchien Nicoli La Tasty Peach Uralis
+              id: 138876
+              ja: ボンシェン・ニコリ・ラ・テイスティピーチ・ウラリス
+              voz: Takehito Koyasu
+              en: 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b138876-8TsowRGCmx4V.jpg
+              aka: Bon / Baron Springroll
+
+  supporting  Joaan
+              id: 163694
+              ja: ジョアン
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b163694-USBey19xBAZH.jpg
+
+  supporting  Shounen
+              id: 201555
+              ja: 少年
+              voz: Reiji Kawashima
+              en: 114535:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b201555-goJeA6E0Xuww.jpg
+              aka: Boy
+
+  supporting  Upa
+              id: 202665
+              ja: ウーパ
+              voz: Konomi Kohara
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202665-h4leOYg9URal.jpg
+              aka: Uba / Oopa
+
+  supporting  Mia
+              id: 202667
+              ja: ミァ
+              voz: Yuuko Natsuyoshi
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202667-typId3TGOkMf.png
+
+  supporting  Ligard
+              id: 202668
+              ja: リガルド
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202668-7Mmi5s9mOaXa.png
+
+  supporting  Uroy
+              id: 202669
+              ja: ウーロイ
+              voz: Nobuyuki Kobushi
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202669-VhfynMyPSU3d.png
+
+  supporting  Erran Dalton
+              id: 202670
+              ja: エラン・ジー・ダルトン
+              en: 114535:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202670-W00FnDtypJMi.png
+
+  supporting  Oniguma
+              id: 202861
+              ja: オニグマ
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202861-4gIMUfqtKlmo.jpg
+              aka: Demon Bear / Spirit Bear
+
+  supporting  Shin
+              id: 202863
+              ja: シン
+              voz: Atsushi Abe
+              en: 114535:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202863-nJVJiubk15zh.png
+
+  supporting  Cyrilla
+              id: 202866
+              ja: サイリーラ
+              voz: Mitsuru Miyamoto
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202866-UTHomXq3iGK2.jpg
+
+  supporting  Ushio
+              id: 202869
+              ja: ウシオ
+              voz: Hikaru Toono
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202869-fyVHuGZhl1tJ.jpg
+
+  supporting  Anna
+              id: 202871
+              ja: アンナ
+              voz: Shino Shimoji
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202871-t1cai8pckDW0.png
+
+  supporting  Todo
+              id: 202872
+              ja: トド
+              voz: Akeno Watanabe
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202872-gFexZ8h74zqK.jpg
+
+  supporting  Iris no Chichi
+              id: 202878
+              ja: アイリスの父
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202878-3PdmdDZsd2pT.png
+              aka: Iris's father
+
+  supporting  Torta Uralis
+              id: 202879
+              ja: トルタ・ウラリス
+              voz: Megumi Han
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202879-gf669psEpOAn.png
+
+  supporting  Ryoshu
+              id: 202880
+              ja: 領主
+              voz: Masafumi Kobatake
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202880-I9MaTbw9FbrH.png
+              aka: The Mayor
+
+  supporting  Oumi
+              id: 202881
+              ja: オウミ
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202881-Qf5zbpaCOHDJ.jpg
+
+  supporting  Pocoa Uralis
+              id: 202883
+              ja: ポコア・ウラリス
+              voz: Aoi Koga
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202883-NEbyVODh8vsj.jpg
+
+  supporting  Joou
+              id: 202886
+              ja: 女王
+              voz: Youko Hikasa
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202886-bIbGTmC3Ybwi.jpg
+              aka: Queen Uralis
+
+  supporting  Fen
+              id: 202887
+              ja: フェン
+              voz: Mitsuaki Kanuka
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202887-m0dqMzaKTBQu.jpg
+
+  supporting  Nickson
+              id: 202888
+              ja: ニクソン
+              voz: Hiroyuki Yoshino
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202888-jI6iphM8GLic.jpg
+
+  supporting  Kokuou
+              id: 202891
+              ja: 国王
+              voz: Hidenari Ugaki
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202891-9IIqMtmliAaO.jpg
+              aka: King Uralis
+
+  supporting  Chabo
+              id: 202892
+              ja: チャボ
+              voz: Natsu Yorita
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b202892-awZvDK0NzA1o.png
+
+  supporting  Messar Robin Bastar
+              id: 203209
+              ja: メサール・ロビン・バスタル
+              voz: Eiji Miyashita
+              en: 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203209-WWDdYKPxJHrZ.png
+
+  supporting  Kai Renald Roulle
+              id: 203210
+              ja: カイ・レナルド・ロウル
+              voz: Yasuyuki Kase
+              en: 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203210-f9DJ6DrKReS0.png
+
+  supporting  Hairo Rich
+              id: 203213
+              ja: ハイロ・リッチ
+              voz: Kaito Ishikawa
+              en: 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203213-HbezCB13Crhh.png
+              aka: Hylo
+
+  supporting  Eko
+              id: 203214
+              ja: エコ
+              voz: Ryou Hirohashi
+              en: 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203214-9VkEG690mbW3.png
+              aka: Iddy
+
+  supporting  Yuiss
+              id: 203295
+              ja: (sin dato)
+              voz: Akira Sekine
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203295-tVwenvAz8JUQ.png
+
+  supporting  Nand
+              id: 203298
+              ja: ナンド
+              en: 114535:TV 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203298-SIVVgQFGhNPM.jpg
+
+  supporting  Tesset
+              id: 203300
+              ja: (sin dato)
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203300-HRsXmuFBRxbP.png
+
+  supporting  Cam
+              id: 203301
+              ja: (sin dato)
+              voz: Fukushi Ochiai
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203301-ORCENXLVbGrH.png
+
+  supporting  Boldoron
+              id: 203303
+              ja: (sin dato)
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203303-VzgMgXuXzAP4.png
+
+  supporting  Sarah
+              id: 203306
+              ja: セラ
+              voz: Ayaka Fukuhara
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203306-na4bMs3iDB3R.png
+              aka: Sera
+
+  supporting  Sebbath
+              id: 203308
+              ja: (sin dato)
+              voz: Chiharu Sawashiro
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203308-3YCQnHfOPARH.jpg
+
+  supporting  Alme
+              id: 203309
+              ja: アルメ
+              voz: Noriko Shitaya
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b203309-kvW9zgYtlbmr.png
+              aka: Alme-ojou (アルメ王女) / Princess Alme
+
+  supporting  Aiko Aoki
+              id: 204182
+              ja: アオキ アイコ
+              voz: Aoi Koga
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204182-oZs7SbBXhkoP.png
+
+  supporting  Yuuki Aoki
+              id: 204185
+              ja: アオキユーキ
+              voz: Megumi Han
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204185-kYIvQAlNsxjg.png
+
+  supporting  Tamaki Kazumu
+              id: 204186
+              ja: タマキ カズム
+              voz: Fukushi Ochiai
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204186-t61HtHYYJbXW.png
+
+  supporting  Hanna
+              id: 204187
+              ja: (sin dato)
+              voz: Aya Uchida
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204187-gcOsGMV0T3tY.png
+
+  supporting  Kazumitsu
+              id: 204188
+              ja: アオキ カズミツ
+              voz: Shouto Kashii
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204188-f7lltPcXMtky.png
+              aka: Aoki
+
+  supporting  Senba Suzuhiko
+              id: 204190
+              ja: センバ スズヒコ
+              voz: Chiharu Sawashiro
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204190-63wmNEa3eZax.png
+
+  supporting  Mimori
+              id: 204418
+              ja: (sin dato)
+              voz: Rumi Ookubo
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204418-GImE1VmO7hfz.png
+
+  supporting  Izumi
+              id: 204421
+              ja: (sin dato)
+              voz: Shizuka Itou
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204421-b1xluJO6ESLK.png
+
+  supporting  Mizuha no Chichioya
+              id: 204422
+              ja: ミズハの父親
+              voz: Shinichirou Miki
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b204422-fUT6tuXNPGy3.png
+              aka: Mizuha's Father
+
+  supporting  Meer
+              id: 231456
+              ja: ミアー
+              en: 114535:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b231456-SOepFGeYFMBn.jpg
+
+  supporting  Nokkers
+              id: 232832
+              ja: ノッカー
+              en: 114535:TV 138565:TV 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b232832-DGaKclwoetah.jpg
+              aka: Nockers
+
+  supporting  Igoss Cropp
+              id: 244762
+              ja: イゴス・クロップ
+              voz: Soushirou Hori
+              en: 114535:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244762-tx24xVAHVw9g.png
+
+  supporting  Nand no Otouto
+              id: 254174
+              ja: ナンドの弟
+              voz: Reina Aoyama
+              en: 114535:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/default.jpg
+              aka: Nand's Brother
+
+  supporting  Uga
+              id: 294608
+              ja: ウガ
+              voz: Haruka Jinya
+              en: 138565:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b294608-qujfeGGacBVg.png
+
+  supporting  Satoru
+              id: 365587
+              ja: サトル
+              voz: Yumiri Hanamori
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b365587-VtQrpZ7y3oPE.png
+              aka: Black Shounen (ブラック少年) / Boy Black
+
+  supporting  Hirotoshi
+              id: 375548
+              ja: ひろとし
+              voz: Tasuku Hatanaka
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b375548-OiaNiMkFlJZ5.png
+
+  supporting  Nagisa
+              id: 376457
+              ja: ナギサ
+              voz: Yui Kondou
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b376457-RElLQTQNTY7q.png
+
+  supporting  Kasabe
+              id: 376458
+              ja: カサベ
+              voz: Sachi Kokuryuu
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b376458-PsVtfmgHexUV.png
+
+  supporting  Saki
+              id: 376459
+              ja: サキ
+              voz: Hikaru Toono
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b376459-9qDhc2AqzSqp.png
+
+  supporting  Fuuna
+              id: 376460
+              ja: フウナ
+              voz: Riko Aono
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b376460-X8jqy1BnLCxB.png
+
+  supporting  Miyabi
+              id: 379905
+              ja: (sin dato)
+              voz: Madoka Asahina
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b379905-vKiDIOCkgmTl.png
+
+  supporting  Hirotoshi no Chichi
+              id: 379906
+              ja: ひろとしの父
+              voz: Takuma Suzuki
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b379906-ztq7qLrJlddU.png
+
+  supporting  Sumika
+              id: 380291
+              ja: スミカ
+              voz: Risae Matsuda
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b380291-ldUeEq6irjFj.png
+
+  supporting  Michi
+              id: 380292
+              ja: みち
+              voz: Rina Honizumi
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b380292-iV6tHwJh7rHo.png
+              aka: Nono (のの)
+
+  supporting  Tomori
+              id: 380293
+              ja: ともり
+              voz: Yuu Sasahara
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/default.jpg
+
+  supporting  Rikuya
+              id: 382465
+              ja: リクヤ
+              voz: Takuya Satou
+              en: 162669:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b382465-Oi2xUojENGwV.png
+
+  sin imagen: 0   sin voz: 11
+
+  los descartados (5): March no Chichi, Penna, March no Haha, Lee, Ano

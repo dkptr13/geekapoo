@@ -96,6 +96,10 @@ export const BUSQUEDAS = {
   // El nombre exacto de la serie en TVDB (262090). Las búsquedas de
   // "Psycho-Pass" y de "サイコパス" la devuelven la primera.
   'psycho-pass': 'PSYCHO-PASS サイコパス',
+  // El nombre exacto de la serie en TVDB (375271). Las búsquedas de
+  // "To Your Eternity", "Fumetsu no Anata e" y "不滅のあなたへ" la
+  // devuelven la única.
+  'to-your-eternity': '不滅のあなたへ',
 };
 
 /**

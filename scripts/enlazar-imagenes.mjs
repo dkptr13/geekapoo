@@ -142,6 +142,7 @@ const ANIMES = [
   { id: 'to-love-ru', buscar: 'To LOVE-Ru' },
   { id: 'rent-a-girlfriend', buscar: 'Kanojo, Okarishimasu' },
   { id: 'psycho-pass', buscar: 'Psycho-Pass' },
+  { id: 'to-your-eternity', buscar: 'To Your Eternity' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 // ── Estado ─────────────────────────────────────────────────────────
