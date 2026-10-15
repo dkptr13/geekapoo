@@ -89,6 +89,10 @@ export const BUSQUEDAS = {
   'more-than-a-married-couple-but-not-lovers': '夫婦以上、恋人未満。',
   'redo-of-healer': '回復術士のやり直し',
   'to-love-ru': 'To LOVEる -とらぶる-',
+  // El titulo japones, como en las ultimas fichas. Sin probar contra
+  // TVDB todavia (la clave no estaba a mano); si el emparejador no la
+  // encuentra, el plan B es "Kanojo, Okarishimasu".
+  'rent-a-girlfriend': '彼女、お借りします',
 };
 
 /**

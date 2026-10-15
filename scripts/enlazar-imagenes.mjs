@@ -140,6 +140,7 @@ const ANIMES = [
   { id: 'more-than-a-married-couple-but-not-lovers', buscar: 'Fuufu Ijou, Koibito Miman.' },
   { id: 'redo-of-healer', buscar: 'Kaifuku Jutsushi no Yarinaoshi' },
   { id: 'to-love-ru', buscar: 'To LOVE-Ru' },
+  { id: 'rent-a-girlfriend', buscar: 'Kanojo, Okarishimasu' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 // ── Estado ─────────────────────────────────────────────────────────

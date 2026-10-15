@@ -1,0 +1,94 @@
+﻿  reparto util: 12   (de 12 en total)
+  descartados por ser de fondo: 0
+
+  main        Kazuya Kinoshita
+              id: 128105
+              ja: 木ノ下和也
+              voz: Shun Horie
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA 199029:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b128105-gad6JuGEXPWe.png
+              aka: Master / Kazu-kun (かずくん)
+
+  main        Chizuru Ichinose
+              id: 128106
+              ja: 一ノ瀬ちづる
+              voz: Sora Amamiya
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA 199029:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b128106-zSTsuULvz6PX.png
+              aka: Chizuru Mizuhara (水原千鶴)
+
+  supporting  Sumi Sakurasawa
+              id: 144665
+              ja: 桜沢墨
+              voz: Rie Takahashi
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA 199029:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b144665-aPda7bPvOoYl.png
+
+  supporting  Ruka Sarashina
+              id: 147005
+              ja: 更科瑠夏
+              voz: Nao Touyama
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA 199029:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147005-5vLFz3lTsssh.png
+              aka: るか / sara_gatangoton
+
+  supporting  Mini Yaemori
+              id: 153703
+              ja: 八重森みに
+              voz: Yuu Serizawa
+              en: 154745:TV 179344:ONA 199029:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b153703-KOLZ2Oz2sFDo.png
+              aka: Koronemaru
+
+  supporting  Mami Nanami
+              id: 154224
+              ja: 七海麻美
+              voz: Aoi Yuuki
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA 199029:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b154224-7dJ09BKEnG3v.png
+              aka: Maya / Kaori / Numa (沼)
+
+  supporting  Nagomi Kinoshita
+              id: 172021
+              ja: 木ノ下和
+              voz: Yukari Nozawa
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA 199029:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b172021-mTJYFfqwJnUH.png
+
+  supporting  Yoshiaki Kibe
+              id: 172022
+              ja: 木部芳秋
+              voz: Masayuki Akasaka
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b172022-MGBDREu4JrGy.png
+
+  supporting  Shun Kuribayashi
+              id: 172023
+              ja: 栗林駿
+              voz: Gakuto Kajiwara
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA 199029:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b172023-YiilpQjx1Nmv.png
+
+  supporting  Sayuri Ichinose
+              id: 283247
+              ja: 一ノ瀬小百合
+              voz: Sayuri Sadaoka
+              en: 113813:TV 124410:TV 154745:TV 179344:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b283247-GJxhmUgL6yz0.jpg
+              aka: Sayuri Ootori (鳳小百合)
+
+  supporting  Katsuhito Ichinose
+              id: 312182
+              ja: 一ノ瀬勝仁
+              voz: Ryuusei Nakao
+              en: 124410:TV 154745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b312182-WJ3Tv2wWhxXp.png
+
+  supporting  Miharu Imai
+              id: 323409
+              ja: 今井 みはる
+              voz: Hisako Toujou
+              en: 113813:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b323409-8jD6ya7YJLvF.png
+
+  sin imagen: 0   sin voz: 0

@@ -64,6 +64,17 @@ export function limpiar(s) {
     // como "シャルピー衝撃試験 + 大人の林間学校", con un mas y espacios.
     // Los dos titulos son los mismos; lo que cambia es como se juntan.
     .replace(/\s*\+\s*/g, '/')
+    // La lectura corta con la que TVDB cierra el titulo, entre guiones.
+    // Los sesenta capitulos de Rent-a-Girlfriend vienen asi:
+    //
+    //   TVDB   レンタル彼女 -レンカノ-     fichero   レンタル彼女
+    //   TVDB   誕生日と彼女-バーカノ-      fichero   誕生日と彼女
+    //
+    // Es la lectura abreviada del titulo, no parte de el. La primera
+    // temporada la lleva con espacio delante y el resto sin el, y el
+    // trozo de dentro admite guiones porque el ー de バーカノ ya es un
+    // guion (dos reglas mas arriba).
+    .replace(/[\s　]*-[ァ-ヺ][ァ-ヺ-]*-$/,'')
     // Los espacios, incluidos los de ancho completo, no cuentan.
     .replace(/[\s　]+/g, '')
     .trim();
