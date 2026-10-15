@@ -1,0 +1,575 @@
+  reparto util: 80   (de 80 en total)
+  descartados por ser de fondo: 0
+
+  main        Shinya Kougami
+              id: 68315
+              ja: 狡噛慎也
+              voz: Tomokazu Seki
+              en: 13601:TV 20513:TV 20514:MOVIE 104382:MOVIE 104990:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b68315-f9RBjyJCoj95.jpg
+              aka: Kou
+
+  main        Akane Tsunemori
+              id: 68583
+              ja: 常守朱
+              voz: Kana Hanazawa
+              en: 13601:TV 20513:TV 20514:MOVIE 102649:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b68583-sEP2wyE2Tk7a.png
+              aka: Lemonade Candy
+
+  main        Nobuchika Ginoza
+              id: 69057
+              ja: 宜野座伸元
+              voz: Kenji Nojima
+              en: 13601:TV 20513:TV 20514:MOVIE 102649:MOVIE 104382:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b69057-491sAhqnEsFZ.png
+              aka: Gino
+
+  main        Tomomi Masaoka
+              id: 69061
+              ja: 征陸智己
+              voz: Kinryuu Arimoto
+              en: 13601:TV 104382:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/n69061-qPWM72rly4m4.png
+
+  main        Shougo Makishima
+              id: 69725
+              ja: 槙島聖護
+              voz: Takahiro Sakurai
+              en: 13601:TV 20514:MOVIE 104990:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/n69725-Seck1SZfwQiR.jpg
+
+  main        Mika Shimotsuki
+              id: 74011
+              ja: 霜月美佳
+              voz: Ayane Sakura
+              en: 13601:TV 20513:TV 20514:MOVIE 102649:MOVIE 104382:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b74011-YFYdac7ItI1t.jpg
+
+  main        Kirito Kamui
+              id: 88567
+              ja: 鹿矛囲桐斗
+              voz: Ryouhei Kimura
+              en: 20513:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b88567-wOVUkqsDnyxv.png
+
+  main        Sakuya Togane
+              id: 132913
+              ja: 東金朔夜
+              voz: Keiji Fujiwara
+              en: 20513:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b132913-ki84u11mnU9z.jpg
+
+  main        Arata Shindou
+              id: 146412
+              ja: 慎導灼
+              voz: Yuuki Kaji
+              en: 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b146412-Nx0AzlsNAHot.png
+
+  main        Kei Mikhail Ignatov
+              id: 146413
+              ja: 炯・ミハイル・イグナトフ
+              voz: Yuuichi Nakamura
+              en: 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b146413-fse6clZ5L57M.png
+
+  main        Teppei Sugou
+              id: 147046
+              ja: 須郷徹平
+              voz: Hiroki Touchi
+              en: 13601:TV 20513:TV 20514:MOVIE 102649:MOVIE 104382:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147046-XHifXR4XQhOA.png
+
+  main        Kouichi Azusawa
+              id: 147176
+              ja: 梓澤廣一
+              voz: Kenyuu Horiuchi
+              en: 108307:TV 113917:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147176-y74jOGBMU67y.png
+              aka: First Inspector
+
+  main        Shizuka Homura
+              id: 147182
+              ja: 法斑静火
+              voz: Mamoru Miyano
+              en: 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147182-I7W6Gb6XrUYi.png
+
+  main        Tenzing Wangchuck
+              id: 149578
+              ja: ワンチュクテンジン
+              voz: Sumire Morohoshi
+              en: 104990:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b149578-Firgnf4muSTf.jpg
+
+  supporting  Shuusei Kagari
+              id: 69055
+              ja: 縢秀星
+              voz: Akira Ishida
+              en: 13601:TV 104382:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/n69055-tmF7uIwloFHc.jpg
+              aka: Shuu
+
+  supporting  Yayoi Kunizuka
+              id: 69059
+              ja: 六合塚弥生
+              voz: Shizuka Itou
+              en: 13601:TV 20513:TV 20514:MOVIE 102649:MOVIE 104382:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b69059-yq881p8XWys6.png
+
+  supporting  Shion Karanomori
+              id: 69063
+              ja: 唐之杜志恩
+              voz: Miyuki Sawashiro
+              en: 13601:TV 20513:TV 20514:MOVIE 102649:MOVIE 104382:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b69063-NzXNgrLJgiwr.png
+
+  supporting  Yuki Funahara
+              id: 73341
+              ja: 船原ゆき
+              voz: Kotori Koiwai
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/73341.jpg
+
+  supporting  Kaori Minase
+              id: 73343
+              ja: 水無瀬佳織
+              voz: Kozue Harashima
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/n73343-KM27BAwlDatI.jpg
+
+  supporting  Gu-Seong Choi
+              id: 73345
+              ja: チェ・グソン
+              voz: Yasunori Masutani
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/73345.jpg
+              aka: 최구성
+
+  supporting  Masatake Midou
+              id: 73347
+              ja: 御堂将剛
+              voz: Daichuu Mizushima
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/n73347-YyVGUK40UfFa.png
+
+  supporting  Shouko Sugawara
+              id: 73349
+              ja: 菅原昭子
+              voz: Ayana Taketatsu
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/73349.jpg
+              aka: Spooky Boogie
+
+  supporting  Nobuo Ookura
+              id: 73351
+              ja: 大倉信夫
+              voz: Shouto Kashii
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/73351.jpg
+
+  supporting  Chika Shimazu
+              id: 73353
+              ja: 島津千香
+              voz: Sachiko Kojima
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b73353-OfnHSKNqzejW.jpg
+
+  supporting  Yuuji Kanehara
+              id: 73355
+              ja: 金原祐治
+              voz: Satoshi Tsuruoka
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/73355.jpg
+
+  supporting  Kuraudo Gouda
+              id: 73357
+              ja: 郷田蔵人
+              voz: Yoshiyuki Kaneko
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b73357-PuuHojQN0Oq6.jpg
+
+  supporting  Kimihiko Hayama
+              id: 73727
+              ja: 葉山公彦
+              voz: Takehito Koyasu
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/73727.jpg
+              aka: Talisman
+
+  supporting  Yuuichi Tokitou
+              id: 73729
+              ja: 時任雄一
+              voz: Mutsumi Tamura
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/73729.jpg
+              aka: Melancholia
+
+  supporting  Rikako Ouryou
+              id: 74005
+              ja: 王陵璃華子
+              voz: Maaya Sakamoto
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b74005-w3bVmCIJSqkS.png
+
+  supporting  Yoshika Ookubo
+              id: 74007
+              ja: 大久保葦歌
+              voz: Ai Kayano
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b74007-lOwfQbAw6sWk.jpg
+
+  supporting  Kagami Kawarazaki
+              id: 74009
+              ja: 川原崎加賀美
+              voz: Aiko Kusumi
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/74009.jpg
+
+  supporting  Toyohisa Senguuji
+              id: 74405
+              ja: 泉宮寺豊久
+              voz: Katsumi Chou
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/74405.jpg
+
+  supporting  Satsuki Kuzuhara
+              id: 74425
+              ja: 葛原皐月
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/74425.jpg
+
+  supporting  Rouichi Ouryou
+              id: 74427
+              ja: 王陵牢一
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/74427.jpg
+
+  supporting  Mitsuru Sasayama
+              id: 74541
+              ja: 佐々山光留
+              voz: Shintarou Asanuma
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/74541.jpg
+
+  supporting  Kouichi Ashikaga
+              id: 74726
+              ja: 足利紘一
+              voz: Kenta Miyake
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b74726-LFcYu9yGsXBB.jpg
+
+  supporting  Kouzaburou Touma
+              id: 74952
+              ja: 藤間幸三郎
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/74952.jpg
+
+  supporting  Jouji Saiga
+              id: 75206
+              ja: 雑賀譲二
+              voz: Kazuhiro Yamaji
+              en: 13601:TV 20513:TV 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b75206-aWL8yEj0gSTe.png
+
+  supporting  Rina Takizaki
+              id: 77051
+              ja: 滝崎リナ
+              voz: Akeno Watanabe
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b77051-b0NpfquapHqG.png
+
+  supporting  Joushuu Kasei
+              id: 77753
+              ja: 禾生壌宗
+              voz: Yoshiko Sakakibara
+              en: 13601:TV 20514:MOVIE 102649:MOVIE 108307:TV 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b77753-5GSHnlVABwG6.png
+
+  supporting  Hiroko Fujii
+              id: 77755
+              ja: 藤井博子
+              voz: Hiro Nakajima
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/n77755-HEWakRDr6xzd.jpg
+
+  supporting  Junmei Itou
+              id: 77757
+              ja: 伊藤純銘
+              voz: Yuuichi Ishigami
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b77757-N75YdsrweHLk.png
+
+  supporting  Risa Aoyanagi
+              id: 80345
+              ja: 青柳璃彩
+              voz: Masumi Asano
+              en: 13601:TV 20513:TV 104382:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/80345.jpg
+
+  supporting  Nobuaki Kudama
+              id: 80347
+              ja: 管卷宣昭
+              voz: Tesshou Genda
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b80347-oABxgX2mDSLy.jpg
+
+  supporting  Sho Hinakawa
+              id: 132912
+              ja: 雛河翔
+              voz: Takahiro Sakurai
+              en: 20513:TV 20514:MOVIE 102649:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/n132912-RCi7BqUsNzKa.jpg
+
+  supporting  Kazumichi Irie
+              id: 146414
+              ja: 入江一途
+              voz: Junichi Suwabe
+              en: 108307:TV 113917:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b146414-roROUDEg1MAS.png
+
+  supporting  Mao Kisaragi
+              id: 146415
+              ja: 如月真緒
+              voz: Kaori Nazuka
+              en: 108307:TV 113917:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b146415-Tbsq1bdZMDlz.png
+
+  supporting  Temma Todoroki
+              id: 146416
+              ja: 廿六木天馬
+              voz: Akio Ootsuka
+              en: 108307:TV 113917:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b146416-lCvCDrD9la47.png
+
+  supporting  Haruki Shirogane
+              id: 147169
+              ja: 代銀遙煕
+              voz: Hiroshi Naka
+              en: 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147169-QYtDOHCSvGNC.png
+
+  supporting  Kyouko Saionji
+              id: 147170
+              ja: 裁園寺莢子
+              voz: Atsuko Tanaka
+              en: 108307:TV 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147170-A7w1r8rDVrSG.png
+
+  supporting  Chiyo Obata
+              id: 147171
+              ja: 小畑千夜
+              voz: Sayuri Yahagi
+              en: 108307:TV 113917:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147171-L9LMOTi3X3kK.png
+              aka: Eleventh Inspector
+
+  supporting  Frederica Hanashiro
+              id: 147174
+              ja: 花城フレデリカ
+              voz: Takako Honda
+              en: 104382:MOVIE 104990:MOVIE 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147174-hHkklGtuHmRe.jpg
+
+  supporting  Karina Komiya
+              id: 147178
+              ja: 小宮カリナ
+              voz: Youko Hikasa
+              en: 108307:TV 113917:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147178-yVgNihF7K4zi.png
+
+  supporting  Round Robin
+              id: 147180
+              ja: ラウンドロビン
+              voz: Toshiyuki Morikawa
+              en: 108307:TV 113917:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147180-FT8CANy2iwjV.png
+              aka: Bifrost
+
+  supporting  Aiko Kurosawa
+              id: 147667
+              ja: 玄沢愛子 
+              voz: Kimiko Saitou
+              en: 102649:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147667-jEdXQcUUJb7v.png
+
+  supporting  Rodion Matsuki
+              id: 147668
+              ja: 松来ロジオン
+              voz: Rikiya Koyama
+              en: 102649:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147668-QYmjAraQfeAK.png
+
+  supporting  Koji Noto
+              id: 147669
+              ja: 能登耕二
+              voz: Youhei Tadano
+              en: 102649:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147669-tTay9eCj1aOK.png
+
+  supporting  Kyouka Tsujigai
+              id: 147670
+              ja: 辻飼羌香
+              voz: Hiroe Oka
+              en: 102649:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147670-Xzos1bUzcTmc.png
+
+  supporting  Izumi Yasaka
+              id: 147671
+              ja: 夜坂泉
+              voz: Saori Yumiba
+              en: 102649:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147671-xMvymbVj2vn2.png
+
+  supporting  Akira Karasuma
+              id: 147672
+              ja: 烏間明
+              voz: Keiichi Nakagawa
+              en: 102649:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147672-btgGvXsC2h79.png
+
+  supporting  Takeya Kukuri
+              id: 147673
+              ja: 久々利武弥
+              voz: Sachie Hirai
+              en: 102649:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b147673-OJLSuZbJwukw.png
+
+  supporting  Itsuki Otomo
+              id: 149576
+              ja: 大友逸樹
+              voz: Masaki Terasoma
+              en: 104382:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b149576-QCSAXNZ2Uh79.jpg
+
+  supporting  Rin Otomo
+              id: 149577
+              ja: 大友燐
+              voz: Sayaka Oohara
+              en: 104382:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b149577-kP8nf6nFiXku.jpg
+
+  supporting  Guillermo Garcia
+              id: 149579
+              ja: ガルシアギレルモ
+              voz: Tsutomu Isobe
+              en: 104990:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b149579-ERHgiuZuaCzW.jpg
+
+  supporting  Kinrei Dorj
+              id: 149580
+              ja: ドルジキンレイ
+              voz: Tomoyuki Shimura
+              en: 104990:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b149580-B37ygjGYGlMF.jpg
+
+  supporting  Tsering Gurung
+              id: 149581
+              ja: グルンツェリン
+              voz: Wataru Takagi
+              en: 104990:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b149581-W43SxFAlUolE.jpg
+
+  supporting  Jean-Marcel Belmondo
+              id: 149582
+              ja: ベルモンドジャン＝マルセル
+              voz: Satoshi Tsuruoka
+              en: 104990:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b149582-AsHi1sC766g1.jpg
+
+  supporting  Haruki Enomiya
+              id: 150817
+              ja: 榎宮春木
+              voz: Tomoko Miyadera
+              en: 108307:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b150817-DnR7GCDpJllY.png
+              aka: Second Inspector
+
+  supporting  Theresa Shinogi
+              id: 152207
+              ja: テレーザ・陵駕
+              voz: Kiyoko Miyazawa
+              en: 108307:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b152207-s5iVqlOaOggE.png
+
+  supporting  Joseph Auma
+              id: 152208
+              ja: ジョセフ・アウマ
+              voz: Katsuhisa Houki
+              en: 108307:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b152208-M388gkqi4nAf.png
+
+  supporting  Torri S. Aschenbach
+              id: 152209
+              ja: トーリ・S・アッシェンバッハ
+              voz: Kaito Ishikawa
+              en: 108307:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b152209-aRAXyMk8ZPQE.png
+              aka: Third Inspector
+
+  supporting  Maiko Maya Stronskaya
+              id: 152210
+              ja: 舞子・マイヤ・ストロンスカヤ
+              voz: Risa Shimizu
+              en: 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b152210-3mjUjueoZX6Q.png
+
+  supporting  Nicholas Wong
+              id: 177471
+              ja: ニコラス·ウォン
+              voz: Hiroshi Kamiya
+              en: 20514:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b177471-vZTuq6HhDRQA.jpg
+
+  supporting  Atsushi Shindou
+              id: 188165
+              ja: 慎導篤志
+              voz: Takayuki Sugou
+              en: 108307:TV 113917:ONA 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b188165-wT6aNIHKsuiz.png
+
+  supporting  Mizue Shisui
+              id: 213641
+              ja: 酒々井水絵
+              voz: Marina Inoue
+              en: 20513:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b213641-zvCg0O931s84.jpg
+
+  supporting  Akira Ignatov
+              id: 319305
+              ja: 煌・ワシリー・イグナトフ
+              voz: Yasuyuki Kase
+              en: 108307:TV 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b319305-RZ422KiWeApN.png
+              aka: Kai Mikhaylov (甲斐・ミハイロフ)
+
+  supporting  Milicia Stronskaya
+              id: 321231
+              ja: ミリシヤ・ストロンスカヤ
+              voz: Shouko Tsuda
+              en: 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b321231-dVOeOaTfX9GJ.jpg
+
+  supporting  Tsugumasa Tonami
+              id: 321232
+              ja: 砺波告善
+              voz: Akio Ootsuka
+              en: 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b321232-nT3rEhWX9WlK.jpg
+
+  supporting  Shougo Yabuki
+              id: 321233
+              ja: 矢吹省吾
+              voz: Takaya Hashi
+              en: 153687:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b321233-NZBFj8oOhFoJ.jpg
+
+  supporting  Komissa-chan
+              id: 359600
+              ja: コミッサちゃん
+              voz: Natsumi Takamori
+              en: 13601:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b359600-uLA43M8vbCzl.png
+
+  sin imagen: 0   sin voz: 3

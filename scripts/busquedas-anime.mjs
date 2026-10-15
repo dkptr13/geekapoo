@@ -93,6 +93,9 @@ export const BUSQUEDAS = {
   // TVDB todavia (la clave no estaba a mano); si el emparejador no la
   // encuentra, el plan B es "Kanojo, Okarishimasu".
   'rent-a-girlfriend': '彼女、お借りします',
+  // El nombre exacto de la serie en TVDB (262090). Las búsquedas de
+  // "Psycho-Pass" y de "サイコパス" la devuelven la primera.
+  'psycho-pass': 'PSYCHO-PASS サイコパス',
 };
 
 /**

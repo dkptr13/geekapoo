@@ -197,6 +197,13 @@ export const TEMPORADA_TVDB = {
   // coinciden solas. Memory Snow no necesita mapa: va como T1E26
   // y se empareja a mano por titulo.
   're-zero-comenzando-la-vida-en-otro-mundo': { 5: 0 },
+
+  // Psycho-Pass guarda las pelis en Specials de su misma serie
+  // (262090): la peli en S0E12, la trilogía Sinners en S0E13 a S0E15
+  // y Providence en S0E20. La T5 del catálogo es la S3 de TVDB.
+  // First Inspector va partida en tres (S0E16 a S0E18) y se pone a
+  // mano con la primera parte.
+  'psycho-pass': { 3: 0, 4: 0, 5: 3, 6: 0, 7: 0 },
 };
 
 /**

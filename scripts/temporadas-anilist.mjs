@@ -206,6 +206,12 @@ function puntuar(m, temporada, laBase) {
 
   // Números de parte. "Tokyo Ghoul:re 2" no es nuestra T3, que se
   // titula solo "re". Y al revés también choca.
+  //
+  // El reverso lo puso Psycho-Pass: sus temporadas se titulan con el
+  // número pelado ("PSYCHO-PASS 2", "PSYCHO-PASS 3"), que aquí no da
+  // número de temporada y además penaliza por dígito ajeno. Por eso
+  // sus T2 y T5 declaran el título oficial en el catálogo: con él, el
+  // dígito suma en vez de restar ("mismo número de parte").
   const mios = normalizar(titulo).filter((p) => /^\d+$/.test(p));
   const suyos = normalizar(m.titulo).filter((p) => /^\d+$/.test(p));
 
