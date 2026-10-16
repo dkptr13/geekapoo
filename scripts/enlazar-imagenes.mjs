@@ -148,6 +148,8 @@ const ANIMES = [
   { id: 'dragon-raja', buscar: 'Long Zu' },
   { id: 'made-in-abyss', buscar: 'Made in Abyss' },
   { id: 'puella-magi-madoka-magica', buscar: 'Mahou Shoujo Madoka Magica' },
+  { id: 'charlotte', buscar: 'Charlotte' },
+  { id: 'death-note', buscar: 'Death Note' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 // ── Estado ─────────────────────────────────────────────────────────

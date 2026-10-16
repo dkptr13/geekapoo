@@ -112,6 +112,11 @@ export const BUSQUEDAS = {
   'made-in-abyss': 'メイドインアビス',
   // El nombre exacto de la serie en TVDB (219181).
   'puella-magi-madoka-magica': '魔法少女まどか☆マギカ',
+  // El nombre exacto de la serie en TVDB (289679, "Charlotte" 2015).
+  'charlotte': 'Charlotte',
+  // El nombre exacto de la serie en TVDB (79481, 2006). Hay un especial
+  // recortado y versiones de imagen real con nombres parecidos.
+  'death-note': 'DEATH NOTE -デスノート-',
 };
 
 /**

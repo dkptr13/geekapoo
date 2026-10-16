@@ -214,6 +214,10 @@ export const TEMPORADA_TVDB = {
   // Specials (S0E3 y S0E4). La serie coincide sola. La de Walpurgis
   // aún no tiene imagen en TVDB y se queda sin miniatura.
   'puella-magi-madoka-magica': { 2: 0, 3: 0 },
+
+  // El OVA de Charlotte va como T2 y TVDB lo guarda en Specials
+  // (S0E2). La serie coincide sola.
+  'charlotte': { 2: 0 },
 };
 
 /**

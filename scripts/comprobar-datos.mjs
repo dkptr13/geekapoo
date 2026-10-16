@@ -82,6 +82,11 @@ const ANGELESAS = [
  * Green es el mismo caso en SPY×FAMILY: asi se llama el personaje en
  * AniList y en la serie, y traducirlo seria inventarse otro nombre.
  *
+ * Light es el tercer caso en Death Note: asi se llama el protagonista
+ * en AniList, en la serie y en todas partes, y sin el no se puede
+ * escribir ni su nombre. Vale lo mismo que para los otros dos: solo
+ * con mayuscula y solo como nombre propio.
+ *
  * Solo se perdona la palabra si sale con mayuscula, es decir, como
  * nombre propio. "Power" en minuscula en medio de una frase sigue
  * saltando, que es justo el caso que la comprobacion quiere pillar. Y
@@ -92,7 +97,7 @@ const ANGELESAS = [
  * Revengers: una excepcion explicita y con su motivo, no relajar el
  * filtro hasta que deje de molestar.
  */
-const PROPIOS_EN_INGLES = ['power', 'green'];
+const PROPIOS_EN_INGLES = ['power', 'green', 'light'];
 
 /**
  * Si una palabra inglesa sale como NOMBRE PROPIO y no como palabra.

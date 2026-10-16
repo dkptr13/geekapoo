@@ -1,0 +1,236 @@
+  reparto util: 32   (de 102 en total)
+  descartados por ser de fondo: 70
+
+  main        Yuu Otosaka
+              id: 88950
+              ja: 乙坂有宇
+              voz: Kouki Uchiyama
+              en: 20997:TV 21339:OVA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b88950-0ER2ke5pswxq.png
+              aka: One-Eyed Grim Reaper
+
+  main        Nao Tomori
+              id: 88951
+              ja: 友利奈緒
+              voz: Ayane Sakura
+              en: 20997:TV 21339:OVA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/88951-bRm610RrrXp9.jpg
+
+  main        Joujirou Takajou
+              id: 88952
+              ja: 高城丈士朗
+              voz: Daichuu Mizushima
+              en: 20997:TV 21339:OVA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b88952-0wmPqlWytiRx.png
+
+  main        Yusa Kurobane
+              id: 88953
+              ja: 西森柚咲
+              voz: Maaya Uchida
+              en: 20997:TV 21339:OVA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b88953-wAWVk2jOGZqf.png
+              aka: Yusa Nishimori / Yusarin
+
+  main        Ayumi Otosaka
+              id: 88955
+              ja: 乙坂歩未
+              voz: Momo Asakura
+              en: 20997:TV 21339:OVA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/88955-iKYbTaBsmIF0.jpg
+              aka: Ayu / Ayucchi
+
+  main        Iori Sekiguchi
+              id: 172679
+              ja: 関口伊緒里
+              voz: Inori Minase
+              en: 21339:OVA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b172679-Gq2f26m670dO.jpg
+
+  supporting  Misa Kurobane
+              id: 88954
+              ja: 西森美砂
+              voz: Maaya Uchida
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/88954-Mc5TurYknYTn.jpg
+
+  supporting  Arifumi Fukuyama
+              id: 125378
+              ja: 福山有史
+              voz: Ryouhei Kimura
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125378-1ffmev7NJWtT.jpg
+
+  supporting  Furuki
+              id: 125379
+              ja: 古木
+              voz: Kanehira Yamamoto
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125379-L39OUoCiW05X.jpg
+
+  supporting  Konishi
+              id: 125380
+              ja: 小西
+              voz: Kotori Koiwai
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125380-ghKw1LRI4YpP.jpg
+
+  supporting  Kouta
+              id: 125381
+              ja: コータ
+              voz: Yoshimasa Hosoya
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125381-q0mhyN0ocmvo.jpg
+
+  supporting  Takehito Kumagami
+              id: 125382
+              ja: 熊耳武仁
+              voz: Eiji Takemoto
+              en: 20997:TV 21339:OVA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125382-DuWfjGKog4vU.jpg
+              aka: Pooh / The Helper
+
+  supporting  Maedomari
+              id: 125383
+              ja: 前泊
+              voz: Natsuki Hanae
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125383-haEcfUrdhlw1.jpg
+
+  supporting  Medoki
+              id: 125384
+              ja: 目時
+              voz: Asami Seto
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125384-jTjaeDbDgF4J.jpg
+
+  supporting  Mishima
+              id: 125385
+              ja: 三嶋
+              voz: Tomoe Tamiyasu
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125385-phySyEwXv9ae.jpg
+
+  supporting  Nomura
+              id: 125386
+              ja: 野村
+              voz: Yuiko Tatsumi
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125386-HDE5KamUXin0.jpg
+
+  supporting  Oikawa
+              id: 125387
+              ja: 及川
+              voz: Daiki Yamashita
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125387-AKdzKmF1AI67.jpg
+
+  supporting  Shunsuke Otosaka
+              id: 125388
+              ja: 乙坂隼翼
+              voz: Daisuke Ono
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125388-USug5UNdEAHH.jpg
+              aka: Shun
+
+  supporting  Sara Shane
+              id: 125389
+              ja: Sara Shane
+              voz: Miyuki Sawashiro
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b125389-Ct9EhweyHRGb.png
+
+  supporting  Kazuki Tomori
+              id: 125390
+              ja: 友利一希
+              voz: Kazuyuki Okitsu
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125390-vOueNppmy5uK.jpg
+
+  supporting  Yumi Shirayanagi
+              id: 125391
+              ja: 白柳弓
+              voz: Mai Nakahara
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125391-KhKGzBAxhFkK.jpg
+
+  supporting  Shou
+              id: 125392
+              ja: ショウ
+              voz: Ryouta Oosaka
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125392-tcP2FexI20Wk.jpg
+
+  supporting  Shichino
+              id: 125393
+              ja: 七野
+              voz: Kengo Kawanishi
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/125393-Vsf2gNziA1M2.jpg
+
+  supporting  Honoka
+              id: 172680
+              ja: 穂乃花
+              voz: Lynn
+              en: 21339:OVA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b172680-xxDrvFaMS1Ym.jpg
+
+  supporting  Yoshiyuki Oomura
+              id: 244256
+              ja: 大村佳之
+              voz: Junji Majima
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244256-ZxpAXW6zDkvC.png
+
+  supporting  Udou
+              id: 244264
+              ja: 有働
+              voz: Yuusei Oda
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244264-YX5F19Z42SuD.png
+
+  supporting  Takato
+              id: 244273
+              ja: 隆人
+              voz: Kenshou Ono
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244273-PCPc4MM1GpA4.png
+
+  supporting  Saitou
+              id: 244442
+              ja: スカイハイ斉藤
+              voz: Hikaru Midorikawa
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244442-840X5CxRvw5z.png
+              aka: Sky-High Saitou
+
+  supporting  Gondou
+              id: 244451
+              ja: 権藤
+              voz: Yasuaki Takumi
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244451-ugk1j64rjvsF.png
+
+  supporting  Hosoyamada
+              id: 244452
+              ja: 細山田
+              voz: Kenichirou Matsuda
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244452-0269lv2lQtaC.png
+
+  supporting  Ryuya
+              id: 244481
+              ja: Ryuya
+              voz: Tomokazu Sugita
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244481-jeIscad837NC.png
+
+  supporting  Tsutsumiuchi
+              id: 244483
+              ja: 堤内
+              voz: Tomomichi Nishimura
+              en: 20997:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b244483-IsviMvglU4DT.png
+
+  sin imagen: 0   sin voz: 0
+
+  los descartados (70): Kanade Tachibana, Furyou A, Furyou B, Koujo, Jikogenba no Joshi, Kounai Housou, Tomori no Haha, Food Court Tenin, Nigeru Danshi Seito, Ryouyousho Uketsuke, Kyudo-bu Buin, Hostess, Oomono Producer, Fushinna Otoko
