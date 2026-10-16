@@ -1,0 +1,135 @@
+  reparto util: 18   (de 20 en total)
+  descartados por ser de fondo: 2
+
+  main        Madoka Kaname
+              id: 37832
+              ja: 鹿目まどか
+              voz: Aoi Yuuki
+              en: 9756:TV 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b37832-lzVj5IkUciLd.jpg
+
+  main        Homura Akemi
+              id: 38005
+              ja: 暁美ほむら
+              voz: Chiwa Saitou
+              en: 9756:TV 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b38005-T3NR8p2f021x.jpg
+
+  main        Mami Tomoe
+              id: 38194
+              ja: 巴マミ
+              voz: Kaori Mizuhashi
+              en: 9756:TV 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b38194-gnlnx4XN4HYP.jpg
+
+  main        Sayaka Miki
+              id: 38395
+              ja: 美樹さやか
+              voz: Eri Kitamura
+              en: 9756:TV 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b38395-d24OayatTB5h.jpg
+
+  main        Kyuubey
+              id: 38566
+              ja: キュゥべぇ
+              voz: Emiri Katou
+              en: 9756:TV 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b38566-XzE2iqAodRQK.jpg
+              aka: QB
+
+  main        Kyouko Sakura
+              id: 40006
+              ja: 佐倉杏子
+              voz: Ai Nonaka
+              en: 9756:TV 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b40006-zOwYYimuiO3m.png
+
+  main        Nagisa Momoe
+              id: 87785
+              ja: 百江なぎさ
+              voz: Kana Asumi
+              en: 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b87785-RYF1hL2oMRN0.png
+
+  supporting  Hitomi Shizuki
+              id: 39584
+              ja: 志筑仁美
+              voz: Ryouko Shintani
+              en: 9756:TV 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b39584-YxtWll1k1zRe.jpg
+
+  supporting  Junko Kaname
+              id: 39742
+              ja: 鹿目詢子
+              voz: Yuuko Gotou
+              en: 9756:TV 11981:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/n39742-v9wdkOMMW7oT.png
+
+  supporting  Tomohisa Kaname
+              id: 39784
+              ja: 鹿目知久
+              voz: Tetsuya Iwanaga
+              en: 9756:TV 11981:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b39784-fVO9u5JgwaIK.jpg
+
+  supporting  Kazuko Saotome
+              id: 39785
+              ja: 早乙女和子
+              voz: Junko Iwao
+              en: 9756:TV 11981:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b39785-LR0WC4uHFSl4.jpg
+
+  supporting  Kyousuke Kamijou
+              id: 39835
+              ja: 上条恭介
+              voz: Seiko Yoshida
+              en: 9756:TV 11981:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b39835-poPdlPsql0Cy.jpg
+
+  supporting  Charlotte
+              id: 40842
+              ja: シャルロッテ
+              en: 11981:MOVIE 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/40842.jpg
+              aka: Bebe
+
+  supporting  Tatsuya Kaname
+              id: 41851
+              ja: 鹿目タツヤ
+              voz: Kaori Mizuhashi
+              en: 9756:TV 11981:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b41851-dKtgQbvKOMS7.jpg
+
+  supporting  Walpurgis Night
+              id: 42361
+              ja: ワルプルギスの夜
+              voz: Kaori Mizuhashi
+              en: 9756:TV 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/42361.jpg
+              aka: Walpurgisnacht
+
+  supporting  Nakazawa
+              id: 87295
+              ja: 中沢
+              voz: Yoshitsugu Matsuoka
+              en: 9756:TV 11981:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/87295.jpg
+
+  supporting  Selema Terez
+              id: 402765
+              ja: セルマ・テレーゼ
+              voz: Tomoyo Kurosawa
+              en: 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b402765-mvY5TZVpxY2J.png
+
+  supporting  Chouka Shi
+              id: 402767
+              ja: 紫丁香
+              voz: Shion Wakayama
+              en: 133007:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b402767-4UmLcBkfD9Uo.png
+              aka: Ding Xiang Zi
+
+  sin imagen: 0   sin voz: 1
+
+  los descartados (2): Host B, Shou

@@ -1,0 +1,255 @@
+  reparto util: 34   (de 44 en total)
+  descartados por ser de fondo: 10
+
+  main        Riko
+              id: 122443
+              ja: リコ
+              voz: Miyu Tomita
+              en: 97986:TV 100643:MOVIE 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b122443-Md7TtolADEJh.png
+              aka: Rico
+
+  main        Reg
+              id: 122444
+              ja: レグ
+              voz: Mariya Ise
+              en: 97986:TV 100643:MOVIE 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b122444-9rGUpcjwygHD.png
+              aka: Regu / The Treasure of the Deep
+
+  main        Nanachi
+              id: 122445
+              ja: ナナチ
+              voz: Shiori Izawa
+              en: 97986:TV 100643:MOVIE 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b122445-5uDu8wMy8Jxi.png
+
+  main        Bondrewd
+              id: 122463
+              ja: ボンドルド
+              voz: Toshiyuki Morikawa
+              en: 97986:TV 100643:MOVIE 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b122463-p4o7qOTJ2Lba.jpg
+              aka: Lord of Dawn / The Novel / Delver of the Abyss
+
+  main        Prushka
+              id: 122466
+              ja: プルシュカ
+              voz: Inori Minase
+              en: 100643:MOVIE 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b122466-RnolgKgexYDl.png
+
+  supporting  Ouzen
+              id: 122464
+              ja: オーゼン
+              voz: Sayaka Oohara
+              en: 97986:TV 100643:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b122464-xnYajKbuEa29.jpg
+              aka: Ozen / The Immovable / The Immovable Sovereign
+
+  supporting  Lyza
+              id: 122465
+              ja: ライザ
+              voz: Maaya Sakamoto
+              en: 97986:TV 100643:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b122465-YHQVVPnVZZX1.png
+              aka: Lord of Annihilation / The Annihilator
+
+  supporting  Nat
+              id: 122748
+              ja: ナット
+              voz: Mutsumi Tamura
+              en: 97986:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/122748-UQiYQ5OjzkGT.jpg
+
+  supporting  Shiggy
+              id: 122749
+              ja: シギー
+              voz: Manami Numakura
+              en: 97986:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/122749-moyrPEkfL7gv.jpg
+
+  supporting  Marulk
+              id: 123145
+              ja: マルルク
+              voz: Aki Toyosaki
+              en: 97986:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/123145-wWYcJ3SOF426.png
+
+  supporting  Hablog
+              id: 123185
+              ja: ハボルグ
+              voz: Tetsu Inada
+              en: 97986:TV 100643:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b123185-lOJJvAS0tqF0.jpg
+              aka: Haborg / Habo-san
+
+  supporting  Kiwi
+              id: 123186
+              ja: キウイ
+              voz: Manami Hanawa
+              en: 97986:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/123186-lgKM1zM7SB1F.jpg
+              aka: Kiyui / Kiui
+
+  supporting  Jiruo
+              id: 123188
+              ja: ジルオ
+              voz: Taishi Murata
+              en: 97986:TV 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b123188-9yVeXsmPmtAY.png
+              aka: Leader (リーダ)
+
+  supporting  Mitty
+              id: 125877
+              ja: ミーティ
+              voz: Eri Kitamura
+              en: 97986:TV 100643:MOVIE 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b125877-nFoMWC2T67Tx.jpg
+
+  supporting  Vueroeruko
+              id: 127655
+              ja: ヴエロエルコ
+              voz: Yuka Terasaki
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b127655-XwilRvsl5lBf.jpg
+              aka: Vueko (ヴエコ)
+
+  supporting  Simred
+              id: 153051
+              ja: シムラド
+              voz: Yuuki Shin
+              en: 97986:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b153051-oZj2GhZmROrK.jpg
+
+  supporting  Faputa
+              id: 160733
+              ja: ファプタ
+              voz: Misaki Kuno
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b160733-86kSKUGyAczO.jpg
+              aka: Princess of the Narehate
+
+  supporting  Ilim
+              id: 161973
+              ja: (sin dato)
+              voz: Natsuko Hara
+              en: 97986:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b161973-2zHM5lJmpYdZ.png
+
+  supporting  Belaf
+              id: 169306
+              ja: ベラフ
+              voz: Mitsuki Saiga
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b169306-VcBvBV4ewm9G.png
+
+  supporting  Wazukyan
+              id: 171661
+              ja: ワズキャン
+              voz: Hiroaki Hirata
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b171661-D21pZSHDXUam.jpg
+
+  supporting  Irumyuui
+              id: 183025
+              ja: イルミューイ
+              voz: Misaki Kuno
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b183025-vV1BioIYtLAi.jpg
+
+  supporting  Gaburoon
+              id: 183026
+              ja: ガブールン
+              voz: Ryouta Takeuchi
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b183026-eNKHWeuAfueU.jpg
+
+  supporting  Gueira
+              id: 189907
+              ja: グェイラ
+              voz: Shinji Kawada
+              en: 100643:MOVIE 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b189907-Xpk76VeF2auh.png
+
+  supporting  Meinya
+              id: 199683
+              ja: メイニャ
+              voz: Natsuko Hara
+              en: 100643:MOVIE 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b199683-IzawkCeC5b87.jpg
+
+  supporting  Enbelietz
+              id: 217769
+              ja: エンベリーツ
+              voz: Yuuji Murai
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b217769-OuvheNvXBp9d.jpg
+
+  supporting  Majikaja
+              id: 217771
+              ja: マジカジャ
+              voz: Hiroki Gotou
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b217771-TblM9ggtQoVy.jpg
+              aka: Kaja
+
+  supporting  Mepopohon
+              id: 217772
+              ja: メボポホン
+              voz: Kaori Ishihara
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b217772-LCql0WI4I8Vf.jpg
+
+  supporting  Juroimoh
+              id: 217773
+              ja: ジュロイオモー
+              voz: Yuusuke Sasaki
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b217773-ixYnATqANXDH.jpg
+
+  supporting  Moogie
+              id: 217774
+              ja: ムーギィ
+              voz: Kimiko Saitou
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b217774-gOumPxmteWoJ.jpg
+
+  supporting  Maaa
+              id: 217775
+              ja: マアア
+              voz: Kana Ichinose
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b217775-atmD6FynTpR2.jpg
+
+  supporting  Pakkoyan
+              id: 233014
+              ja: パッコヤン
+              voz: Akane Misaka
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b233014-EccDoXOlJ2Wm.jpg
+
+  supporting  Gyarike
+              id: 277611
+              ja: ギャリケー
+              en: 100643:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b277611-YwdLDl7NV65u.jpg
+              aka: Ashen Gyarike
+
+  supporting  Ajapoka
+              id: 294665
+              ja: アジャポカ
+              voz: Akihiro Tajima
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b294665-cHtOquhWi6Vm.png
+
+  supporting  Gaume
+              id: 294667
+              ja: ガウメ
+              voz: Masato Niwa
+              en: 114745:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b294667-u0m2EoN8Aynr.png
+
+  sin imagen: 0   sin voz: 1
+
+  los descartados (10): Narrator, Mio, Laffi, Tankutsuka, Zapo-jii, Yelme, Beruchero, Torka, Srajo, Wakuna

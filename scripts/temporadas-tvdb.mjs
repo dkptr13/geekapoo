@@ -204,6 +204,16 @@ export const TEMPORADA_TVDB = {
   // First Inspector va partida en tres (S0E16 a S0E18) y se pone a
   // mano con la primera parte.
   'psycho-pass': { 3: 0, 4: 0, 5: 3, 6: 0, 7: 0 },
+
+  // La peli secuela de Abyss va como T2 y TVDB la guarda en Specials
+  // (S0E3). La T3 del catálogo es la S2 de TVDB. Los resúmenes y
+  // los cortos no entran.
+  'made-in-abyss': { 2: 0, 3: 2 },
+
+  // Las dos pelis de Madoka van como T2 y T3 y TVDB las guarda en
+  // Specials (S0E3 y S0E4). La serie coincide sola. La de Walpurgis
+  // aún no tiene imagen en TVDB y se queda sin miniatura.
+  'puella-magi-madoka-magica': { 2: 0, 3: 0 },
 };
 
 /**

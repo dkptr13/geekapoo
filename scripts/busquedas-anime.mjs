@@ -107,6 +107,11 @@ export const BUSQUEDAS = {
   // El nombre exacto de la serie en TVDB (423688, "龙族"). AniList la
   // llama igual: Long Zu.
   'dragon-raja': '龙族',
+  // El nombre exacto de la serie en TVDB (326109). Con "Made in Abyss"
+  // sale la primera, por delante de los cortos de Marulk.
+  'made-in-abyss': 'メイドインアビス',
+  // El nombre exacto de la serie en TVDB (219181).
+  'puella-magi-madoka-magica': '魔法少女まどか☆マギカ',
 };
 
 /**
