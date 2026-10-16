@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 import {
   Sparkles,
@@ -161,6 +161,27 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
   );
 
   const nombreAnime = (animeId: string) => animePorId.get(animeId)?.title ?? '';
+
+  // Como en la búsqueda: se calcula todo pero se pintan 30 con
+  // "Ver más". La pestaña de episodios son 2.400 tarjetas.
+  const LIMITE_SECCION = 30;
+  const [ampliadas, setAmpliadas] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    setAmpliadas({});
+  }, [mainTab, filtros, selectedCategory]);
+
+  const recorte = (seccion: string, total: number) =>
+    ampliadas[seccion] ? total : Math.min(total, LIMITE_SECCION);
+
+  const botonVerMas = (seccion: string, total: number) =>
+    !ampliadas[seccion] && total > LIMITE_SECCION ? (
+      <button
+        onClick={() => setAmpliadas((v) => ({ ...v, [seccion]: true }))}
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
+      >
+        Ver más ({total - LIMITE_SECCION} restantes)
+      </button>
+    ) : null;
 
   // Duración de una peli, si su capítulo único la trae. Igual que
   // en la búsqueda: no se inventa.
@@ -378,9 +399,10 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
             )}
           </div>
         ) : (mainTab === 'episodes' || mainTab === 'characters' || mainTab === 'threads') ? (
+          <>
           <div className="grid gap-3 sm:grid-cols-2">
             {mainTab === 'episodes' &&
-              episodiosVisibles.map((ep) => (
+              episodiosVisibles.slice(0, recorte('episodes', episodiosVisibles.length)).map((ep) => (
                 <button
                   key={ep.id}
                   onClick={() => onSelectAnime(ep.animeId)}
@@ -413,7 +435,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
               ))}
 
             {mainTab === 'characters' &&
-              personajesVisibles.map((c) => (
+              personajesVisibles.slice(0, recorte('characters', personajesVisibles.length)).map((c) => (
                 <button
                   key={c.id}
                   onClick={() => onSelectAnime(c.animeId)}
@@ -446,7 +468,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
               ))}
 
             {mainTab === 'threads' &&
-              hilosVisibles.map((t) => (
+              hilosVisibles.slice(0, recorte('threads', hilosVisibles.length)).map((t) => (
                 <button
                   key={t.id}
                   onClick={() => onSelectThread?.(t)}
@@ -466,6 +488,10 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                 </button>
               ))}
           </div>
+          {mainTab === 'episodes' && botonVerMas('episodes', episodiosVisibles.length)}
+          {mainTab === 'characters' && botonVerMas('characters', personajesVisibles.length)}
+          {mainTab === 'threads' && botonVerMas('threads', hilosVisibles.length)}
+          </>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
             {animesVisibles.map((anime) => {

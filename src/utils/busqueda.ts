@@ -153,6 +153,81 @@ export interface CamposFicha {
   claves?: string[];
 }
 
+// ======================================================
+// FICHAS PREPARADAS (ÍNDICE)
+// ======================================================
+// Normalizar cada título, alias y sinopsis en cada pulsación
+// es lo que hacía lenta la búsqueda: miles de textos
+// reaplanados por tecla. La ficha preparada lo hace UNA vez,
+// cuando cambian los datos, y cada pulsación solo normaliza
+// la consulta (un texto corto).
+
+export interface FichaLista {
+  principal: string;
+  originales: string[];
+  alias: string[];
+  claves: string[];
+  /** Todos los de título, para la cobertura de tokens. */
+  titulos: string[];
+}
+
+/** Normaliza una ficha entera. Se llama al cargar los datos. */
+export function prepararFicha(campos: CamposFicha): FichaLista {
+  const principal = normalizarBusqueda(campos.principal);
+  const originales = textosDe(campos.originales);
+  const alias = textosDe(campos.alias);
+  const claves = textosDe(campos.claves);
+  return {
+    principal,
+    originales,
+    alias,
+    claves,
+    titulos: [principal, ...alias, ...originales].filter((t) => t.length > 0),
+  };
+}
+
+/**
+ * Puntuación con la consulta YA normalizada y la ficha YA
+ * preparada. Misma escala que `puntuarFicha`: la usan el
+ * índice (rápido) y los tests (legible).
+ */
+export function puntuarPreparada(q: string, ficha: FichaLista): number {
+  if (!q) return 0;
+  const { principal, originales, alias, claves, titulos } = ficha;
+
+  // 1-3. Exactas, en orden: principal, alias, original.
+  if (principal && q === principal) return PUNTOS.exactaPrincipal;
+  if (alias.some((t) => t === q)) return PUNTOS.exactaAlias;
+  if (originales.some((t) => t === q)) return PUNTOS.exactaOriginal;
+
+  // 4a. Todos los tokens colocados, en cualquier orden.
+  if (cubreTokens(q, titulos)) return PUNTOS.tokensCompletos;
+
+  // 4b. Parciales (subcadena), con el mismo orden de bandas.
+  if (principal && incluyeEn(q, principal)) return PUNTOS.parcialPrincipal;
+  if (alias.some((t) => incluyeEn(q, t))) return PUNTOS.parcialAlias;
+  if (originales.some((t) => incluyeEn(q, t))) return PUNTOS.parcialOriginal;
+
+  // Palabras clave: texto que acompaña a la ficha, no su nombre.
+  if (claves.some((t) => incluyeEn(q, t))) return PUNTOS.palabraClave;
+
+  // 5. Difusa: contra el título completo y contra cada token,
+  // para que un apellido mal escrito también cuente. Solo se
+  // llega aquí si nada barato coincidió.
+  const minimo = similitudMinima(q.length);
+  if (minimo === Infinity) return 0;
+  let mejor = 0;
+  const candidatos = [...titulos, ...titulos.flatMap((t) => t.split(' '))];
+  for (const c of candidatos) {
+    if (!c || Math.abs(c.length - q.length) > q.length) continue;
+    const s = similitudTextos(q, c);
+    if (s > mejor) mejor = s;
+    if (mejor >= 0.99) break;
+  }
+  if (mejor < minimo) return 0;
+  return PUNTOS.difusaBase + Math.round(PUNTOS.difusaVariable * mejor);
+}
+
 /**
  * Similitud mínima para aceptar una coincidencia difusa, según
  * lo larga que sea la consulta. Corta y permisiva es la receta
@@ -212,43 +287,7 @@ function cubreTokens(consulta: string, titulos: string[]): boolean {
 export function puntuarFicha(consulta: string, campos: CamposFicha): number {
   const q = normalizarBusqueda(consulta);
   if (!q) return 0;
-
-  const principal = normalizarBusqueda(campos.principal);
-  const originales = textosDe(campos.originales);
-  const alias = textosDe(campos.alias);
-  const claves = textosDe(campos.claves);
-  const titulos = [principal, ...alias, ...originales].filter((t) => t.length > 0);
-
-  // 1-3. Exactas, en orden: principal, alias, original.
-  if (principal && q === principal) return PUNTOS.exactaPrincipal;
-  if (alias.some((t) => t === q)) return PUNTOS.exactaAlias;
-  if (originales.some((t) => t === q)) return PUNTOS.exactaOriginal;
-
-  // 4a. Todos los tokens colocados, en cualquier orden.
-  if (cubreTokens(q, titulos)) return PUNTOS.tokensCompletos;
-
-  // 4b. Parciales (subcadena), con el mismo orden de bandas.
-  if (principal && incluyeEn(q, principal)) return PUNTOS.parcialPrincipal;
-  if (alias.some((t) => incluyeEn(q, t))) return PUNTOS.parcialAlias;
-  if (originales.some((t) => incluyeEn(q, t))) return PUNTOS.parcialOriginal;
-
-  // Palabras clave: texto que acompaña a la ficha, no su nombre.
-  if (claves.some((t) => incluyeEn(q, t))) return PUNTOS.palabraClave;
-
-  // 5. Difusa: contra el título completo y contra cada token,
-  // para que un apellido mal escrito también cuente.
-  const minimo = similitudMinima(q.length);
-  if (minimo === Infinity) return 0;
-  let mejor = 0;
-  const candidatos = [...titulos, ...titulos.flatMap((t) => t.split(' '))];
-  for (const c of candidatos) {
-    if (!c || Math.abs(c.length - q.length) > q.length) continue;
-    const s = similitudTextos(q, c);
-    if (s > mejor) mejor = s;
-    if (mejor >= 0.99) break;
-  }
-  if (mejor < minimo) return 0;
-  return PUNTOS.difusaBase + Math.round(PUNTOS.difusaVariable * mejor);
+  return puntuarPreparada(q, prepararFicha(campos));
 }
 
 /**
@@ -262,9 +301,23 @@ export function buscarConRelevancia<T>(
 ): { ficha: T; puntos: number }[] {
   const q = normalizarBusqueda(consulta);
   if (!q) return [];
+  const preparadas = fichas.map((ficha) => ({ ficha, lista: prepararFicha(camposDe(ficha)) }));
+  return buscarPreparadas(preparadas, q);
+}
+
+/**
+ * Lo mismo sobre un índice ya preparado. Es lo que usa la
+ * wiki: prepara al cargar los datos y puntúa por tecla sin
+ * renormalizar nada.
+ */
+export function buscarPreparadas<T>(
+  preparadas: { ficha: T; lista: FichaLista }[],
+  consultaNormalizada: string,
+): { ficha: T; puntos: number }[] {
+  if (!consultaNormalizada) return [];
   const salida: { ficha: T; puntos: number }[] = [];
-  for (const ficha of fichas) {
-    const puntos = puntuarFicha(q, camposDe(ficha));
+  for (const { ficha, lista } of preparadas) {
+    const puntos = puntuarPreparada(consultaNormalizada, lista);
     if (puntos > 0) salida.push({ ficha, puntos });
   }
   // Estable: a igual puntos, manda el orden de llegada.

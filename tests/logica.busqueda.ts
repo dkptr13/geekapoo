@@ -12,10 +12,13 @@
 import assert from 'node:assert/strict';
 import {
   buscarConRelevancia,
+  buscarPreparadas,
   claveSinEspacios,
   distanciaEdicion,
   normalizarBusqueda,
+  prepararFicha,
   puntuarFicha,
+  puntuarPreparada,
   similitudTextos,
   type CamposFicha,
 } from '../src/utils/busqueda.ts';
@@ -119,5 +122,22 @@ assert.equal(topYaiba[0].ficha, slayer);
 const ranking = buscarConRelevancia([vecino, slayer, ataque], 'demon slayer', (f) => f);
 assert.equal(ranking[0].ficha, slayer);
 assert.equal(new Set(ranking.map((r) => r.ficha)).size, ranking.length);
+
+// La ficha preparada puntúa igual que la directa: el índice
+// solo adelanta trabajo, no cambia resultados.
+for (const ficha of [ataque, slayer, vecino]) {
+  for (const q of ['attack on titan', 'shigeki', 'demon', 'zzz sin sentido', 'a']) {
+    assert.equal(
+      puntuarPreparada(normalizarBusqueda(q), prepararFicha(ficha)),
+      puntuarFicha(q, ficha),
+      `${q} / ${ficha.principal}`,
+    );
+  }
+}
+const idx = [ataque, slayer, vecino].map((ficha) => ({ ficha, lista: prepararFicha(ficha) }));
+assert.deepEqual(
+  buscarPreparadas(idx, normalizarBusqueda('demon slayer')).map((r) => r.ficha),
+  buscarConRelevancia([vecino, slayer, ataque], 'demon slayer', (f) => f).map((r) => r.ficha),
+);
 
 console.log('  busqueda: TODO CORRECTO');

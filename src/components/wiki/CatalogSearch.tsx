@@ -1,11 +1,17 @@
-import { useDeferredValue, useMemo } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
-import { Tv, Users, Film, MessageSquare, SearchX, Clapperboard, Calendar, Star } from 'lucide-react';
+import { Tv, Users, Film, MessageSquare, SearchX, Clapperboard, Calendar, Star, Loader2 } from 'lucide-react';
 
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories } from '../../data/animeCategories';
 import { encuadre, toText, toTextList } from '../../utils/safeData';
-import { buscarConRelevancia } from '../../utils/busqueda';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import {
+  buscarPreparadas,
+  normalizarBusqueda,
+  prepararFicha,
+  type FichaLista,
+} from '../../utils/busqueda';
 import {
   episodioDeAnimeValido,
   esPelicula,
@@ -66,12 +72,70 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
   onSelectAnime,
   onSelectThread,
 }) => {
-  // La consulta difiere un render: mientras se escribe, la
-  // lista filtra con el texto anterior en vez de recalcular con
-  // cada tecla. Los datos ya están en memoria, así que no hay
-  // peticiones que espaciar; esto solo mantiene el input fluido.
+  // La consulta difiere un render y además espera 300 ms
+  // quieta antes de filtrar: mientras se escribe, el input va
+  // fluido y la lista filtra con el texto anterior. Los datos
+  // ya están en memoria, así que no hay peticiones que espaciar;
+  // esto solo evita recalcular y repintar con cada tecla.
   const q = query.trim().toLowerCase();
   const qDiferida = useDeferredValue(q);
+  const qProcesada = useDebouncedValue(qDiferida, 300);
+  const buscando = q !== '' && qProcesada !== q;
+
+  // ── ÍNDICE: títulos y alias normalizados UNA vez ──────────
+  // Antes cada pulsación renormalizaba miles de textos (títulos,
+  // sinopsis, alias) y medía distancias de edición contra todos.
+  // Ahora se prepara al cargar o cambiar los datos, y por tecla
+  // solo se normaliza la consulta y se puntúa.
+  const indice = useMemo(() => {
+    const fichaAnime = (a: Anime): FichaLista =>
+      prepararFicha({
+        principal: a.title,
+        originales: [a.japaneseTitle ?? ''],
+        alias: a.alternativeTitles,
+        claves: [a.synopsis, ...toTextList(a.genres), a.studio, ...animeCategories(a)],
+      });
+    const fichaEpisodio = (ep: Episode): FichaLista =>
+      prepararFicha({
+        principal: ep.title,
+        originales: [ep.romajiTitle ?? ''],
+        claves: [ep.description],
+      });
+    const fichaPersonaje = (c: Character): FichaLista =>
+      prepararFicha({
+        principal: c.name,
+        originales: [c.japaneseName ?? ''],
+        alias: c.aliases,
+        claves: [c.description],
+      });
+    const fichaHilo = (t: Thread): FichaLista =>
+      prepararFicha({
+        principal: t.title,
+        claves: [t.body, ...(t.tags ?? []), t.categoryName],
+      });
+    return {
+      animes: animes.map((ficha) => ({ ficha, lista: fichaAnime(ficha) })),
+      episodes: sinDuplicados(Object.values(episodes).flat()).map((ficha) => ({
+        ficha,
+        lista: fichaEpisodio(ficha),
+      })),
+      characters: sinDuplicados(Object.values(characters).flat()).map((ficha) => ({
+        ficha,
+        lista: fichaPersonaje(ficha),
+      })),
+      threads: threads.map((ficha) => ({ ficha, lista: fichaHilo(ficha) })),
+    };
+  }, [animes, episodes, characters, threads]);
+
+  // ── Límite de tarjetas por sección ────────────────────────
+  // Se calcula TODO (la relevancia manda sobre el total) pero
+  // se pintan 30 por sección con "Ver más". Sin esto, una letra
+  // como "a" renderizaba miles de tarjetas con sus imágenes.
+  const LIMITE_SECCION = 30;
+  const [ampliadas, setAmpliadas] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    setAmpliadas({});
+  }, [qProcesada, filtros, filter]);
 
   // Todo el filtrado junto, para que la cuenta de resultados y las
   // listas que se pintan no puedan contradecirse.
@@ -85,19 +149,15 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
   // Con ordenación explícita manda ella (y a igual criterio, la
   // relevancia que ya trae la lista); por defecto, relevancia.
   const results = useMemo(() => {
-    if (!qDiferida) {
+    const qn = normalizarBusqueda(qProcesada);
+    if (!qn) {
       return { series: [], movies: [], episodes: [], characters: [], threads: [] };
     }
 
     const animePorId = new Map(animes.map((a) => [a.id, a]));
     const fSinNota: FiltrosAvanzados = { ...filtros, notaMin: 0 };
 
-    const animesRank = buscarConRelevancia(animes, qDiferida, (a) => ({
-      principal: a.title,
-      originales: [a.japaneseTitle ?? ''],
-      alias: a.alternativeTitles,
-      claves: [a.synopsis, ...toTextList(a.genres), a.studio, ...animeCategories(a)],
-    }))
+    const animesRank = buscarPreparadas(indice.animes, qn)
       .map((r) => r.ficha)
       .filter((a) => pasaFiltrosAnime(a, filtros));
     const series =
@@ -115,15 +175,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
             filtros.orden,
           );
 
-    const rankEpisodios = buscarConRelevancia(
-      sinDuplicados(Object.values(episodes).flat()),
-      qDiferida,
-      (ep) => ({
-        principal: ep.title,
-        originales: [ep.romajiTitle ?? ''],
-        claves: [ep.description],
-      }),
-    )
+    const rankEpisodios = buscarPreparadas(indice.episodes, qn)
       .map((r) => r.ficha)
       .filter(
         (ep) =>
@@ -133,16 +185,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
     const episodesLista =
       filtros.orden === 'defecto' ? rankEpisodios : ordenarEpisodios(rankEpisodios, filtros.orden);
 
-    const rankPersonajes = buscarConRelevancia(
-      sinDuplicados(Object.values(characters).flat()),
-      qDiferida,
-      (c) => ({
-        principal: c.name,
-        originales: [c.japaneseName ?? ''],
-        alias: c.aliases,
-        claves: [c.description],
-      }),
-    )
+    const rankPersonajes = buscarPreparadas(indice.characters, qn)
       .map((r) => r.ficha)
       .filter((c) => episodioDeAnimeValido(animePorId, c.animeId, fSinNota));
     const charactersLista =
@@ -150,10 +193,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
         ? rankPersonajes
         : ordenarPersonajes(rankPersonajes, filtros.orden);
 
-    const rankHilos = buscarConRelevancia(threads, qDiferida, (t) => ({
-      principal: t.title,
-      claves: [t.body, ...(t.tags ?? []), t.categoryName],
-    })).map((r) => r.ficha);
+    const rankHilos = buscarPreparadas(indice.threads, qn).map((r) => r.ficha);
     const threadsLista = rankHilos.filter((t) => pasaCategoriaHilo(t, filtros));
     const threadsOrdenados =
       filtros.orden === 'defecto' ? threadsLista : ordenarHilos(threadsLista, filtros.orden);
@@ -165,7 +205,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
       characters: charactersLista,
       threads: threadsOrdenados,
     };
-  }, [qDiferida, animes, episodes, characters, threads, filtros]);
+  }, [indice, qProcesada, animes, filtros]);
 
   const total =
     results.series.length +
@@ -187,6 +227,23 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
     return toText(unico?.duration).trim();
   };
 
+  // Tarjetas visibles por sección: el cálculo va sobre todo el
+  // catálogo (la relevancia manda), pero se pintan 30 con "Ver
+  // más". Sin esto, una letra común renderizaba miles de
+  // tarjetas con sus imágenes y la página se arrastraba.
+  const recorte = (seccion: string, total: number) =>
+    ampliadas[seccion] ? total : Math.min(total, LIMITE_SECCION);
+
+  const botonVerMas = (seccion: string, total: number) =>
+    !ampliadas[seccion] && total > LIMITE_SECCION ? (
+      <button
+        onClick={() => setAmpliadas((v) => ({ ...v, [seccion]: true }))}
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
+      >
+        Ver más ({total - LIMITE_SECCION} restantes)
+      </button>
+    ) : null;
+
   return (
     <div className="space-y-6">
       {/* Pestañas principales, con el recuento de esta búsqueda */}
@@ -202,6 +259,12 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
         }}
         onChange={onFilterChange}
       />
+      {buscando && (
+        <p className="flex items-center gap-1.5 text-[11px] text-zinc-500" aria-live="polite">
+          <Loader2 size={12} className="animate-spin" />
+          Buscando…
+        </p>
+      )}
 
       {total === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
@@ -232,7 +295,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
               </h3>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {results.series.map((a) => (
+                {results.series.slice(0, recorte('series', results.series.length)).map((a) => (
                   <button
                     key={a.id}
                     onClick={() => onSelectAnime(a.id)}
@@ -265,6 +328,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
                   </button>
                 ))}
               </div>
+              {botonVerMas('series', results.series.length)}
             </section>
           )}
 
@@ -277,7 +341,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
               </h3>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {results.movies.map((a) => {
+                {results.movies.slice(0, recorte('movies', results.movies.length)).map((a) => {
                   const duracion = duracionDe(a);
                   return (
                     <button
@@ -328,6 +392,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
                   );
                 })}
               </div>
+              {botonVerMas('movies', results.movies.length)}
             </section>
           )}
 
@@ -340,7 +405,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
               </h3>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                {results.episodes.map((ep) => (
+                {results.episodes.slice(0, recorte('episodes', results.episodes.length)).map((ep) => (
                   <button
                     key={ep.id}
                     onClick={() => onSelectAnime(ep.animeId)}
@@ -370,6 +435,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
                   </button>
                 ))}
               </div>
+              {botonVerMas('episodes', results.episodes.length)}
             </section>
           )}
 
@@ -382,7 +448,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
               </h3>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {results.characters.map((c) => (
+                {results.characters.slice(0, recorte('characters', results.characters.length)).map((c) => (
                   <button
                     key={c.id}
                     onClick={() => onSelectAnime(c.animeId)}
@@ -412,6 +478,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
                   </button>
                 ))}
               </div>
+              {botonVerMas('characters', results.characters.length)}
             </section>
           )}
 
@@ -424,7 +491,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
               </h3>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                {results.threads.map((t) => (
+                {results.threads.slice(0, recorte('threads', results.threads.length)).map((t) => (
                   <button
                     key={t.id}
                     onClick={() => onSelectThread?.(t)}
@@ -443,6 +510,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
                   </button>
                 ))}
               </div>
+              {botonVerMas('threads', results.threads.length)}
             </section>
           )}
         </>
