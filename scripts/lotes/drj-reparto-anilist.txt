@@ -1,0 +1,147 @@
+  reparto util: 20   (de 20 en total)
+  descartados por ser de fondo: 0
+
+  main        Mingfei Lu
+              id: 271923
+              ja: 路明非
+              voz: Daiki Yamashita
+              en: 122511:ONA 157692:ONA 205375:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b271923-BzUjdkYiu2ul.png
+              aka: Ricardo M Lu (李嘉图·M·路) / 小魔鬼 / ルー・ミンフェイ
+
+  main        Mingze Lu
+              id: 271924
+              ja: 路鸣泽
+              voz: Ayumu Murase
+              en: 122511:ONA 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b271924-WocCCPJ3INE4.png
+              aka: ルー・ミンゼイ
+
+  supporting  Zihang Chu
+              id: 271919
+              ja: 楚子航
+              voz: Kenshou Ono
+              en: 122511:ONA 157692:ONA 205375:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b271919-On19f0Gnv30Y.png
+              aka: チュー・ズーハン
+
+  supporting  Finger Von Frings
+              id: 271920
+              ja: 芬格尔
+              voz: Tatsumaru Tachibana
+              en: 122511:ONA 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b271920-cpWAm3CANVLA.png
+              aka: フィンゲル・フォン・フリングス
+
+  supporting  Caesare Gattuso
+              id: 271921
+              ja: 恺撒·加图索
+              voz: Takeo Ootsuka
+              en: 122511:ONA 157692:ONA 205375:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b271921-LQfIxVQCcfL6.png
+              aka: シーザー・ガットゥーゾ
+
+  supporting  Motong Chen
+              id: 271922
+              ja: 陈墨瞳
+              voz: Kaede Hondo
+              en: 122511:ONA 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b271922-7q7jC5PoW9lP.png
+              aka: Nuonuo (诺诺) / ノノ
+
+  supporting  Gude Jiaoshou
+              id: 285181
+              ja: 古德教授
+              en: 122511:ONA 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b285181-m2rWr0FZLqb2.png
+              aka: Professor Gude
+
+  supporting  Norma Lawens
+              id: 285182
+              ja: 诺玛·劳恩斯
+              voz: Manaka Iwami
+              en: 122511:ONA 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b285182-DMfuVCGTKy2J.png
+              aka: EVA / ノルマ・ローレンス
+
+  supporting  Aki Sakatoku
+              id: 285183
+              ja: 酒德亚纪
+              en: 122511:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b285183-JIol4DPYGaeo.png
+
+  supporting  Sheng Ye
+              id: 285184
+              ja: 叶胜
+              en: 122511:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b285184-JQdMxtemOGdv.png
+
+  supporting  Lieche Yuan
+              id: 292853
+              ja: 列车员
+              en: 122511:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/default.jpg
+
+  supporting  Masashi Toyama
+              id: 292854
+              ja: 富山雅史
+              en: 122511:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/default.jpg
+
+  supporting  Hilbert Anjou
+              id: 292855
+              ja: 希尔伯特·让·昂热
+              voz: Shou Hayami
+              en: 122511:ONA 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b292855-PLMdanWCZnkg.png
+              aka: アンジェ
+
+  supporting  Manyin
+              id: 292856
+              ja: 曼因
+              en: 122511:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/default.jpg
+
+  supporting  Susie
+              id: 292857
+              ja: 苏茜
+              en: 122511:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b292857-95XQFKpuPw9c.png
+
+  supporting  Mance Rundstedt
+              id: 292858
+              ja: 曼斯
+              en: 122511:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b292858-7zfWf5XdBMsP.png
+
+  supporting  Selma
+              id: 292859
+              ja: 塞尔玛
+              en: 122511:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/default.jpg
+
+  supporting  Ling
+              id: 302674
+              ja: 零
+              voz: Sally Amaki
+              en: 122511:ONA 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b302674-IGzWHFvgf7ma.jpg
+              aka: Zero / リン / Renata Yevgenia Chicherina Razumovskaya Romanova
+
+  supporting  Xia Mi
+              id: 376050
+              ja: 夏弥
+              voz: Reina Kondou
+              en: 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b376050-nLSgt4TnglaF.png
+              aka: Little Dragon Girl
+
+  supporting  Tianjiao Chu
+              id: 398191
+              ja: 楚天驕
+              voz: Yoshimasa Hosoya
+              en: 157692:ONA
+              img: https://s4.anilist.co/file/anilistcdn/character/large/default.jpg
+              aka: チュー・ティエンジャオ
+
+  sin imagen: 0   sin voz: 9

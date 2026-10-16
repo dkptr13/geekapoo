@@ -100,6 +100,13 @@ export const BUSQUEDAS = {
   // "To Your Eternity", "Fumetsu no Anata e" y "不滅のあなたへ" la
   // devuelven la única.
   'to-your-eternity': '不滅のあなたへ',
+  // El nombre exacto de la serie en TVDB (385278).
+  'don-t-toy-with-me-miss-nagatoro': 'イジらないで、長瀞さん',
+  // El nombre exacto de la serie en TVDB (446141).
+  'the-shiunji-family-children': '紫雲寺家の子供たち',
+  // El nombre exacto de la serie en TVDB (423688, "龙族"). AniList la
+  // llama igual: Long Zu.
+  'dragon-raja': '龙族',
 };
 
 /**

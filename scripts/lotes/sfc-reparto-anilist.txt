@@ -1,0 +1,55 @@
+  reparto util: 7   (de 8 en total)
+  descartados por ser de fondo: 1
+
+  main        Arata Shiunji
+              id: 265472
+              ja: 紫雲寺新
+              voz: Yuuichirou Umehara
+              en: 174802:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b265472-bKc0fO8tFjpU.jpg
+
+  main        Shion Shiunji
+              id: 265473
+              ja: 紫雲寺志苑
+              voz: Chiaki Kobayashi
+              en: 174802:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b265473-Lv7U81Z8iV5o.jpg
+
+  main        Banri Shiunji
+              id: 265474
+              ja: 紫雲寺万里
+              voz: Chika Anzai
+              en: 174802:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b265474-zWGezE02Q2kE.jpg
+
+  main        Minami Shiunji
+              id: 265475
+              ja: 紫雲寺南
+              voz: Hana Hishikawa
+              en: 174802:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b265475-A1yGBv4tsaQH.jpg
+
+  main        Seiha Shiunji
+              id: 265476
+              ja: 紫雲寺清葉
+              voz: Marika Kouno
+              en: 174802:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b265476-lnpa14dVeTYw.jpg
+
+  main        Kotono Shiunji
+              id: 265477
+              ja: 紫雲寺ことの
+              voz: Kana Ichinose
+              en: 174802:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b265477-dpv82JkWkS9b.png
+
+  main        Ouka Shiunji
+              id: 265478
+              ja: 紫雲寺謳華
+              voz: Rie Takahashi
+              en: 174802:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b265478-MjTkx63ZWnMP.jpg
+
+  sin imagen: 0   sin voz: 0
+
+  los descartados (1): Narrator

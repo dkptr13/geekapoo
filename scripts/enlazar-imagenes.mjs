@@ -143,6 +143,9 @@ const ANIMES = [
   { id: 'rent-a-girlfriend', buscar: 'Kanojo, Okarishimasu' },
   { id: 'psycho-pass', buscar: 'Psycho-Pass' },
   { id: 'to-your-eternity', buscar: 'To Your Eternity' },
+  { id: 'don-t-toy-with-me-miss-nagatoro', buscar: 'Ijiranaide, Nagatoro-san' },
+  { id: 'the-shiunji-family-children', buscar: 'Shiunji-ke no Kodomotachi' },
+  { id: 'dragon-raja', buscar: 'Long Zu' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 // ── Estado ─────────────────────────────────────────────────────────
