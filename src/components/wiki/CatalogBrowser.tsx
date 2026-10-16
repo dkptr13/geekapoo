@@ -1,11 +1,36 @@
 import { useMemo } from 'react';
 import type { FC } from 'react';
-import { Sparkles, Play, Star, Calendar, Shuffle, Layers } from 'lucide-react';
+import {
+  Sparkles,
+  Play,
+  Star,
+  Calendar,
+  Shuffle,
+  Clapperboard,
+  Users,
+  MessageSquare,
+  SearchX,
+} from 'lucide-react';
 
-import { ALL_ANIME_CATEGORIES, animeCategories, normalize } from '../../data/animeCategories';
+import { ALL_ANIME_CATEGORIES, animeCategories, isInCategory, normalize } from '../../data/animeCategories';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
-import { encuadre } from '../../utils/safeData';
-import type { Anime } from '../../types';
+import { encuadre, toText } from '../../utils/safeData';
+import {
+  episodioDeAnimeValido,
+  esPelicula,
+  contarFiltrosActivos,
+  ordenarAnimes,
+  ordenarEpisodios,
+  ordenarHilos,
+  ordenarPersonajes,
+  pasaCategoriaHilo,
+  pasaFiltrosAnime,
+  pasaPestanaAnime,
+  sinDuplicados,
+  type FiltrosAvanzados,
+  type MainTab,
+} from '../../utils/wikiFilter';
+import type { Anime, Character, Episode, Thread } from '../../types';
 // ======================================================
 // VISTA DE CATÁLOGO
 // ======================================================
@@ -24,16 +49,30 @@ import type { Anime } from '../../types';
 
 interface CatalogBrowserProps {
   animes: Anime[];
+  episodes: Record<string, Episode[]>;
+  characters: Record<string, Character[]>;
+  threads: Thread[];
   selectedCategory: string;
+  mainTab: MainTab;
+  filtros: FiltrosAvanzados;
   onSelectCategory: (name: string) => void;
   onSelectAnime: (id: string) => void;
+  onSelectThread?: (thread: Thread) => void;
+  onLimpiarFiltros: () => void;
 }
 
 const CatalogBrowser: FC<CatalogBrowserProps> = ({
   animes,
+  episodes,
+  characters,
+  threads,
   selectedCategory,
+  mainTab,
+  filtros,
   onSelectCategory,
   onSelectAnime,
+  onSelectThread,
+  onLimpiarFiltros,
 }) => {
   // Se agrupa una sola vez y no en cada render de la rejilla: se
   // recorre la lista entera por cada categoría.
@@ -57,6 +96,79 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
 
   const visible = selectedCategory === 'all' ? animes : byCategory.get(normalize(selectedCategory)) ?? [];
 
+  // Animes de la rejilla: categoría temática + pestaña + filtros
+  // avanzados, en ese orden. La ordenación cierra la cadena.
+  const animesVisibles = useMemo(
+    () =>
+      ordenarAnimes(
+        visible.filter((a) => pasaPestanaAnime(a, mainTab) && pasaFiltrosAnime(a, filtros)),
+        filtros.orden,
+      ),
+    [visible, mainTab, filtros],
+  );
+
+  const animePorId = useMemo(() => new Map(animes.map((a) => [a.id, a])), [animes]);
+
+  // Los capítulos y personajes heredan la categoría temática y los
+  // filtros del anime padre. Sin ficha del padre no se juzgan.
+  // Los hilos son del foro y no cuelgan de ningún anime: solo les
+  // aplican su categoría y la ordenación.
+  const enCategoriaTematica = (animeId: string) =>
+    selectedCategory === 'all' || isInCategory(animePorId.get(animeId), selectedCategory);
+
+  const fSinNota: FiltrosAvanzados = { ...filtros, notaMin: 0 };
+
+  const episodiosVisibles = useMemo(
+    () =>
+      ordenarEpisodios(
+        sinDuplicados(
+          Object.values(episodes)
+            .flat()
+            .filter(
+              (ep) =>
+                enCategoriaTematica(ep.animeId) &&
+                episodioDeAnimeValido(animePorId, ep.animeId, fSinNota) &&
+                (filtros.notaMin <= 0 || (ep.rating || 0) >= filtros.notaMin),
+            ),
+        ),
+        filtros.orden,
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [episodes, animePorId, selectedCategory, filtros],
+  );
+
+  const personajesVisibles = useMemo(
+    () =>
+      ordenarPersonajes(
+        sinDuplicados(
+          Object.values(characters)
+            .flat()
+            .filter(
+              (c) =>
+                enCategoriaTematica(c.animeId) &&
+                episodioDeAnimeValido(animePorId, c.animeId, fSinNota),
+            ),
+        ),
+        filtros.orden,
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [characters, animePorId, selectedCategory, filtros],
+  );
+
+  const hilosVisibles = useMemo(
+    () => ordenarHilos(threads.filter((t) => pasaCategoriaHilo(t, filtros)), filtros.orden),
+    [threads, filtros],
+  );
+
+  const nombreAnime = (animeId: string) => animePorId.get(animeId)?.title ?? '';
+
+  // Duración de una peli, si su capítulo único la trae. Igual que
+  // en la búsqueda: no se inventa.
+  const duracionDe = (anime: Anime): string => {
+    if (!esPelicula(anime)) return '';
+    return toText(episodes[anime.id]?.[0]?.duration).trim();
+  };
+
   const activeCategory = ALL_ANIME_CATEGORIES.find(
     (c) => normalize(c.name) === normalize(selectedCategory),
   );
@@ -68,10 +180,46 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
   // llamaba "Sorpréndeme" y siempre salía la misma. Math.random()
   // sí que sortea.
   const pickRandom = () => {
-    if (visible.length === 0) return;
-    const pick = visible[Math.floor(Math.random() * visible.length)];
+    if (animesVisibles.length === 0) return;
+    const pick = animesVisibles[Math.floor(Math.random() * animesVisibles.length)];
     onSelectAnime(pick.id);
   };
+
+  const tituloSeccion =
+    mainTab === 'movies'
+      ? 'Películas'
+      : mainTab === 'episodes'
+        ? 'Episodios'
+        : mainTab === 'characters'
+          ? 'Personajes'
+          : mainTab === 'threads'
+            ? 'Hilos de la Wiki'
+            : (activeCategory ? activeCategory.name : 'Todo el catálogo');
+
+  const cuentaSeccion = (() => {
+    const n =
+      mainTab === 'episodes'
+        ? episodiosVisibles.length
+        : mainTab === 'characters'
+          ? personajesVisibles.length
+          : mainTab === 'threads'
+            ? hilosVisibles.length
+            : animesVisibles.length;
+    if (mainTab === 'movies') return n === 1 ? '1 película' : `${n} películas`;
+    if (mainTab === 'episodes') return n === 1 ? '1 episodio' : `${n} episodios`;
+    if (mainTab === 'characters') return n === 1 ? '1 personaje' : `${n} personajes`;
+    if (mainTab === 'threads') return n === 1 ? '1 hilo' : `${n} hilos`;
+    return n === 1 ? '1 serie' : `${n} series`;
+  })();
+
+  const hayResultados =
+    mainTab === 'episodes'
+      ? episodiosVisibles.length > 0
+      : mainTab === 'characters'
+        ? personajesVisibles.length > 0
+        : mainTab === 'threads'
+          ? hilosVisibles.length > 0
+          : animesVisibles.length > 0;
 
   return (
     <div className="grid gap-6 lg:grid-cols-12">
@@ -112,7 +260,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
               Entra a dejar tu nota y tu comentario.
             </p>
 
-            {visible.length > 0 && (
+            {animesVisibles.length > 0 && (mainTab === 'all' || mainTab === 'series' || mainTab === 'movies') && (
               <button
                 onClick={pickRandom}
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-violet-600 px-3 py-2.5 text-xs font-bold text-white transition-colors hover:bg-violet-500"
@@ -195,31 +343,135 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
       </section>
 
       {/* ==================================================
-          SERIES DE LA CATEGORÍA ELEGIDA
-      ================================================== */}
+          RESULTADOS DE LA PESTAÑA ELEGIDA
+      ==================================================
+          Series y películas en rejilla de portadas; capítulos,
+          personajes e hilos en listas con su imagen y su anime.
+          La tarjeta de serie es la de siempre, con la duración
+          añadida cuando la peli la trae. */}
       <section>
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-bold text-white">
-            {activeCategory ? activeCategory.name : 'Todo el catálogo'}
+            {tituloSeccion}
           </h2>
           <span className="text-[11px] text-zinc-500">
-            {visible.length === 1 ? '1 serie' : `${visible.length} series`}
+            {cuentaSeccion}
           </span>
         </div>
 
-        {visible.length === 0 ? (
+        {!hayResultados ? (
           <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
-            <Layers size={24} className="mx-auto text-zinc-700" />
+            <SearchX size={24} className="mx-auto text-zinc-700" />
             <p className="mt-3 text-sm text-zinc-500">
-              Todavía no hay ninguna serie en esta categoría.
+              Nada por aquí con estos filtros.
             </p>
             <p className="mt-1 text-xs text-zinc-600">
-              Se añaden desde el panel de administración.
+              Prueba a quitar algún filtro o a cambiar de pestaña.
             </p>
+            {contarFiltrosActivos(filtros) > 0 && (
+              <button
+                onClick={onLimpiarFiltros}
+                className="mx-auto mt-4 block rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        ) : (mainTab === 'episodes' || mainTab === 'characters' || mainTab === 'threads') ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {mainTab === 'episodes' &&
+              episodiosVisibles.map((ep) => (
+                <button
+                  key={ep.id}
+                  onClick={() => onSelectAnime(ep.animeId)}
+                  className="flex gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 text-left transition-colors hover:border-amber-500/50"
+                >
+                  {toText(ep.thumbnailUrl) ? (
+                    <img
+                      src={toText(ep.thumbnailUrl)}
+                      alt={ep.title}
+                      loading="lazy"
+                      className="h-14 w-20 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-800">
+                      <Clapperboard size={16} className="text-zinc-600" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-bold uppercase text-amber-400">
+                      {nombreAnime(ep.animeId)}
+                    </span>
+                    <h4 className="truncate text-xs font-bold text-zinc-200">
+                      {ep.title}
+                    </h4>
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-400">
+                      {ep.description}
+                    </p>
+                  </div>
+                </button>
+              ))}
+
+            {mainTab === 'characters' &&
+              personajesVisibles.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => onSelectAnime(c.animeId)}
+                  className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 text-left transition-colors hover:border-pink-500/50"
+                >
+                  {toText(c.imageUrl) ? (
+                    <img
+                      src={toText(c.imageUrl)}
+                      alt={c.name}
+                      loading="lazy"
+                      className="h-14 w-14 shrink-0 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-800">
+                      <Users size={16} className="text-zinc-600" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-bold uppercase text-pink-400">
+                      {nombreAnime(c.animeId)}
+                    </span>
+                    <h4 className="truncate text-xs font-bold text-zinc-200">
+                      {c.name}
+                    </h4>
+                    <p className="line-clamp-1 text-[11px] text-zinc-400">
+                      {c.description}
+                    </p>
+                  </div>
+                </button>
+              ))}
+
+            {mainTab === 'threads' &&
+              hilosVisibles.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => onSelectThread?.(t)}
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 text-left transition-colors hover:border-emerald-500/50"
+                >
+                  <span className="text-[10px] font-bold uppercase text-emerald-400">
+                    {t.categoryName}
+                  </span>
+                  <h4 className="truncate text-xs font-bold text-zinc-200">{t.title}</h4>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-400">
+                    {t.body}
+                  </p>
+                  <span className="mt-1.5 flex items-center gap-1 text-[10px] text-zinc-600">
+                    <MessageSquare size={10} />
+                    {t.commentsCount} · @{t.authorName}
+                  </span>
+                </button>
+              ))}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
-            {visible.map((anime) => (
+            {animesVisibles.map((anime) => {
+              const peli = esPelicula(anime);
+              const duracion = duracionDe(anime);
+              return (
               <button
                 key={anime.id}
                 onClick={() => onSelectAnime(anime.id)}
@@ -247,6 +499,12 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                       Ver ficha
                     </span>
                   </div>
+
+                  {peli && (
+                    <span className="absolute left-1.5 top-1.5 rounded-md bg-zinc-950/80 px-1.5 py-0.5 text-[10px] font-bold text-rose-300">
+                      Película
+                    </span>
+                  )}
                 </div>
 
                 <h3 className="mt-2 line-clamp-2 text-xs font-bold leading-tight text-zinc-200 group-hover:text-violet-300">
@@ -266,12 +524,16 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                       {anime.year}
                     </span>
                   )}
-                  {anime.episodesCount > 0 && (
+                  {!peli && anime.episodesCount > 0 && (
                     <span>{anime.episodesCount} eps</span>
+                  )}
+                  {peli && duracion && (
+                    <span>{duracion}</span>
                   )}
                 </div>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

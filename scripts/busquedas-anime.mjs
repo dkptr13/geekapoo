@@ -117,6 +117,16 @@ export const BUSQUEDAS = {
   // El nombre exacto de la serie en TVDB (79481, 2006). Hay un especial
   // recortado y versiones de imagen real con nombres parecidos.
   'death-note': 'DEATH NOTE -デスノート-',
+  // El nombre exacto de la serie en TVDB (244061, "STEINS;GATE"). Zero
+  // va aparte en TVDB (339268) y sus miniaturas se ponen a mano,
+  // como Bakuen en KonoSuba.
+  'steins-gate': 'STEINS;GATE',
+  // El nombre exacto de la serie en TVDB (303071, "僕だけがいない街").
+  // La T1 coincide sola; el unico Special no entra.
+  'erased': '僕だけがいない街',
+  // Peli suelta en TVDB (movie 894), sin capitulos: el emparejador no
+  // la encuentra y el capitulo va sin miniatura, como Tenki no Ko.
+  'koe-no-katachi': '聲の形',
 };
 
 /**

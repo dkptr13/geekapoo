@@ -1,0 +1,166 @@
+  reparto util: 21   (de 21 en total)
+  descartados por ser de fondo: 0
+
+  main        Kurisu Makise
+              id: 34470
+              ja: 牧瀬紅莉栖
+              voz: Asami Imai
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b34470-Jw2LXZBL5R8i.png
+              aka: Christina / Assistant / American Virgin
+
+  main        Rintarou Okabe
+              id: 35252
+              ja: 岡部倫太郎
+              voz: Mamoru Miyano
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b35252-DY9TW6pusqeh.png
+              aka: Rintaro / Hououin Kyouma (鳳凰院凶真) / Okarin (オカリン)
+
+  main        Mayuri Shiina
+              id: 35253
+              ja: 椎名まゆり
+              voz: Kana Hanazawa
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b35253-u6QVgLLyHq2W.png
+              aka: Mayushii / Mayu / Lab Member 002
+
+  main        Suzuha Amane
+              id: 35255
+              ja: 阿万音鈴羽
+              voz: Yukari Tamura
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b35255-Ra9Aq5Kn9lYq.png
+              aka: Suzu / Part-Time Warrior / 008
+
+  main        Itaru Hashida
+              id: 35258
+              ja: 橋田至
+              voz: Tomokazu Seki
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b35258-FeTGR4LEUNvt.png
+              aka: Daru / Perverted Gentleman / Super Hakar
+
+  main        Maho Hiyajou
+              id: 83419
+              ja: 比屋定真帆 
+              voz: Sayuri Yahagi
+              en: 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b83419-p2gjgTL37GTU.jpg
+              aka: Hiyajo / Maho-meow / Lab Member 009
+
+  supporting  Luka Urushibara
+              id: 30919
+              ja: 漆原るか
+              voz: Yuu Kobayashi
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b30919-5PjiA4ucfuuJ.png
+              aka: Lukako / Ruka / Rukako
+
+  supporting  Rumiho Akiha
+              id: 35256
+              ja: 秋葉留美穂
+              voz: Haruko Momoi
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b35256-A729dmHEgSYQ.png
+              aka: Rumi / Faris Nyan Nyan / Feyris
+
+  supporting  Moeka Kiryuu
+              id: 35257
+              ja: 桐生萌郁
+              voz: Saori Gotou
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b35257-uepVZyOvuqhi.png
+              aka: Kiryu / Shining Finger / Moe-meow
+
+  supporting  Yuugo Tennouji
+              id: 38558
+              ja: 天王寺裕吾
+              voz: Masaki Terasoma
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b38558-E4By0N5JXskJ.png
+              aka: Tennoji / Mr. Braun
+
+  supporting  Nae Tennouji
+              id: 38559
+              ja: 天王寺綯
+              voz: Ayano Yamamoto
+              en: 9253:TV 11577:MOVIE 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b38559-s2jG8GbHLdI2.png
+              aka: Sister Braun / Sergeant Clean
+
+  supporting  Dr. Nakabachi
+              id: 41897
+              ja: ドクター中鉢
+              voz: Mitsuru Ogata
+              en: 9253:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b41897-qc6fWvsXdBVo.png
+              aka: Hakase / Professor
+
+  supporting  John Titor
+              id: 41913
+              ja: ジョン・タイター
+              voz: Hiroshi Tsuchida
+              en: 9253:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/default.jpg
+
+  supporting  Eisuke Urushibara
+              id: 42945
+              ja: 漆原栄輔
+              voz: Mitsuaki Hoshino
+              en: 9253:TV 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/42945-VOf3QD9mGJIq.jpg
+
+  supporting  Yukitaka Akiha
+              id: 44274
+              ja: 秋葉幸高
+              voz: Taira Kikumoto
+              en: 9253:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/44274-GDkveusoWUqX.jpg
+
+  supporting  Yuki Amane
+              id: 57403
+              ja: 阿万音由季
+              voz: Yukari Tamura
+              en: 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b57403-r7ox34brRVJL.jpg
+
+  supporting  Kagari Shiina
+              id: 126104
+              ja: 椎名かがり
+              voz: Megumi Han
+              en: 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b126104-51UIwJ3ZnbTi.png
+              aka: Kana / Kagari-tan / Kaga-meow
+
+  supporting  Alexis Leskinen
+              id: 126105
+              ja: アレクシス・レスキネン
+              voz: Youji Ueda
+              en: 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b126105-rQd5KLcYgtvi.png
+
+  supporting  Kaede Kurushima
+              id: 126251
+              ja: 来嶋かえで
+              voz: Hina Kino
+              en: 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b126251-DCxqXhRRQIaF.jpg
+              aka: Kaede
+
+  supporting  Judy Reyes
+              id: 126252
+              ja: ジュディ・レイエス
+              voz: Maya Nishimura
+              en: 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b126252-HURAfUyTIzgC.jpg
+
+  supporting  Katsumi Nakase
+              id: 126253
+              ja: 中瀬克美
+              voz: Mariko Honda
+              en: 21127:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b126253-Dh2Mj3jGm8Ho.jpg
+              aka: Fubuki / Fubu-meow
+
+  sin imagen: 0   sin voz: 0

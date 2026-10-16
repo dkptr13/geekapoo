@@ -1,10 +1,27 @@
-import { useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 import type { FC } from 'react';
-import { Tv, Users, Film, MessageSquare, SearchX } from 'lucide-react';
+import { Tv, Users, Film, MessageSquare, SearchX, Clapperboard, Calendar, Star } from 'lucide-react';
 
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories } from '../../data/animeCategories';
-import { anyMatches, encuadre, matchesText as matches, toText } from '../../utils/safeData';
+import { encuadre, toText, toTextList } from '../../utils/safeData';
+import { buscarConRelevancia } from '../../utils/busqueda';
+import {
+  episodioDeAnimeValido,
+  esPelicula,
+  contarFiltrosActivos,
+  ordenarAnimes,
+  ordenarEpisodios,
+  ordenarHilos,
+  ordenarPersonajes,
+  pasaCategoriaHilo,
+  pasaFiltrosAnime,
+  sinDuplicados,
+  type FiltrosAvanzados,
+  type MainTab,
+  type SearchFilter,
+} from '../../utils/wikiFilter';
+import MainTabs from './MainTabs';
 import type { Anime, Character, Episode, Thread } from '../../types';
 
 // ======================================================
@@ -20,12 +37,14 @@ import type { Anime, Character, Episode, Thread } from '../../types';
 // lista mezclada, que es mucho más legible.
 // ======================================================
 
-export type SearchFilter = 'all' | 'anime' | 'episodes' | 'characters' | 'threads';
+export type { SearchFilter } from '../../utils/wikiFilter';
 
 interface CatalogSearchProps {
   query: string;
-  filter: SearchFilter;
-  onFilterChange: (filter: SearchFilter) => void;
+  filter: MainTab;
+  onFilterChange: (filter: MainTab) => void;
+  filtros: FiltrosAvanzados;
+  onLimpiarFiltros: () => void;
   animes: Anime[];
   episodes: Record<string, Episode[]>;
   characters: Record<string, Character[]>;
@@ -38,6 +57,8 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
   query,
   filter,
   onFilterChange,
+  filtros,
+  onLimpiarFiltros,
   animes,
   episodes,
   characters,
@@ -45,79 +66,142 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
   onSelectAnime,
   onSelectThread,
 }) => {
+  // La consulta difiere un render: mientras se escribe, la
+  // lista filtra con el texto anterior en vez de recalcular con
+  // cada tecla. Los datos ya están en memoria, así que no hay
+  // peticiones que espaciar; esto solo mantiene el input fluido.
   const q = query.trim().toLowerCase();
+  const qDiferida = useDeferredValue(q);
 
   // Todo el filtrado junto, para que la cuenta de resultados y las
   // listas que se pintan no puedan contradecirse.
+  //
+  // Orden: coincidencia inteligente primero, filtros avanzados
+  // después. Los capítulos y personajes heredan género, año y
+  // estado del anime padre; la nota mínima va sobre su propia
+  // nota (capítulos) o no aplica (personajes, sin nota). Los
+  // hilos entienden texto y categoría del foro.
+  //
+  // Con ordenación explícita manda ella (y a igual criterio, la
+  // relevancia que ya trae la lista); por defecto, relevancia.
   const results = useMemo(() => {
-    if (!q) {
-      return { animes: [], episodes: [], characters: [], threads: [] };
+    if (!qDiferida) {
+      return { series: [], movies: [], episodes: [], characters: [], threads: [] };
     }
 
+    const animePorId = new Map(animes.map((a) => [a.id, a]));
+    const fSinNota: FiltrosAvanzados = { ...filtros, notaMin: 0 };
+
+    const animesRank = buscarConRelevancia(animes, qDiferida, (a) => ({
+      principal: a.title,
+      originales: [a.japaneseTitle ?? ''],
+      alias: a.alternativeTitles,
+      claves: [a.synopsis, ...toTextList(a.genres), a.studio, ...animeCategories(a)],
+    }))
+      .map((r) => r.ficha)
+      .filter((a) => pasaFiltrosAnime(a, filtros));
+    const series =
+      filtros.orden === 'defecto'
+        ? animesRank.filter((a) => !esPelicula(a))
+        : ordenarAnimes(
+            animesRank.filter((a) => !esPelicula(a)),
+            filtros.orden,
+          );
+    const movies =
+      filtros.orden === 'defecto'
+        ? animesRank.filter((a) => esPelicula(a))
+        : ordenarAnimes(
+            animesRank.filter((a) => esPelicula(a)),
+            filtros.orden,
+          );
+
+    const rankEpisodios = buscarConRelevancia(
+      sinDuplicados(Object.values(episodes).flat()),
+      qDiferida,
+      (ep) => ({
+        principal: ep.title,
+        originales: [ep.romajiTitle ?? ''],
+        claves: [ep.description],
+      }),
+    )
+      .map((r) => r.ficha)
+      .filter(
+        (ep) =>
+          episodioDeAnimeValido(animePorId, ep.animeId, fSinNota) &&
+          (filtros.notaMin <= 0 || (ep.rating || 0) >= filtros.notaMin),
+      );
+    const episodesLista =
+      filtros.orden === 'defecto' ? rankEpisodios : ordenarEpisodios(rankEpisodios, filtros.orden);
+
+    const rankPersonajes = buscarConRelevancia(
+      sinDuplicados(Object.values(characters).flat()),
+      qDiferida,
+      (c) => ({
+        principal: c.name,
+        originales: [c.japaneseName ?? ''],
+        alias: c.aliases,
+        claves: [c.description],
+      }),
+    )
+      .map((r) => r.ficha)
+      .filter((c) => episodioDeAnimeValido(animePorId, c.animeId, fSinNota));
+    const charactersLista =
+      filtros.orden === 'defecto'
+        ? rankPersonajes
+        : ordenarPersonajes(rankPersonajes, filtros.orden);
+
+    const rankHilos = buscarConRelevancia(threads, qDiferida, (t) => ({
+      principal: t.title,
+      claves: [t.body, ...(t.tags ?? []), t.categoryName],
+    })).map((r) => r.ficha);
+    const threadsLista = rankHilos.filter((t) => pasaCategoriaHilo(t, filtros));
+    const threadsOrdenados =
+      filtros.orden === 'defecto' ? threadsLista : ordenarHilos(threadsLista, filtros.orden);
+
     return {
-      animes: animes.filter(
-        (a) =>
-          matches(a.title, q) ||
-          matches(a.synopsis, q) ||
-          anyMatches(a.genres, q) ||
-          // Se mira la lista de categorías completa, no solo la
-          // principal: si se busca "Seinen" tiene que salir una
-          // serie que lo tenga como segunda categoría.
-          animeCategories(a).some((c) => matches(c, q)) ||
-          matches(a.studio, q),
-      ),
-      episodes: Object.values(episodes)
-        .flat()
-        .filter((ep) => matches(ep.title, q) || matches(ep.description, q)),
-      characters: Object.values(characters)
-        .flat()
-        .filter((c) => matches(c.name, q) || matches(c.description, q)),
-      threads: threads.filter(
-        (t) => matches(t.title, q) || matches(t.body, q) || anyMatches(t.tags, q),
-      ),
+      series,
+      movies,
+      episodes: episodesLista,
+      characters: charactersLista,
+      threads: threadsOrdenados,
     };
-  }, [q, animes, episodes, characters, threads]);
+  }, [qDiferida, animes, episodes, characters, threads, filtros]);
 
   const total =
-    results.animes.length +
+    results.series.length +
+    results.movies.length +
     results.episodes.length +
     results.characters.length +
     results.threads.length;
 
   if (!q) return null;
 
-  const show = (section: SearchFilter) => filter === 'all' || filter === section;
+  const show = (section: MainTab) => filter === 'all' || filter === section;
 
-  const FILTERS: { id: SearchFilter; label: string; count: number }[] = [
-    { id: 'all', label: 'Todo', count: total },
-    { id: 'anime', label: 'Series', count: results.animes.length },
-    { id: 'episodes', label: 'Episodios', count: results.episodes.length },
-    { id: 'characters', label: 'Personajes', count: results.characters.length },
-    { id: 'threads', label: 'Hilos', count: results.threads.length },
-  ];
+  // Duración de una peli, si su capítulo único la trae. Los
+  // capítulos cargados por script no tienen duración, así que la
+  // mayoría no enseñará nada: no se inventa.
+  const duracionDe = (anime: Anime): string => {
+    if (!esPelicula(anime)) return '';
+    const unico = episodes[anime.id]?.[0];
+    return toText(unico?.duration).trim();
+  };
 
   return (
     <div className="space-y-6">
-      {/* Filtros por tipo */}
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => {
-          const isActive = filter === f.id;
-          return (
-            <button
-              key={f.id}
-              onClick={() => onFilterChange(f.id)}
-              className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-                isActive
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white'
-              }`}
-            >
-              {f.label}
-              <span className="ml-1.5 opacity-60">{f.count}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Pestañas principales, con el recuento de esta búsqueda */}
+      <MainTabs
+        active={filter}
+        counts={{
+          all: total,
+          series: results.series.length,
+          movies: results.movies.length,
+          episodes: results.episodes.length,
+          characters: results.characters.length,
+          threads: results.threads.length,
+        }}
+        onChange={onFilterChange}
+      />
 
       {total === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
@@ -128,19 +212,27 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
           <p className="mt-1 text-xs text-zinc-600">
             Prueba con el nombre de una serie, un personaje o un hilo del foro.
           </p>
+          {contarFiltrosActivos(filtros) > 0 && (
+            <button
+              onClick={onLimpiarFiltros}
+              className="mx-auto mt-4 block rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
+            >
+              Limpiar filtros
+            </button>
+          )}
         </div>
       ) : (
         <>
           {/* SERIES */}
-          {show('anime') && results.animes.length > 0 && (
+          {show('series') && results.series.length > 0 && (
             <section className="space-y-3">
               <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-violet-400">
                 <Tv size={14} />
-                Series ({results.animes.length})
+                Series ({results.series.length})
               </h3>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {results.animes.map((a) => (
+                {results.series.map((a) => (
                   <button
                     key={a.id}
                     onClick={() => onSelectAnime(a.id)}
@@ -172,6 +264,69 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
                     </div>
                   </button>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* PELÍCULAS */}
+          {show('movies') && results.movies.length > 0 && (
+            <section className="space-y-3">
+              <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-400">
+                <Clapperboard size={14} />
+                Películas ({results.movies.length})
+              </h3>
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {results.movies.map((a) => {
+                  const duracion = duracionDe(a);
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => onSelectAnime(a.id)}
+                      className="group flex gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 text-left transition-colors hover:border-rose-500/50 hover:bg-zinc-900"
+                    >
+                      <QuickImageEditor
+                        section="animes"
+                        itemId={a.id}
+                        field="coverUrl"
+                        label={`Portada de ${a.title}`}
+                        src={a.coverUrl}
+                        alt={a.title}
+                        containerClassName="shrink-0"
+                        className="w-14 h-20 rounded-lg object-cover"
+                        imgStyle={encuadre(a.coverFocus)}
+                        badgeClassName="-top-1 -right-1"
+                      />
+
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-bold uppercase text-rose-400">
+                          Película
+                        </span>
+                        <h4 className="truncate text-xs font-bold text-white group-hover:text-rose-300">
+                          {a.title}
+                        </h4>
+                        <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-400">
+                          {a.synopsis}
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-zinc-500">
+                          {a.year > 0 && (
+                            <span className="flex items-center gap-0.5">
+                              <Calendar size={9} />
+                              {a.year}
+                            </span>
+                          )}
+                          {a.rating > 0 && (
+                            <span className="flex items-center gap-0.5 font-semibold text-amber-400">
+                              <Star size={9} className="fill-amber-400" />
+                              {a.rating}
+                            </span>
+                          )}
+                          {duracion && <span>{duracion}</span>}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </section>
           )}

@@ -1,0 +1,127 @@
+  reparto util: 17   (de 18 en total)
+  descartados por ser de fondo: 1
+
+  main        Shouko Nishimiya
+              id: 80243
+              ja: 西宮硝子
+              voz: Saori Hayami
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b80243-RzxE51iUU5eq.png
+              aka: Shoko / Shou / Sho
+
+  main        Shouya Ishida
+              id: 80491
+              ja: 石田将也
+              voz: Miyu Irino
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b80491-NK6pxb6oH61P.png
+              aka: Shou / Yashou / Sho-Chan
+
+  supporting  Yuzuru Nishimiya
+              id: 89335
+              ja: 西宮結絃
+              voz: Aoi Yuuki
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89335-3fy5a7Qa9h9J.jpg
+
+  supporting  Naoka Ueno
+              id: 124026
+              ja: 植野直花
+              voz: Yuuki Kaneko
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124026-KcQmX7heg7im.jpg
+
+  supporting  Miyako Ishida
+              id: 124030
+              ja: 石田美也子
+              voz: Satsuki Yukino
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124030-YoZ0Drg5cHXX.jpg
+
+  supporting  Maria Ishida
+              id: 124031
+              ja: 石田マリア
+              voz: Erena Kamata
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124031-ErVGKjxFH56V.jpg
+
+  supporting  Miki Kawai
+              id: 124033
+              ja: 川井みき
+              voz: Megumi Han
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124033-UThOFdQGZjq7.jpg
+              aka: Kawaiichi
+
+  supporting  Satoshi Mashiba
+              id: 124034
+              ja: 真柴智
+              voz: Toshiyuki Toyonaga
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124034-94AX4zhTaQZB.jpg
+
+  supporting  Tomohiro Nagatsuka
+              id: 124035
+              ja: 永束友宏
+              voz: Kenshou Ono
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124035-Il86uF1hboRA.jpg
+
+  supporting  Ito Nishimiya
+              id: 124036
+              ja: 西宮いと
+              voz: Ikuko Tani
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124036-smBYAumpnds2.jpg
+
+  supporting  Yaeko Nishimiya
+              id: 124037
+              ja: 西宮八重子
+              voz: Akiko Hiramatsu
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124037-3KFDLRIT66Bn.jpg
+
+  supporting  Miyoko Sahara
+              id: 124038
+              ja: 佐原みよこ
+              voz: Yui Ishikawa
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/124038-tmsS0TUxwx87.jpg
+
+  supporting  Kazuki Shimada
+              id: 124039
+              ja: 島田一旗
+              voz: Sachiko Kojima
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b124039-gbt1fKyZRdBp.jpg
+
+  supporting  Takeuchi
+              id: 135851
+              ja: 竹内
+              voz: Fuminori Komatsu
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b135851-7gmFc8ZB594q.jpg
+
+  supporting  Pedro
+              id: 135852
+              ja: ペドロ
+              voz: Ryuunosuke Watanuki
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b135852-mW3w0bGh7DFI.jpg
+
+  supporting  Kita
+              id: 135853
+              ja: 喜多
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b135853-86mTC0Tva8r3.png
+
+  supporting  Keisuke Hirose
+              id: 135854
+              ja: 広瀬啓祐
+              voz: Hana Takeda
+              en: 20954:MOVIE
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b135854-UpPOO4l7YdUG.png
+
+  sin imagen: 0   sin voz: 1
+
+  los descartados (1): Ishida no Ane

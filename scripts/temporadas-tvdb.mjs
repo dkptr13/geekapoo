@@ -218,6 +218,11 @@ export const TEMPORADA_TVDB = {
   // El OVA de Charlotte va como T2 y TVDB lo guarda en Specials
   // (S0E2). La serie coincide sola.
   'charlotte': { 2: 0 },
+  // La peli de Steins;Gate va como T2 y TVDB la guarda en Specials
+  // (S0E2, mismo titulo japones). La T1 coincide sola. Zero va
+  // aparte en TVDB (339268) y sus miniaturas se ponen a mano,
+  // como Bakuen en KonoSuba (420657).
+  'steins-gate': { 2: 0 },
 };
 
 /**

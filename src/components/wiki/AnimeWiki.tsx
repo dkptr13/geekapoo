@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Star,
   Tag,
@@ -30,7 +30,18 @@ import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories } from '../../data/animeCategories';
 import CatalogBrowser from './CatalogBrowser';
-import CatalogSearch, { type SearchFilter } from './CatalogSearch';
+import CatalogSearch from './CatalogSearch';
+import MainTabs from './MainTabs';
+import { AdvancedFilters, ChipsFiltros } from './AdvancedFilters';
+import {
+  FILTROS_VACIOS,
+  esPelicula,
+  generosDisponibles,
+  rangoAnios,
+  sanearFiltros,
+  type FiltrosAvanzados,
+  type MainTab,
+} from '../../utils/wikiFilter';
 import { encuadre, listHas, toTextList } from '../../utils/safeData';
 import { fichaDe, personajeEnTemporada } from '../../utils/seasonData';
 import { TAG_DESTACADOS } from '../../utils/tags';
@@ -221,7 +232,43 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // El texto va en la URL (?q=) como el resto del estado, así que
   // una búsqueda se puede compartir y recargar no la borra.
   const [searchQuery, setSearchQuery] = useQueryState('q', '');
-  const [searchFilter, setSearchFilter] = useState<SearchFilter>('all');
+  // Pestaña principal: qué tipo de contenido se consulta. En
+  // búsqueda filtra las secciones de resultados; en catálogo,
+  // cambia la vista (rejilla de animes o listas).
+  const [searchFilter, setSearchFilter] = useState<MainTab>('all');
+
+  // Filtros avanzados: refinan la pestaña activa y se combinan
+  // con el buscador. No van a la URL para no ensuciarla.
+  const [filtros, setFiltros] = useState<FiltrosAvanzados>(FILTROS_VACIOS);
+
+  // Cambiar de pestaña conserva solo los filtros compatibles
+  // (p. ej. 'En emisión' no viaja a Películas). Ver
+  // `sanearFiltros` para el reparto exacto.
+  const cambiarPestana = useCallback((tab: MainTab) => {
+    setSearchFilter(tab);
+    setFiltros((f) => sanearFiltros(f, tab));
+  }, []);
+
+  const limpiarFiltros = useCallback(() => setFiltros(FILTROS_VACIOS), []);
+
+  // Opciones del panel, sacadas de los datos reales: si mañana
+  // entra un género nuevo, sale solo en el filtro.
+  const generosWiki = useMemo(() => generosDisponibles(animes), [animes]);
+  const rangoWiki = useMemo(() => rangoAnios(animes), [animes]);
+
+  // Contadores de las pestañas en modo catálogo: totales reales
+  // por tipo. En búsqueda los pone cada sección de resultados.
+  const conteosPestanas = useMemo(() => {
+    const pelis = animes.filter(esPelicula).length;
+    return {
+      all: animes.length,
+      series: animes.length - pelis,
+      movies: pelis,
+      episodes: Object.values(episodes).flat().length,
+      characters: Object.values(characters).flat().length,
+      threads: threads.length,
+    };
+  }, [animes, episodes, characters, threads]);
 
   // Ref al input, para poder ponerle el cursor encima desde fuera.
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -384,6 +431,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
       La migaja solo aparece en la ficha: en el catálogo no hay
       ninguna serie abierta y ponerla sería mentir. */}
       <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">
+        {/* Fila de cabecera: título → botón de filtros → buscador.
+            En móvil el título va arriba y filtros + buscador debajo,
+            para que nada se solape. */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-2">
             {currentAnime ? (
@@ -415,38 +465,61 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             )}
           </div>
 
-          {/* El buscador */}
-          <div className="relative w-full sm:w-80">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
-            />
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Una sola escritura para el texto y para cerrar la
-                // ficha. Con dos llamadas seguidas, la segunda
-                // borraba lo que la primera acababa de escribir y el
-                // buscador se quedaba vacío.
-                setWikiUrl({ q: value || null, anime: value ? null : undefined });
-              }}
-              placeholder="Buscar series, capítulos, personajes..."
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-9 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                aria-label="Limpiar búsqueda"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
-              >
-                <X size={14} />
-              </button>
+          <div className="flex items-center gap-2">
+            {/* Solo en catálogo: en la ficha no hay nada que filtrar. */}
+            {isBrowsing && (
+              <AdvancedFilters
+                tab={searchFilter}
+                filtros={filtros}
+                onChange={setFiltros}
+                onClear={limpiarFiltros}
+                generos={generosWiki}
+                rangoAnios={rangoWiki}
+              />
             )}
+
+            {/* El buscador */}
+            <div className="relative flex-1 sm:w-80 sm:flex-none">
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+              />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Una sola escritura para el texto y para cerrar la
+                  // ficha. Con dos llamadas seguidas, la segunda
+                  // borraba lo que la primera acababa de escribir y el
+                  // buscador se quedaba vacío.
+                  setWikiUrl({ q: value || null, anime: value ? null : undefined });
+                }}
+                placeholder="Buscar series, capítulos, personajes..."
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-9 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Limpiar búsqueda"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Pestañas principales + filtros activos. Solo en catálogo:
+            en la ficha se vería ruido encima de la serie abierta. */}
+        {isBrowsing && (
+          <div className="space-y-2 border-t border-zinc-800 pt-3">
+            <MainTabs active={searchFilter} counts={conteosPestanas} onChange={cambiarPestana} />
+            <ChipsFiltros filtros={filtros} onChange={setFiltros} />
+          </div>
+        )}
       </div>
 
       {/* ====================================================
@@ -456,7 +529,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
         <CatalogSearch
           query={searchQuery}
           filter={searchFilter}
-          onFilterChange={setSearchFilter}
+          onFilterChange={cambiarPestana}
+          filtros={filtros}
+          onLimpiarFiltros={limpiarFiltros}
           animes={animes}
           episodes={episodes}
           characters={characters}
@@ -474,9 +549,16 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
       {!searchQuery.trim() && isBrowsing && (
         <CatalogBrowser
           animes={animes}
+          episodes={episodes}
+          characters={characters}
+          threads={threads}
           selectedCategory={selectedCategory}
+          mainTab={searchFilter}
+          filtros={filtros}
           onSelectCategory={selectCategory}
           onSelectAnime={openAnime}
+          onSelectThread={onSelectThread}
+          onLimpiarFiltros={limpiarFiltros}
         />
       )}
 

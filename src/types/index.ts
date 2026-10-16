@@ -601,6 +601,13 @@ export interface Character {
   seasonId?: string;
   name: string;
   japaneseName?: string;
+  /**
+   * Nombres alternativos (apodos, romanizaciones) de AniList.
+   *
+   * OPCIONAL como en Anime: sin ellos se busca por el nombre y
+   * el japonés. Los rellena `scripts/rellenar-alias.mjs`.
+   */
+  aliases?: string[];
   slug: string;
   imageUrl: string;
   /**
@@ -689,6 +696,16 @@ export interface Anime {
    * a elegir una sola obligaba a que la dejara fuera de la otra.
    */
   category: string;
+  /**
+   * Títulos alternativos: inglés, romanizado y sinónimos de
+   * AniList ("Attack on Titan", "Shingeki no Kyojin"...).
+   *
+   * OPCIONAL a propósito: los documentos antiguos no lo tienen
+   * y la búsqueda los sigue encontrando por el título
+   * principal. Los rellena `scripts/rellenar-alias.mjs` desde
+   * AniList, sin inventar ninguno.
+   */
+  alternativeTitles?: string[];
   /**
    * Todas las categorías de la serie. Es opcional a propósito: las
    * que ya estaban en Firestore solo tienen "category".

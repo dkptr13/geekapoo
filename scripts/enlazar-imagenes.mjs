@@ -150,6 +150,9 @@ const ANIMES = [
   { id: 'puella-magi-madoka-magica', buscar: 'Mahou Shoujo Madoka Magica' },
   { id: 'charlotte', buscar: 'Charlotte' },
   { id: 'death-note', buscar: 'Death Note' },
+  { id: 'steins-gate', buscar: 'Steins;Gate' },
+  { id: 'erased', buscar: 'Boku dake ga Inai Machi' },
+  { id: 'koe-no-katachi', buscar: 'Koe no Katachi' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 // ── Estado ─────────────────────────────────────────────────────────

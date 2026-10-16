@@ -1,0 +1,130 @@
+  reparto util: 17   (de 20 en total)
+  descartados por ser de fondo: 3
+
+  main        Satoru Fujinuma
+              id: 89275
+              ja: 藤沼悟
+              voz: Shinnosuke Mitsushima
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89275-xCGzh6jAGe2v.png
+
+  main        Kayo Hinazuki
+              id: 89276
+              ja: 雛月加代
+              voz: Aoi Yuuki
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/89276-LjlYvXfOnjHB.jpg
+
+  supporting  Sachiko Fujinuma
+              id: 89326
+              ja: 藤沼佐知子
+              voz: Minami Takayama
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/89326-zNVEqTuDt7kL.jpg
+
+  supporting  Airi Katagiri
+              id: 89355
+              ja: 片桐愛梨
+              voz: Chinatsu Akasaki
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89355-w1xEKGHisGWE.jpg
+
+  supporting  Kazu
+              id: 89356
+              ja: カズ
+              voz: Yukitoshi Kikuchi
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89356-O2NYct6HMlYj.png
+
+  supporting  Kenya Kobayashi
+              id: 89357
+              ja: 小林賢也
+              voz: You Taichi
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89357-E9erSMef5EJC.png
+              aka: ケンヤ
+
+  supporting  Osamu
+              id: 89358
+              ja: 修
+              voz: Ayaka Nanase
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89358-FA7IQL7z0MvL.jpg
+              aka: オサム
+
+  supporting  Jun Shiratori
+              id: 89359
+              ja: 白鳥潤
+              voz: Daichuu Mizushima
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89359-xsqTQviyS5Ii.png
+              aka: Yuuki
+
+  supporting  Hiromi Sugita
+              id: 89360
+              ja: 杉田広美
+              voz: Atsushi Tamaru
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89360-C9pecRWkJExF.png
+              aka: ヒロミ
+
+  supporting  Gaku Yashiro
+              id: 89365
+              ja: 八代学
+              voz: Mitsuru Miyamoto
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/89365-Esm33rYZ3x0s.jpg
+
+  supporting  Misato
+              id: 89366
+              ja: 美里
+              voz: Hina Kino
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b89366-5KwJW3NNmmti.jpg
+
+  supporting  Akemi  Hinazuki
+              id: 129807
+              ja: 雛月明美
+              voz: Akemi Okamura
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b129807-4AM8Oe3szyxL.jpg
+              aka: 雛月母
+
+  supporting  Takahashi
+              id: 382880
+              ja: 高橋
+              voz: Eiji Takeuchi
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b382880-lBvb1PKOoAiI.png
+
+  supporting  Kumi
+              id: 382885
+              ja: 久美
+              voz: Reika Uyama
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b382885-Wvl27kuVoKnf.png
+
+  supporting  Sawada
+              id: 382886
+              ja: 澤田
+              voz: Tooru Ookawa
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b382886-QXMx72vtxGmZ.png
+
+  supporting  Hamada
+              id: 382887
+              ja: 浜田
+              voz: Asami Yoshida
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b382887-zeZRz20M1eRF.png
+
+  supporting  Aya Nakanishi
+              id: 382888
+              ja: 中西彩
+              voz: Sayaka Kaneko
+              en: 21234:TV
+              img: https://s4.anilist.co/file/anilistcdn/character/large/b382888-wWk2cja1E8Hc.png
+
+  sin imagen: 0   sin voz: 0
+
+  los descartados (3): Shiratori no Chichi, Hinazuki Sobo, Sonohokasei
