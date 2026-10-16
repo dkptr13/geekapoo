@@ -98,7 +98,7 @@ export const PollComposer: FC<PollComposerProps> = ({ value, onChange, error, ay
               onChange={(e) => cambiarOpcion(i, e.target.value)}
               placeholder={`Opción ${i + 1}`}
               maxLength={LIMITS.option}
-              className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+              className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
             />
             <button
               type="button"

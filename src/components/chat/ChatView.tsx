@@ -217,16 +217,30 @@ export const ChatView: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // El campo crece con el texto hasta un tope: un mensaje largo
+  // no debería obligar a escribir en una sola línea. Al vaciar
+  // o cambiar de conversación vuelve a su altura.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+  }, [inputText, activeRoomId]);
+
   // ── Emojis y GIFs en el chat ─────────────────────────
   //
-  // El campo de texto es controlado, así que para insertar un
-  // emoji EN EL CURSOR (y no al final) hace falta el `ref`: se
-  // lee `selectionStart`, se escribe el texto nuevo y se vuelve a
-  // poner el cursor donde estaba. Sin eso, escribir "hola" y
-  // elegir 😄 pondría el emoji detrás de la última letra.
-  const inputRef = useRef<HTMLInputElement>(null);
+  // El campo de texto es un área que crece sola, así que para
+  // insertar un emoji EN EL CURSOR (y no al final) hace falta el
+  // `ref`: se lee `selectionStart`, se escribe el texto nuevo y
+  // se vuelve a poner el cursor donde estaba. Sin eso, escribir
+  // "hola" y elegir 😄 pondría el emoji detrás de la última letra.
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [chatGif, setChatGif] = useState<GifAttachment | null>(null);
+  // Herramientas del compositor en móvil: en pantallas estrechas
+  // los seis botones no caben junto al campo, así que van tras un
+  // "+". En escritorio se ven todos como siempre.
+  const [showHerramientas, setShowHerramientas] = useState(false);
 
   // Los adjuntos del mensaje que se está escribiendo. Se guardan como
   // estado y no se mandan al pulsar el botón: primero se elige, luego
@@ -472,19 +486,24 @@ export const ChatView: React.FC = () => {
           `verificación denegada: ${e instanceof Error ? e.message : String(e)}`,
         );
       }
-      // Firestore no garantiza el orden de las claves del mapa
-      // al leerlo: se comparan ordenadas, no tal cual llegan.
-      const canonico = (v: unknown): unknown =>
-        Array.isArray(v)
-          ? v.map(canonico)
-          : v && typeof v === 'object'
-            ? Object.fromEntries(
-                Object.keys(v as Record<string, unknown>)
-                  .sort()
-                  .map((k) => [k, canonico((v as Record<string, unknown>)[k])]),
-              )
-            : v;
-      if (JSON.stringify(canonico(enServidor)) !== JSON.stringify(canonico(limpio))) {
+      // Basta con que lo enviado esté tal cual en el servidor:
+      // al leer, `sujetar` expande valores por defecto que lo
+      // enviado no trae, así que la igualdad total nunca cuadra.
+      const coincide = (esperado: unknown, real: unknown): boolean => {
+        if (esperado === null || typeof esperado !== 'object') return esperado === real;
+        if (Array.isArray(esperado)) {
+          return (
+            Array.isArray(real) &&
+            esperado.length === (real as unknown[]).length &&
+            esperado.every((v, i) => coincide(v, (real as unknown[])[i]))
+          );
+        }
+        if (real === null || typeof real !== 'object' || Array.isArray(real)) return false;
+        const e = esperado as Record<string, unknown>;
+        const r = real as Record<string, unknown>;
+        return Object.keys(e).every((k) => k in r && coincide(e[k], r[k]));
+      };
+      if (!coincide(limpio, enServidor)) {
         throw new Error('el servidor no devolvió lo guardado');
       }
       deleteReplacedImage(fondoPrevioRef.current ?? '', limpio.fondo?.url ?? '');
@@ -1044,7 +1063,11 @@ export const ChatView: React.FC = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
+    confirmarEnvio();
+  };
 
+  /** Enviar con el botón o con Enter (sin Mayús). */
+  const confirmarEnvio = () => {
     // En modo edición, enviar GUARDA lo editado en vez de mandar un
     // mensaje nuevo. Son dos caminos con el mismo botón.
     if (editando) {
@@ -1548,19 +1571,19 @@ export const ChatView: React.FC = () => {
           historial (un mensaje visible). La lista lo sigue
           enseñando, y en escritorio sale siempre. */}
       <div className={`${activeRoomId && tabChats !== 'descubrir' ? 'hidden lg:flex' : 'flex'} flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 sm:p-4`}>
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
             <MessageCircle size={20} />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <span>Mensajería Privada &amp; Clubes</span>
-              <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+              <span className="truncate">Mensajería Privada &amp; Clubes</span>
+              <span className="flex-shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                 Cifrado
               </span>
             </h2>
-            <p className="text-xs text-zinc-400">
-              Tu ID único para recibir mensajes: <strong className="text-violet-300 font-mono">{currentUser.chatId}</strong>
+            <p className="text-xs text-zinc-400 break-words">
+              Tu ID único para recibir mensajes: <strong className="text-violet-300 font-mono break-all">{currentUser.chatId}</strong>
               {misClubes.length > 0 && (
                 <>
                   {' · '}
@@ -1580,13 +1603,18 @@ export const ChatView: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* En pantallas estrechas los botones pasan abajo y se
+            quedan en iconos: el texto volvería a partir la fila
+            a 320px. El nombre va en aria-label. */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setShowAddContact(true)}
+            aria-label="Nuevo contacto por ID"
+            title="Nuevo contacto por ID"
             className="flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:border-violet-500 hover:text-white transition-all shadow-sm"
           >
             <UserPlus size={14} className="text-violet-400" />
-            <span>Nuevo Contacto por ID</span>
+            <span className="hidden min-[420px]:inline">Nuevo Contacto por ID</span>
           </button>
 
           <button
@@ -1594,10 +1622,12 @@ export const ChatView: React.FC = () => {
               setTabChats('descubrir');
               setActiveRoomId(null);
             }}
+            aria-label="Descubrir clubes"
+            title="Descubrir clubes"
             className="flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:border-violet-500 hover:text-white transition-all shadow-sm"
           >
             <Compass size={14} className="text-violet-400" />
-            <span>Descubrir clubes</span>
+            <span className="hidden min-[420px]:inline">Descubrir clubes</span>
           </button>
 
           <button
@@ -1608,10 +1638,12 @@ export const ChatView: React.FC = () => {
               setActionFeedback(null);
               setShowCreateGroup(true);
             }}
+            aria-label="Crear grupo"
+            title="Crear grupo"
             className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-500 transition-all shadow-md shadow-violet-600/20"
           >
             <Users size={14} />
-            <span>Crear Grupo</span>
+            <span className="hidden min-[420px]:inline">Crear Grupo</span>
           </button>
         </div>
       </div>
@@ -2147,11 +2179,24 @@ export const ChatView: React.FC = () => {
                   ? otherParty!.avatarUrl || room.avatar
                   : room.avatar;
 
+                // La fila NO es un <button> aunque lo parezca: dentro
+                // lleva el botón de acciones y un botón dentro de
+                // otro botón no funciona (y React lo avisa en
+                // consola). Es un div con rol de botón y teclado.
                 return (
-                  <button
+                  <div
                     key={room.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Abrir la conversación con ${displayName}`}
                     onClick={() => setActiveRoomId(room.id)}
-                    className={`w-full flex items-center gap-3 p-3.5 text-left transition-colors ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setActiveRoomId(room.id);
+                      }
+                    }}
+                    className={`w-full flex cursor-pointer items-center gap-3 p-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-violet-400 ${
                       isActive
                         ? 'bg-violet-950/40 border-l-4 border-violet-500'
                         : 'hover:bg-zinc-900/60'
@@ -2295,7 +2340,7 @@ export const ChatView: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  </button>
+                  </div>
                 );
               })
             )}
@@ -2890,7 +2935,7 @@ export const ChatView: React.FC = () => {
                               <p className="text-[10px] font-bold text-violet-300">
                                 {msg.replyTo.senderName}
                               </p>
-                              <p className="line-clamp-2 text-[11px] text-zinc-400">
+                              <p className="line-clamp-2 break-words text-[11px] text-zinc-400">
                                 {citaVisible(msg.replyTo.snippet, citado?.deletedForEveryone)}
                               </p>
                             </div>
@@ -2910,7 +2955,7 @@ export const ChatView: React.FC = () => {
                             // escritorio. Colores, radio, letra y
                             // relleno salen de la apariencia del chat;
                             // por defecto, como siempre.
-                            className={`w-fit max-w-full ${aparienciaVista.letraClase} leading-relaxed shadow-md ${aparienciaVista.relleno} ${
+                            className={`w-fit max-w-full break-words ${aparienciaVista.letraClase} leading-relaxed shadow-md ${aparienciaVista.relleno} ${
                               isMe ? 'ml-auto' : ''
                             }`}
                             style={{
@@ -2926,7 +2971,7 @@ export const ChatView: React.FC = () => {
                           >
                             {/* El texto solo se pinta si hay texto: un
                                 mensaje puede ser solo un GIF. */}
-                            {msg.body && <p>{msg.body}</p>}
+                            {msg.body && <p className="break-words">{msg.body}</p>}
                           </div>
 
                           {/* GIF del mensaje. Se pinta FUERA de la
@@ -3147,7 +3192,7 @@ export const ChatView: React.FC = () => {
                     aria-modal="true"
                     aria-label="Eliminar mensaje"
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full max-w-xs rounded-3xl border border-zinc-700 bg-zinc-900 p-5 shadow-2xl"
+                    className="max-h-[90dvh] w-full max-w-xs overflow-y-auto rounded-3xl border border-zinc-700 bg-zinc-900 p-5 shadow-2xl"
                   >
                     <h3 className="text-center text-sm font-black text-white">
                       Eliminar mensaje
@@ -3374,10 +3419,12 @@ export const ChatView: React.FC = () => {
                 </div>
               )}
 
-              {/* Message Input Bottom Bar */}
+              {/* Message Input Bottom Bar. Con `safe-area` para que
+                  la barra del sistema no tape el campo en móviles
+                  con gestos. */}
               <form
                 onSubmit={handleSendMessage}
-                className="relative border-t border-zinc-800 bg-zinc-950 p-3"
+                className="relative border-t border-zinc-800 bg-zinc-950 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
               >
                 {/* Citando: a quién y qué, con salida. Al enviar, la
                     cita viaja dentro del mensaje nuevo. */}
@@ -3552,22 +3599,35 @@ export const ChatView: React.FC = () => {
         {/* Con "flex-wrap" los dos botones pasan a una columna en
             pantallas estrechas. Sin esto, a 390px se quedaban sin
             ancho y "Crear Grupo" se partía en dos líneas, con la
-            caja descolocada respecto a la de al lado. */}
+            caja descolocada respecto a la de al lado. En móvil las
+            herramientas van tras el "+" para que el campo y el
+            envío respiren; en escritorio salen todas en fila. */}
         <div className="flex flex-wrap items-center gap-2">
-                  <input
+                  <textarea
                     ref={inputRef}
-                    type="text"
+                    rows={1}
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        confirmarEnvio();
+                      }
+                    }}
                     placeholder={
                       editando ? 'Editar mensaje...' : `Escribir a ${activeRoomName}...`
                     }
                     // 16px en móvil: por debajo, iOS acerca la vista
                     // al enfocar y hay que alejar a mano. En
                     // escritorio se queda como estaba.
-                    className="flex-1 min-w-[8rem] rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-base sm:text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                    className="order-1 min-w-0 flex-1 resize-none overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-base sm:text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
                   />
 
+                  {/* Herramientas: fila completa tras el "+" en
+                      móvil, en línea a partir de sm. */}
+                  <div
+                    className={`${showHerramientas ? 'flex' : 'hidden'} order-4 w-full flex-wrap items-center gap-2 sm:order-2 sm:flex sm:w-auto`}
+                  >
                   {/* Emojis */}
                   <button
                     type="button"
@@ -3654,6 +3714,25 @@ export const ChatView: React.FC = () => {
                   >
                     <Trophy size={17} />
                   </button>
+                  </div>
+
+                  {/* El "+" agrupa las herramientas en móvil, donde
+                      no caben junto al campo. En escritorio no sale:
+                      ahí ya están todas a la vista. */}
+                  <button
+                    type="button"
+                    onClick={() => setShowHerramientas((v) => !v)}
+                    aria-expanded={showHerramientas}
+                    aria-label={showHerramientas ? 'Ocultar herramientas' : 'Más herramientas'}
+                    title="Más herramientas"
+                    className={`order-2 flex h-11 w-11 items-center justify-center rounded-2xl border transition-all sm:hidden ${
+                      showHerramientas
+                        ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
+                        : 'border-zinc-800 bg-zinc-900 text-zinc-400'
+                    }`}
+                  >
+                    {showHerramientas ? <X size={17} /> : <Plus size={17} />}
+                  </button>
 
                   <button
                     type="submit"
@@ -3672,7 +3751,7 @@ export const ChatView: React.FC = () => {
                           !tierAdjunta)
                     }
                     aria-label={editando ? 'Guardar edición' : 'Enviar mensaje'}
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600 text-white hover:bg-violet-500 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-md shadow-violet-600/30"
+                    className="order-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600 text-white hover:bg-violet-500 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-md shadow-violet-600/30"
                   >
                     {editando ? <Check size={16} /> : <Send size={16} />}
                   </button>
@@ -3961,7 +4040,7 @@ export const ChatView: React.FC = () => {
       {/* MODAL: NUEVO CONTACTO POR ID */}
       {showAddContact && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-md rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+          <div className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
             <button
               onClick={() => {
                 setShowAddContact(false);
@@ -4061,7 +4140,7 @@ export const ChatView: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
           <form
             onSubmit={handleCreateGroupSubmit}
-            className="relative w-full max-w-md rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl space-y-4"
+            className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl space-y-4"
           >
             <button
               type="button"
@@ -4138,7 +4217,7 @@ export const ChatView: React.FC = () => {
       {/* MODAL: UNIRSE A UN GRUPO */}
       {showGroups && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+          <div className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
             <button
               type="button"
               onClick={() => setShowGroups(false)}
