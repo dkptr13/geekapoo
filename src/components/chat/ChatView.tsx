@@ -41,6 +41,7 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
+  Palette,
   Trophy,
 } from 'lucide-react';
 
@@ -54,6 +55,17 @@ import {
   ocultarMensajeParaMi,
 } from '../../services/chats';
 import { useAuth } from '../../context/AuthContext';
+import { doc, getDocFromServer } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { ChatAparienciaPanel } from './ChatAparienciaPanel';
+import {
+  APARIENCIA_POR_DEFECTO,
+  aparienciaAGuardar,
+  resolverApariencia,
+  sujetarApariencia,
+  type AparienciaChat,
+} from '../../data/chatApariencia';
+import { deleteReplacedImage, uploadCommunityImage } from '../../services/imageUpload';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useChat } from '../../context/ChatContext';
 import { useClubs } from '../../context/ClubsContext';
@@ -132,7 +144,7 @@ function borradorConContenido(borrador: PollDraft): boolean {
 type TabChats = 'privados' | 'clubes' | 'descubrir';
 
 export const ChatView: React.FC = () => {
-  const { currentUser, getUserByChatId, usersList } = useAuth();
+  const { currentUser, getUserByChatId, usersList, updateProfileData } = useAuth();
   const goToProfile = useGoToProfile();
   const {
     rooms,
@@ -363,6 +375,128 @@ export const ChatView: React.FC = () => {
   // Generar el código de un grupo antiguo que no lo tiene. Al
   // cambiar de conversación se limpia el error, como el resto
   // de avisos de la vista.
+
+  // ── Apariencia del chat ─────────────────────────
+  //
+  // `borradorApariencia` a null = panel cerrado. Mientras está
+  // abierto, la conversación pinta el borrador: vista previa
+  // en vivo sin recargar. Guardar lo escribe en
+  // `users/{uid}.chatApariencia` (solo la ve quien la pone) y
+  // cancelar lo tira sin tocar nada.
+  const [panelApariencia, setPanelApariencia] = useState(false);
+  const [borradorApariencia, setBorradorApariencia] = useState<AparienciaChat | null>(null);
+  const [guardandoApariencia, setGuardandoApariencia] = useState(false);
+  const [errorApariencia, setErrorApariencia] = useState<string | null>(null);
+  const [subiendoFondoChat, setSubiendoFondoChat] = useState(false);
+  // Fondo guardado antes de subir otro: al guardar se borra el
+  // anterior para no dejar huérfanos en Storage.
+  const fondoPrevioRef = useRef<string | null>(null);
+
+  const aparienciaGuardada = useMemo(
+    () => sujetarApariencia(currentUser?.chatApariencia),
+    [currentUser],
+  );
+  const aparienciaVista = useMemo(
+    () => resolverApariencia(borradorApariencia ?? aparienciaGuardada),
+    [borradorApariencia, aparienciaGuardada],
+  );
+  const sinMovimiento = (borradorApariencia ?? aparienciaGuardada).reducirMovimiento === true;
+
+  const abrirPanelApariencia = () => {
+    fondoPrevioRef.current = aparienciaGuardada.fondo?.url ?? null;
+    setErrorApariencia(null);
+    setBorradorApariencia({ ...aparienciaGuardada });
+    setPanelApariencia(true);
+  };
+
+  const cerrarPanelApariencia = () => {
+    setPanelApariencia(false);
+    setBorradorApariencia(null);
+    setErrorApariencia(null);
+  };
+
+  const restablecerApariencia = () => setBorradorApariencia({ ...APARIENCIA_POR_DEFECTO });
+
+  const subirFondoChat = async (file: File) => {
+    if (!currentUser) return;
+    setSubiendoFondoChat(true);
+    setErrorApariencia(null);
+    try {
+      const url = await uploadCommunityImage(file, currentUser.uid);
+      setBorradorApariencia((b) => {
+        const base = b ?? aparienciaGuardada;
+        return { ...base, fondo: { ...(base.fondo ?? {}), preset: undefined, url } };
+      });
+    } catch (e: unknown) {
+      setErrorApariencia(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
+    } finally {
+      setSubiendoFondoChat(false);
+    }
+  };
+
+  const quitarFondoChat = () =>
+    setBorradorApariencia((b) => {
+      const base = b ?? aparienciaGuardada;
+      if (!base.fondo?.url) return base;
+      const { url: _quitada, ...resto } = base.fondo;
+      void _quitada;
+      return { ...base, fondo: Object.keys(resto).length > 0 ? resto : null };
+    });
+
+  const guardarApariencia = async () => {
+    if (!currentUser || !borradorApariencia || guardandoApariencia) return;
+    setGuardandoApariencia(true);
+    setErrorApariencia(null);
+    try {
+      const limpio = aparienciaAGuardar(borradorApariencia);
+      console.log('[Chats] Guardando apariencia:', JSON.stringify(limpio));
+      try {
+        await updateProfileData({ chatApariencia: limpio });
+      } catch (e: unknown) {
+        throw new Error(
+          `escritura denegada: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+      // `setDoc` resuelve en la caché local: si el servidor
+      // rechaza la escritura (reglas sin desplegar), el cambio
+      // se revierte en silencio y el panel se cerraría en falso.
+      // Se comprueba contra el servidor antes de cerrar.
+      let enServidor;
+      try {
+        const comp = await getDocFromServer(doc(db, 'users', currentUser.uid));
+        enServidor = sujetarApariencia(
+          (comp.data() as { chatApariencia?: unknown } | undefined)?.chatApariencia,
+        );
+      } catch (e: unknown) {
+        throw new Error(
+          `verificación denegada: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+      // Firestore no garantiza el orden de las claves del mapa
+      // al leerlo: se comparan ordenadas, no tal cual llegan.
+      const canonico = (v: unknown): unknown =>
+        Array.isArray(v)
+          ? v.map(canonico)
+          : v && typeof v === 'object'
+            ? Object.fromEntries(
+                Object.keys(v as Record<string, unknown>)
+                  .sort()
+                  .map((k) => [k, canonico((v as Record<string, unknown>)[k])]),
+              )
+            : v;
+      if (JSON.stringify(canonico(enServidor)) !== JSON.stringify(canonico(limpio))) {
+        throw new Error('el servidor no devolvió lo guardado');
+      }
+      deleteReplacedImage(fondoPrevioRef.current ?? '', limpio.fondo?.url ?? '');
+      setPanelApariencia(false);
+      setBorradorApariencia(null);
+    } catch (e: unknown) {
+      console.error('[Chats] No se pudo guardar la apariencia:', e);
+      setErrorApariencia(e instanceof Error ? e.message : 'No se pudo guardar la apariencia.');
+    } finally {
+      setGuardandoApariencia(false);
+    }
+  };
   const [generatingCode, setGeneratingCode] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [openMenuFor, setOpenMenuFor] = useState<string | null>(null);
@@ -666,8 +800,11 @@ export const ChatView: React.FC = () => {
   const irAlFinal = useCallback(() => {
     setLejosDelFinal(false);
 
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, []);
+    messagesEndRef.current?.scrollIntoView({
+      behavior: sinMovimiento ? 'instant' : 'smooth',
+      block: 'end',
+    });
+  }, [sinMovimiento]);
 
   useEffect(() => {
     if (lejosDelFinal) return;
@@ -2175,7 +2312,7 @@ export const ChatView: React.FC = () => {
         <div
           className={`${
             tabChats === 'descubrir' || activeRoomId ? 'flex' : 'hidden'
-          } lg:flex relative min-h-0 min-w-0 flex-col bg-zinc-900/90`}
+          } lg:flex relative min-h-0 min-w-0 flex-col bg-zinc-900/90${sinMovimiento ? ' chat-sin-movimiento' : ''}`}
         >
           {/* Botón para volver a abrir la barra cuando está
               contraída. Flota en el borde izquierdo del chat;
@@ -2402,6 +2539,20 @@ export const ChatView: React.FC = () => {
                     <span className="hidden sm:inline">Miembros</span>
                   </button>
                 )}
+
+                {/* Personalizar el chat: abre el panel de apariencia.
+                    Icono solo en móvil, como Miembros: el nombre de
+                    la sala no se puede cortar. */}
+                <button
+                  type="button"
+                  onClick={abrirPanelApariencia}
+                  aria-label="Personalizar el chat"
+                  title="Personalizar el chat"
+                  className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-zinc-800 px-2.5 py-2 text-[11px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white sm:px-3 sm:py-1.5"
+                >
+                  <Palette size={13} className="flex-shrink-0" />
+                  <span className="hidden sm:inline">Apariencia</span>
+                </button>
               </div>
 
               {/* En un club no se enseña el código de invitación:
@@ -2570,11 +2721,13 @@ export const ChatView: React.FC = () => {
                 </div>
               )}
 
-              {/* Messages Body */}
+              {/* Messages Body. El fondo y la separación salen de
+                  la apariencia del chat; por defecto, como siempre. */}
               <div
                 ref={listaRef}
                 onScroll={alDesplazar}
-                className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 space-y-4"
+                className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 flex flex-col"
+                style={{ ...aparienciaVista.fondoLista, ...aparienciaVista.gapLista }}
               >
                 {activeMessages.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center text-center p-8 text-zinc-500">
@@ -2710,9 +2863,10 @@ export const ChatView: React.FC = () => {
                             basta: al ensanchar la ventana, el
                             70% de 1400px es una burbuja de casi
                             un metro que deja de leerse como
-                            mensaje de chat. */}
+                            mensaje de chat. La anchura sale de
+                            la apariencia (por defecto, esta). */}
                         <div
-                          className={`max-w-[78%] space-y-1 sm:max-w-[70%] 2xl:max-w-[45%]`}
+                          className={`${aparienciaVista.ancho} space-y-1`}
                         >
                           {!isMe && (
                             <span className="text-[11px] font-bold text-violet-300 pl-1 block">
@@ -2753,12 +2907,22 @@ export const ChatView: React.FC = () => {
                             // derecha, como antes llenando.
                             // El texto base es 15px en móvil (se lee
                             // sin zoom) y se queda como estaba en
-                            // escritorio.
-                            className={`w-fit max-w-full rounded-2xl px-4 py-2.5 text-[15px] sm:text-sm leading-relaxed shadow-md ${
-                              isMe
-                                ? 'ml-auto bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-tr-none'
-                                : 'bg-zinc-800 text-zinc-100 rounded-tl-none border border-zinc-750'
+                            // escritorio. Colores, radio, letra y
+                            // relleno salen de la apariencia del chat;
+                            // por defecto, como siempre.
+                            className={`w-fit max-w-full ${aparienciaVista.letraClase} leading-relaxed shadow-md ${aparienciaVista.relleno} ${
+                              isMe ? 'ml-auto' : ''
                             }`}
+                            style={{
+                              ...(isMe
+                                ? aparienciaVista.burbujaPropia
+                                : aparienciaVista.burbujaRecibida),
+                              ...aparienciaVista.radio,
+                              ...(isMe
+                                ? aparienciaVista.esquinaPropia
+                                : aparienciaVista.esquinaRecibida),
+                              ...aparienciaVista.letra,
+                            }}
                           >
                             {/* El texto solo se pinta si hay texto: un
                                 mensaje puede ser solo un GIF. */}
@@ -3711,6 +3875,24 @@ export const ChatView: React.FC = () => {
               ordenSugerido={canalesVisiblesLista.length}
               onCreado={(id) => setCanalActivoId(id)}
               onClose={() => setModalCanal(null)}
+            />
+          )}
+
+          {/* ── PANEL DE APARIENCIA DEL CHAT ──────────
+              Pinta el borrador mientras está abierto: lo que se
+              toca se ve en la conversación sin recargar. */}
+          {panelApariencia && borradorApariencia && (
+            <ChatAparienciaPanel
+              borrador={borradorApariencia}
+              onChange={setBorradorApariencia}
+              onGuardar={guardarApariencia}
+              onCancelar={cerrarPanelApariencia}
+              onRestablecer={restablecerApariencia}
+              guardando={guardandoApariencia}
+              subiendoFondo={subiendoFondoChat}
+              error={errorApariencia}
+              onSubirFondo={subirFondoChat}
+              onQuitarFondo={quitarFondoChat}
             />
           )}
 

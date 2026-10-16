@@ -59,6 +59,13 @@ const MANUALES = {
   'kimetsu-no-yaiba': ['Guardianes de la Noche'],
 };
 
+// Apodos que AniList no trae pero la serie sí usa, verificados
+// en los créditos ("Krista Lenz" es la propia ficha 62481 de
+// AniList en la T1). Por id de documento del catálogo.
+const MANUALES_PERSONAJES = {
+  'ataque-a-los-titanes-historia-reiss': ['Krista Lenz'],
+};
+
 // ── AniList ──────────────────────────────────────────────────
 
 const Q_MEDIA = `query ($q: String) {
@@ -365,10 +372,31 @@ for (const anime of animes) {
       if (c.f.aliases?.arrayValue?.values?.length > 0) continue;
       const nombre = normal(str(c.f, 'name'));
       const japones = normal(str(c.f, 'japaneseName'));
+      // Vale el nombre, el japonés o estar entre sus apodos de
+      // AniList ("Historia Reiss" vive en los alternative de
+      // "Krista Lenz"): todo es igualdad normalizada, nada
+      // aproximado.
+      const normalAlt = (n) => (n.name?.alternative ?? []).map(normal);
       const hallado = [...candidatos.values()].find(
-        (n) => normal(n.name?.full) === nombre || (japones && normal(n.name?.native) === japones),
+        (n) =>
+          normal(n.name?.full) === nombre ||
+          (japones && normal(n.name?.native) === japones) ||
+          normalAlt(n).includes(nombre) ||
+          (japones && normalAlt(n).includes(japones)),
       );
-      if (!hallado) continue;
+      if (!hallado) {
+        // Sin coincidencia en AniList, mira los manuales
+        // verificados antes de rendirse.
+        const manual = MANUALES_PERSONAJES[c.id] ?? [];
+        if (manual.length) {
+          if (ESCRIBIR) {
+            await escribir('characters', c.id, { aliases: arrayDe(manual) }, ['aliases']);
+          }
+          console.log(`  ${c.id}: alias manual (${manual.join(' / ')})`);
+          puestos++;
+        }
+        continue;
+      }
       const aka = limpiar(hallado.name?.alternative ?? [], [
         str(c.f, 'name'),
         str(c.f, 'japaneseName'),

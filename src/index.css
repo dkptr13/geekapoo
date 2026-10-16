@@ -159,6 +159,16 @@
   animation: geo-aparece 200ms ease-out both;
 }
 
+/* Chat sin animaciones (opción de accesibilidad de la
+   apariencia del chat). Corta transiciones y animaciones solo
+   dentro de la conversación, sin tocar el resto de la web. */
+.chat-sin-movimiento *,
+.chat-sin-movimiento *::before,
+.chat-sin-movimiento *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 /* ======================================================
    ANIMACIONES DE KAPO-CHAN
    ======================================================

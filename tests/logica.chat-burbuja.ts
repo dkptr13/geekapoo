@@ -34,9 +34,13 @@ function claseQueContiene(marca: string): string {
 // ═══════════════════════════════════════════════════════════
 // LA BURBUJA PRINCIPAL
 // ═══════════════════════════════════════════════════════════
+//
+// El relleno y el radio salen de la apariencia del chat
+// (`aparienciaVista.relleno`): por defecto son los de siempre.
+// Lo que se fija aquí es lo estructural: que abrace al texto.
 
 {
-  const clase = claseQueContiene('rounded-2xl px-4 py-2.5');
+  const clase = claseQueContiene('aparienciaVista.relleno');
 
   assert.ok(clase.includes('w-fit'), 'la burbuja abraza al texto (w-fit)');
   assert.ok(clase.includes('max-w-full'), 'sin desbordar el contenedor');

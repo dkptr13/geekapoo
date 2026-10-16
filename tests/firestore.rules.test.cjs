@@ -473,6 +473,65 @@ describe('gamificacion: XP y medallas', () => {
         }),
       );
     });
+
+    it('puede guardar la apariencia del chat', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          chatApariencia: {
+            tema: 'neon',
+            colorPropio: '#2563eb',
+            fondo: { preset: 'ola', dim: 30 },
+            forma: 'suave',
+            letra: 'grande',
+            reducirMovimiento: true,
+          },
+        }),
+      );
+    });
+
+    it('puede quitarse la apariencia del chat', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: null }),
+      );
+    });
+
+    it('NO puede guardar una apariencia del chat con valores inventados', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: { tema: 'inventado' } }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: { colorPropio: 'rojo' } }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          chatApariencia: { fondo: { url: 'https://x/y.jpg', dim: 81 } },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          chatApariencia: { fondo: { url: 'ftp://x/y.jpg' } },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: { forma: 'triangulo' } }),
+      );
+    });
+
+    it('NO puede personalizar el chat de otro', async () => {
+      await assertFails(
+        updateDoc(doc(db(BOB), 'users', ALICE), { chatApariencia: { tema: 'neon' } }),
+      );
+    });
+
+    it('un visibleBadgeIds en null no bloquea otros guardados', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { visibleBadgeIds: null }),
+      );
+      await assertSucceeds(updateDoc(doc(db(ALICE), 'users', ALICE), { bio: 'hola' }));
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: { tema: 'neon' } }),
+      );
+    });
   });
 
   // ==========================================================

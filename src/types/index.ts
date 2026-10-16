@@ -7,6 +7,7 @@ import type {
   PersonajeFavorito,
   TipoVitrina,
 } from '../data/profileCustomization';
+import type { AparienciaChat } from '../data/chatApariencia';
 
 export type UserRole = 'user' | 'moderator' | 'admin';
 
@@ -490,6 +491,13 @@ export interface User {
   decorations?: Decoracion[];
   /** Vitrinas activas, en orden. Ausente = logros + destacadas. */
   showcases?: TipoVitrina[];
+  /**
+   * Apariencia del chat (ver `data/chatApariencia.ts`).
+   *
+   * Solo la ve quien la pone: cada usuario pinta SU conversación
+   * con sus colores. Ausente = tema oscuro de la casa.
+   */
+  chatApariencia?: AparienciaChat | null;
 }
 
 export interface StreamingService {

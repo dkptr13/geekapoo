@@ -1,5 +1,6 @@
 rules_version = '2';
 
+// Forzar redespliegue: incluye chatApariencia.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -813,15 +814,70 @@ service cloud.firestore {
                              && d.profileBackground.dim <= 80))))
              && (!('decorations' in d)
                  || (d.decorations is list && d.decorations.size() <= 6))
+             // Apariencia del chat: aquí solo cotas de tamaño (ver
+             // la rama propia con `chatAparienciaValida()`). La
+             // validación detallada aquí pasaba el presupuesto de
+             // 1000 expresiones.
+             && (!('chatApariencia' in d)
+                 || d.chatApariencia == null
+                 || (d.chatApariencia is map
+                     && d.chatApariencia.size() <= 11
+                     && (!('fondo' in d.chatApariencia)
+                         || d.chatApariencia.fondo == null
+                         || (d.chatApariencia.fondo is map
+                             && d.chatApariencia.fondo.size() <= 5))))
              && (!('showcases' in d)
                  || (d.showcases is list && d.showcases.size() <= 6))
              && (!('visibleBadgeIds' in d)
-                 || (d.visibleBadgeIds is list && d.visibleBadgeIds.size() <= 6))
+                 || d.visibleBadgeIds == null
+                                || (d.visibleBadgeIds is list && d.visibleBadgeIds.size() <= 6))
              && (!('featuredPostIds' in d)
                  || (d.featuredPostIds is list && d.featuredPostIds.size() <= 3));
     }
 
-    match /users/{uid} {
+                     // Edición propia del perfil con un solo `diff()`.
+                     //
+                     // El `allow update` llamaba a `diff()` cuatro veces y la
+                     // evaluación rozaba el límite de 1000 expresiones. Con una
+                     // sola llamada sobra presupuesto.
+                     //
+                     // La personalización solo se revalida si el update la toca:
+                     // si no, se revalidaría el documento entero, incluidos datos
+                     // heredados de reglas viejas, y un cambio de bio no pasaría
+                     // por culpa de otro campo. Sin tocar esos campos no entra
+                     // nada nuevo que validar, así que saltarlo no abre nada.
+             // Apariencia del chat: validación detallada (ver
+             // `data/chatApariencia.ts`).
+             //
+             // Vive en rama propia y no dentro de
+             // `personalizacionValida()`: la evaluación completa
+             // rozaba el límite de 1000 expresiones y con la
+             // cláusula dentro abortaba hasta un guardado válido.
+             function chatAparienciaValida() {
+                 let c = request.resource.data.chatApariencia;
+                 return c is map
+                 && (!('tema' in c) || (c.tema in ['oscuro', 'negro', 'morado', 'claro', 'neon', 'personalizado']))
+                 && (!('colorPropio' in c) || (c.colorPropio is string && c.colorPropio.size() == 7))
+                 && (!('colorRecibido' in c) || (c.colorRecibido is string && c.colorRecibido.size() == 7))
+                 && (!('textoPropio' in c) || (c.textoPropio is string && c.textoPropio.size() == 7))
+                 && (!('textoRecibido' in c) || (c.textoRecibido is string && c.textoRecibido.size() == 7))
+                 && (!('fondo' in c)
+                     || c.fondo == null
+                     || (c.fondo is map
+                         && (!('preset' in c.fondo) || (c.fondo.preset is string))
+                         && (!('url' in c.fondo)
+                             || (c.fondo.url is string && c.fondo.url.size() <= 500 && (c.fondo.url == '' || c.fondo.url.matches('https://.*'))))
+                         && (!('ajuste' in c.fondo) || (c.fondo.ajuste in ['cover', 'contain']))
+                         && (!('position' in c.fondo) || (c.fondo.position in ['center', 'top', 'bottom']))
+                         && (!('dim' in c.fondo) || (c.fondo.dim is number && c.fondo.dim >= 0 && c.fondo.dim <= 80))))
+                 && (!('forma' in c) || (c.forma in ['redonda', 'suave', 'cuadrada']))
+                 && (!('estilo' in c) || (c.estilo in ['moderno', 'compacto']))
+                 && (!('letra' in c) || (c.letra in ['pequena', 'normal', 'grande']))
+                 && (!('espaciado' in c) || (c.espaciado in ['compacto', 'normal', 'amplio']))
+                 && (!('ancho' in c) || (c.ancho in ['estrecho', 'normal', 'ancho']))
+                 && (!('reducirMovimiento' in c) || c.reducirMovimiento is bool);
+             }
+match /users/{uid} {
       allow read: if isSignedIn();
 
       // El 'create' tambien tiene que mirar los campos de
@@ -851,6 +907,11 @@ service cloud.firestore {
 
       allow update: if isAdmin()
                     || (isSelf(uid)
+                        && ('chatApariencia' in request.resource.data)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['chatApariencia'])
+                        && (request.resource.data.chatApariencia == null || chatAparienciaValida()))
+|| (isSelf(uid)
                         && !request.resource.data.diff(resource.data)
                              .affectedKeys().hasAny(['role', 'isBanned', 'chatId', 'uid',
                                                      // La racha de la trivia la calcula la
@@ -904,8 +965,24 @@ service cloud.firestore {
                                   'equippedTitle']))
                          // La personalizacion (banner, color, marco,
                          // personaje, visibles y destacadas) pasa si
-                         // cumple `personalizacionValida()`.
-                         && personalizacionValida()
+                         // cumple `personalizacionValida()`. Van de
+                         // barato a caro: primero lo que evita evaluar
+                         // la función en vano.
+                         //
+                         // Este campo tiene rama propia: si cambió
+                         // aquí, decide esa rama; esta solo sigue
+                         // cuando sigue igual que estaba (o no estaba).
+                         && (!('chatApariencia' in request.resource.data) || (('chatApariencia' in resource.data) && request.resource.data.chatApariencia == resource.data.chatApariencia))
+                         // Sin claves de personalización, todo es
+                         // vacuamente cierto y no hay nada que comprobar.
+                         && (!request.resource.data.keys().hasAny(['bannerUrl', 'profileColor', 'avatarFrame',
+                                                      'favoriteCharacter', 'favoriteCharacters',
+                                                      'profileBackground', 'decorations', 'showcases',
+                                                      'visibleBadgeIds', 'featuredPostIds',
+                                                      'chatApariencia'])
+                             || personalizacionValida())
+
+                    
                     // La unica via para escribir 'equippedTitle' es esta:
                     // que no toque ningun otro campo, y que el titulo
                     // corresponda a una medalla ya desbloqueada.

@@ -18,6 +18,9 @@ functions/lib/
 # caducan a las 24 horas (ver `scripts/anilist.mjs`).
 scripts/.cache-anilist/
 
+# Lo mismo para `scripts/rellenar-alias.mjs` (TTL de 7 días).
+scripts/.cache-alias/
+
 # Miniaturas de capitulo bajadas para revisarlas a ojo. Se regeneran
 # solas con scripts/mirar-miniaturas.mjs y no se suben.
 scripts/.miniaturas/
