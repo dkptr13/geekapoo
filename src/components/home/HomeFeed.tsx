@@ -613,17 +613,17 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. VISIÓN DEL PROYECTO & HERO EXPLICATIVO */}
-      <section className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900/90 to-violet-950/30 p-6 sm:p-8 shadow-xl">
-        <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl" />
+      <section className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-gradient-to-br from-[#10101a] via-[#0c0c14] to-[#12102a] p-6 sm:p-8 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]">
+        <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-violet-600/12 blur-3xl" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-300">
-            <Sparkles size={13} className="text-violet-400" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-200">
+            <Sparkles size={13} className="text-violet-300" />
             <span>La nueva comunidad Otaku & Geek</span>
           </div>
 
           <h1 className="mt-4 text-2xl sm:text-4xl font-black tracking-tight text-white">
             {settings.welcomeTitle}{' '}
-            <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-pink-300 bg-clip-text text-transparent">
               {settings.welcomeHighlight}
             </span>
           </h1>
@@ -634,13 +634,13 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
           {/* Quick auth bar if not logged in */}
           {!currentUser ? (
-            <div className="mt-6 flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-800/80">
+            <div className="mt-6 flex flex-wrap items-center gap-3 pt-4 border-t border-white/[0.06]">
               <span className="text-xs text-zinc-400 font-medium">
                 ¿Aún no tienes cuenta?
               </span>
               <button
                 onClick={() => openAuth('register')}
-                className="rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-violet-600/30 hover:bg-violet-500 transition-all"
+                className="chat-boton rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
               >
                 Crear cuenta gratis
               </button>
@@ -655,7 +655,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             <div className="mt-6 flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-800/80 text-xs text-zinc-400">
               <span>Sesión activa como <strong className="text-violet-300">@{currentUser.username}</strong></span>
               <span className="text-zinc-600">•</span>
-              <span>ID de Chat: <code className="font-mono text-zinc-300 bg-zinc-800 px-1.5 py-0.5 rounded">{currentUser.chatId}</code></span>
+              <span>ID de Chat: <code className="font-mono text-zinc-300 bg-white/[0.05] px-1.5 py-0.5 rounded">{currentUser.chatId}</code></span>
             </div>
           )}
         </div>
@@ -666,10 +666,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setFeedSort('recent')}
-            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`chat-boton flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
               feedSort === 'recent'
-                ? 'bg-zinc-800 text-white border border-zinc-700'
-                : 'text-zinc-400 hover:text-white'
+                ? 'border border-violet-400/25 bg-violet-500/15 text-violet-200'
+                : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04]'
             }`}
           >
             <Clock size={14} />
@@ -677,10 +677,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           </button>
           <button
             onClick={() => setFeedSort('popular')}
-            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`chat-boton flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
               feedSort === 'popular'
-                ? 'bg-zinc-800 text-white border border-zinc-700'
-                : 'text-zinc-400 hover:text-white'
+                ? 'border border-violet-400/25 bg-violet-500/15 text-violet-200'
+                : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04]'
             }`}
           >
             <TrendingUp size={14} />
@@ -689,7 +689,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
         </div>
 
         {selectedCategoryFilter && (
-          <div className="flex items-center gap-2 rounded-xl bg-violet-950/40 border border-violet-500/30 px-3 py-1 text-xs text-violet-300">
+          <div className="flex items-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-xs text-violet-200">
             <span>Filtrado por categoría activa</span>
             <button
               onClick={onClearCategoryFilter}
@@ -705,7 +705,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             const ok = requireAuth('crear un hilo nuevo', () => setShowCreateThread(true));
             if (ok) setShowCreateThread(!showCreateThread);
           }}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-violet-600/30 hover:opacity-95 transition-all"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
         >
           <PlusCircle size={16} />
           <span>Abrir Nuevo Hilo</span>
@@ -836,7 +836,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 <button
                   type="button"
                   onClick={() => setConEncuesta(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-violet-500/40 px-3 py-2 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-500/70 hover:bg-violet-500/10 hover:text-violet-300"
+                  className="chat-boton chat-boton inline-flex items-center gap-1.5 rounded-xl border border-dashed border-violet-400/25 px-3 py-2 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-400/50 hover:bg-violet-500/10 hover:text-violet-200"
                 >
                   <PlusCircle size={13} />
                   Añadir encuesta
@@ -870,7 +870,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     }
                     setEditorTier({ modo: 'nuevo', paraComposer: true });
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-violet-500/40 px-3 py-2 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-500/70 hover:bg-violet-500/10 hover:text-violet-300"
+                  className="chat-boton chat-boton inline-flex items-center gap-1.5 rounded-xl border border-dashed border-violet-400/25 px-3 py-2 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-400/50 hover:bg-violet-500/10 hover:text-violet-200"
                 >
                   <Trophy size={13} />
                   Crear tier list
@@ -882,13 +882,13 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               <button
                 type="button"
                 onClick={() => setShowCreateThread(false)}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white"
+                className="chat-boton rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white"
               >
                 Cerrar
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-violet-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-violet-600/30 hover:bg-violet-500 transition-all"
+                className="chat-boton rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
               >
                 Publicar Hilo
               </button>
@@ -916,8 +916,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 highlightThreadId === thread.id
                   ? 'border-violet-400 ring-2 ring-violet-500/40 shadow-lg shadow-violet-900/40'
                   : thread.pinned
-                    ? 'border-violet-500/40 bg-gradient-to-b from-violet-950/20 via-zinc-900/90 to-zinc-900 p-6 shadow-lg shadow-violet-950/20'
-                    : 'border-zinc-800/90 bg-zinc-900/80 hover:border-zinc-700/80 p-6'
+                    ? 'border-violet-400/20 bg-gradient-to-b from-violet-500/10 via-[#0c0c14] to-[#0c0c14] p-6 shadow-lg shadow-violet-950/20'
+                    : 'border-white/[0.06] bg-[#0d0d15]/80 hover:border-white/[0.1] p-6'
               }`}
             >
               {/* Header: Author + Pin + Category */}
@@ -937,7 +937,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     <img
                       src={avatarDe(thread.authorId, thread.authorAvatar)}
                       alt=""
-                      className="h-10 w-10 rounded-2xl object-cover ring-2 ring-violet-500/20"
+                      className="h-10 w-10 rounded-2xl object-cover ring-2 ring-violet-400/25"
                     />
                   </button>
                   <div>
@@ -953,7 +953,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       </div>
 
                       {thread.pinned && (
-                        <span className="flex flex-shrink-0 items-center gap-1 rounded-md bg-violet-500/20 border border-violet-500/30 px-2 py-0.5 text-[10px] font-bold text-violet-300">
+                        <span className="flex flex-shrink-0 items-center gap-1 rounded-md border border-violet-400/25 bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-200">
                           <Pin size={10} />
                           Fijado
                         </span>
@@ -969,7 +969,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   </div>
                 </div>
 
-                <span className="rounded-full bg-zinc-800/80 border border-zinc-700/50 px-3 py-1 text-[11px] font-medium text-violet-300">
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-violet-300">
                   {thread.categoryName}
                 </span>
               </div>
@@ -1010,7 +1010,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     alt="Imagen adjunta al hilo"
                     width={thread.imageWidth}
                     height={thread.imageHeight}
-                    className="block h-auto max-w-full rounded-2xl border border-zinc-800 object-contain"
+                    className="block h-auto max-w-full rounded-2xl border border-white/[0.06] object-contain"
                     wrapperClassName="mt-3 overflow-hidden rounded-2xl"
                     eager={highlightThreadId === thread.id}
                   />
@@ -1050,7 +1050,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       }
                       setEditorTier({ modo: 'nuevo', attachThreadId: thread.id });
                     }}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-dashed border-zinc-700 px-3 py-1.5 text-[11px] font-semibold text-zinc-500 transition-colors hover:border-violet-500/50 hover:text-violet-300"
+                    className="chat-boton mt-3 chat-boton inline-flex items-center gap-1.5 rounded-xl border border-dashed border-zinc-700 px-3 py-1.5 text-[11px] font-semibold text-zinc-500 transition-colors hover:border-violet-400/40 hover:text-violet-200"
                   >
                     <Trophy size={12} />
                     Adjuntar tier list
@@ -1074,15 +1074,15 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               )}
 
               {/* Interactions Bar */}
-              <div className="mt-5 flex items-center justify-between border-t border-zinc-800/80 pt-4">
+              <div className="mt-5 flex items-center justify-between border-t border-white/[0.06] pt-4">
                 <div className="flex items-center gap-2 sm:gap-4">
                   {/* Like Button */}
                   <button
                     onClick={() => toggleThreadLike(thread.id)}
                     className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                       isLiked
-                        ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30'
-                        : 'bg-zinc-950/60 text-zinc-400 hover:text-white border border-zinc-800'
+                        ? 'border border-pink-400/25 bg-pink-500/15 text-pink-300'
+                        : 'border border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                     }`}
                   >
                     <Heart
@@ -1098,8 +1098,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     onClick={() => setExpandedThreadId(isExpanded ? null : thread.id)}
                     className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                       isExpanded
-                        ? 'bg-violet-600/20 text-violet-300 border border-violet-500/30'
-                        : 'bg-zinc-950/60 text-zinc-400 hover:text-white border border-zinc-800'
+                        ? 'border border-violet-400/25 bg-violet-500/15 text-violet-200'
+                        : 'border border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                     }`}
                   >
                     <MessageSquare size={15} />
@@ -1157,13 +1157,13 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                         <button
                           onClick={() => handleDeleteThread(thread)}
                           disabled={deleting}
-                          className="rounded-lg bg-red-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-red-500 transition-colors disabled:opacity-50"
+                          className="chat-boton rounded-xl bg-red-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-red-500 transition-colors disabled:opacity-50"
                         >
                           {deleting ? 'Borrando...' : 'Sí, borrar'}
                         </button>
                         <button
                           onClick={() => setConfirmingDeleteId(null)}
-                          className="rounded-lg bg-zinc-800 px-2.5 py-1 text-[11px] font-semibold text-zinc-300 hover:bg-zinc-700 transition-colors"
+                          className="chat-boton rounded-xl bg-zinc-800 px-2.5 py-1 text-[11px] font-semibold text-zinc-300 hover:bg-zinc-700 transition-colors"
                         >
                           Cancelar
                         </button>
@@ -1200,7 +1200,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
               {/* EXPANDED COMMENTS SECTION */}
               {isExpanded && (
-                <div className="mt-5 border-t border-zinc-800/80 pt-5 space-y-4 animate-in fade-in duration-200">
+                <div className="mt-5 border-t border-white/[0.06] pt-5 space-y-4 animate-in fade-in duration-200">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                     Comentarios del hilo ({threadComments.length})
                   </h4>
@@ -1220,11 +1220,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             ? 'Escribe tu opinión respetuosa...'
                             : 'Inicia sesión para opinar...'
                         }
-                        className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                        className="flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
                       />
                       <button
                         type="submit"
-                        className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-violet-500 transition-all shadow-md shadow-violet-600/30"
+                        className="chat-boton flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
                       >
                         <Send size={13} />
                         <span>Comentar</span>
@@ -1268,8 +1268,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             id={`comment-${comment.id}`}
                             className={`scroll-mt-20 rounded-2xl border p-4 space-y-2.5 transition-colors ${
                               highlightCommentId === comment.id
-                                ? 'border-violet-500 bg-violet-950/40'
-                                : 'border-zinc-800/80 bg-zinc-950/60'
+                                ? 'border-violet-400 ring-2 ring-violet-400/30 bg-violet-500/10'
+                                : 'border-white/[0.06] bg-white/[0.03]'
                             }`}
                           >
                             <div className="flex items-center justify-between gap-2">
@@ -1347,7 +1347,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                   // reserva se capa igual que la imagen
                                   // final para no reservar de más.
                                   maxHeight={288}
-                                  className="block h-auto max-h-72 max-w-full rounded-xl border border-zinc-800 object-contain"
+                                  className="block h-auto max-h-72 max-w-full rounded-xl border border-white/[0.06] object-contain"
                                   wrapperClassName="ml-8 mt-1 overflow-hidden rounded-xl"
                                   eager={highlightCommentId === comment.id}
                                 />
@@ -1356,8 +1356,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             <div className="flex flex-wrap items-center gap-3 pl-8 pt-1 text-[11px]">
                               <button
                                 onClick={() => toggleCommentLike(comment.id)}
-                                className={`flex items-center gap-1 font-mono transition-colors ${
-                                  commentLiked ? 'text-pink-400 font-bold' : 'text-zinc-500 hover:text-zinc-300'
+                                className={`chat-boton flex items-center gap-1 font-mono transition-colors ${
+                                  commentLiked ? 'text-pink-300 font-bold' : 'text-zinc-500 hover:text-zinc-300'
                                 }`}
                               >
                                 <Heart
@@ -1419,7 +1419,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                     <button
                                       onClick={() => handleDeleteComment(comment.id)}
                                       disabled={borrandoAhora === comment.id}
-                                      className="flex items-center gap-1 rounded-md bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-60"
+                                      className="chat-boton chat-boton rounded-xl bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-60"
                                     >
                                       {borrandoAhora === comment.id ? (
                                         <Loader2 size={10} className="animate-spin" />
@@ -1430,7 +1430,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                     <button
                                       onClick={() => setConfirmandoBorrar(null)}
                                       disabled={borrandoAhora === comment.id}
-                                      className="rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 disabled:opacity-60"
+                                      className="chat-boton chat-boton rounded-xl bg-zinc-800 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 disabled:opacity-60"
                                     >
                                       Cancelar
                                     </button>
@@ -1468,11 +1468,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
                                     placeholder={`Respondiendo a @${comment.authorName}...`}
-                                    className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-base sm:text-xs text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                                    className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
                                   />
                                   <button
                                     type="submit"
-                                    className="rounded-xl bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-500"
+                                    className="chat-boton rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-violet-950/40 hover:brightness-110"
                                   >
                                     Enviar
                                   </button>
@@ -1483,7 +1483,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
                             {/* Nested Replies */}
                             {replies.length > 0 && (
-                              <div className="ml-8 mt-3 space-y-2 border-l-2 border-zinc-800 pl-3">
+                              <div className="ml-8 mt-3 space-y-2 border-l-2 border-white/[0.06] pl-3">
                                 {replies.map((reply) => {
                                   const replyLiked = currentUser
                                     ? reply.likedBy?.includes(currentUser.uid)
@@ -1496,7 +1496,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                       // comentarios, con aire bajo el
                                       // navbar.
                                       id={`comment-${reply.id}`}
-                                      className="scroll-mt-20 rounded-xl bg-zinc-900/60 p-3 space-y-1.5"
+                                      className="scroll-mt-20 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3 space-y-1.5"
                                     >
                                       <div className="flex items-center justify-between">
 <div className="flex items-center gap-1.5">
@@ -1549,7 +1549,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                            width={reply.imageWidth}
                                            height={reply.imageHeight}
                                            maxHeight={288}
-                                           className="block h-auto max-h-72 max-w-full rounded-xl border border-zinc-800 object-contain"
+                                           className="block h-auto max-h-72 max-w-full rounded-xl border border-white/[0.06] object-contain"
                                            wrapperClassName="ml-5 overflow-hidden rounded-xl"
                                            eager={highlightCommentId === reply.id}
                                          />
@@ -1601,7 +1601,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                                 <button
                                                   onClick={() => handleDeleteComment(reply.id)}
                                                   disabled={borrandoAhora === reply.id}
-                                                  className="flex items-center gap-1 rounded-md bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-60"
+                                                  className="chat-boton chat-boton rounded-xl bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-60"
                                                 >
                                                   {borrandoAhora === reply.id ? (
                                                     <Loader2 size={10} className="animate-spin" />
