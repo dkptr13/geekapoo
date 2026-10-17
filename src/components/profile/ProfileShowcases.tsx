@@ -26,14 +26,14 @@ export const VitrinaPersonajes: React.FC<{ perfil: User }> = ({ perfil }) => {
   return (
     <section className="space-y-3">
       <h2 className="flex items-center gap-2 text-base font-bold text-white">
-        <Users size={16} className="text-violet-400" />
+        <Users size={16} className="text-violet-300" />
         Personajes favoritos
         <span className="font-mono text-xs font-normal text-zinc-500">{lista.length}</span>
       </h2>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
         {lista.map((p, i) => (
           <div key={`${p.name}-${i}`} className="min-w-0 text-center">
-            <div className="aspect-square overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
+            <div className="aspect-square overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03]">
               {p.imageUrl ? (
                 <img
                   src={p.imageUrl}
@@ -45,7 +45,7 @@ export const VitrinaPersonajes: React.FC<{ perfil: User }> = ({ perfil }) => {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="flex h-full w-full items-center justify-center text-2xl text-zinc-700">
+                <span className="flex h-full w-full items-center justify-center text-2xl text-zinc-600">
                   ?
                 </span>
               )}
@@ -69,10 +69,10 @@ export const VitrinaPrincipal: React.FC<{ perfil: User }> = ({ perfil }) => {
   return (
     <section className="space-y-3">
       <h2 className="flex items-center gap-2 text-base font-bold text-white">
-        <Star size={16} className="text-amber-400" />
+        <Star size={16} className="text-amber-300" />
         Personaje principal
       </h2>
-      <div className="flex flex-col gap-4 rounded-3xl border border-zinc-800 bg-zinc-900/90 p-5 sm:flex-row">
+      <div className="flex flex-col gap-4 rounded-3xl border border-white/[0.06] bg-white/[0.03] p-5 sm:flex-row">
         {pj.imageUrl ? (
           <img
             src={pj.imageUrl}
@@ -81,10 +81,10 @@ export const VitrinaPrincipal: React.FC<{ perfil: User }> = ({ perfil }) => {
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
-            className="h-36 w-36 flex-shrink-0 self-center rounded-2xl object-cover ring-2 ring-zinc-800 sm:self-start"
+            className="h-36 w-36 flex-shrink-0 self-center rounded-2xl object-cover ring-2 ring-white/10 sm:self-start"
           />
         ) : (
-          <span className="flex h-36 w-36 flex-shrink-0 items-center justify-center self-center rounded-2xl border border-dashed border-zinc-800 text-3xl text-zinc-700 sm:self-start">
+          <span className="flex h-36 w-36 flex-shrink-0 items-center justify-center self-center rounded-2xl border border-dashed border-white/[0.06] text-3xl text-zinc-600 sm:self-start">
             ?
           </span>
         )}
@@ -117,7 +117,7 @@ export const VitrinaColeccion: React.FC<{
   return (
     <section className="space-y-3">
       <h2 className="flex items-center gap-2 text-base font-bold text-white">
-        <LayoutGrid size={16} className="text-violet-400" />
+        <LayoutGrid size={16} className="text-violet-300" />
         Colección
         <span className="font-mono text-xs font-normal text-zinc-500">{suyos.length}</span>
       </h2>
@@ -131,7 +131,7 @@ export const VitrinaColeccion: React.FC<{
             title={anime.title}
             className="group min-w-0 text-left disabled:cursor-default"
           >
-            <div className="aspect-[3/4] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+            <div className="aspect-[3/4] overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03]">
               {anime.coverUrl ? (
                 <img
                   src={anime.coverUrl}
@@ -140,7 +140,7 @@ export const VitrinaColeccion: React.FC<{
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               ) : (
-                <span className="flex h-full w-full items-center justify-center text-xl text-zinc-700">
+                <span className="flex h-full w-full items-center justify-center text-xl text-zinc-600">
                   ?
                 </span>
               )}
@@ -150,7 +150,7 @@ export const VitrinaColeccion: React.FC<{
             </p>
             <p className="mt-0.5 flex items-center gap-2 text-[10px] text-zinc-500">
               {anime.rating > 0 && (
-                <span className="flex items-center gap-0.5 font-semibold text-amber-400">
+                <span className="flex items-center gap-0.5 font-semibold text-amber-300">
                   <Star size={9} className="fill-amber-400" />
                   {anime.rating}
                 </span>
@@ -161,7 +161,7 @@ export const VitrinaColeccion: React.FC<{
                   {anime.year}
                 </span>
               )}
-              <span className="ml-auto flex items-center gap-0.5 font-semibold text-pink-400">
+              <span className="ml-auto flex items-center gap-0.5 font-semibold text-pink-300">
                 <Heart size={9} className="fill-pink-500 text-pink-500" />
                 {anime.likesCount}
               </span>
@@ -182,10 +182,10 @@ export const VitrinaTexto: React.FC<{ perfil: User }> = ({ perfil }) => {
   return (
     <section className="space-y-3">
       <h2 className="flex items-center gap-2 text-base font-bold text-white">
-        <Quote size={16} className="text-violet-400" />
+        <Quote size={16} className="text-violet-300" />
         Sobre mí
       </h2>
-      <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-5">
+      <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-5">
         {bio && <p className="text-sm leading-relaxed text-zinc-200">{bio}</p>}
         {anime && (
           <p className="mt-2 text-xs text-zinc-500">

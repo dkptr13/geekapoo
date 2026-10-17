@@ -209,10 +209,10 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
         aria-modal="true"
         aria-label={nombreLista}
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[80dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-zinc-800 bg-zinc-900 shadow-2xl sm:max-w-md sm:rounded-3xl"
+        className="flex max-h-[80dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:max-w-md sm:rounded-3xl"
       >
         {/* ── Cabecera ─────────────────────────────────── */}
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
           <div className="min-w-0">
             <h2 className="truncate text-sm font-bold text-white">
               {titulo ? `${nombreLista} de ${titulo}` : nombreLista}
@@ -229,7 +229,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
             type="button"
             onClick={onCerrar}
             aria-label="Cerrar"
-            className="flex-shrink-0 rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+            className="chat-boton flex-shrink-0 rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white"
           >
             <X size={16} />
           </button>
@@ -250,7 +250,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
               <button
                 type="button"
                 onClick={() => void cargarPrimera()}
-                className="mt-3 rounded-lg border border-zinc-700 px-3 py-1.5 text-[11px] font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
+                className="chat-boton mt-3 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[11px] font-bold text-zinc-300 transition-colors hover:border-violet-400/40 hover:text-white"
               >
                 Reintentar
               </button>
@@ -261,13 +261,13 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
               distintos a propósito: "no hay nadie" no es lo mismo
               que "no tienes popularity". */}
           {vacio && lista === 'followers' && (
-            <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+            <p className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.02] px-4 py-8 text-center text-xs text-zinc-500">
               Este usuario todavía no tiene seguidores.
             </p>
           )}
 
           {vacio && lista === 'following' && (
-            <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+            <p className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.02] px-4 py-8 text-center text-xs text-zinc-500">
               Este usuario todavía no sigue a nadie.
             </p>
           )}
@@ -282,7 +282,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                   return (
                     <li
                       key={item.id}
-                      className="flex items-center gap-3 rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-2.5"
+                      className="flex items-center gap-3 rounded-2xl border border-white/[0.04] bg-white/[0.02] p-2.5"
                     >
                       {/* El avatar y el nombre abren el perfil, y
                           son dos zonas dentro de un MISMO botón, no
@@ -305,10 +305,10 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                           <img
                             src={perfil.avatarUrl}
                             alt={perfil.username}
-                            className="h-10 w-10 flex-shrink-0 rounded-xl object-cover ring-2 ring-zinc-800"
+                            className="h-10 w-10 flex-shrink-0 rounded-xl object-cover ring-2 ring-white/10"
                           />
                         ) : (
-                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-500 ring-2 ring-zinc-800">
+                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/[0.04] text-zinc-400 ring-2 ring-white/10">
                             <UserRound size={16} />
                           </span>
                         )}
@@ -330,7 +330,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                               </span>
                             )}
                             {perfil && (
-                              <span className="text-[10px] font-semibold text-violet-400">
+                              <span className="text-[10px] font-semibold text-violet-300">
                                 Nv.{nivelDe(perfil)}
                               </span>
                             )}
@@ -357,7 +357,7 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                   type="button"
                   onClick={() => void cargarMas()}
                   disabled={cargandoMas}
-                  className="mt-3 w-full rounded-xl border border-zinc-800 py-2.5 text-[11px] font-bold text-zinc-400 transition-colors hover:border-violet-500/40 hover:text-white disabled:opacity-50"
+                  className="chat-boton mt-3 w-full rounded-xl border border-white/[0.06] py-2.5 text-[11px] font-bold text-zinc-400 transition-colors hover:border-violet-400/40 hover:text-white disabled:opacity-50"
                 >
                   {cargandoMas ? 'Cargando...' : 'Cargar más'}
                 </button>

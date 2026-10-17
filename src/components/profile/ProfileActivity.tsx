@@ -30,7 +30,7 @@ const ESTILO: Record<
 > = {
   thread: {
     icono: <MessageCircle size={12} />,
-    clase: 'border-zinc-800 bg-zinc-950/60 text-zinc-400',
+    clase: 'border-white/[0.06] bg-white/[0.02] text-zinc-400',
     etiqueta: 'Publicación',
   },
   comment: {
@@ -70,7 +70,7 @@ export const ProfileActivity: React.FC<{
           <Sparkles size={16} className="text-violet-400" />
           Actividad reciente
         </h2>
-        <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+        <p className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.02] px-4 py-8 text-center text-xs text-zinc-500">
           Todavía no hay actividad pública que enseñar.
         </p>
       </section>
@@ -135,7 +135,7 @@ export const ProfileActivity: React.FC<{
                 <button
                   type="button"
                   onClick={() => onIrA(e.irA!.threadId, e.irA!.commentId)}
-                  className="flex min-w-0 flex-1 items-start gap-2.5 text-left transition-colors hover:text-white"
+                  className="chat-boton flex min-w-0 flex-1 items-start gap-2.5 text-left transition-colors hover:text-white"
                   title={e.detalle ? e.detalle : e.texto}
                 >
                   {contenido}
@@ -152,7 +152,7 @@ export const ProfileActivity: React.FC<{
         <button
           type="button"
           onClick={() => setCuantos((n) => n + PASO_PERFIL)}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-zinc-800 py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-violet-500/40 hover:text-white"
+            className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-violet-400/40 hover:text-white"
         >
           <ChevronDown size={13} />
           Ver más ({todos.length - visibles.length} más)

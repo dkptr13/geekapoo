@@ -47,7 +47,7 @@ const Stat: React.FC<{
   /** Color del icono. */
   tono?: string;
 }> = ({ label, value, icono, tono = 'text-violet-400' }) => (
-  <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-center">
+  <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
     <p className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
       <span className={tono}>{icono}</span>
       {label}
@@ -79,7 +79,7 @@ const StatBoton: React.FC<{
     type="button"
     onClick={onClick}
     title={cargando ? `Cargando ${label}...` : `Ver ${label.toLowerCase()} de ${nombre}`}
-    className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-center transition-colors hover:border-violet-500/40 hover:bg-zinc-950"
+    className="chat-boton rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center transition-colors hover:border-violet-400/40 hover:bg-white/[0.05]"
   >
     <p className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
       <span className={tono}>{icono}</span>

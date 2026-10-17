@@ -70,7 +70,7 @@ export const FollowButton: React.FC<{
       <button
         type="button"
         onClick={() => requireAuth('seguir a otro usuario')}
-        className="flex items-center gap-1.5 rounded-xl border border-violet-500/40 bg-violet-500/10 px-3.5 py-2 text-xs font-bold text-violet-300 transition-colors hover:bg-violet-500/20"
+        className="flex items-center gap-1.5 rounded-xl border border-violet-400/20 bg-violet-500/10 px-3.5 py-2 text-xs font-bold text-violet-200 transition-colors hover:bg-violet-500/20"
       >
         <UserPlus size={14} />
         Inicia sesión para seguir
@@ -99,9 +99,9 @@ export const FollowButton: React.FC<{
 
   const estilos: Record<typeof boton.estilo, string> = {
     primario:
-      'bg-violet-600 text-white shadow-lg shadow-violet-600/25 hover:bg-violet-500 border border-transparent',
+      'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-950/40 hover:brightness-110 border border-transparent',
     siguiendo:
-      'border border-zinc-700 bg-zinc-900 text-zinc-200 hover:border-rose-500/50 hover:bg-rose-500/10 hover:text-rose-300',
+      'border border-white/[0.08] bg-white/[0.03] text-zinc-200 hover:border-rose-400/40 hover:bg-rose-500/10 hover:text-rose-300',
     inactivo: 'border border-zinc-800 bg-zinc-900 text-zinc-500',
   };
 
@@ -142,14 +142,14 @@ export const FollowButton: React.FC<{
             type="button"
             onClick={alPulsar}
             disabled={escribiendo(userId)}
-            className="rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-rose-500 disabled:opacity-50"
+            className="chat-boton rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-rose-500 disabled:opacity-50"
           >
             Sí
           </button>
           <button
             type="button"
             onClick={() => setConfirmando(false)}
-            className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] font-bold text-zinc-400 hover:text-white"
+            className="chat-boton rounded-lg border border-white/[0.08] px-2.5 py-1 text-[11px] font-bold text-zinc-400 hover:text-white"
           >
             Cancelar
           </button>

@@ -68,7 +68,7 @@ const Toggle: React.FC<{
   hint: string;
   disabled?: boolean;
 }> = ({ checked, onChange, label, hint, disabled }) => (
-  <div className="flex items-start justify-between gap-4 rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+  <div className="flex items-start justify-between gap-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
     <div className="min-w-0">
       <p className="text-xs font-semibold text-zinc-200">{label}</p>
       <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">{hint}</p>
@@ -94,7 +94,7 @@ const Toggle: React.FC<{
 );
 
 const inputClass =
-  'w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none';
+  'w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none';
 
 const labelClass = 'mb-1 block text-xs font-medium text-zinc-300';
 
@@ -310,8 +310,8 @@ export const AccountSettings: React.FC = () => {
   const hiddenFromRequests = !acceptsChatRequests(privacy);
 
   return (
-    <section className="rounded-3xl border border-zinc-800 bg-zinc-900/90 shadow-xl">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800/80 p-6 sm:px-8">
+    <section className="rounded-3xl border border-white/[0.06] bg-zinc-900/90 shadow-xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] p-6 sm:px-8">
         <h3 className="flex items-center gap-2 text-base font-bold text-white">
           <Settings size={18} className="text-violet-400" />
           <span>Configuración de la cuenta</span>
@@ -329,7 +329,7 @@ export const AccountSettings: React.FC = () => {
       </div>
 
       {/* Pestañas */}
-      <div role="tablist" className="flex flex-wrap gap-1.5 border-b border-zinc-800/80 p-4 sm:px-6">
+      <div role="tablist" className="flex flex-wrap gap-1.5 border-b border-white/[0.06] p-4 sm:px-6">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -342,7 +342,7 @@ export const AccountSettings: React.FC = () => {
                 ? id === 'eliminar'
                   ? 'bg-red-600 text-white'
                   : 'bg-violet-600 text-white'
-                : 'border border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:text-white'
+                : 'border border-white/[0.06] bg-white/[0.02]/60 text-zinc-400 hover:text-white'
             }`}
           >
             <Icon size={14} />
@@ -363,7 +363,7 @@ export const AccountSettings: React.FC = () => {
             </p>
 
             {/* Visibilidad del perfil */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
               <p className="text-xs font-semibold text-zinc-200">Visibilidad del perfil</p>
               <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
                 Decide si la gente te puede encontrar y pedir conversación. Las conversaciones
@@ -403,7 +403,7 @@ export const AccountSettings: React.FC = () => {
                     className={`flex items-start gap-2.5 rounded-xl border p-3 text-left transition-colors ${
                       privacy.profileVisibility === value
                         ? 'border-violet-500 bg-violet-600/10'
-                        : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700'
+                        : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.08]'
                     }`}
                   >
                     <Icon
@@ -459,7 +459,7 @@ export const AccountSettings: React.FC = () => {
                 type="button"
                 onClick={handleSavePrivacy}
                 disabled={privacyBusy}
-                className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-500 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
               >
                 {privacyBusy ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
                 <span>Guardar privacidad</span>
@@ -474,7 +474,7 @@ export const AccountSettings: React.FC = () => {
         {tab === 'cuenta' && (
           <div className="space-y-6">
             {/* Con qué cuenta se entra */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
               <div>
                 <p className="text-xs font-semibold text-zinc-200">Método de acceso</p>
                 <p className="mt-1 text-[11px] text-zinc-500">
@@ -493,7 +493,7 @@ export const AccountSettings: React.FC = () => {
             </div>
 
             {/* Correo */}
-            <form onSubmit={handleChangeEmail} className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+            <form onSubmit={handleChangeEmail} className="space-y-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
               <p className="flex items-center gap-2 text-xs font-bold text-zinc-200">
                 <Mail size={14} className="text-violet-400" />
                 <span>Correo electrónico</span>
@@ -544,7 +544,7 @@ export const AccountSettings: React.FC = () => {
                     <button
                       type="submit"
                       disabled={emailBusy}
-                      className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-violet-500 disabled:opacity-50"
+                      className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
                     >
                       {emailBusy ? <Loader2 size={15} className="animate-spin" /> : <Mail size={15} />}
                       <span>Cambiar correo</span>
@@ -573,7 +573,7 @@ export const AccountSettings: React.FC = () => {
             </form>
 
             {/* Contraseña */}
-            <form onSubmit={handleChangePassword} className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+            <form onSubmit={handleChangePassword} className="space-y-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
               <p className="flex items-center gap-2 text-xs font-bold text-zinc-200">
                 <KeyRound size={14} className="text-violet-400" />
                 <span>Contraseña</span>
@@ -616,7 +616,7 @@ export const AccountSettings: React.FC = () => {
                     <button
                       type="submit"
                       disabled={passBusy}
-                      className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-violet-500 disabled:opacity-50"
+                      className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
                     >
                       {passBusy ? <Loader2 size={15} className="animate-spin" /> : <KeyRound size={15} />}
                       <span>Cambiar contraseña</span>
@@ -632,7 +632,7 @@ export const AccountSettings: React.FC = () => {
               )}
 
               {/* Recuperación: funciona con todos los métodos */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800/80 pt-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
                 <p className="text-[11px] text-zinc-500">
                   ¿No te acuerdas? Te enviamos un correo para elegir una nueva.
                 </p>
@@ -640,7 +640,7 @@ export const AccountSettings: React.FC = () => {
                   type="button"
                   onClick={handleSendReset}
                   disabled={resetBusy || !currentUser.email}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/40 hover:text-white disabled:opacity-50"
+                  className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/40 hover:text-white disabled:opacity-50"
                 >
                   {resetBusy ? <Loader2 size={14} className="animate-spin" /> : null}
                   Enviar correo de recuperación
@@ -673,7 +673,7 @@ export const AccountSettings: React.FC = () => {
             </form>
 
             {/* Sesión */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
               <div>
                 <p className="text-xs font-semibold text-zinc-200">Sesión</p>
                 <p className="mt-1 text-[11px] text-zinc-500">
@@ -683,7 +683,7 @@ export const AccountSettings: React.FC = () => {
               <button
                 type="button"
                 onClick={() => void logout()}
-                className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/40 hover:text-white"
+                className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/40 hover:text-white"
               >
                 <LogOut size={14} />
                 Cerrar sesión
@@ -709,7 +709,7 @@ export const AccountSettings: React.FC = () => {
               </p>
 
               {/* Lo que se va a borrar, contado */}
-              <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+              <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02]/60 p-3">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
                   Se va a eliminar
                 </p>
@@ -746,7 +746,7 @@ export const AccountSettings: React.FC = () => {
                   </ul>
                 )}
 
-                <p className="mt-3 border-t border-zinc-800/80 pt-2 text-[11px] leading-relaxed text-zinc-500">
+                <p className="mt-3 border-t border-white/[0.06] pt-2 text-[11px] leading-relaxed text-zinc-500">
                   Lo que escribieron OTRAS personas (comentarios en tus hilos, mensajes en
                   conversaciones compartidas) se queda: es contenido suyo, y borrarlo desde aquí
                   sería quitarles su conversación de la nada.
@@ -790,7 +790,7 @@ export const AccountSettings: React.FC = () => {
                 />
               </div>
             ) : (
-              <p className="rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-[11px] leading-relaxed text-zinc-400">
+              <p className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5 text-[11px] leading-relaxed text-zinc-400">
                 Al continuar se abrirá la ventana de {method === 'google' ? 'Google' : 'GitHub'} para
                 confirmar que eres tú. Sin ese paso no se borra nada, porque la cuenta no tiene
                 contraseña que pedir.
@@ -804,7 +804,7 @@ export const AccountSettings: React.FC = () => {
             </p>
 
             {deleteStep && (
-              <p className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-[11px] text-zinc-300">
+              <p className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5 text-[11px] text-zinc-300">
                 <Loader2 size={13} className="animate-spin" />
                 {deleteStep}
               </p>

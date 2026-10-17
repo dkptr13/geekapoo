@@ -151,8 +151,8 @@ export const ProfileMedals: React.FC<{
           más frecuente que se hace con un título, y abrir el
           editor para ello sería un rodeo. */}
       {propio && equipado && onEquipar && (
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
-          <Sparkles size={15} className="flex-shrink-0 text-amber-400" />
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <Sparkles size={15} className="flex-shrink-0 text-amber-300" />
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
               Tu título
@@ -167,7 +167,7 @@ export const ProfileMedals: React.FC<{
             type="button"
             onClick={() => onEquipar(null)}
             aria-label="Quitar el título"
-            className="flex flex-shrink-0 items-center gap-1 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-[11px] font-bold text-zinc-400 transition-colors hover:border-zinc-600 hover:text-white"
+            className="chat-boton flex flex-shrink-0 items-center gap-1 rounded-xl border border-white/[0.08] px-2.5 py-1.5 text-[11px] font-bold text-zinc-400 transition-colors hover:border-white/[0.12] hover:text-white"
           >
             <X size={11} />
             Quitar
@@ -176,7 +176,7 @@ export const ProfileMedals: React.FC<{
       )}
 
       {visibles.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+        <p className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.02] px-4 py-8 text-center text-xs text-zinc-500">
           {propio
             ? 'Todavía no has desbloqueado ninguna medalla. Publica un hilo o un comentario para empezar.'
             : 'Todavía no ha desbloqueado ninguna medalla.'}
@@ -202,7 +202,7 @@ export const ProfileMedals: React.FC<{
             <button
               type="button"
               onClick={() => setTodas((v) => !v)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-zinc-800 py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-amber-500/40 hover:text-white"
+              className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-amber-400/40 hover:text-white"
             >
               {!todas ? (
                 <>

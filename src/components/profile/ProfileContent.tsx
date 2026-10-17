@@ -70,7 +70,7 @@ export const ProfileContent: React.FC<{
           <Layers size={16} className="text-violet-400" />
           {pestana === 'hilos' ? 'Publicaciones' : 'Comentarios'}
         </h2>
-        <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+        <p className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.02] px-4 py-8 text-center text-xs text-zinc-500">
           {pestana === 'hilos'
             ? 'Todavía no ha publicado ningún hilo.'
             : 'Todavía no ha escrito ningún comentario.'}
@@ -94,7 +94,7 @@ export const ProfileContent: React.FC<{
 
         <div
           role="tablist"
-          className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/60 p-1"
+          className="flex gap-1 overflow-x-auto rounded-xl border border-white/[0.06] bg-white/[0.02] p-1"
         >
           {(
             [
@@ -115,7 +115,7 @@ export const ProfileContent: React.FC<{
                 // pedido ninguno.
                 setCuantos(PASO_PERFIL);
               }}
-              className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold transition-colors ${
+              className={`chat-boton flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold transition-colors ${
                 pestana === id
                   ? 'bg-violet-600 text-white'
                   : 'text-zinc-400 hover:text-white'
@@ -142,7 +142,7 @@ export const ProfileContent: React.FC<{
         <button
           type="button"
           onClick={() => setCuantos((n) => n + PASO_PERFIL)}
-          className="w-full rounded-xl border border-zinc-800 py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-violet-500/40 hover:text-white"
+          className="chat-boton w-full rounded-xl border border-white/[0.06] py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-violet-400/40 hover:text-white"
         >
           Ver más ({total - Math.min(cuantos, total)} más)
         </button>
@@ -164,7 +164,7 @@ const FilaHilo: React.FC<{
       type="button"
       onClick={() => onIrA?.(hilo.id)}
       disabled={!onIrA}
-      className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 text-left transition-colors hover:border-violet-500/40 hover:bg-zinc-950/80 disabled:cursor-default disabled:hover:border-zinc-800"
+      className="chat-boton w-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-left transition-colors hover:border-violet-400/40 hover:bg-white/[0.05] disabled:cursor-default disabled:hover:border-white/[0.06]"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-white">{hilo.title}</h3>
@@ -273,7 +273,7 @@ const FilaComentario: React.FC<{
           {cuerpo}
         </button>
       ) : (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 opacity-80">
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 opacity-80">
           {cuerpo}
         </div>
       )}

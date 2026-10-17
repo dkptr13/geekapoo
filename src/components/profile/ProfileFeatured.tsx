@@ -39,11 +39,11 @@ export const ProfileFeatured: React.FC<{
               onClick={() => onIrA?.(hilo.id)}
               disabled={!onIrA}
               title="Abrir este hilo en el feed"
-              className="w-full rounded-2xl border border-violet-500/20 bg-zinc-950/50 p-4 text-left transition-colors hover:border-violet-500/40 hover:bg-zinc-950/80 disabled:cursor-default"
+              className="chat-boton w-full rounded-2xl border border-violet-400/20 bg-white/[0.02] p-4 text-left transition-colors hover:border-violet-400/40 hover:bg-white/[0.05] disabled:cursor-default"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm font-bold text-white">{hilo.title}</span>
-                <span className="rounded-full border border-violet-500/30 bg-violet-600/20 px-2.5 py-0.5 text-[10px] font-medium text-violet-300">
+                <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-medium text-violet-200">
                   {hilo.categoryName}
                 </span>
               </div>
