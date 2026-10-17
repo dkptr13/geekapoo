@@ -118,7 +118,7 @@ export const ProfileView: React.FC<ProfileViewProps> = (props) => {
     // nadie. Se distinguen los dos casos porque el primero pide
     // iniciar sesión y el segundo avisa de que el perfil no está.
     return currentUser ? (
-      <div className="mx-auto max-w-3xl rounded-3xl border border-zinc-800 bg-zinc-900/90 p-10 text-center">
+      <div className="mx-auto max-w-3xl rounded-3xl border border-white/[0.06] bg-white/[0.03] p-10 text-center">
         <p className="text-base font-bold text-white">Este perfil ya no existe</p>
         <p className="mt-2 text-sm text-zinc-400">
           La cuenta puede haberse borrado, o el enlace estar mal escrito.
@@ -149,12 +149,12 @@ export const ProfileView: React.FC<ProfileViewProps> = (props) => {
   // dueño, y el dueño nunca ve esta pantalla.
   if (privado) {
     return (
-      <div className="mx-auto max-w-3xl rounded-3xl border border-zinc-800 bg-zinc-900/90 p-6 sm:p-8">
+      <div className="mx-auto max-w-3xl rounded-3xl border border-white/[0.06] bg-white/[0.03] p-6 sm:p-8">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
           <img
             src={perfil.avatarUrl || AVATAR_POR_DEFECTO}
             alt={perfil.username}
-            className="h-20 w-20 flex-shrink-0 rounded-3xl object-cover ring-4 ring-zinc-800"
+            className="h-20 w-20 flex-shrink-0 rounded-3xl object-cover ring-4 ring-white/10"
           />
           <div className="min-w-0">
             <h2 className="truncate text-xl font-black text-white">
@@ -492,9 +492,9 @@ const Perfil: React.FC<{
           escribirle por privado sin haberlo pedido. */}
       {esPropio && (
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs">
+          <div className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs">
             <span className="text-zinc-500">ID PARA CHATS:</span>
-            <code className="font-mono font-bold text-violet-400">{perfil.chatId}</code>
+            <code className="font-mono font-bold text-violet-300">{perfil.chatId}</code>
             <button
               onClick={handleCopyId}
               className="ml-1 p-1 text-zinc-400 transition-colors hover:text-white"
@@ -524,7 +524,7 @@ const Perfil: React.FC<{
            caben en una línea sin partirse por la mitad. Se puede
            copiar entero, que es lo que se copia cuando se lo pide
            el panel. */}
-          <div className="flex max-w-full items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs">
+          <div className="flex max-w-full items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs">
             <span className="shrink-0 text-zinc-500">UID:</span>
             <code
               className="min-w-0 break-all font-mono text-[10px] text-zinc-400"
@@ -686,7 +686,7 @@ const Perfil: React.FC<{
 
           {showMyLikes &&
             (userLikedCount === 0 ? (
-              <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+              <p className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.02] px-4 py-8 text-center text-xs text-zinc-500">
                 Todavía no le has dado Me gusta a nada. Pulsa el corazón en una serie, en un
                 hilo o en un comentario y aparecerá aquí.
               </p>
@@ -705,7 +705,7 @@ const Perfil: React.FC<{
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                       {myLikedAnimes.map((anime) => (
                         <div key={anime.id} className="group relative text-left">
-                          <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+                          <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03]">
                             <QuickImageEditor
                               section="animes"
                               itemId={anime.id}
@@ -789,11 +789,11 @@ const Perfil: React.FC<{
                             onClick={() => onGoToThread?.(thread.id)}
                             disabled={!onGoToThread}
                             title="Abrir este hilo en el feed"
-                            className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 text-left transition-colors hover:border-violet-500/40 hover:bg-zinc-950/80 disabled:cursor-default disabled:hover:border-zinc-800"
+                            className="w-full rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:border-violet-400/40 hover:bg-white/[0.05] disabled:cursor-default disabled:hover:border-white/[0.06]"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <span className="text-sm font-bold text-white">{thread.title}</span>
-                              <span className="rounded-full border border-zinc-700/50 bg-zinc-800/80 px-2.5 py-0.5 text-[10px] font-medium text-violet-300">
+                              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-0.5 text-[10px] font-medium text-violet-300">
                                 {thread.categoryName}
                               </span>
                             </div>
@@ -887,7 +887,7 @@ const Perfil: React.FC<{
                               // anime, un episodio o un personaje) se
                               // muestran, pero no son navegables: el
                               // feed no es quien los pinta.
-                              <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 opacity-80">
+                              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 opacity-80">
                                 {body}
                               </div>
                             )}
@@ -984,7 +984,7 @@ const SeguidoresSolo: React.FC<{
       />
     </div>
 
-    <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-3 text-center text-[11px] text-zinc-500">
+    <p className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center text-[11px] text-zinc-500">
       {nombre} tiene su actividad oculta.
     </p>
   </section>
@@ -1001,7 +1001,7 @@ const BotonSeguidores: React.FC<{
     type="button"
     onClick={onClick}
     title={numero === undefined ? `Cargando ${label}...` : `Ver ${label.toLowerCase()} de ${nombre}`}
-    className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-center transition-colors hover:border-violet-500/40 hover:bg-zinc-950"
+    className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3 text-center transition-colors hover:border-violet-400/40 hover:bg-white/[0.05]"
   >
     <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{label}</p>
     <p className="mt-0.5 font-mono text-base font-bold text-white">
