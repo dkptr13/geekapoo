@@ -81,7 +81,7 @@ const Toggle: React.FC<{
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full transition-colors disabled:opacity-40 ${
-        checked ? 'bg-violet-600' : 'bg-zinc-800'
+        checked ? 'bg-violet-600' : 'bg-white/[0.04]'
       }`}
     >
       <span

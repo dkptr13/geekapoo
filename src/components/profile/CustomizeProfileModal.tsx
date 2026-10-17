@@ -834,14 +834,14 @@ export const CustomizeProfileModal: React.FC<{
           aria-modal="true"
           aria-label="Personalizar perfil"
           onClick={(e) => e.stopPropagation()}
-          className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/[0.06] bg-zinc-900 shadow-2xl sm:max-w-2xl sm:rounded-3xl"
+          className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/[0.06] bg-[#0c0c14] shadow-2xl sm:max-w-2xl sm:rounded-3xl"
         >
           {/* ── Cabecera ─────────────────────────────── */}
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
             <h2 className="flex items-center gap-2 text-sm font-bold text-white">
               <Sparkles size={15} className="text-violet-400" />
               Personalizar perfil
-              <span className="rounded-md bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] font-bold text-zinc-400">
+              <span className="rounded-md bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] font-bold text-zinc-400">
                 Nv. {level}
               </span>
             </h2>
@@ -850,7 +850,7 @@ export const CustomizeProfileModal: React.FC<{
               onClick={onCerrar}
               disabled={guardando}
               aria-label="Cerrar"
-              className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white disabled:opacity-50"
+              className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-white/[0.05] hover:text-white disabled:opacity-50"
             >
               <X size={16} />
             </button>
@@ -869,7 +869,7 @@ export const CustomizeProfileModal: React.FC<{
               ) : (
                 <div aria-hidden="true" style={{ background: bannerVista.css }} className="h-16 w-full" />
               )}
-              <div className="flex items-center gap-3 bg-zinc-950/90 p-3">
+              <div className="flex items-center gap-3 bg-[#080810]/95 p-3">
                 <img
                   src={vistaPrevia.avatarUrl || avatarPorDefecto}
                   alt=""
@@ -920,7 +920,7 @@ export const CustomizeProfileModal: React.FC<{
                 className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
                   pestana === p.id
                     ? 'bg-violet-600/20 text-violet-300'
-                    : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
+                    : 'text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-300'
                 }`}
               >
                 {p.nombre}
@@ -976,13 +976,13 @@ export const CustomizeProfileModal: React.FC<{
                     O sube el tuyo {!puedeBannerPropio && `(nivel ${BANNER_PROPIO_NIVEL})`}
                   </label>
                   {!puedeBannerPropio ? (
-                    <p className="flex items-center gap-2 rounded-xl border border-dashed border-white/[0.06] bg-zinc-950/40 px-3 py-2.5 text-[11px] text-zinc-500">
+                    <p className="flex items-center gap-2 rounded-xl border border-dashed border-white/[0.06] bg-[#080810]/85 px-3 py-2.5 text-[11px] text-zinc-500">
                       <Lock size={12} className="flex-shrink-0" />
                       Subir un banner propio se desbloquea en el nivel {BANNER_PROPIO_NIVEL}.
                     </p>
                   ) : (
                     <div className="flex flex-wrap items-center gap-2">
-                      <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/[0.1] bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
+                      <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/[0.1] bg-[#080810] px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
                         <ImagePlus size={14} />
                         Subir banner
                         <input
@@ -1007,7 +1007,7 @@ export const CustomizeProfileModal: React.FC<{
                         value={datos.bannerUrl.startsWith(PREFIJO_BANNER) ? '' : datos.bannerUrl}
                         onChange={(e) => cambiar('bannerUrl', e.target.value)}
                         placeholder="https://..."
-                        className={`min-w-0 flex-1 rounded-xl border bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
+                        className={`min-w-0 flex-1 rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                           errores.bannerUrl ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                         }`}
                       />
@@ -1042,13 +1042,13 @@ export const CustomizeProfileModal: React.FC<{
                       className="h-20 w-20 rounded-2xl object-cover ring-2 ring-zinc-800"
                     />
                     {subiendo && (
-                      <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-zinc-950/70">
+                      <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[#080810]/70">
                         <Loader2 size={18} className="animate-spin text-violet-400" />
                       </span>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
+                    <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] bg-[#080810] px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
                       <ImagePlus size={14} />
                       Subir una imagen
                       <input
@@ -1112,7 +1112,7 @@ export const CustomizeProfileModal: React.FC<{
                     value={datos.avatarUrl}
                     onChange={(e) => cambiar('avatarUrl', e.target.value)}
                     placeholder="https://..."
-                    className={`w-full rounded-xl border bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
+                    className={`w-full rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                       errores.avatarUrl ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
                   />
@@ -1181,8 +1181,8 @@ export const CustomizeProfileModal: React.FC<{
                             elegido
                               ? 'border-violet-500/60 bg-violet-500/10'
                               : desbloqueado
-                                ? 'border-white/[0.06] bg-zinc-950 hover:border-white/[0.1]'
-                                : 'cursor-not-allowed border-white/[0.06] bg-zinc-950 opacity-50'
+                                ? 'border-white/[0.06] bg-[#080810] hover:border-white/[0.1]'
+                                : 'cursor-not-allowed border-white/[0.06] bg-[#080810] opacity-50'
                           }`}
                         >
                           <img
@@ -1230,7 +1230,7 @@ export const CustomizeProfileModal: React.FC<{
                           : 'border-white/[0.06] opacity-80 hover:opacity-100'
                       }`}
                     >
-                      <span aria-hidden="true" className="absolute inset-0 bg-zinc-950" />
+                      <span aria-hidden="true" className="absolute inset-0 bg-[#080810]" />
                       <span className="relative text-[10px] font-bold text-zinc-300">
                         Ninguno (el del sitio)
                       </span>
@@ -1278,14 +1278,14 @@ export const CustomizeProfileModal: React.FC<{
                     O sube el tuyo {!puedeBannerPropio && `(nivel ${BANNER_PROPIO_NIVEL})`}
                   </label>
                   {!puedeBannerPropio ? (
-                    <p className="flex items-center gap-2 rounded-xl border border-dashed border-white/[0.06] bg-zinc-950/40 px-3 py-2.5 text-[11px] text-zinc-500">
+                    <p className="flex items-center gap-2 rounded-xl border border-dashed border-white/[0.06] bg-[#080810]/85 px-3 py-2.5 text-[11px] text-zinc-500">
                       <Lock size={12} className="flex-shrink-0" />
                       Subir un fondo propio se desbloquea en el nivel {BANNER_PROPIO_NIVEL}.
                       Los GIF animados valen si son imagen de verdad.
                     </p>
                   ) : (
                     <div className="flex flex-wrap items-center gap-2">
-                      <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/[0.1] bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
+                      <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/[0.1] bg-[#080810] px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
                         <ImagePlus size={14} />
                         Subir fondo
                         <input
@@ -1316,7 +1316,7 @@ export const CustomizeProfileModal: React.FC<{
                           if (e.target.value.trim()) cambiar('backgroundPreset', '');
                         }}
                         placeholder="https://..."
-                        className={`min-w-0 flex-1 rounded-xl border bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
+                        className={`min-w-0 flex-1 rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                           errores.backgroundUrl ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                         }`}
                       />
@@ -1343,7 +1343,7 @@ export const CustomizeProfileModal: React.FC<{
                           className={`flex-1 rounded-xl border px-2 py-2 text-[11px] font-bold transition-colors ${
                             datos.backgroundPosition === pos
                               ? 'border-violet-500/60 bg-violet-500/10 text-white'
-                              : 'border-white/[0.06] bg-zinc-950 text-zinc-400 hover:border-white/[0.1]'
+                              : 'border-white/[0.06] bg-[#080810] text-zinc-400 hover:border-white/[0.1]'
                           }`}
                         >
                           {pos === 'center' ? 'Centro' : pos === 'top' ? 'Arriba' : 'Abajo'}
@@ -1393,7 +1393,7 @@ export const CustomizeProfileModal: React.FC<{
                       );
                       if (vista.tipo === 'ninguno') {
                         return (
-                          <span className="flex h-full items-center justify-center bg-zinc-950 text-[11px] text-zinc-600">
+                          <span className="flex h-full items-center justify-center bg-[#080810] text-[11px] text-zinc-600">
                             Fondo del sitio
                           </span>
                         );
@@ -1445,7 +1445,7 @@ export const CustomizeProfileModal: React.FC<{
                     para arrastrar. */}
                 <div
                   ref={marcoRef}
-                  className="overflow-hidden rounded-2xl border border-white/[0.06] bg-zinc-900/90"
+                  className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0c14]/95"
                 >
                   {anchoMarco > 0 && (
                     <div
@@ -1514,7 +1514,7 @@ export const CustomizeProfileModal: React.FC<{
                     );
                   }
                   return (
-                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.06] bg-zinc-950/60 p-3">
+                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.06] bg-[#080810]/95 p-3">
                       <span className="text-xs font-bold text-zinc-300">Tamaño:</span>
                       {(['s', 'm', 'l'] as const).map((t) => (
                         <button
@@ -1531,7 +1531,7 @@ export const CustomizeProfileModal: React.FC<{
                           {t.toUpperCase()}
                         </button>
                       ))}
-                      <span className="mx-1 h-5 w-px bg-zinc-800" aria-hidden="true" />
+                      <span className="mx-1 h-5 w-px bg-white/[0.04]" aria-hidden="true" />
                       <div className="flex gap-1" role="group" aria-label="Mover">
                         {(
                           [
@@ -1552,7 +1552,7 @@ export const CustomizeProfileModal: React.FC<{
                           </button>
                         ))}
                       </div>
-                      <span className="mx-1 h-5 w-px bg-zinc-800" aria-hidden="true" />
+                      <span className="mx-1 h-5 w-px bg-white/[0.04]" aria-hidden="true" />
                       <select
                         aria-label="Posición predefinida"
                         value=""
@@ -1560,7 +1560,7 @@ export const CustomizeProfileModal: React.FC<{
                           const pos = POSICIONES_PREDEFINIDAS.find((p) => p.id === e.target.value);
                           if (pos) tocarDecoracion(sel.id, { x: pos.x, y: pos.y });
                         }}
-                        className="rounded-lg border border-white/[0.06] bg-zinc-950 px-2 py-1 text-[11px] text-zinc-300"
+                        className="rounded-lg border border-white/[0.06] bg-[#080810] px-2 py-1 text-[11px] text-zinc-300"
                       >
                         <option value="">Mover a…</option>
                         {POSICIONES_PREDEFINIDAS.map((p) => (
@@ -1597,7 +1597,7 @@ export const CustomizeProfileModal: React.FC<{
                           title={desbloqueado ? p.nombre : `${p.nombre} (nivel ${p.nivelMinimo})`}
                           className={`relative flex h-11 w-11 items-center justify-center rounded-xl border text-xl transition-all ${
                             desbloqueado
-                              ? 'border-white/[0.06] bg-zinc-950 hover:border-violet-500/50 hover:scale-105'
+                              ? 'border-white/[0.06] bg-[#080810] hover:border-violet-500/50 hover:scale-105'
                               : 'cursor-not-allowed border-white/[0.06] opacity-40'
                           }`}
                         >
@@ -1617,7 +1617,7 @@ export const CustomizeProfileModal: React.FC<{
                     O una imagen tuya (https)
                   </label>
                   <div className="flex gap-2">
-                    <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/[0.1] bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
+                    <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/[0.1] bg-[#080810] px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
                       <ImagePlus size={13} />
                       Subir
                       <input
@@ -1653,7 +1653,7 @@ export const CustomizeProfileModal: React.FC<{
                           (e.target as HTMLInputElement).value = '';
                         }
                       }}
-                      className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                      className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                     />
                   </div>
                   <p className="mt-1 text-[10px] text-zinc-600">
@@ -1676,7 +1676,7 @@ export const CustomizeProfileModal: React.FC<{
                           type="button"
                           onClick={() => anadirDecoracion('medal', m.id)}
                           title={m.nombre}
-                          className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.06] bg-zinc-950 text-xl transition-all hover:border-violet-500/50 hover:scale-105"
+                          className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.06] bg-[#080810] text-xl transition-all hover:border-violet-500/50 hover:scale-105"
                         >
                           {m.icono}
                         </button>
@@ -1725,7 +1725,7 @@ export const CustomizeProfileModal: React.FC<{
                         className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 ${
                           activa
                             ? 'border-violet-500/40 bg-violet-500/5'
-                            : 'border-white/[0.06] bg-zinc-950 opacity-70'
+                            : 'border-white/[0.06] bg-[#080810] opacity-70'
                         } ${!desbloqueado ? 'opacity-50' : ''}`}
                       >
                         <button
@@ -1791,7 +1791,7 @@ export const CustomizeProfileModal: React.FC<{
                     type="text"
                     value={datos.displayName}
                     onChange={(e) => cambiar('displayName', e.target.value)}
-                    className={`w-full rounded-xl border bg-zinc-950 px-3.5 py-2.5 text-xs text-white focus:outline-none ${
+                    className={`w-full rounded-xl border bg-[#080810] px-3.5 py-2.5 text-xs text-white focus:outline-none ${
                       errores.displayName ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
                   />
@@ -1820,7 +1820,7 @@ export const CustomizeProfileModal: React.FC<{
                     value={datos.bio}
                     onChange={(e) => cambiar('bio', e.target.value)}
                     placeholder="Manga, anime y cyberpunk."
-                    className={`w-full rounded-xl border bg-zinc-950 p-3.5 text-xs text-white placeholder-zinc-600 focus:outline-none ${
+                    className={`w-full rounded-xl border bg-[#080810] p-3.5 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                       errores.bio ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
                   />
@@ -1836,7 +1836,7 @@ export const CustomizeProfileModal: React.FC<{
                     value={datos.favoriteAnime}
                     onChange={(e) => cambiar('favoriteAnime', e.target.value)}
                     placeholder="Kaguya-sama: Love is War"
-                    className={`w-full rounded-xl border bg-zinc-950 px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none ${
+                    className={`w-full rounded-xl border bg-[#080810] px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                       errores.favoriteAnime ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
                   />
@@ -1868,12 +1868,12 @@ export const CustomizeProfileModal: React.FC<{
                         value={datos.favoriteCharacterName}
                         onChange={(e) => cambiar('favoriteCharacterName', e.target.value)}
                         placeholder="Nombre del personaje"
-                        className={`w-full rounded-xl border bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
+                        className={`w-full rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                           errores.favoriteCharacterName ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                         }`}
                       />
                       <div className="flex gap-2">
-                        <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/[0.1] bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
+                        <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/[0.1] bg-[#080810] px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
                           <ImagePlus size={13} />
                           Subir
                           <input
@@ -1899,7 +1899,7 @@ export const CustomizeProfileModal: React.FC<{
                           value={datos.favoriteCharacterImage}
                           onChange={(e) => cambiar('favoriteCharacterImage', e.target.value)}
                           placeholder="https://..."
-                          className={`min-w-0 flex-1 rounded-xl border bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
+                          className={`min-w-0 flex-1 rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                             errores.favoriteCharacterImage ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                           }`}
                         />
@@ -1923,7 +1923,7 @@ export const CustomizeProfileModal: React.FC<{
                     value={datos.favoriteCharacterDesc}
                     onChange={(e) => cambiar('favoriteCharacterDesc', e.target.value)}
                     placeholder="Lo que le hace especial para ti."
-                    className={`w-full rounded-xl border bg-zinc-950 p-3 text-xs text-white placeholder-zinc-600 focus:outline-none ${
+                    className={`w-full rounded-xl border bg-[#080810] p-3 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                       errores.favoriteCharacterDesc ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
                   />
@@ -1942,7 +1942,7 @@ export const CustomizeProfileModal: React.FC<{
                   </label>
                   <div className="space-y-2">
                     {(datos.favoriteCharacters ?? []).map((p, i) => (
-                      <div key={i} className="flex items-center gap-2 rounded-2xl border border-white/[0.06] bg-zinc-950/60 p-2.5">
+                      <div key={i} className="flex items-center gap-2 rounded-2xl border border-white/[0.06] bg-[#080810]/95 p-2.5">
                         <button
                           type="button"
                           onClick={() => {
@@ -1963,7 +1963,7 @@ export const CustomizeProfileModal: React.FC<{
                             input.click();
                           }}
                           title="Subir imagen"
-                          className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl border border-white/[0.06] bg-zinc-900"
+                          className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0c0c14]"
                         >
                           {p.imageUrl ? (
                             <img src={p.imageUrl} alt="" aria-hidden="true" className="h-full w-full object-cover" />
@@ -1987,7 +1987,7 @@ export const CustomizeProfileModal: React.FC<{
                             }
                             placeholder="Nombre"
                             aria-label={`Nombre del personaje ${i + 1}`}
-                            className="w-full rounded-lg border border-white/[0.06] bg-zinc-950 px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                            className="w-full rounded-lg border border-white/[0.06] bg-[#080810] px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                           />
                           <div className="flex gap-1.5">
                             <input
@@ -2003,7 +2003,7 @@ export const CustomizeProfileModal: React.FC<{
                               }
                               placeholder="Serie (opcional)"
                               aria-label={`Serie del personaje ${i + 1}`}
-                              className="min-w-0 flex-1 rounded-lg border border-white/[0.06] bg-zinc-950 px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                              className="min-w-0 flex-1 rounded-lg border border-white/[0.06] bg-[#080810] px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                             />
                             <input
                               type="url"
@@ -2018,7 +2018,7 @@ export const CustomizeProfileModal: React.FC<{
                               }
                               placeholder="https://..."
                               aria-label={`Imagen del personaje ${i + 1}`}
-                              className="min-w-0 flex-1 rounded-lg border border-white/[0.06] bg-zinc-950 px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                              className="min-w-0 flex-1 rounded-lg border border-white/[0.06] bg-[#080810] px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                             />
                           </div>
                         </div>
@@ -2031,7 +2031,7 @@ export const CustomizeProfileModal: React.FC<{
                             }))
                           }
                           aria-label={`Quitar personaje ${i + 1}`}
-                          className="flex-shrink-0 rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-red-400"
+                          className="flex-shrink-0 rounded-lg p-1.5 text-zinc-500 hover:bg-white/[0.05] hover:text-red-400"
                         >
                           <X size={14} />
                         </button>
@@ -2072,7 +2072,7 @@ export const CustomizeProfileModal: React.FC<{
                       className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs transition-colors ${
                         datos.equippedTitle === null
                           ? 'border-violet-500/60 bg-violet-500/10 text-white'
-                          : 'border-white/[0.06] bg-zinc-950 text-zinc-400 hover:border-white/[0.1]'
+                          : 'border-white/[0.06] bg-[#080810] text-zinc-400 hover:border-white/[0.1]'
                       }`}
                     >
                       <span className="text-base">✕</span>
@@ -2091,7 +2091,7 @@ export const CustomizeProfileModal: React.FC<{
                             className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition-colors ${
                               elegido
                                 ? `${estilo.borde} ${estilo.fondo}`
-                                : 'border-white/[0.06] bg-zinc-950 hover:border-white/[0.1]'
+                                : 'border-white/[0.06] bg-[#080810] hover:border-white/[0.1]'
                             }`}
                           >
                             <span className="text-lg">{m.icono}</span>
@@ -2108,7 +2108,7 @@ export const CustomizeProfileModal: React.FC<{
                       })}
                   </div>
                 ) : (
-                  <p className="rounded-2xl border border-dashed border-white/[0.06] bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+                  <p className="rounded-2xl border border-dashed border-white/[0.06] bg-[#080810]/85 px-4 py-8 text-center text-xs text-zinc-500">
                     Todavía no tienes ningún título. Consigue medallas con título
                     participando en la comunidad.
                   </p>
@@ -2166,7 +2166,7 @@ export const CustomizeProfileModal: React.FC<{
                   ) : null;
                 })()}
                 {desbloqueadas.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-white/[0.06] bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+                  <p className="rounded-2xl border border-dashed border-white/[0.06] bg-[#080810]/85 px-4 py-8 text-center text-xs text-zinc-500">
                     Todavía no tienes medallas. Publica, comenta y participa para
                     conseguirlas.
                   </p>
@@ -2185,7 +2185,7 @@ export const CustomizeProfileModal: React.FC<{
                           className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition-colors ${
                             marcada
                               ? `${estilo.borde} ${estilo.fondo}`
-                              : 'border-white/[0.06] bg-zinc-950 opacity-60 hover:opacity-100'
+                              : 'border-white/[0.06] bg-[#080810] opacity-60 hover:opacity-100'
                           }`}
                         >
                           <span className="text-lg">{m.icono}</span>
@@ -2226,7 +2226,7 @@ export const CustomizeProfileModal: React.FC<{
                   </span>
                 </p>
                 {hilosPropios.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-white/[0.06] bg-zinc-950/40 px-4 py-8 text-center text-xs text-zinc-500">
+                  <p className="rounded-2xl border border-dashed border-white/[0.06] bg-[#080810]/85 px-4 py-8 text-center text-xs text-zinc-500">
                     Todavía no has publicado ningún hilo.
                   </p>
                 ) : (
@@ -2243,12 +2243,12 @@ export const CustomizeProfileModal: React.FC<{
                           className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition-colors ${
                             fijado
                               ? 'border-violet-500/60 bg-violet-500/10'
-                              : 'border-white/[0.06] bg-zinc-950 hover:border-white/[0.1]'
+                              : 'border-white/[0.06] bg-[#080810] hover:border-white/[0.1]'
                           }`}
                         >
                           <span
                             className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg font-mono text-[11px] font-bold ${
-                              fijado ? 'bg-violet-600 text-white' : 'bg-zinc-800 text-zinc-500'
+                              fijado ? 'bg-violet-600 text-white' : 'bg-white/[0.04] text-zinc-500'
                             }`}
                           >
                             {fijado ? orden + 1 : <Pin size={11} />}
