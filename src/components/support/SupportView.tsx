@@ -70,11 +70,11 @@ export const SupportView: React.FC = () => {
 
       <div className="max-w-3xl mx-auto w-full space-y-6">
       {/* Header */}
-      <div className="rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 sm:p-8 text-center space-y-3">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
+      <div className="rounded-3xl border border-white/[0.06] bg-gradient-to-br from-[#10101a] via-[#0c0c14] to-[#12102a] p-6 sm:p-8 text-center space-y-3 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-600/25 to-sky-500/15 text-violet-300 shadow-inner">
           <LifeBuoy size={24} />
         </div>
-        <h2 className="text-2xl font-black text-white">Soporte Técnico y Ayuda Geekapoo</h2>
+        <h2 className="text-2xl font-black tracking-tight text-white">Soporte Técnico y Ayuda Geekapoo</h2>
         <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto">
           ¿Has detectado un error técnico, tienes una duda sobre las normas de respeto mutuo o quieres sugerir una mejora para la plataforma? Nuestro equipo técnico te responderá con la mayor brevedad.
         </p>
@@ -82,7 +82,7 @@ export const SupportView: React.FC = () => {
 
       {/* Success Ticket Confirmation */}
       {ticketResult ? (
-        <div className="rounded-3xl border border-emerald-500/40 bg-zinc-900 p-8 text-center space-y-4 animate-in fade-in duration-200 shadow-2xl">
+        <div className="rounded-3xl border border-emerald-400/25 bg-white/[0.03] p-8 text-center space-y-4 animate-in fade-in duration-200 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
             <CheckCircle2 size={36} />
           </div>
@@ -93,7 +93,7 @@ export const SupportView: React.FC = () => {
             </p>
           </div>
 
-          <div className="rounded-2xl bg-zinc-950 border border-emerald-500/30 p-4 max-w-sm mx-auto font-mono text-xs">
+          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 max-w-sm mx-auto font-mono text-xs">
             <span className="text-zinc-500 block text-[10px]">CÓDIGO DE SEGUIMIENTO:</span>
             <strong className="text-lg text-emerald-400 font-bold">{ticketResult.id}</strong>
           </div>
@@ -104,7 +104,7 @@ export const SupportView: React.FC = () => {
 
           <button
             onClick={() => setTicketResult(null)}
-            className="rounded-xl bg-zinc-800 px-5 py-2.5 text-xs font-bold text-white hover:bg-zinc-700 transition-all"
+            className="chat-boton rounded-xl bg-white/[0.04] px-5 py-2.5 text-xs font-bold text-zinc-200 hover:bg-white/[0.08] transition-all"
           >
             Enviar otra consulta
           </button>
@@ -113,7 +113,7 @@ export const SupportView: React.FC = () => {
         /* Form */
         <form
           onSubmit={handleSubmit}
-          className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-6 sm:p-8 space-y-5 shadow-xl"
+          className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-6 sm:p-8 space-y-5 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]"
         >
           {/* Category selection */}
           <div>
@@ -126,8 +126,8 @@ export const SupportView: React.FC = () => {
                 onClick={() => setCategory('bug')}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all ${
                   category === 'bug'
-                    ? 'border-violet-500 bg-violet-950/40 text-violet-300'
-                    : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white'
+                    ? 'border-violet-400/25 bg-violet-500/15 text-violet-200'
+                    : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                 }`}
               >
                 <AlertCircle size={18} className="mb-1 text-red-400" />
@@ -139,8 +139,8 @@ export const SupportView: React.FC = () => {
                 onClick={() => setCategory('suggestion')}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all ${
                   category === 'suggestion'
-                    ? 'border-violet-500 bg-violet-950/40 text-violet-300'
-                    : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white'
+                    ? 'border-violet-400/25 bg-violet-500/15 text-violet-200'
+                    : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                 }`}
               >
                 <Sparkles size={18} className="mb-1 text-amber-400" />
@@ -152,8 +152,8 @@ export const SupportView: React.FC = () => {
                 onClick={() => setCategory('account')}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all ${
                   category === 'account'
-                    ? 'border-violet-500 bg-violet-950/40 text-violet-300'
-                    : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white'
+                    ? 'border-violet-400/25 bg-violet-500/15 text-violet-200'
+                    : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                 }`}
               >
                 <HelpCircle size={18} className="mb-1 text-sky-400" />
@@ -165,8 +165,8 @@ export const SupportView: React.FC = () => {
                 onClick={() => setCategory('report')}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all ${
                   category === 'report'
-                    ? 'border-violet-500 bg-violet-950/40 text-violet-300'
-                    : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white'
+                    ? 'border-violet-400/25 bg-violet-500/15 text-violet-200'
+                    : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                 }`}
               >
                 <ShieldAlert size={18} className="mb-1 text-fuchsia-400" />
@@ -184,7 +184,7 @@ export const SupportView: React.FC = () => {
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
               placeholder="tu_email@ejemplo.com"
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
               required
             />
           </div>
@@ -198,7 +198,7 @@ export const SupportView: React.FC = () => {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Ej: Fallo al cargar comentarios del capítulo 3 de Kaguya-sama"
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
               required
             />
           </div>
@@ -212,7 +212,7 @@ export const SupportView: React.FC = () => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe lo ocurrido con el mayor detalle posible (dispositivo, pasos para reproducir el problema)..."
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none leading-relaxed"
+              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none leading-relaxed"
               required
             />
           </div>
@@ -228,7 +228,7 @@ export const SupportView: React.FC = () => {
             <button
               type="submit"
               disabled={sending}
-              className="flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/30 hover:bg-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send size={14} />
               <span>
