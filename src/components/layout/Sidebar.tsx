@@ -79,8 +79,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="flex h-full flex-col gap-6">
 
       {/* Community Manifest / Respeto Mutuo. Fijo, sin scroll. */}
-      <section className="relative shrink-0 overflow-hidden rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-zinc-900 to-zinc-900 p-5 shadow-lg">
-        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-violet-400">
+      <section className="relative shrink-0 overflow-hidden rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-500/10 via-[#0e0e17] to-[#0c0c14] p-5 shadow-[0_16px_48px_-20px_rgba(0,0,0,0.8)]">
+        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-violet-300">
           <Shield size={15} />
           <span>Comunidad Geekapoo</span>
         </div>
@@ -128,10 +128,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="panel-scroll -mr-2 min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain pr-2">
 
         {/* Categorías más populares */}
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/90 p-5">
+        <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Tag size={16} className="text-violet-400" />
+              <Tag size={16} className="text-violet-300" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-white">
                 Categorías
               </h2>
@@ -144,10 +144,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={cat.id}
                 onClick={() => onSelectCategory && onSelectCategory(cat.id)}
-                className="group flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-1.5 text-xs text-zinc-300 transition-all hover:border-violet-500 hover:text-white"
+                className="chat-boton group flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition-all hover:border-violet-400/40 hover:bg-violet-500/10 hover:text-violet-200"
               >
                 <span>{cat.name}</span>
-                <span className="rounded-md bg-zinc-800 px-1.5 py-0.2 font-mono text-[10px] text-violet-400 group-hover:bg-violet-950">
+                <span className="rounded-md bg-white/[0.06] px-1.5 py-0.2 font-mono text-[10px] text-violet-300 group-hover:bg-violet-500/20">
                   {cat.threadsCount ?? 0}
                 </span>
               </button>
@@ -156,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </section>
 
         {/* Hilos destacados del día */}
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/90 p-5">
+        <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
           <div className="mb-4 flex items-center gap-2">
             <TrendingUp size={16} className="text-pink-400" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-white">
@@ -165,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {threadsOfTheDay.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-zinc-800 bg-zinc-950/50 px-3 py-5 text-center text-[11px] leading-relaxed text-zinc-500">
+            <p className="rounded-xl border border-dashed border-white/[0.06] bg-white/[0.02] px-3 py-5 text-center text-[11px] leading-relaxed text-zinc-500">
               Todavía no se ha publicado ningún hilo hoy.
               <span className="mt-1 block text-zinc-600">
                 Aquí aparecerán los más gustados de cada jornada.
@@ -178,7 +178,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={thread.id}
                   type="button"
                   onClick={() => onSelectThread && onSelectThread(thread)}
-                  className="group w-full cursor-pointer rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 text-left transition-all hover:border-violet-500/50 hover:bg-zinc-800/40"
+                  className="chat-boton group w-full cursor-pointer rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-left transition-all hover:border-violet-400/40 hover:bg-white/[0.05]"
                 >
                   <h4 className="line-clamp-3 text-xs font-bold text-zinc-200 transition-colors group-hover:text-violet-300">
                     {thread.title}
@@ -207,26 +207,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Extras / Personaje de la semana */}
         {featuredAnime && (
-          <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/90 shadow-md">
-            <div className="relative h-28 w-full">
-              <QuickImageEditor
-                section="animes"
-                itemId={featuredAnime.id}
-                field="coverUrl"
-                label={`Portada de ${featuredAnime.title}`}
-                src={featuredAnime.coverUrl}
-                alt={featuredAnime.title}
-                containerClassName="h-full w-full"
-                className="h-full w-full object-cover"
-                imgStyle={encuadre(featuredAnime.coverFocus)}
-                badgeClassName="top-2 right-2"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent" />
-              <span className="absolute left-2.5 top-2.5 flex items-center gap-1 rounded-md bg-violet-600/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                <Star size={11} className="fill-white" />
-                Obra de la Semana
-              </span>
-            </div>
+        <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] shadow-[0_16px_48px_-20px_rgba(0,0,0,0.8)]">
+          <div className="relative h-28 w-full">
+            <QuickImageEditor
+              section="animes"
+              itemId={featuredAnime.id}
+              field="coverUrl"
+              label={`Portada de ${featuredAnime.title}`}
+              src={featuredAnime.coverUrl}
+              alt={featuredAnime.title}
+              containerClassName="h-full w-full"
+              className="h-full w-full object-cover"
+              imgStyle={encuadre(featuredAnime.coverFocus)}
+              badgeClassName="top-2 right-2"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c14] via-[#0c0c14]/40 to-transparent" />
+            <span className="absolute left-2.5 top-2.5 flex items-center gap-1 rounded-md bg-gradient-to-r from-violet-600 to-indigo-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg shadow-violet-950/40">
+              <Star size={11} className="fill-white" />
+              Obra de la Semana
+            </span>
+          </div>
 
             <div className="p-4">
               <h4 className="text-sm font-bold text-white">{featuredAnime.title}</h4>
@@ -248,32 +248,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Obras de la semana */}
         {weeklyWorks.length > 0 && (
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/90 p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Flame size={16} className="text-orange-400" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">
-                Obras de la Semana
-              </h2>
-            </div>
+        <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <Flame size={16} className="text-orange-400" />
+            <h2 className="text-sm font-bold uppercase tracking-wider">
+              Obras de la Semana
+            </h2>
+          </div>
 
-            <ul className="space-y-3">
-              {weeklyWorks.map((work) => (
-                <li key={work.id}>
-                  {work.imageUrl ? (
-                    /* Una caja con proporción, y no solo `w-full` + `object-cover`.
-                       Sin la caja, `object-fit` no hace NADA: la altura la
-                       marcaba la propia imagen, así que una portada
-                       vertical se convertía en un póster gigante dentro
-                       de una columna estrecha de 300 px. */
-                    <div className="mb-2 aspect-[3/4] w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
-                      <img
-                        src={work.imageUrl}
-                        alt={work.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                  ) : null}
+          <ul className="space-y-3">
+            {weeklyWorks.map((work) => (
+              <li key={work.id}>
+                {work.imageUrl ? (
+                  <div className="mb-2 aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03]">
+                    <img
+                      src={work.imageUrl}
+                      alt={work.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ) : null}
 
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -309,9 +304,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </section>
         )}
 
-        {/* Extras & Curiosidades widget */}
-        <section className="rounded-2xl border border-dashed border-violet-500/40 bg-violet-950/20 p-4 text-center">
-          <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-violet-600/30 text-violet-300">
+        <section className="rounded-2xl border border-dashed border-violet-400/25 bg-violet-500/5 p-4 text-center">
+          <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500/15 text-violet-300">
             <Sparkles size={16} />
           </div>
           <h4 className="text-xs font-bold text-violet-200">Curiosidades &amp; Extras</h4>
@@ -320,7 +314,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </p>
           <button
             onClick={onGoToExtras}
-            className="mt-3 inline-flex items-center gap-1 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-violet-500"
+            className="chat-boton mt-3 inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-violet-950/40 hover:brightness-110"
           >
             <span>Explorar Extras</span>
             <ArrowRight size={12} />
