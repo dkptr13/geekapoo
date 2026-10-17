@@ -126,67 +126,77 @@ export const TEMAS_CHAT: TemaChatInfo[] = [
     id: 'oscuro',
     nombre: 'Oscuro Geekapoo',
     descripcion: 'El de siempre.',
-    fondoLista: 'transparent',
-    propia: 'linear-gradient(to right,#7c3aed,#c026d3)',
-    recibida: '#27272a',
+    fondoLista:
+      'radial-gradient(80% 46% at 50% 0%, rgba(124,58,237,0.07), transparent 70%), radial-gradient(60% 38% at 88% 100%, rgba(56,189,248,0.05), transparent 70%), #0a0a11',
+    propia: 'linear-gradient(135deg,#6d28d9 0%,#7c3aed 100%)',
+    recibida: '#1b1b22',
     textoPropia: '#ffffff',
-    textoRecibida: '#f4f4f5',
-    bordeRecibida: '1px solid #3f3f46',
+    textoRecibida: '#e9e9f0',
+    bordeRecibida: '1px solid rgba(255,255,255,0.06)',
     veloClaro: false,
   },
   {
     id: 'negro',
     nombre: 'Negro absoluto',
     descripcion: 'Fondo negro puro.',
-    fondoLista: '#000000',
-    propia: '#4c1d95',
-    recibida: '#111113',
+    fondoLista:
+      'radial-gradient(70% 40% at 50% 0%, rgba(124,58,237,0.05), transparent 70%), #060608',
+    propia: '#5b21b6',
+    recibida: '#141419',
     textoPropia: '#ffffff',
     textoRecibida: '#e4e4e7',
+    bordeRecibida: '1px solid rgba(255,255,255,0.06)',
     veloClaro: false,
   },
   {
     id: 'morado',
     nombre: 'Morado Geekapoo',
-    descripcion: 'Todo en violeta.',
-    fondoLista: 'linear-gradient(180deg,#1e1033,#2e1065)',
+    descripcion: 'Violeta equilibrado.',
+    fondoLista:
+      'radial-gradient(72% 44% at 50% 0%, rgba(124,58,237,0.12), transparent 70%), #12101f',
     propia: '#7c3aed',
-    recibida: '#3b1470',
+    recibida: '#221a3f',
     textoPropia: '#ffffff',
     textoRecibida: '#ede9fe',
+    bordeRecibida: '1px solid rgba(167,139,250,0.16)',
     veloClaro: false,
   },
   {
     id: 'claro',
     nombre: 'Modo claro',
     descripcion: 'Fondo claro y texto oscuro.',
-    fondoLista: '#f4f4f5',
-    propia: '#7c3aed',
+    fondoLista: '#eef0f4',
+    propia: '#6d28d9',
     recibida: '#ffffff',
     textoPropia: '#ffffff',
     textoRecibida: '#27272a',
+    bordeRecibida: '1px solid rgba(0,0,0,0.08)',
     veloClaro: true,
   },
   {
     id: 'neon',
     nombre: 'Azul neón',
     descripcion: 'Cian sobre negro azulado.',
-    fondoLista: '#050510',
-    propia: 'linear-gradient(to right,#0891b2,#22d3ee)',
-    recibida: '#0a0a23',
+    fondoLista:
+      'radial-gradient(70% 42% at 50% 0%, rgba(34,211,238,0.07), transparent 70%), #06060f',
+    propia: 'linear-gradient(135deg,#0e7490,#06b6d4)',
+    recibida: '#0e0e20',
     textoPropia: '#04121a',
     textoRecibida: '#cffafe',
+    bordeRecibida: '1px solid rgba(34,211,238,0.14)',
     veloClaro: false,
   },
   {
     id: 'personalizado',
     nombre: 'Personalizado',
     descripcion: 'Tus colores.',
-    fondoLista: 'transparent',
-    propia: 'linear-gradient(to right,#7c3aed,#c026d3)',
-    recibida: '#27272a',
+    fondoLista:
+      'radial-gradient(80% 46% at 50% 0%, rgba(124,58,237,0.07), transparent 70%), radial-gradient(60% 38% at 88% 100%, rgba(56,189,248,0.05), transparent 70%), #0a0a11',
+    propia: 'linear-gradient(135deg,#6d28d9 0%,#7c3aed 100%)',
+    recibida: '#1b1b22',
     textoPropia: '#ffffff',
-    textoRecibida: '#f4f4f5',
+    textoRecibida: '#e9e9f0',
+    bordeRecibida: '1px solid rgba(255,255,255,0.06)',
     veloClaro: false,
   },
 ];
@@ -206,16 +216,16 @@ export interface FondoPresetChat {
 
 export const FONDOS_CHAT: FondoPresetChat[] = [
   { id: 'ninguno', nombre: 'Sin fondo', css: '' },
-  { id: 'tinta', nombre: 'Tinta sólida', css: '#18181b' },
-  { id: 'vino', nombre: 'Vino sólido', css: '#3f1d2e' },
-  { id: 'bosque', nombre: 'Bosque sólido', css: '#14231c' },
-  { id: 'ocaso-kyoto', nombre: 'Ocaso en Kioto', css: 'linear-gradient(160deg,#7c2d12,#c2410c 45%,#431407)' },
-  { id: 'ola', nombre: 'Gran ola', css: 'linear-gradient(160deg,#0c4a6e,#0369a1 50%,#082f49)' },
-  { id: 'bambu', nombre: 'Bambú', css: 'linear-gradient(160deg,#14532d,#16a34a 55%,#052e16)' },
-  { id: 'sakura', nombre: 'Sakura de noche', css: 'linear-gradient(160deg,#500f28,#be185d 55%,#1c0a14)' },
-  { id: 'neon-nocturno', nombre: 'Neón nocturno', css: 'linear-gradient(160deg,#164e63,#7c3aed 60%,#0a0a23)' },
-  { id: 'pixel', nombre: 'Pixel', css: 'linear-gradient(135deg,#312e81,#6d28d9 50%,#0ea5e9)' },
-  { id: 'medianoche', nombre: 'Medianoche', css: 'radial-gradient(90%_70%_at_50%_0%,#1e1b4b,#020617 75%)' },
+  { id: 'tinta', nombre: 'Tinta sólida', css: '#101014' },
+  { id: 'vino', nombre: 'Vino sólido', css: '#1c1016' },
+  { id: 'bosque', nombre: 'Bosque sólido', css: '#0e1512' },
+  { id: 'ocaso-kyoto', nombre: 'Ocaso en Kioto', css: 'linear-gradient(160deg,#241109,#4a2410 45%,#160c07)' },
+  { id: 'ola', nombre: 'Gran ola', css: 'linear-gradient(160deg,#0a2233,#123c5a 50%,#070f18)' },
+  { id: 'bambu', nombre: 'Bambú', css: 'linear-gradient(160deg,#0d2017,#14532d 55%,#060f0a)' },
+  { id: 'sakura', nombre: 'Sakura de noche', css: 'linear-gradient(160deg,#220f1c,#4a1533 55%,#12060e)' },
+  { id: 'neon-nocturno', nombre: 'Neón nocturno', css: 'linear-gradient(160deg,#0c2530,#2e1a5e 60%,#070714)' },
+  { id: 'pixel', nombre: 'Pixel', css: 'linear-gradient(135deg,#1c1a4e,#3f2a86 50%,#0b3a52)' },
+  { id: 'medianoche', nombre: 'Medianoche', css: 'radial-gradient(90%_70%_at_50%_0%,#1a1840,#060613 75%)' },
 ];
 
 export const FONDO_PREDETERMINADO_ID = 'ninguno';
@@ -334,9 +344,9 @@ export interface EstiloChatResuelto {
 }
 
 const RADIO_FORMA: Record<FormaBurbuja, string> = {
-  redonda: '1rem',
-  suave: '0.5rem',
-  cuadrada: '0.125rem',
+  redonda: '1.125rem',
+  suave: '0.75rem',
+  cuadrada: '0.375rem',
 };
 
 const LETRA_TAMANO: Record<TamanoLetraChat, string> = {
@@ -347,14 +357,14 @@ const LETRA_TAMANO: Record<TamanoLetraChat, string> = {
 
 const GAP_ESPACIADO: Record<EspaciadoChat, string> = {
   compacto: '0.5rem',
-  normal: '1rem',
-  amplio: '1.75rem',
+  normal: '0.875rem',
+  amplio: '1.5rem',
 };
 
 const ANCHO_CLASES: Record<AnchoBurbuja, string> = {
-  estrecho: 'max-w-[70%] sm:max-w-[60%] 2xl:max-w-[38%]',
-  normal: 'max-w-[78%] sm:max-w-[70%] 2xl:max-w-[45%]',
-  ancho: 'max-w-[92%] sm:max-w-[85%] 2xl:max-w-[62%]',
+  estrecho: 'max-w-[72%] sm:max-w-[60%] 2xl:max-w-[38%]',
+  normal: 'max-w-[80%] sm:max-w-[68%] 2xl:max-w-[46%]',
+  ancho: 'max-w-[92%] sm:max-w-[84%] 2xl:max-w-[62%]',
 };
 
 /**
@@ -400,11 +410,14 @@ export function resolverApariencia(valor: unknown): EstiloChatResuelto {
     burbujaPropia: {
       background: a.colorPropio ?? tema.propia,
       color: a.textoPropio ?? tema.textoPropia,
+      border: '1px solid rgba(255,255,255,0.08)',
+      boxShadow: '0 4px 16px -8px rgba(0,0,0,0.6)',
     },
     burbujaRecibida: {
       background: a.colorRecibido ?? tema.recibida,
       color: a.textoRecibido ?? tema.textoRecibida,
-      ...(tema.bordeRecibida && !a.colorRecibido ? { border: tema.bordeRecibida } : {}),
+      ...(tema.bordeRecibida && !a.colorRecibido ? { border: tema.bordeRecibida } : { border: '1px solid rgba(255,255,255,0.06)' }),
+      boxShadow: '0 4px 14px -8px rgba(0,0,0,0.55)',
     },
     radio: { borderRadius: RADIO_FORMA[forma] },
     // La "cola" del bocadillo, como la de siempre. En cuadradas
@@ -419,6 +432,6 @@ export function resolverApariencia(valor: unknown): EstiloChatResuelto {
     letraClase: (a.letra ?? 'normal') === 'normal' ? 'text-[15px] sm:text-sm' : '',
     gapLista: { rowGap: GAP_ESPACIADO[a.espaciado ?? 'normal'] },
     ancho: ANCHO_CLASES[a.ancho ?? 'normal'],
-    relleno: a.estilo === 'compacto' ? 'px-3 py-1.5' : 'px-4 py-2.5',
+    relleno: a.estilo === 'compacto' ? 'px-3 py-1.5' : 'px-3.5 py-2',
   };
 }

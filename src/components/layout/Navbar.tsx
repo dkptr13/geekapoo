@@ -280,26 +280,26 @@ export default function Navbar({
      */
   const colorDe = (d: Destino): string => {
     if (activo(d)) {
-      if (d.tono === 'admin') return 'bg-emerald-600/20 text-emerald-300';
-      if (d.tono === 'violeta') return 'bg-violet-600/20 text-violet-300';
-      return 'bg-purple-600/20 text-purple-300';
+      if (d.tono === 'admin') return 'bg-emerald-500/15 text-emerald-300';
+      if (d.tono === 'violeta') return 'bg-violet-500/15 text-violet-300';
+      return 'bg-violet-500/15 text-violet-300';
     }
-    if (d.tono === 'admin') return 'text-emerald-400 hover:bg-emerald-950/40';
-    if (d.tono === 'violeta') return 'text-violet-400 hover:bg-violet-950/40';
-    return 'text-gray-300 hover:text-white hover:bg-gray-800/70';
+    if (d.tono === 'admin') return 'text-emerald-400/90 hover:bg-white/[0.05] hover:text-emerald-300';
+    if (d.tono === 'violeta') return 'text-violet-400/90 hover:bg-white/[0.05] hover:text-violet-300';
+    return 'text-zinc-300/90 hover:text-white hover:bg-white/[0.05]';
   };
 
   /** El borde de la barra: el color solo sale al activarse. */
   const bordeDe = (d: Destino): string => {
     if (!activo(d)) return 'border border-transparent';
-    if (d.tono === 'admin') return 'border border-emerald-500/30';
-    if (d.tono === 'violeta') return 'border border-violet-500/30';
-    return 'border border-purple-500/30';
+    if (d.tono === 'admin') return 'border border-emerald-400/25';
+    if (d.tono === 'violeta') return 'border border-violet-400/25';
+    return 'border border-violet-400/25';
   };
 
   /** Barra horizontal: botón compacto, uno al lado del otro. */
   const classBar = (d: Destino) =>
-    `relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+    `chat-boton relative flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors ${
       activo(d) ? 'font-semibold' : ''
     } ${bordeDe(d)} ${colorDe(d)}`;
 
@@ -318,7 +318,7 @@ export default function Navbar({
    * aquí no se usa `bordeDe`.
    */
   const classMenu = (d: Destino) =>
-    `flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-left text-sm font-semibold transition-colors ${colorDe(d)}`;
+    `chat-boton flex w-full items-center gap-3 rounded-xl border border-white/[0.04] px-4 py-3 text-left text-sm font-semibold transition-colors ${colorDe(d)}`;
 
 
   // ====================================================
@@ -336,7 +336,7 @@ export default function Navbar({
   // ====================================================
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/95 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#080810]/85 backdrop-blur-xl">
 
       {/* El ancho tiene que coincidir EXACTAMENTE con el del
           <main> de App.tsx. Si el Navbar fuera más estrecho, el
@@ -358,7 +358,7 @@ export default function Navbar({
           {/* Logo. Si el admin ha subido una imagen, se usa esa;
               si no, se dibuja la "G" de siempre. */}
           {settings.logoUrl ? (
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-lg shadow-violet-600/30 transition-transform group-hover:scale-105">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-lg shadow-violet-600/20 transition-transform group-hover:scale-105">
               {/* `object-contain` y NO `object-cover`, a propósito: un
                   logo casi nunca es cuadrado, y con `cover` se le
                   cortaban los laterales y quedaba ilegible. Con
@@ -372,7 +372,7 @@ export default function Navbar({
               />
             </div>
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-fuchsia-600 to-pink-500 shadow-lg shadow-violet-600/30 transition-transform group-hover:scale-105">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 via-fuchsia-600 to-pink-500 shadow-lg shadow-violet-600/20 transition-transform group-hover:scale-105">
               <span className="font-mono text-base font-black text-white">G</span>
             </div>
           )}
@@ -387,8 +387,8 @@ export default function Navbar({
               entero, y a partir de sm (640px) ya no hay nada que
               apretar y vuelve a su tamaño. */}
           <div>
-            <span className="text-lg font-black tracking-tight text-white transition-colors group-hover:text-violet-400 sm:text-xl">
-              geekapoo<span className="text-violet-400">.com</span>
+            <span className="text-lg font-black tracking-tight text-white transition-colors group-hover:text-violet-300 sm:text-xl">
+              geekapoo<span className="text-violet-300">.com</span>
             </span>
           </div>
 
@@ -480,7 +480,7 @@ export default function Navbar({
             <button
               type="button"
               onClick={() => openAuth('login')}
-              className="hidden items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-600/20 transition-colors hover:bg-purple-500 md:flex"
+              className="hidden items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 md:flex"
             >
 
               <User size={16} />
@@ -512,7 +512,7 @@ export default function Navbar({
           aria-expanded={menuAbierto}
           aria-label={menuAbierto ? 'Cerrar el menú' : 'Abrir el menú'}
           title={menuAbierto ? 'Cerrar el menú' : 'Abrir el menú'}
-          className="-mr-2 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-gray-800 hover:text-white md:hidden"
+          className="-mr-2 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white md:hidden"
         >
           {menuAbierto ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -534,7 +534,7 @@ export default function Navbar({
       en ese momento. */}
 
       {menuAbierto && (
-        <div className="absolute inset-x-0 top-full z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-gray-800 bg-zinc-950/98 shadow-2xl backdrop-blur-md md:hidden">
+        <div className="absolute inset-x-0 top-full z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-white/[0.06] bg-[#080810]/98 shadow-2xl backdrop-blur-xl md:hidden">
 
           <nav className="space-y-1 p-3">
             {destinos.map((d) => (
@@ -560,7 +560,7 @@ export default function Navbar({
           {/* CUENTA. El sitio donde el avatar deja de caber en la
               cabecera pasa aquí, con el texto entero y sin
               mutilarlo. */}
-          <div className="border-t border-gray-800 p-3">
+          <div className="border-t border-white/[0.06] p-3">
             {currentUser ? (
               <>
                 <button
@@ -569,7 +569,7 @@ export default function Navbar({
                     setMenuAbierto(false);
                     goToTab('perfil');
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-left transition-colors hover:bg-gray-800/70"
+                  className="flex w-full items-center gap-3 rounded-xl border border-white/[0.04] px-4 py-3 text-left transition-colors hover:bg-white/[0.05]"
                 >
                   <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-violet-500/40 bg-purple-600/20">
                     {currentUser.avatarUrl ? (
@@ -605,7 +605,7 @@ export default function Navbar({
                     setMenuAbierto(false);
                     irAPerfil(true);
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-300 transition-colors hover:bg-gray-800/70 hover:text-white"
+                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
                 >
                   <Sparkles size={17} className="flex-shrink-0 text-violet-400" />
                   Personalizar perfil
@@ -617,7 +617,7 @@ export default function Navbar({
                     setMenuAbierto(false);
                     irAAjustes();
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-300 transition-colors hover:bg-gray-800/70 hover:text-white"
+                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
                 >
                   <Settings size={17} className="flex-shrink-0 text-gray-400" />
                   Configuración de cuenta
@@ -629,7 +629,7 @@ export default function Navbar({
                     setMenuAbierto(false);
                     void handleLogout();
                   }}
-                  className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-300 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:bg-red-500/10 hover:text-red-300"
                 >
                   <LogOut size={17} className="flex-shrink-0" />
                   Cerrar sesión
@@ -642,7 +642,7 @@ export default function Navbar({
                   setMenuAbierto(false);
                   openAuth('login');
                 }}
-                className="flex w-full items-center gap-3 rounded-xl bg-purple-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-purple-500"
+                className="flex w-full items-center gap-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:brightness-110"
               >
                 <User size={17} className="flex-shrink-0" />
                 Iniciar sesión

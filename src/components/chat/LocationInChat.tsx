@@ -160,13 +160,13 @@ export const LocationMenu: FC<MenuProps> = ({
         aria-label="Compartir una ubicación"
         aria-expanded={abierto}
         title="Compartir una ubicación"
-        className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+        className={`chat-boton flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${
           buscando || abierto
-            ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
-            : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300'
+            ? 'border-violet-400/30 bg-violet-500/[0.14] text-violet-200'
+            : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:bg-violet-500/[0.08] hover:text-violet-200'
         } ${className}`}
       >
-        {buscando ? <Loader2 size={17} className="animate-spin" /> : <MapPin size={17} />}
+        {buscando ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
       </button>
 
       {abierto && (

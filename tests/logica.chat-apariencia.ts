@@ -18,19 +18,24 @@ import {
   sujetarApariencia,
 } from '../src/data/chatApariencia.ts';
 
-// Por defecto sale la casa: degradado violeta propio, zinc la
-// recibida, radio de siempre, letra y hueco de siempre.
+// Por defecto sale la casa: violeta contenido, recibida
+// grafito suave, radio amplio, letra y hueco equilibrados.
 const casa = resolverApariencia(APARIENCIA_POR_DEFECTO);
-assert.equal(casa.burbujaPropia.background, 'linear-gradient(to right,#7c3aed,#c026d3)');
+assert.equal(casa.burbujaPropia.background, 'linear-gradient(135deg,#6d28d9 0%,#7c3aed 100%)');
 assert.equal(casa.burbujaPropia.color, '#ffffff');
-assert.equal(casa.burbujaRecibida.background, '#27272a');
-assert.equal(casa.burbujaRecibida.color, '#f4f4f5');
-assert.equal(casa.radio.borderRadius, '1rem');
+assert.equal(casa.burbujaRecibida.background, '#1b1b22');
+assert.equal(casa.burbujaRecibida.color, '#e9e9f0');
+assert.equal(casa.radio.borderRadius, '1.125rem');
 assert.equal(casa.letraClase, 'text-[15px] sm:text-sm');
 assert.deepEqual(casa.letra, {});
-assert.equal(casa.gapLista.rowGap, '1rem');
-assert.equal(casa.ancho, 'max-w-[78%] sm:max-w-[70%] 2xl:max-w-[45%]');
-assert.equal(casa.relleno, 'px-4 py-2.5');
+assert.equal(casa.gapLista.rowGap, '0.875rem');
+assert.equal(casa.ancho, 'max-w-[80%] sm:max-w-[68%] 2xl:max-w-[46%]');
+assert.equal(casa.relleno, 'px-3.5 py-2');
+// El fondo por defecto es tenue: acompaña, no compite.
+assert.ok(String(casa.fondoLista.background ?? casa.fondoLista.backgroundImage).includes('#0a0a11'));
+// Las burbujas traen borde y sombra sutiles de serie.
+assert.ok('border' in casa.burbujaPropia);
+assert.ok('border' in casa.burbujaRecibida);
 // La cola del bocadillo se conserva en redondas y suaves.
 assert.deepEqual(casa.esquinaPropia, { borderTopRightRadius: 0 });
 assert.deepEqual(casa.esquinaRecibida, { borderTopLeftRadius: 0 });
@@ -109,13 +114,13 @@ assert.equal(propio.burbujaPropia.background, '#2563eb');
 assert.equal(propio.burbujaRecibida.color, '#18181b');
 
 // Formas, letras, huecos y anchos tienen su traducción.
-assert.equal(resolverApariencia({ forma: 'cuadrada' }).radio.borderRadius, '0.125rem');
+assert.equal(resolverApariencia({ forma: 'cuadrada' }).radio.borderRadius, '0.375rem');
 assert.deepEqual(resolverApariencia({ forma: 'cuadrada' }).esquinaPropia, {});
 assert.equal(resolverApariencia({ letra: 'grande' }).letra.fontSize, '17px');
 assert.equal(resolverApariencia({ letra: 'pequena' }).letra.fontSize, '13px');
 assert.equal(resolverApariencia({}).letraClase, 'text-[15px] sm:text-sm');
 assert.deepEqual(resolverApariencia({}).letra, {});
-assert.equal(resolverApariencia({ espaciado: 'amplio' }).gapLista.rowGap, '1.75rem');
+assert.equal(resolverApariencia({ espaciado: 'amplio' }).gapLista.rowGap, '1.5rem');
 assert.equal(resolverApariencia({ espaciado: 'compacto' }).gapLista.rowGap, '0.5rem');
 assert.equal(resolverApariencia({ estilo: 'compacto' }).relleno, 'px-3 py-1.5');
 

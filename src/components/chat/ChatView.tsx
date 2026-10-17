@@ -1564,26 +1564,24 @@ export const ChatView: React.FC = () => {
     // la pantalla. El `min-h-0` es a propósito: el mínimo de
     // 480px obligaba a la página a desplazarse en móviles
     // pequeños, justo lo que se quiere evitar.
-    <div className="-mx-4 -my-6 flex h-[calc(100dvh-4rem)] min-h-0 flex-col gap-2 px-2 sm:mx-0 sm:my-0 sm:h-[calc(100dvh-7rem)] sm:min-h-[480px] sm:gap-4 sm:px-0">
-      {/* Top Banner Info.
-          En móvil se esconde cuando hay conversación abierta: entre
-          este cartel, la cabecera y el compositor no quedaba
-          historial (un mensaje visible). La lista lo sigue
-          enseñando, y en escritorio sale siempre. */}
-      <div className={`${activeRoomId && tabChats !== 'descubrir' ? 'hidden lg:flex' : 'flex'} flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 sm:p-4`}>
+    <div className="-mx-4 -my-6 mx-auto flex h-[calc(100dvh-4rem)] min-h-0 w-full max-w-[1500px] flex-col gap-3 px-2 sm:mx-auto sm:my-0 sm:h-[calc(100dvh-7rem)] sm:min-h-[480px] sm:gap-3 sm:px-4">
+      {/* Cabecera de la sección: identidad contenida, sin saturar.
+          Degradado oscuro con un velo violeta/azul muy tenue;
+          el color fuerte queda solo en el icono y el primario. */}
+      <div className={`${activeRoomId && tabChats !== 'descubrir' ? 'hidden lg:flex' : 'flex'} flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-gradient-to-r from-[#14121f] via-[#0e0e17] to-[#0b1322] p-3 sm:p-4 shadow-[0_12px_36px_-18px_rgba(0,0,0,0.8)]`}>
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
-            <MessageCircle size={20} />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-violet-400/20 bg-gradient-to-br from-violet-600/25 to-sky-500/15 text-violet-300 shadow-inner">
+            <MessageCircle size={19} />
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <h2 className="text-[13px] font-bold tracking-tight text-white flex items-center gap-2">
               <span className="truncate">Mensajería Privada &amp; Clubes</span>
-              <span className="flex-shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+              <span className="flex-shrink-0 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                 Cifrado
               </span>
             </h2>
-            <p className="text-xs text-zinc-400 break-words">
-              Tu ID único para recibir mensajes: <strong className="text-violet-300 font-mono break-all">{currentUser.chatId}</strong>
+            <p className="mt-0.5 text-xs text-zinc-400 break-words">
+              Tu ID único para recibir mensajes: <strong className="text-violet-300/90 font-mono break-all">{currentUser.chatId}</strong>
               {misClubes.length > 0 && (
                 <>
                   {' · '}
@@ -1603,17 +1601,17 @@ export const ChatView: React.FC = () => {
           </div>
         </div>
 
-        {/* En pantallas estrechas los botones pasan abajo y se
-            quedan en iconos: el texto volvería a partir la fila
-            a 320px. El nombre va en aria-label. */}
+        {/* Acciones principales: misma altura, mismo radio,
+            mismo borde. El primario lleva el degradado; los
+            secundarios, superficie tenue. */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setShowAddContact(true)}
             aria-label="Nuevo contacto por ID"
             title="Nuevo contacto por ID"
-            className="flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:border-violet-500 hover:text-white transition-all shadow-sm"
+            className="chat-boton chat-foco flex h-9 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-xs font-semibold text-zinc-200 hover:border-violet-400/30 hover:bg-white/[0.06] hover:text-white transition-all shadow-sm"
           >
-            <UserPlus size={14} className="text-violet-400" />
+            <UserPlus size={14} className="text-violet-300/90" />
             <span className="hidden min-[420px]:inline">Nuevo Contacto por ID</span>
           </button>
 
@@ -1624,9 +1622,9 @@ export const ChatView: React.FC = () => {
             }}
             aria-label="Descubrir clubes"
             title="Descubrir clubes"
-            className="flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:border-violet-500 hover:text-white transition-all shadow-sm"
+            className="chat-boton chat-foco flex h-9 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-xs font-semibold text-zinc-200 hover:border-violet-400/30 hover:bg-white/[0.06] hover:text-white transition-all shadow-sm"
           >
-            <Compass size={14} className="text-violet-400" />
+            <Compass size={14} className="text-violet-300/90" />
             <span className="hidden min-[420px]:inline">Descubrir clubes</span>
           </button>
 
@@ -1640,7 +1638,7 @@ export const ChatView: React.FC = () => {
             }}
             aria-label="Crear grupo"
             title="Crear grupo"
-            className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-500 transition-all shadow-md shadow-violet-600/20"
+            className="chat-boton chat-foco flex h-9 items-center gap-1.5 rounded-xl border border-transparent bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 text-xs font-bold text-white hover:brightness-110 transition-all shadow-md shadow-violet-950/40"
           >
             <Users size={14} />
             <span className="hidden min-[420px]:inline">Crear Grupo</span>
@@ -1705,7 +1703,7 @@ export const ChatView: React.FC = () => {
           que deja que la pista llegue a cero sin que el
           contenido la sujete abierta. */}
       <div
-        className={`grid min-h-0 flex-1 grid-cols-1 grid-rows-1 rounded-3xl border border-zinc-800 bg-zinc-900 overflow-hidden shadow-2xl transition-[grid-template-columns] duration-300 ease-in-out ${
+        className={`chat-superficie grid min-h-0 flex-1 grid-cols-1 grid-rows-1 rounded-2xl border shadow-[0_24px_64px_-24px_rgba(0,0,0,0.85)] overflow-hidden transition-[grid-template-columns] duration-300 ease-in-out ${
           sidebarCollapsed
             ? 'lg:grid-cols-[minmax(0,0fr)_minmax(0,8fr)] 2xl:grid-cols-[minmax(0,0fr)_minmax(0,9fr)]'
             : 'lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] 2xl:grid-cols-[minmax(0,3fr)_minmax(0,9fr)]'
@@ -1727,7 +1725,7 @@ export const ChatView: React.FC = () => {
         <div
           className={`${
             activeRoomId ? 'hidden' : 'flex'
-          } lg:flex min-h-0 min-w-0 border-r border-zinc-800 flex-col bg-zinc-950/70 relative overflow-hidden transition-opacity duration-300 ${
+          } lg:flex min-h-0 min-w-0 border-r border-white/[0.06] flex-col chat-lateral relative overflow-hidden transition-opacity duration-300 ${
             sidebarCollapsed ? 'lg:pointer-events-none lg:opacity-0' : 'lg:opacity-100'
           }`}
         >
@@ -1748,22 +1746,24 @@ export const ChatView: React.FC = () => {
             <PanelLeftClose size={14} />
           </button>
           {/* Header & Filter Tabs */}
-          <div className="p-3.5 border-b border-zinc-800 space-y-3">
+          <div className="p-3 border-b border-white/[0.06] space-y-2.5 bg-black/20">
             {/* Las tres vistas de la sección. Van aquí, y no en
                 la barra de arriba, a propósito: los clubes son
                 parte de «Chats», no una sección nueva de la web.
                 La tabla de búsqueda de abajo se mantiene dentro
                 de cada vista, no de forma global. */}
-            <div className="flex rounded-xl bg-zinc-900 p-1 border border-zinc-800 text-[11px] font-semibold">
+            <div className="flex rounded-xl bg-black/40 p-1 border border-white/[0.06] text-[11px] font-semibold" role="tablist" aria-label="Vistas del chat">
               <button
                 onClick={() => {
                   setTabChats('privados');
                   setActiveRoomId(null);
                 }}
-                className={`flex-1 rounded-lg py-1.5 transition-all ${
+                role="tab"
+                aria-selected={tabChats === 'privados'}
+                className={`chat-boton flex-1 rounded-lg py-2 transition-all ${
                   tabChats === 'privados'
-                    ? 'bg-violet-600 text-white shadow'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-950/40'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.05]'
                 }`}
               >
                 <span className="flex items-center justify-center gap-1">
@@ -1776,10 +1776,12 @@ export const ChatView: React.FC = () => {
                   setTabChats('clubes');
                   setActiveRoomId(null);
                 }}
-                className={`flex-1 rounded-lg py-1.5 transition-all ${
+                role="tab"
+                aria-selected={tabChats === 'clubes'}
+                className={`chat-boton flex-1 rounded-lg py-2 transition-all ${
                   tabChats === 'clubes'
-                    ? 'bg-violet-600 text-white shadow'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-950/40'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.05]'
                 }`}
               >
                 <span className="flex items-center justify-center gap-1">
@@ -1799,10 +1801,12 @@ export const ChatView: React.FC = () => {
                   setTabChats('descubrir');
                   setActiveRoomId(null);
                 }}
-                className={`flex-1 rounded-lg py-1.5 transition-all ${
+                role="tab"
+                aria-selected={tabChats === 'descubrir'}
+                className={`chat-boton flex-1 rounded-lg py-2 transition-all ${
                   tabChats === 'descubrir'
-                    ? 'bg-violet-600 text-white shadow'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-950/40'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.05]'
                 }`}
               >
                 <span className="flex items-center justify-center gap-1">
@@ -1817,33 +1821,36 @@ export const ChatView: React.FC = () => {
                 filtrar por tipo, y dejarlo ahí sería ofrecer
                 algo que no hace nada. */}
             {tabChats === 'privados' && (
-              <div className="flex rounded-xl bg-zinc-950 p-1 border border-zinc-800/80 text-xs font-semibold">
+              <div className="flex rounded-xl bg-black/30 p-1 border border-white/[0.05] text-[11px] font-semibold">
                 <button
                   onClick={() => setFilterType('all')}
-                  className={`flex-1 rounded-lg py-1.5 transition-all ${
+                  aria-pressed={filterType === 'all'}
+                  className={`chat-boton flex-1 rounded-lg py-1.5 transition-all ${
                     filterType === 'all'
-                      ? 'bg-zinc-800 text-white shadow'
-                      : 'text-zinc-500 hover:text-white'
+                      ? 'bg-white/[0.09] text-white shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.03]'
                   }`}
                 >
                   Todos
                 </button>
                 <button
                   onClick={() => setFilterType('direct')}
-                  className={`flex-1 rounded-lg py-1.5 transition-all ${
+                  aria-pressed={filterType === 'direct'}
+                  className={`chat-boton flex-1 rounded-lg py-1.5 transition-all ${
                     filterType === 'direct'
-                      ? 'bg-zinc-800 text-white shadow'
-                      : 'text-zinc-500 hover:text-white'
+                      ? 'bg-white/[0.09] text-white shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.03]'
                   }`}
                 >
                   1 a 1
                 </button>
                 <button
                   onClick={() => setFilterType('group')}
-                  className={`flex-1 rounded-lg py-1.5 transition-all ${
+                  aria-pressed={filterType === 'group'}
+                  className={`chat-boton flex-1 rounded-lg py-1.5 transition-all ${
                     filterType === 'group'
-                      ? 'bg-zinc-800 text-white shadow'
-                      : 'text-zinc-500 hover:text-white'
+                      ? 'bg-white/[0.09] text-white shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.03]'
                   }`}
                 >
                   Grupos
@@ -1855,16 +1862,17 @@ export const ChatView: React.FC = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowRequests((v) => !v)}
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[11px] font-bold transition-colors ${
+                  aria-pressed={showRequests}
+                  className={`chat-boton flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border px-2 text-[11px] font-semibold transition-colors ${
                     showRequests
-                      ? 'border-violet-500 bg-violet-950/40 text-violet-300'
-                      : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white'
+                      ? 'border-violet-400/30 bg-violet-500/[0.14] text-violet-200'
+                      : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100 hover:border-white/[0.1]'
                   }`}
                 >
                   <UserPlus size={13} />
                   <span>Solicitudes</span>
                   {incomingRequests.length > 0 && (
-                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[9px] font-bold text-white">
+                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 px-1 text-[9px] font-bold text-white shadow-sm">
                       {incomingRequests.length}
                     </span>
                   )}
@@ -1872,7 +1880,7 @@ export const ChatView: React.FC = () => {
 
                 <button
                   onClick={() => setShowGroups(true)}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:text-white"
+                  className="chat-boton flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-2 text-[11px] font-semibold text-zinc-400 transition-colors hover:text-zinc-100 hover:border-white/[0.1]"
                 >
                   <Hash size={13} />
                   <span>Unirse a grupo</span>
@@ -1884,7 +1892,7 @@ export const ChatView: React.FC = () => {
             {tabChats === 'clubes' && solicitudesDeClubes.length > 0 && (
               <button
                 onClick={() => setShowMembers(true)}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-violet-500/30 bg-violet-950/40 px-2 py-2 text-[11px] font-bold text-violet-300 transition-colors hover:bg-violet-950/60"
+                className="chat-boton flex h-9 w-full items-center justify-center gap-1.5 rounded-xl border border-violet-400/25 bg-violet-500/[0.1] px-2 text-[11px] font-semibold text-violet-200 transition-colors hover:bg-violet-500/[0.16]"
               >
                 <Mail size={13} />
                 <span>
@@ -1897,7 +1905,7 @@ export const ChatView: React.FC = () => {
 
           {/* PANEL DE SOLICITUDES */}
           {showRequests && (
-            <div className="max-h-[26rem] space-y-3 overflow-y-auto border-b border-zinc-800 bg-zinc-950 p-3.5">
+            <div className="max-h-[26rem] space-y-3 overflow-y-auto border-b border-white/[0.06] bg-black/30 p-3">
               {actionFeedback && (
                 <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-400">
                   {actionFeedback}
@@ -2065,25 +2073,25 @@ export const ChatView: React.FC = () => {
               de un privado por el icono de personas: nunca se
               confunde una conversación con un chat de club. */}
           {tabChats === 'clubes' && (
-            <div className="min-h-0 flex-1 overflow-y-auto divide-y divide-zinc-850">
+            <div className="min-h-0 flex-1 overflow-y-auto space-y-1 p-2">
               {cargandoClubes && misClubes.length === 0 ? (
                 <div className="flex items-center justify-center gap-2 p-6 text-xs text-zinc-500">
-                  <Loader2 size={14} className="animate-spin" />
+                  <Loader2 size={14} className="animate-spin text-violet-300/80" />
                   <span>Cargando tus clubes...</span>
                 </div>
               ) : misClubes.length === 0 ? (
                 <div className="space-y-3 p-6 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-2xl">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.03] text-2xl">
                     🧭
                   </div>
-                  <p className="text-xs font-bold text-white">Todavía no estás en ningún club</p>
-                  <p className="text-[11px] leading-relaxed text-zinc-500">
+                  <p className="text-[13px] font-bold tracking-tight text-white">Todavía no estás en ningún club</p>
+                  <p className="mx-auto max-w-[240px] text-[11px] leading-relaxed text-zinc-500">
                     Únete a una comunidad para chatear con gente que comparte tus aficiones.
                   </p>
                   <button
                     type="button"
                     onClick={() => setTabChats('descubrir')}
-                    className="mx-auto flex items-center gap-1.5 rounded-xl bg-violet-600 px-3.5 py-2 text-[11px] font-bold text-white transition-colors hover:bg-violet-500"
+                    className="chat-boton mx-auto flex h-9 items-center gap-1.5 rounded-xl border border-transparent bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 text-[11px] font-bold text-white transition-colors hover:brightness-110 shadow-md shadow-violet-950/40"
                   >
                     <Compass size={13} />
                     <span>Descubrir clubes</span>
@@ -2129,20 +2137,23 @@ export const ChatView: React.FC = () => {
 
           {/* Rooms Scrollable List (conversaciones privadas) */}
           {tabChats === 'privados' && (
-          <div className="min-h-0 flex-1 overflow-y-auto divide-y divide-zinc-850">
+          <div className="chat-transicion min-h-0 flex-1 overflow-y-auto space-y-1 p-2">
             {filteredRooms.length === 0 ? (
-              <div className="p-6 text-center text-xs text-zinc-500 space-y-2">
+              <div className="p-6 text-center text-xs text-zinc-500 space-y-3">
                 {chatsLoading ? (
                   <div className="flex items-center justify-center gap-2 py-4">
-                    <Loader2 size={14} className="animate-spin" />
+                    <Loader2 size={14} className="animate-spin text-violet-300/80" />
                     <span>Cargando conversaciones...</span>
                   </div>
                 ) : (
                   <>
-                    <p>No tienes chats en esta categoría.</p>
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.03] text-zinc-500">
+                      <MessageCircle size={20} />
+                    </div>
+                    <p className="font-medium">No tienes chats en esta categoría.</p>
                     <button
                       onClick={() => setShowAddContact(true)}
-                      className="text-violet-400 font-bold hover:text-violet-300 transition-colors"
+                      className="chat-boton rounded-xl border border-violet-400/25 bg-violet-500/[0.1] px-3 py-1.5 text-[11px] font-bold text-violet-200 hover:bg-violet-500/[0.18] transition-colors"
                     >
                       Añadir el primero
                     </button>
@@ -2196,21 +2207,21 @@ export const ChatView: React.FC = () => {
                         setActiveRoomId(room.id);
                       }
                     }}
-                    className={`w-full flex cursor-pointer items-center gap-3 p-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-violet-400 ${
+                    className={`chat-transicion group w-full flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-left focus-visible:outline-2 focus-visible:outline-violet-400 ${
                       isActive
-                        ? 'bg-violet-950/40 border-l-4 border-violet-500'
-                        : 'hover:bg-zinc-900/60'
+                        ? 'border-violet-400/25 bg-gradient-to-r from-violet-600/[0.18] to-indigo-600/[0.08] shadow-[0_8px_24px_-12px_rgba(124,58,237,0.5)]'
+                        : 'border-transparent hover:border-white/[0.06] hover:bg-white/[0.04]'
                     }`}
                   >
-                    <div className="relative">
+                    <div className="relative flex-shrink-0">
                       {roomAvatar ? (
                         <img
                           src={roomAvatar}
                           alt={displayName}
-                          className="h-11 w-11 rounded-2xl object-cover ring-1 ring-zinc-700"
+                          className="h-11 w-11 rounded-xl object-cover ring-1 ring-white/10"
                         />
                       ) : (
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-800 text-violet-300 font-bold">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/30 to-sky-500/20 text-violet-200 text-sm font-bold ring-1 ring-white/10">
                           {displayName[0]}
                         </div>
                       )}
@@ -2260,7 +2271,7 @@ export const ChatView: React.FC = () => {
                     <div className="relative ml-1 flex flex-shrink-0 items-center gap-1.5">
                       {isUnread && (
                         <span
-                          className="h-2.5 w-2.5 rounded-full bg-pink-500"
+                          className="h-2 w-2 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 shadow-[0_0_8px_rgba(236,72,153,0.8)]"
                           title="Mensajes sin leer"
                         />
                       )}
@@ -2272,7 +2283,7 @@ export const ChatView: React.FC = () => {
                           e.stopPropagation();
                           setOpenMenuFor(menuOpen ? null : room.id);
                         }}
-                        className="rounded-md p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                        className="chat-boton rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-100 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100 lg:focus-visible:opacity-100"
                       >
                         <MoreVertical size={14} />
                       </button>
@@ -2357,7 +2368,7 @@ export const ChatView: React.FC = () => {
         <div
           className={`${
             tabChats === 'descubrir' || activeRoomId ? 'flex' : 'hidden'
-          } lg:flex relative min-h-0 min-w-0 flex-col bg-zinc-900/90${sinMovimiento ? ' chat-sin-movimiento' : ''}`}
+          } lg:flex relative min-h-0 min-w-0 flex-col bg-[#0b0b12]${sinMovimiento ? ' chat-sin-movimiento' : ''}`}
         >
           {/* Botón para volver a abrir la barra cuando está
               contraída. Flota en el borde izquierdo del chat;
@@ -2416,7 +2427,7 @@ export const ChatView: React.FC = () => {
                 }
               >
               {/* Chat Top Header */}
-              <div className="flex items-center justify-between gap-2 border-b border-zinc-800 p-3 sm:p-4 bg-zinc-900">
+              <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] bg-[#0e0e17]/95 px-3 py-2.5 sm:px-5 sm:py-3 backdrop-blur">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   {/* Volver a la lista. Solo en móvil, donde la
                       lista no está al lado: sin esto, al abrir un
@@ -2452,10 +2463,10 @@ export const ChatView: React.FC = () => {
                       <img
                         src={activeRoomAvatar}
                         alt={activeRoomName}
-                        className="h-10 w-10 rounded-2xl object-cover"
+                        className="h-10 w-10 rounded-xl object-cover ring-1 ring-white/10"
                       />
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-600 text-white font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/40 to-sky-500/25 text-white text-sm font-bold ring-1 ring-white/10">
                         {activeRoomName[0]}
                       </div>
                     )}
@@ -2506,7 +2517,7 @@ export const ChatView: React.FC = () => {
                         mantiene su ancho natural, se sale del hueco y
                         el boton de "Miembros" se le monta encima,
                         que es lo que pasaba en movil. */}
-                    <h3 className="flex min-w-0 items-center gap-2 text-sm font-bold text-white">
+                    <h3 className="flex min-w-0 items-center gap-2 text-[13px] font-bold tracking-tight text-white">
                       {/* En un club se enseña el canal (`# teorias`)
                           y no el nombre interno del chat: el canal
                           se puede renombrar sin tocar mensajes. */}
@@ -2514,7 +2525,7 @@ export const ChatView: React.FC = () => {
                         {esChatClub && canalActivo ? `# ${canalActivo.name}` : activeRoomName}
                       </span>
                       {(activeRoom.type === 'group' || esChatClub) && (
-                        <span className="shrink-0 rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-normal text-zinc-400">
+                        <span className="shrink-0 rounded-md border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-semibold text-zinc-400">
                           {esChatClub
                             ? (clubDelChat?.memberCount ?? activeRoom.memberIds.length)
                             : activeRoom.memberIds.length}
@@ -2527,26 +2538,27 @@ export const ChatView: React.FC = () => {
                         el rol del usuario, no "En línea": un chat
                         grupal no tiene una persona conectada. */}
                     {esChatClub ? (
-                      <span className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-violet-300">
+                      <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-violet-300/80">
                         <span>
                           {CLUB_CATEGORIES.find((c) => c.id === clubDelChat?.category)?.label ??
                             'Chat grupal'}
                         </span>
                         {soyDuenoDelClub && (
-                          <span className="flex items-center gap-0.5 font-bold text-amber-300">
+                          <span className="flex items-center gap-0.5 font-bold text-amber-300/90">
                             <Crown size={9} />
                             Propietario
                           </span>
                         )}
                         {!soyDuenoDelClub && soyModDelClub && (
-                          <span className="flex items-center gap-0.5 font-bold text-violet-300">
+                          <span className="flex items-center gap-0.5 font-bold text-violet-300/90">
                             <Shield size={9} />
                             Moderador
                           </span>
                         )}
                       </span>
                     ) : (
-                      <span className="text-[11px] font-medium text-emerald-400">
+                      <span className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-emerald-300/90">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
                         {activeRoom.type === 'group' ? 'Sala grupal activa' : 'En línea'}
                       </span>
                     )}
@@ -2560,7 +2572,7 @@ export const ChatView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setClubDetalle(clubDelChat.id)}
-                    className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-violet-600 px-2.5 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-violet-500 sm:px-3 sm:py-1.5"
+                    className="chat-boton flex h-9 flex-shrink-0 items-center gap-1.5 rounded-xl border border-transparent bg-gradient-to-r from-violet-600 to-indigo-600 px-3 text-[11px] font-bold text-white transition-colors hover:brightness-110 shadow-md shadow-violet-950/40"
                   >
                     <Info size={13} className="flex-shrink-0" />
                     <span className="hidden sm:inline">Ver detalles</span>
@@ -2578,7 +2590,7 @@ export const ChatView: React.FC = () => {
                     type="button"
                     onClick={() => setShowMembers(true)}
                     aria-label="Ver los miembros del grupo"
-                    className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-zinc-800 px-2.5 py-2 text-[11px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white sm:px-3 sm:py-1.5"
+                    className="chat-boton flex h-9 flex-shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-[11px] font-semibold text-zinc-300 transition-colors hover:border-violet-400/30 hover:bg-white/[0.06] hover:text-white"
                   >
                     <Users size={13} className="flex-shrink-0" />
                     <span className="hidden sm:inline">Miembros</span>
@@ -2593,7 +2605,7 @@ export const ChatView: React.FC = () => {
                   onClick={abrirPanelApariencia}
                   aria-label="Personalizar el chat"
                   title="Personalizar el chat"
-                  className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-zinc-800 px-2.5 py-2 text-[11px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white sm:px-3 sm:py-1.5"
+                  className="chat-boton flex h-9 flex-shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-[11px] font-semibold text-zinc-300 transition-colors hover:border-violet-400/30 hover:bg-white/[0.06] hover:text-white"
                 >
                   <Palette size={13} className="flex-shrink-0" />
                   <span className="hidden sm:inline">Apariencia</span>
@@ -2650,7 +2662,7 @@ export const ChatView: React.FC = () => {
               {/* Código del grupo: es lo que se comparte para que
                   otras personas puedan pedir entrar. */}
               {activeRoom.type === 'group' && activeRoom.code && (
-                <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 bg-zinc-950/60 px-4 py-2">
+                <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-black/25 px-4 py-2">
                   <Hash size={12} className="flex-shrink-0 text-violet-400" />
                   <span className="text-[11px] text-zinc-500">Código del grupo:</span>
                   <code className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-[11px] font-bold text-violet-300">
@@ -2767,20 +2779,23 @@ export const ChatView: React.FC = () => {
               )}
 
               {/* Messages Body. El fondo y la separación salen de
-                  la apariencia del chat; por defecto, como siempre. */}
+                  la apariencia del chat; por defecto, elegante y
+                  tenue para que manden las burbujas. */}
               <div
                 ref={listaRef}
                 onScroll={alDesplazar}
-                className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6 flex flex-col"
+                className="chat-hilo min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-6 sm:py-6 lg:px-10 flex flex-col"
                 style={{ ...aparienciaVista.fondoLista, ...aparienciaVista.gapLista }}
               >
                 {activeMessages.length === 0 ? (
-                  <div className="flex h-full flex-col items-center justify-center text-center p-8 text-zinc-500">
-                    <Sparkles size={24} className="text-violet-400 mb-2" />
-                    <p className="text-sm font-semibold text-zinc-300">
+                  <div className="mx-auto flex h-full w-full max-w-sm flex-col items-center justify-center text-center p-8">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-600/20 to-sky-500/10 text-violet-300 shadow-inner">
+                      <Sparkles size={22} />
+                    </div>
+                    <p className="mt-3 text-sm font-bold tracking-tight text-zinc-100">
                       ¡Comienza la conversación!
                     </p>
-                    <p className="text-xs text-zinc-500 mt-1 max-w-xs">
+                    <p className="text-xs text-zinc-500 mt-1.5 max-w-xs leading-relaxed">
                       Envía un saludo o comparte tus teorías sobre tus series y animes preferidos.
                     </p>
                   </div>
@@ -2806,33 +2821,33 @@ export const ChatView: React.FC = () => {
                       return (
                         <Fragment key={msg.id}>
                           {posicion === corteNuevos.indice && corteNuevos.total > 0 && (
-                            <div className="flex items-center gap-3 py-1">
-                              <div className="h-px flex-1 bg-violet-500/40" />
-                              <span className="shrink-0 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1 text-[11px] font-bold text-violet-300">
+                            <div className="mx-auto flex w-full max-w-md items-center gap-3 py-1">
+                              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-violet-400/30" />
+                              <span className="shrink-0 rounded-full border border-violet-400/25 bg-[#151322]/95 px-3 py-1 text-[11px] font-bold text-violet-200 shadow-md backdrop-blur">
                                 {textoDeNuevos(corteNuevos.total)}
                               </span>
-                              <div className="h-px flex-1 bg-violet-500/40" />
+                              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-violet-400/30" />
                             </div>
                           )}
 
                           <div
-                            className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                            className={`flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
                           >
                             {!isMe && (
-                              <span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-500">
+                              <span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.04] text-zinc-500">
                                 <Ban size={13} />
                               </span>
                             )}
 
                             <div className="max-w-[78%] space-y-1 sm:max-w-[70%] 2xl:max-w-[45%]">
                               {!isMe && (
-                                <span className="text-[11px] font-bold text-violet-300 pl-1 block">
+                                <span className="text-[11px] font-semibold text-violet-200/70 pl-1 block">
                                   {senderNameOf(msg)}
                                 </span>
                               )}
 
                               <div
-                                className={`flex w-fit max-w-full items-center gap-2 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/60 px-4 py-2.5 text-[15px] sm:text-sm italic text-zinc-500 ${
+                                className={`chat-burbuja flex w-fit max-w-full items-center gap-2 rounded-2xl border border-white/[0.06] border-dashed bg-white/[0.03] px-3.5 py-2 text-[13px] leading-relaxed italic text-zinc-400 ${
                                   isMe ? 'ml-auto' : ''
                                 }`}
                               >
@@ -2876,17 +2891,17 @@ export const ChatView: React.FC = () => {
                             mensaje nuevo se recolocaría sola y parpadearía.
                         */}
                         {posicion === corteNuevos.indice && corteNuevos.total > 0 && (
-                          <div className="flex items-center gap-3 py-1">
-                            <div className="h-px flex-1 bg-violet-500/40" />
-                            <span className="shrink-0 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1 text-[11px] font-bold text-violet-300">
+                          <div className="mx-auto flex w-full max-w-md items-center gap-3 py-1">
+                            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-violet-400/30" />
+                            <span className="shrink-0 rounded-full border border-violet-400/25 bg-[#151322]/95 px-3 py-1 text-[11px] font-bold text-violet-200 shadow-md backdrop-blur">
                               {textoDeNuevos(corteNuevos.total)}
                             </span>
-                            <div className="h-px flex-1 bg-violet-500/40" />
+                            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-violet-400/30" />
                           </div>
                         )}
 
                         <div
-                          className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                          className={`group flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
                         >
                         {!isMe && (
                           <button
@@ -2894,12 +2909,12 @@ export const ChatView: React.FC = () => {
                             onClick={() => goToProfile(msg.senderId)}
                             aria-label={`Ver el perfil de ${senderNameOf(msg)}`}
                             title="Ver su perfil"
-                            className="mt-1 flex-shrink-0 rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
+                            className="chat-boton mt-0.5 flex-shrink-0 rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                           >
                             <img
                               src={senderAvatarOf(msg)}
                               alt=""
-                              className="h-8 w-8 rounded-full object-cover shrink-0"
+                              className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10 shrink-0"
                             />
                           </button>
                         )}
@@ -2914,7 +2929,7 @@ export const ChatView: React.FC = () => {
                           className={`${aparienciaVista.ancho} space-y-1`}
                         >
                           {!isMe && (
-                            <span className="text-[11px] font-bold text-violet-300 pl-1 block">
+                            <span className="text-[11px] font-semibold text-violet-200/70 pl-1 block">
                               {senderNameOf(msg)}
                             </span>
                           )}
@@ -2928,14 +2943,14 @@ export const ChatView: React.FC = () => {
                               guardado tal cual. */}
                           {msg.replyTo && (
                             <div
-                              className={`mb-1 w-fit max-w-full rounded-lg border-l-2 border-violet-500/70 bg-zinc-900/70 px-2.5 py-1.5 ${
+                              className={`mb-1.5 w-fit max-w-full rounded-xl border border-white/[0.06] border-l-2 border-l-violet-400/60 bg-black/35 px-3 py-2 backdrop-blur-sm ${
                                 isMe ? 'ml-auto' : ''
                               }`}
                             >
-                              <p className="text-[10px] font-bold text-violet-300">
+                              <p className="text-[10px] font-bold tracking-wide text-violet-200/90">
                                 {msg.replyTo.senderName}
                               </p>
-                              <p className="line-clamp-2 break-words text-[11px] text-zinc-400">
+                              <p className="line-clamp-2 break-words text-[11px] leading-relaxed text-zinc-400">
                                 {citaVisible(msg.replyTo.snippet, citado?.deletedForEveryone)}
                               </p>
                             </div>
@@ -2954,8 +2969,8 @@ export const ChatView: React.FC = () => {
                             // sin zoom) y se queda como estaba en
                             // escritorio. Colores, radio, letra y
                             // relleno salen de la apariencia del chat;
-                            // por defecto, como siempre.
-                            className={`w-fit max-w-full break-words ${aparienciaVista.letraClase} leading-relaxed shadow-md ${aparienciaVista.relleno} ${
+                            // por defecto, elegante y contenida.
+                            className={`chat-burbuja w-fit max-w-full break-words ${aparienciaVista.letraClase} leading-relaxed ${aparienciaVista.relleno} ${
                               isMe ? 'ml-auto' : ''
                             }`}
                             style={{
@@ -2971,7 +2986,7 @@ export const ChatView: React.FC = () => {
                           >
                             {/* El texto solo se pinta si hay texto: un
                                 mensaje puede ser solo un GIF. */}
-                            {msg.body && <p className="break-words">{msg.body}</p>}
+                            {msg.body && <p className="break-words text-[14px] leading-relaxed">{msg.body}</p>}
                           </div>
 
                           {/* GIF del mensaje. Se pinta FUERA de la
@@ -3056,7 +3071,7 @@ export const ChatView: React.FC = () => {
                           />
 
                           <div
-                            className={`flex items-center gap-1 text-[10px] text-zinc-500 font-mono ${
+                            className={`mt-1 flex items-center gap-1.5 text-[10px] tracking-wide text-zinc-500/90 font-mono ${
                               isMe ? 'justify-end pr-1' : 'pl-1'
                             }`}
                           >
@@ -3070,7 +3085,7 @@ export const ChatView: React.FC = () => {
                                 Sin esto, un texto cambiado no se
                                 distinguiría del original. */}
                             {msg.editedAt && (
-                              <span className="italic" title="Mensaje editado">
+                              <span className="italic text-zinc-500/80" title="Mensaje editado">
                                 · editado
                               </span>
                             )}
@@ -3078,15 +3093,15 @@ export const ChatView: React.FC = () => {
                               (isReadByEveryone(msg.id, msg.createdAt) ? (
                                 // Doble tick: el resto ya lo ha leído
                                 <span
-                                  className="flex items-center text-sky-300"
+                                  className="flex items-center text-sky-300/90"
                                   title="Leído"
                                 >
-                                  <Check size={12} strokeWidth={3} />
-                                  <Check size={12} strokeWidth={3} className="-ml-1.5" />
+                                  <Check size={12} strokeWidth={2.5} />
+                                  <Check size={12} strokeWidth={2.5} className="-ml-1.5" />
                                 </span>
                               ) : (
                                 // Un solo tick: enviado, pendiente de lectura
-                                <span className="text-zinc-500" title="Enviado">
+                                <span className="text-zinc-500/80" title="Enviado">
                                   <Check size={11} />
                                 </span>
                               ))}
@@ -3109,9 +3124,9 @@ export const ChatView: React.FC = () => {
                                 // Diana de 28px con icono de 11: en el
                                 // móvil el botón de antes (p-0.5) era
                                 // casi imposible de acertar con el dedo.
-                                className="rounded p-2 text-zinc-600 transition-colors hover:bg-zinc-700/60 hover:text-zinc-200 focus-visible:outline-2 focus-visible:outline-violet-400"
+                                className="chat-boton rounded-lg p-1.5 text-zinc-500/70 transition-colors hover:bg-white/[0.06] hover:text-zinc-200 focus-visible:outline-2 focus-visible:outline-violet-400"
                               >
-                                <MoreVertical size={11} />
+                                <MoreVertical size={12} />
                               </button>
 
                               {menuMsgId === msg.id && (
@@ -3287,7 +3302,7 @@ export const ChatView: React.FC = () => {
 
               {/* PANEL DE MIEMBROS (solo grupos) */}
               {showMembers && activeRoom?.type === 'group' && (
-                <div className="border-t border-zinc-800 bg-zinc-950/70 p-4 space-y-3">
+                <div className="border-t border-white/[0.06] bg-black/30 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
                       <Users size={13} />
@@ -3424,15 +3439,15 @@ export const ChatView: React.FC = () => {
                   con gestos. */}
               <form
                 onSubmit={handleSendMessage}
-                className="relative border-t border-zinc-800 bg-zinc-950 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                className="relative border-t border-white/[0.06] bg-[#0c0c15]/95 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5 backdrop-blur"
               >
                 {/* Citando: a quién y qué, con salida. Al enviar, la
                     cita viaja dentro del mensaje nuevo. */}
                 {citaA && !editando && (
-                  <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-violet-500 bg-zinc-900 px-3 py-2">
-                    <Reply size={13} className="flex-shrink-0 text-violet-400" />
+                  <div className="mb-2 flex items-center gap-2.5 rounded-xl border border-white/[0.06] border-l-2 border-l-violet-400/60 bg-black/30 px-3 py-2">
+                    <Reply size={13} className="flex-shrink-0 text-violet-300/90" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold text-violet-300">
+                      <p className="text-[11px] font-bold text-violet-200/90">
                         {senderNameOf(citaA)}
                       </p>
                       <p className="truncate text-[11px] text-zinc-400">
@@ -3443,7 +3458,7 @@ export const ChatView: React.FC = () => {
                       type="button"
                       onClick={() => setCitaA(null)}
                       aria-label="Dejar de citar"
-                      className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                      className="chat-boton rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-white"
                     >
                       <X size={14} />
                     </button>
@@ -3455,10 +3470,10 @@ export const ChatView: React.FC = () => {
                     aplican aquí: la foto o el GIF que tuviera se
                     quedan como están. */}
                 {editando && (
-                  <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-amber-500 bg-zinc-900 px-3 py-2">
-                    <Pencil size={13} className="flex-shrink-0 text-amber-400" />
+                  <div className="mb-2 flex items-center gap-2.5 rounded-xl border border-amber-400/20 border-l-2 border-l-amber-400/70 bg-amber-500/[0.06] px-3 py-2">
+                    <Pencil size={13} className="flex-shrink-0 text-amber-300" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold text-amber-300">
+                      <p className="text-[11px] font-bold text-amber-200">
                         Editando mensaje
                       </p>
                       <p className="truncate text-[11px] text-zinc-400">
@@ -3469,7 +3484,7 @@ export const ChatView: React.FC = () => {
                       type="button"
                       onClick={cancelarEdicion}
                       aria-label="Cancelar edición"
-                      className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                      className="chat-boton rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-white"
                     >
                       <X size={14} />
                     </button>
@@ -3509,8 +3524,8 @@ export const ChatView: React.FC = () => {
                     creada o abre el editor para hacer una nueva. Un
                     mensaje puede ser SOLO la tier list. */}
                 {tierAdjunta && !editando && (
-                  <div className="mb-2 flex items-center gap-2 rounded-xl border border-violet-500/40 bg-violet-950/30 px-3 py-2">
-                    <Trophy size={13} className="flex-shrink-0 text-violet-400" />
+                  <div className="mb-2 flex items-center gap-2 rounded-xl border border-violet-400/25 bg-violet-500/[0.08] px-3 py-2">
+                    <Trophy size={13} className="flex-shrink-0 text-violet-300" />
                     <span className="min-w-0 flex-1 truncate text-[11px] font-bold text-white">
                       {tierAdjunta.title}
                     </span>
@@ -3518,7 +3533,7 @@ export const ChatView: React.FC = () => {
                       type="button"
                       onClick={() => setTierAdjunta(null)}
                       aria-label="Quitar la tier list"
-                      className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
+                      className="chat-boton rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-white"
                     >
                       <X size={14} />
                     </button>
@@ -3527,7 +3542,7 @@ export const ChatView: React.FC = () => {
 
                 {/* Selector: crear una nueva o elegir una propia. */}
                 {selectorTierAbierto && !editando && (
-                  <div className="mb-2 space-y-2 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3">
+                  <div className="mb-2 space-y-2 rounded-2xl border border-white/[0.06] bg-black/30 p-3">
                     <div className="flex items-center justify-between gap-2">
                       <span className="flex items-center gap-1.5 text-[11px] font-bold text-white">
                         <Trophy size={13} className="text-violet-400" />
@@ -3596,13 +3611,11 @@ export const ChatView: React.FC = () => {
                 )}
 
                 
-        {/* Con "flex-wrap" los dos botones pasan a una columna en
-            pantallas estrechas. Sin esto, a 390px se quedaban sin
-            ancho y "Crear Grupo" se partía en dos líneas, con la
-            caja descolocada respecto a la de al lado. En móvil las
-            herramientas van tras el "+" para que el campo y el
-            envío respiren; en escritorio salen todas en fila. */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Barra unificada: campo + herramientas + envío en un
+            mismo contenedor. En móvil las herramientas van tras
+            el "+" para que el campo y el envío respiren; en
+            escritorio salen todas en fila. */}
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.06] bg-black/30 p-2 transition-colors focus-within:border-violet-400/40 focus-within:ring-2 focus-within:ring-violet-500/10">
                   <textarea
                     ref={inputRef}
                     rows={1}
@@ -3620,13 +3633,13 @@ export const ChatView: React.FC = () => {
                     // 16px en móvil: por debajo, iOS acerca la vista
                     // al enfocar y hay que alejar a mano. En
                     // escritorio se queda como estaba.
-                    className="order-1 min-w-0 flex-1 resize-none overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-base sm:text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                    className="order-1 min-w-0 flex-1 resize-none overflow-y-auto rounded-xl bg-transparent px-3 py-2.5 text-base sm:text-sm text-white placeholder-zinc-500 focus:outline-none"
                   />
 
                   {/* Herramientas: fila completa tras el "+" en
                       móvil, en línea a partir de sm. */}
                   <div
-                    className={`${showHerramientas ? 'flex' : 'hidden'} order-4 w-full flex-wrap items-center gap-2 sm:order-2 sm:flex sm:w-auto`}
+                    className={`${showHerramientas ? 'flex' : 'hidden'} order-4 w-full flex-wrap items-center gap-1.5 sm:order-2 sm:flex sm:w-auto`}
                   >
                   {/* Emojis */}
                   <button
@@ -3634,13 +3647,13 @@ export const ChatView: React.FC = () => {
                     onClick={() => setShowEmojiPicker((v) => !v)}
                     aria-label="Insertar un emoji"
                     title="Emojis"
-                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+                    className={`chat-boton flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${
                       showEmojiPicker
-                        ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
-                        : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300'
+                        ? 'border-violet-400/30 bg-violet-500/[0.14] text-violet-200'
+                        : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:bg-violet-500/[0.08] hover:text-violet-200'
                     }`}
                   >
-                    <Smile size={17} />
+                    <Smile size={16} />
                   </button>
 
                   {/* Adjuntar una foto del ordenador. En edición no
@@ -3652,13 +3665,13 @@ export const ChatView: React.FC = () => {
                     disabled={!!editando}
                     aria-label="Adjuntar una foto"
                     title="Adjuntar una foto"
-                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+                    className={`chat-boton flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${
                       chatImageUrl
-                        ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
-                        : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300'
+                        ? 'border-violet-400/30 bg-violet-500/[0.14] text-violet-200'
+                        : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:bg-violet-500/[0.08] hover:text-violet-200'
                     } disabled:opacity-40`}
                   >
-                    <ImagePlus size={17} />
+                    <ImagePlus size={16} />
                   </button>
 
                   {/* Compartir ubicación: abre el menú con las dos
@@ -3688,13 +3701,13 @@ export const ChatView: React.FC = () => {
                     disabled={!!editando}
                     aria-label="Añadir una encuesta al mensaje"
                     title="Añadir una encuesta"
-                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+                    className={`chat-boton flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${
                       encuestaBorrador
-                        ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
-                        : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300'
+                        ? 'border-violet-400/30 bg-violet-500/[0.14] text-violet-200'
+                        : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:bg-violet-500/[0.08] hover:text-violet-200'
                     } disabled:opacity-40`}
                   >
-                    <BarChart3 size={17} />
+                    <BarChart3 size={16} />
                   </button>
 
                   {/* Tier list: abre el selector encima de la caja
@@ -3706,13 +3719,13 @@ export const ChatView: React.FC = () => {
                     disabled={!!editando}
                     aria-label="Adjuntar una tier list al mensaje"
                     title="Adjuntar una tier list"
-                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${
+                    className={`chat-boton flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${
                       tierAdjunta || selectorTierAbierto
-                        ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
-                        : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-violet-500/50 hover:text-violet-300'
+                        ? 'border-violet-400/30 bg-violet-500/[0.14] text-violet-200'
+                        : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:bg-violet-500/[0.08] hover:text-violet-200'
                     } disabled:opacity-40`}
                   >
-                    <Trophy size={17} />
+                    <Trophy size={16} />
                   </button>
                   </div>
 
@@ -3725,13 +3738,13 @@ export const ChatView: React.FC = () => {
                     aria-expanded={showHerramientas}
                     aria-label={showHerramientas ? 'Ocultar herramientas' : 'Más herramientas'}
                     title="Más herramientas"
-                    className={`order-2 flex h-11 w-11 items-center justify-center rounded-2xl border transition-all sm:hidden ${
+                    className={`chat-boton order-2 flex h-9 w-9 items-center justify-center rounded-xl border transition-all sm:hidden ${
                       showHerramientas
-                        ? 'border-violet-500/60 bg-violet-600/20 text-violet-300'
-                        : 'border-zinc-800 bg-zinc-900 text-zinc-400'
+                        ? 'border-violet-400/30 bg-violet-500/[0.14] text-violet-200'
+                        : 'border-white/[0.06] bg-white/[0.03] text-zinc-400'
                     }`}
                   >
-                    {showHerramientas ? <X size={17} /> : <Plus size={17} />}
+                    {showHerramientas ? <X size={16} /> : <Plus size={16} />}
                   </button>
 
                   <button
@@ -3751,9 +3764,10 @@ export const ChatView: React.FC = () => {
                           !tierAdjunta)
                     }
                     aria-label={editando ? 'Guardar edición' : 'Enviar mensaje'}
-                    className="order-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600 text-white hover:bg-violet-500 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-md shadow-violet-600/30"
+                    title={editando ? 'Guardar edición' : 'Enviar mensaje'}
+                    className="chat-boton order-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white hover:brightness-110 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-lg shadow-violet-950/50"
                   >
-                    {editando ? <Check size={16} /> : <Send size={16} />}
+                    {editando ? <Check size={16} /> : <Send size={15} />}
                   </button>
                 </div>
 
@@ -3865,12 +3879,14 @@ export const ChatView: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center p-8 text-center text-zinc-500">
-              <MessageCircle size={36} className="text-zinc-700 mb-3" />
-              <h3 className="text-base font-bold text-white">
+            <div className="mx-auto flex h-full w-full max-w-sm flex-col items-center justify-center p-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.03] text-zinc-500">
+                <MessageCircle size={22} />
+              </div>
+              <h3 className="mt-3 text-[15px] font-bold tracking-tight text-white">
                 {tabChats === 'clubes' ? 'Selecciona uno de tus clubes' : 'Selecciona o inicia un chat'}
               </h3>
-              <p className="mt-1 text-xs text-zinc-400 max-w-sm">
+              <p className="mt-1.5 text-xs text-zinc-400 max-w-sm leading-relaxed">
                 {tabChats === 'clubes'
                   ? 'Elige un club de la lista para chatear con sus miembros, o descubre nuevas comunidades.'
                   : 'Puedes iniciar una charla privada añadiendo un usuario mediante su ID único o crear un nuevo grupo de debate.'}

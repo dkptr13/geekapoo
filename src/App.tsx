@@ -267,7 +267,7 @@ const {
 
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
+    <div className="min-h-screen bg-[#080810] text-zinc-100 flex flex-col">
 
       {/* ==================================================
           NAVBAR
@@ -649,7 +649,7 @@ const {
           FOOTER
       ================================================== */}
 
-      <footer className="border-t border-zinc-850 bg-zinc-950 py-8 text-xs text-zinc-500">
+      <footer className="border-t border-white/[0.06] bg-[#07070d] py-8 text-xs text-zinc-500">
 
         <div className="mx-auto max-w-[1900px] px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
 
@@ -675,7 +675,7 @@ const {
               onClick={() =>
                 setArchitectureOpen(true)
               }
-              className="flex items-center gap-1.5 text-violet-400 hover:text-violet-300 font-semibold transition-colors"
+              className="flex items-center gap-1.5 text-violet-300 hover:text-violet-200 font-semibold transition-colors"
             >
               <Code2 size={13} />
 

@@ -58,13 +58,13 @@ function claseQueContiene(marca: string): string {
 // ═══════════════════════════════════════════════════════════
 
 {
-  const cita = claseQueContiene('border-l-2 border-violet-500/70');
+  const cita = claseQueContiene('border-l-violet-400/60');
 
   assert.ok(cita.includes('w-fit'), 'la cita también encoge');
 }
 
 {
-  const borrado = claseQueContiene('border-dashed border-zinc-700');
+  const borrado = claseQueContiene('border-dashed');
 
   assert.ok(borrado.includes('w-fit'), 'el marcador de eliminado también');
 }
