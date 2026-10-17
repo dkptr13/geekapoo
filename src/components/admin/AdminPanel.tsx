@@ -158,9 +158,9 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-zinc-800">
+      <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
         <table className="w-full min-w-[640px] text-left text-xs">
-          <thead className="bg-zinc-900 text-[10px] uppercase tracking-wider text-zinc-500">
+          <thead className="bg-white/[0.03] text-[10px] uppercase tracking-wider text-zinc-500">
             <tr>
               <th className="px-4 py-3 font-bold">Usuario</th>
               <th className="px-4 py-3 font-bold">Correo</th>
@@ -169,7 +169,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
               <th className="px-4 py-3 font-bold">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/70">
+          <tbody className="divide-y divide-white/[0.04]">
             {users.map((u) => {
               const isMe = u.uid === currentUser?.uid;
               const busy = busyId === u.uid;
@@ -184,7 +184,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
               const canDelete = !isMe;
 
               return (
-                <tr key={u.id} className="bg-zinc-900/40">
+                <tr key={u.id} className="bg-white/[0.02]">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <img
@@ -197,7 +197,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                       />
                       <span className="font-semibold text-white">@{u.username}</span>
                       {isMe && (
-                        <span className="rounded bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-bold text-violet-300">
+                        <span className="rounded border border-violet-400/20 bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-bold text-violet-200">
                           TÚ
                         </span>
                       )}
@@ -212,7 +212,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                         onChange={(e) =>
                           run(u.uid, () => setUserRole(u.uid, e.target.value as User['role']))
                         }
-                        className="rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none disabled:opacity-40"
+                        className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-xs text-white focus:border-violet-400 focus:outline-none disabled:opacity-40"
                       >
                         {ROLES.map((r) => (
                           <option key={r} value={r}>
@@ -224,8 +224,8 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                       <span
                         className={`rounded px-2 py-0.5 text-[10px] font-semibold ${
                           isTeam
-                            ? 'bg-violet-500/20 text-violet-300'
-                            : 'bg-zinc-800 text-zinc-400'
+                            ? 'border border-violet-400/20 bg-violet-500/15 text-violet-200'
+                            : 'border border-white/[0.06] bg-white/[0.04] text-zinc-400'
                         }`}
                       >
                         {ROLE_LABELS[u.role ?? 'user']}
@@ -236,8 +236,8 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                         u.isBanned
-                          ? 'bg-red-500/20 text-red-300'
-                          : 'bg-emerald-500/20 text-emerald-300'
+                          ? 'border border-red-400/20 bg-red-500/15 text-red-300'
+                          : 'border border-emerald-400/20 bg-emerald-500/15 text-emerald-300'
                       }`}
                     >
                       {u.isBanned ? 'Baneado' : 'Activo'}
@@ -256,10 +256,10 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                             : undefined
                       }
                       onClick={() => run(u.uid, () => setUserBanned(u.uid, !u.isBanned))}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
                         u.isBanned
-                          ? 'bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30'
-                          : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                          ? 'border border-emerald-400/20 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20'
+                          : 'border border-red-400/20 bg-red-500/10 text-red-300 hover:bg-red-500/15'
                       }`}
                     >
                       {busy ? (
@@ -285,7 +285,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                               setConfirmarBorrado(null);
                               run(u.uid, () => deleteUser(u.uid));
                             }}
-                            className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-40"
+                            className="inline-flex items-center gap-1 rounded-xl bg-red-600 px-2.5 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-40"
                           >
                             {busy ? (
                               <Loader2 size={12} className="animate-spin" />
@@ -297,7 +297,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                           <button
                             type="button"
                             onClick={() => setConfirmarBorrado(null)}
-                            className="rounded-lg bg-zinc-800 px-2 py-1.5 text-[11px] font-semibold text-zinc-400 transition-colors hover:bg-zinc-700"
+                            className="rounded-xl bg-white/[0.04] px-2 py-1.5 text-[11px] font-semibold text-zinc-400 transition-colors hover:bg-white/[0.08] hover:text-zinc-100"
                           >
                             No
                           </button>
@@ -312,7 +312,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                               ? 'No puedes borrarte a ti mismo'
                               : 'Borra su perfil de la aplicación'
                           }
-                          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold text-zinc-600 transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30"
+                          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-semibold text-zinc-600 transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           <Trash2 size={12} />
                           Eliminar
@@ -333,7 +333,7 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
           : 'Como moderador no puedes cambiar roles: eso es solo del admin. Sí puedes banear usuarios normales, pero no a otros admins ni moderadores.'}
       </p>
 
-      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
+      <div className="rounded-xl border border-amber-400/20 bg-amber-500/5 px-3 py-2.5">
         <p className="text-[11px] leading-relaxed text-amber-300/90">
           <strong>"Eliminar" borra el perfil de la aplicación</strong> (nombre, avatar, chatId y
           rol), no la cuenta de acceso. La cuenta sigue existiendo en Firebase Auth: si esa
@@ -380,8 +380,8 @@ export function AdminPanel() {
     <div className="mx-auto max-w-6xl 2xl:max-w-7xl space-y-6 pb-12">
       {/* HEADER */}
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/20">
-          <Shield className="h-5 w-5 text-violet-400" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-400/20 bg-gradient-to-br from-violet-600/25 to-sky-500/15 shadow-inner">
+          <Shield className="h-5 w-5 text-violet-300" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-white">
@@ -411,7 +411,7 @@ export function AdminPanel() {
       {isAdmin && <MigrationPanel />}
 
       {/* PROVEEDOR DE IMÁGENES */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <HardDrive size={16} className="text-zinc-400" />
@@ -421,10 +421,10 @@ export function AdminPanel() {
             <button
               type="button"
               onClick={() => setProvider('storage')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`chat-boton rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
                 provider === 'storage'
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-950/40'
+                  : 'bg-white/[0.04] text-zinc-400 hover:text-zinc-100'
               }`}
             >
               Firebase Storage
@@ -432,10 +432,10 @@ export function AdminPanel() {
             <button
               type="button"
               onClick={() => setProvider('imgbb')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`chat-boton rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
                 provider === 'imgbb'
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-950/40'
+                  : 'bg-white/[0.04] text-zinc-400 hover:text-zinc-100'
               }`}
             >
               ImgBB
@@ -459,7 +459,9 @@ export function AdminPanel() {
               type="button"
               onClick={() => setActiveSection(id)}
               className={`flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-xs font-semibold transition-all ${
-                isActive ? color : 'border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'
+                isActive
+                    ? 'border-violet-400/25 bg-violet-500/15 text-violet-200 shadow-sm'
+                    : 'border-white/[0.06] bg-white/[0.03] text-zinc-500 hover:border-white/[0.1] hover:text-zinc-200'
               }`}
             >
               <Icon size={18} />
@@ -483,7 +485,7 @@ export function AdminPanel() {
           {activeSection !== 'users' &&
             activeSection !== 'tickets' &&
             activeSection !== 'gamificacion' && (
-              <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-400">
+              <span className="rounded-full border border-white/[0.06] bg-white/[0.04] px-2 py-0.5 text-[11px] text-zinc-400">
                 {catalog.counts[activeSection]} elementos
               </span>
             )}
@@ -532,7 +534,7 @@ export function AdminPanel() {
         ) : activeSection === 'gamificacion' ? (
           <GamificationSection />
         ) : (
-          <p className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center text-zinc-500">
+          <p className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center text-zinc-500">
             Sección no disponible.
           </p>
         )}
