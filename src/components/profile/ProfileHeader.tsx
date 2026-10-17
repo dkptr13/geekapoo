@@ -147,7 +147,7 @@ export const ProfileHeader: React.FC<{
     // El `overflow-hidden` es lo que hace que el avatar "salga" de
     // la tarjeta por arriba. Sin él, la imagen se sale de los
     // bordes redondeados y el efecto se rompe.
-    <header className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/90 shadow-xl">
+    <header className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-white/[0.03] shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]">
       {/* ── Banner personalizado ───────────────────────
           Preset (degradado CSS) o imagen subida. Si no hay nada,
           el degradado de la casa, que es lo que había antes. */}

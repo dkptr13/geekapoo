@@ -104,9 +104,9 @@ export const AccountMenu: React.FC<{
         aria-expanded={abierto}
         aria-label={abierto ? 'Cerrar el menú de cuenta' : 'Abrir el menú de cuenta'}
         title={abierto ? 'Cerrar el menú de cuenta' : 'Abrir el menú de cuenta'}
-        className="flex items-center gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-gray-800"
+        className="chat-boton flex items-center gap-2 rounded-xl px-2 py-2 transition-colors hover:bg-white/[0.05]"
       >
-        <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-violet-500/40 bg-purple-600/20 text-purple-300">
+        <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300">
           {usuario.avatarUrl ? (
             <img
               src={usuario.avatarUrl}
@@ -122,7 +122,7 @@ export const AccountMenu: React.FC<{
           <span className="block max-w-[140px] truncate text-xs font-bold text-white">
             {usuario.username || usuario.displayName || 'Usuario'}
           </span>
-          <span className="block text-[10px] text-gray-400">
+          <span className="block text-[10px] text-zinc-400">
             {usuario.role === 'admin'
               ? '[ADMIN]'
               : usuario.role === 'moderator'
@@ -133,7 +133,7 @@ export const AccountMenu: React.FC<{
 
         <ChevronDown
           size={14}
-          className={`hidden text-gray-500 transition-transform sm:block ${abierto ? 'rotate-180' : ''}`}
+          className={`hidden text-zinc-500 transition-transform sm:block ${abierto ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -146,11 +146,11 @@ export const AccountMenu: React.FC<{
           // usa `geo-pop-in`, la animación de los paneles
           // flotantes del proyecto (`animate-in` no hace nada
           // aquí, no hay ese plugin).
-          className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] geo-pop-in origin-top-right overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl shadow-black/60"
+          className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] geo-pop-in origin-top-right overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl shadow-black/60 backdrop-blur-xl"
         >
           {/* ── Cabecera ─────────────────────────── */}
-          <div className="flex items-center gap-3 border-b border-zinc-800 bg-zinc-950/60 px-4 py-3">
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-violet-500/40 bg-purple-600/20 text-purple-300">
+          <div className="flex items-center gap-3 border-b border-white/[0.06] bg-white/[0.02] px-4 py-3">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300">
               {usuario.avatarUrl ? (
                 <img
                   src={usuario.avatarUrl}
@@ -175,11 +175,11 @@ export const AccountMenu: React.FC<{
               onClick={() => elegir(onMiPerfil)}
               className={`${itemClase} ${
                 perfilPropioActivo
-                  ? 'bg-violet-600/20 text-violet-200'
-                  : 'text-zinc-200 hover:bg-zinc-800 hover:text-white'
+                  ? 'bg-violet-500/15 text-violet-200'
+                  : 'text-zinc-200 hover:bg-white/[0.05] hover:text-white'
               }`}
             >
-              <User size={16} className="flex-shrink-0 text-violet-400" />
+              <User size={16} className="flex-shrink-0 text-violet-300" />
               Mi perfil
             </button>
 
@@ -187,9 +187,9 @@ export const AccountMenu: React.FC<{
               type="button"
               role="menuitem"
               onClick={() => elegir(onPersonalizar)}
-              className={`${itemClase} text-zinc-200 hover:bg-zinc-800 hover:text-white`}
+              className={`${itemClase} text-zinc-200 hover:bg-white/[0.05] hover:text-white`}
             >
-              <Sparkles size={16} className="flex-shrink-0 text-violet-400" />
+              <Sparkles size={16} className="flex-shrink-0 text-violet-300" />
               Personalizar perfil
             </button>
 
@@ -197,13 +197,13 @@ export const AccountMenu: React.FC<{
               type="button"
               role="menuitem"
               onClick={() => elegir(onAjustes)}
-              className={`${itemClase} text-zinc-200 hover:bg-zinc-800 hover:text-white`}
+              className={`${itemClase} text-zinc-200 hover:bg-white/[0.05] hover:text-white`}
             >
               <Settings size={16} className="flex-shrink-0 text-zinc-400" />
               Configuración de cuenta
             </button>
 
-            <div aria-hidden="true" className="mx-1 my-1 border-t border-zinc-800" />
+            <div aria-hidden="true" className="mx-1 my-1 border-t border-white/[0.06]" />
 
             <button
               type="button"
