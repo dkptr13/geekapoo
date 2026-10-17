@@ -123,7 +123,7 @@ export const ProfileActivity: React.FC<{
           return (
             <li
               key={e.id}
-              className="flex items-start gap-2.5 rounded-xl border border-zinc-800/70 bg-zinc-950/40 p-2.5"
+              className="flex items-start gap-2.5 rounded-xl border border-white/[0.04] bg-white/[0.02] p-2.5"
             >
               {/*
                 Solo los hitos que llevan a alguna parte son

@@ -310,7 +310,7 @@ export const AccountSettings: React.FC = () => {
   const hiddenFromRequests = !acceptsChatRequests(privacy);
 
   return (
-    <section className="rounded-3xl border border-white/[0.06] bg-zinc-900/90 shadow-xl">
+    <section className="rounded-3xl border border-white/[0.06] bg-white/[0.03] shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] p-6 sm:px-8">
         <h3 className="flex items-center gap-2 text-base font-bold text-white">
           <Settings size={18} className="text-violet-400" />

@@ -878,7 +878,7 @@ const Perfil: React.FC<{
                                 type="button"
                                 onClick={() => onGoToThread(c.targetId, c.id)}
                                 title="Abrir el hilo y resaltar este comentario"
-                                className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 text-left transition-colors hover:border-violet-500/40 hover:bg-zinc-950/80"
+                                className="chat-boton w-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-left transition-colors hover:border-violet-400/40 hover:bg-white/[0.05]"
                               >
                                 {body}
                               </button>

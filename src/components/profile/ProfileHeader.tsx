@@ -226,7 +226,7 @@ export const ProfileHeader: React.FC<{
               onClick={onEditar}
               aria-label="Editar perfil"
               title="Editar perfil"
-              className="absolute -left-2 -top-2 flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
+              className="absolute -left-2 -top-2 flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] bg-zinc-900 text-zinc-300 transition-colors hover:border-violet-400/40 hover:text-white"
             >
               <Camera size={14} />
             </button>
@@ -338,7 +338,7 @@ export const ProfileHeader: React.FC<{
               </span>
             </div>
 
-            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-zinc-800 bg-zinc-950">
+            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-white/[0.06] bg-white/[0.02]">
               <div
                 className="h-full rounded-full transition-[width] duration-700 ease-out"
                 style={{

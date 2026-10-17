@@ -169,7 +169,7 @@ const FilaHilo: React.FC<{
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-white">{hilo.title}</h3>
         {hilo.categoryName && (
-          <span className="shrink-0 rounded-full border border-zinc-700/50 bg-zinc-800/80 px-2.5 py-0.5 text-[10px] font-medium text-violet-300">
+          <span className="shrink-0 rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-medium text-violet-300">
             {hilo.categoryName}
           </span>
         )}
@@ -268,7 +268,7 @@ const FilaComentario: React.FC<{
         <button
           type="button"
           onClick={() => onIrA(comentario.targetId, comentario.id)}
-          className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 text-left transition-colors hover:border-violet-500/40 hover:bg-zinc-950/80"
+          className="chat-boton w-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-left transition-colors hover:border-violet-400/40 hover:bg-white/[0.05]"
         >
           {cuerpo}
         </button>
