@@ -284,7 +284,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
             {animesVisibles.length > 0 && (mainTab === 'all' || mainTab === 'series' || mainTab === 'movies') && (
               <button
                 onClick={pickRandom}
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-violet-600 px-3 py-2.5 text-xs font-bold text-white transition-colors hover:bg-violet-500"
+                className="chat-boton inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
               >
                 <Shuffle size={13} />
                 Sorpréndeme
@@ -316,7 +316,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           {selectedCategory !== 'all' && (
             <button
               onClick={() => onSelectCategory('all')}
-              className="rounded-lg bg-zinc-900 px-2.5 py-1 text-[11px] font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white"
+              className="chat-boton rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-100"
             >
               Ver todo el catálogo
             </button>
@@ -392,7 +392,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
             {contarFiltrosActivos(filtros) > 0 && (
               <button
                 onClick={onLimpiarFiltros}
-                className="mx-auto mt-4 block rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
+                className="chat-boton rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-400/40 hover:text-white"
               >
                 Limpiar filtros
               </button>
@@ -406,7 +406,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                 <button
                   key={ep.id}
                   onClick={() => onSelectAnime(ep.animeId)}
-                  className="flex gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 text-left transition-colors hover:border-amber-500/50"
+                  className="flex gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 text-left transition-colors hover:border-amber-400/40"
                 >
                   {toText(ep.thumbnailUrl) ? (
                     <img
@@ -439,7 +439,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                 <button
                   key={c.id}
                   onClick={() => onSelectAnime(c.animeId)}
-                  className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 text-left transition-colors hover:border-pink-500/50"
+                  className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 text-left transition-colors hover:border-pink-400/40"
                 >
                   {toText(c.imageUrl) ? (
                     <img
@@ -472,7 +472,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                 <button
                   key={t.id}
                   onClick={() => onSelectThread?.(t)}
-                  className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3 text-left transition-colors hover:border-emerald-500/50"
+                  className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 text-left transition-colors hover:border-emerald-400/40"
                 >
                   <span className="text-[10px] font-bold uppercase text-emerald-400">
                     {t.categoryName}
@@ -503,7 +503,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                 onClick={() => onSelectAnime(anime.id)}
                 className="group text-left"
               >
-                <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03]">
                   <QuickImageEditor
                     section="animes"
                     itemId={anime.id}
@@ -527,7 +527,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                   </div>
 
                   {peli && (
-                    <span className="absolute left-1.5 top-1.5 rounded-md bg-zinc-950/80 px-1.5 py-0.5 text-[10px] font-bold text-rose-300">
+                    <span className="absolute left-1.5 top-1.5 rounded-md border border-white/[0.06] bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-rose-300">
                       Película
                     </span>
                   )}
