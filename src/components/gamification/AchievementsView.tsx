@@ -110,7 +110,7 @@ export const AchievementsView: React.FC = () => {
 
         <div className="space-y-6">
           {/* ── Cabecera ─────────────────────────────────── */}
-          <header className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-6 shadow-xl sm:p-8">
+          <header className="rounded-3xl border border-white/[0.06] bg-gradient-to-br from-[#10101a] via-[#0c0c14] to-[#12102a] p-6 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)] sm:p-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h1 className="flex items-center gap-2 text-xl font-black text-white">
@@ -122,7 +122,7 @@ export const AchievementsView: React.FC = () => {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-center">
+              <div className="rounded-2xl border border-violet-400/20 bg-violet-500/10 px-4 py-3 text-center">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   Medallas
                 </p>
@@ -170,8 +170,8 @@ export const AchievementsView: React.FC = () => {
                   onClick={() => setFiltro(f.id)}
                   className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
                     activo
-                      ? 'border-violet-500 bg-violet-600/20 text-violet-300'
-                      : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-white'
+                      ? 'border-violet-400/25 bg-violet-500/15 text-violet-200'
+                      : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-white/[0.1] hover:text-zinc-100'
                   }`}
                 >
                   {f.etiqueta}
@@ -187,7 +187,7 @@ export const AchievementsView: React.FC = () => {
 
           {/* ── Rejilla ───────────────────────────────────── */}
           {visibles.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/50 px-4 py-12 text-center text-sm text-zinc-500">
+            <p className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.02] px-4 py-12 text-center text-sm text-zinc-500">
               No hay medallas en este filtro.
             </p>
           ) : (
@@ -200,7 +200,7 @@ export const AchievementsView: React.FC = () => {
 
           {/* ── Nota sobre las manuales y las pendientes ── */}
           {CATALOGO_MEDALLAS.some((m) => !m.requisito) && (
-            <p className="flex items-start gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-[11px] leading-relaxed text-zinc-500">
+            <p className="flex items-start gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[11px] leading-relaxed text-zinc-500">
               <Lock size={13} className="mt-0.5 flex-shrink-0" />
               <span>
                 Las medallas con candado no se consiguen jugando: las concede el equipo a
