@@ -213,7 +213,7 @@ export const AuthModal: React.FC = () => {
           y, si aun así no cabe, el formulario se scrolls y
           el botón siempre está a un clic.
       ================================================== */}
-      <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/95 shadow-2xl shadow-violet-950/40 md:max-w-2xl md:flex-row">
+      <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl shadow-violet-950/40 md:max-w-2xl md:flex-row">
 
         {/* Close Button */}
         <button
@@ -246,7 +246,7 @@ export const AuthModal: React.FC = () => {
         {/* Header */}
         <div className="mb-6 text-center">
 
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/30">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20">
             <Sparkles size={24} />
           </div>
 
@@ -271,7 +271,7 @@ export const AuthModal: React.FC = () => {
         {/* Mode Tabs */}
         {(authMode === 'login' ||
           authMode === 'register') && (
-          <div className="mb-6 grid grid-cols-2 rounded-xl bg-zinc-950 p-1 border border-zinc-800/80">
+          <div className="mb-6 grid grid-cols-2 rounded-xl bg-white/[0.03] p-1 border border-white/[0.06]">
 
             <button
               type="button"
@@ -365,7 +365,7 @@ export const AuthModal: React.FC = () => {
                     setEmail(e.target.value)
                   }
                   placeholder="ejemplo@geekapoo.com"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
 
@@ -410,7 +410,7 @@ export const AuthModal: React.FC = () => {
                     setPassword(e.target.value)
                   }
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
 
@@ -420,7 +420,7 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-500 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
             >
               <span>
                 {loading
@@ -460,7 +460,7 @@ export const AuthModal: React.FC = () => {
                     setUsername(e.target.value)
                   }
                   placeholder="OtakuSenpai_26"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
 
@@ -486,7 +486,7 @@ export const AuthModal: React.FC = () => {
                     setEmail(e.target.value)
                   }
                   placeholder="tu_email@dominio.com"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
 
@@ -512,7 +512,7 @@ export const AuthModal: React.FC = () => {
                     setPassword(e.target.value)
                   }
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
 
@@ -522,7 +522,7 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-500 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
             >
               <span>
                 {loading
@@ -543,7 +543,7 @@ export const AuthModal: React.FC = () => {
             className="space-y-4"
           >
 
-            <div className="rounded-xl border border-violet-500/20 bg-violet-950/30 p-3 text-xs leading-relaxed text-violet-200">
+            <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 p-3 text-xs leading-relaxed text-violet-200">
               Introduce tu correo electrónico registrado.
               Firebase te enviará un correo con un enlace
               seguro para restablecer tu contraseña.
@@ -568,7 +568,7 @@ export const AuthModal: React.FC = () => {
                     setEmail(e.target.value)
                   }
                   placeholder="ejemplo: kaguya.fan@geekapoo.com"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950/80 py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
 
@@ -578,7 +578,7 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/30 transition-all hover:bg-violet-500 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
             >
               <span>
                 {loading
@@ -613,7 +613,7 @@ export const AuthModal: React.FC = () => {
 
             <div className="relative mb-4 text-center">
 
-              <span className="relative z-10 bg-zinc-900 px-3 text-[11px] font-medium text-zinc-500">
+              <span className="relative z-10 bg-[#0c0c14] px-3 text-[11px] font-medium text-zinc-500">
                 O CONTINUAR CON OAUTH
               </span>
 
@@ -625,7 +625,7 @@ export const AuthModal: React.FC = () => {
               type="button"
               onClick={handleGithub}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-800 bg-zinc-950 py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-zinc-700 hover:bg-zinc-800/80 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-white/[0.1] hover:bg-white/[0.06] disabled:opacity-50"
             >
               <Github
                 size={16}
@@ -646,7 +646,7 @@ export const AuthModal: React.FC = () => {
               type="button"
               onClick={handleGoogle}
               disabled={loading}
-              className="mt-2 flex w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-800 bg-zinc-950 py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-zinc-700 hover:bg-zinc-800/80 disabled:opacity-50"
+              className="mt-2 flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-white/[0.1] hover:bg-white/[0.06] disabled:opacity-50"
             >
               {/* El logo de Google es multicolor, así que se
                   escribe con las clases que traen sus colores
