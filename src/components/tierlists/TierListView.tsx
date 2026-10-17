@@ -40,14 +40,14 @@ export const TierListView: FC<TierListViewProps> = ({
   const tile = tamano === 'sm' ? 'h-12 w-12 text-[9px]' : 'h-16 w-16 text-[10px]';
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/60">
+    <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02]">
       {visibles.map((fila) => {
         const elementos = elementosDe(tier.items, tier.poolOrder, fila.id);
         const nv = votos?.[fila.id] ?? 0;
         const pct = totalVotos > 0 ? Math.round((nv / totalVotos) * 100) : 0;
 
         return (
-          <div key={fila.id} className="flex min-h-14 border-b border-zinc-800 last:border-b-0">
+          <div key={fila.id} className="flex min-h-14 border-b border-white/[0.04] last:border-b-0">
             <div
               className="flex w-14 flex-shrink-0 flex-col items-center justify-center gap-0.5 px-1 py-2 sm:w-16"
               style={{ backgroundColor: `${fila.color}26` }}
@@ -75,7 +75,7 @@ export const TierListView: FC<TierListViewProps> = ({
                 />
               )}
               {elementos.length === 0 ? (
-                <span className="flex h-full min-h-10 items-center px-1 text-[10px] text-zinc-700">
+                <span className="flex h-full min-h-10 items-center px-1 text-[10px] text-zinc-600">
                   —
                 </span>
               ) : (
@@ -84,7 +84,7 @@ export const TierListView: FC<TierListViewProps> = ({
                     <span
                       key={el.id}
                       title={el.name}
-                      className={`group/tile relative flex-shrink-0 overflow-hidden rounded-lg border border-zinc-700/60 bg-zinc-900 ${tile}`}
+                      className={`group/tile relative flex-shrink-0 overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.04] ${tile}`}
                     >
                       {el.imageUrl ? (
                         <img
