@@ -349,7 +349,7 @@ export const DailyTriviaView: FC<Props> = ({ resaltada = false }) => {
             disabled={fase !== 'jugando' || indice === 0}
             aria-label="Pregunta anterior"
             title="Pregunta anterior"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 transition-colors hover:border-violet-500/50 hover:text-violet-300 disabled:pointer-events-none disabled:opacity-30"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-zinc-400 transition-colors hover:border-violet-400/40 hover:text-violet-200 disabled:pointer-events-none disabled:opacity-30"
           >
             <ChevronLeft size={16} />
           </button>
@@ -358,7 +358,7 @@ export const DailyTriviaView: FC<Props> = ({ resaltada = false }) => {
             type="button"
             onClick={siguiente}
             disabled={fase !== 'jugando' || !pregunta || !respondida(pregunta.id)}
-            className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-violet-500 disabled:opacity-40 disabled:pointer-events-none shadow-lg shadow-violet-600/25"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white transition-all hover:brightness-110 disabled:opacity-40 disabled:pointer-events-none shadow-lg shadow-violet-950/40"
           >
             {respondidas < total ? 'Siguiente' : 'Ver resultado'}
           </button>
@@ -391,7 +391,7 @@ const Cabecera: FC<{ indice: number; total: number; label?: string; fecha: strin
         <Brain size={20} className="text-violet-400" />
         Trivia diaria
       </h1>
-      <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 font-mono text-[11px] font-bold text-violet-300">
+      <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-1 font-mono text-[11px] font-bold text-violet-200">
         Pregunta {Math.min(indice + 1, total)}/{total}
       </span>
     </div>
@@ -421,7 +421,7 @@ const TarjetaPregunta: FC<{
   bloqueada: boolean;
   onElegir: (opcion: number) => void;
 }> = ({ pregunta, elegida, bloqueada, onElegir }) => (
-  <section className="geo-pop-in rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6">
+  <section className="geo-pop-in rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 sm:p-6">
     <div className="mb-3 flex flex-wrap items-center gap-1.5">
       {pregunta.category && (
         <span className="rounded-full border border-zinc-700 bg-zinc-800/80 px-2 py-0.5 text-[10px] font-semibold text-zinc-400">
@@ -449,12 +449,12 @@ const TarjetaPregunta: FC<{
               } ${
                 esLaElegida
                   ? 'border-violet-400/70 bg-violet-500/15 text-white'
-                  : 'border-zinc-800 bg-zinc-950/60 text-zinc-300'
+                  : 'border-white/[0.06] bg-white/[0.03] text-zinc-300'
               }`}
             >
               <span
                 className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg font-mono text-[11px] font-bold ${
-                  esLaElegida ? 'bg-violet-500 text-white' : 'bg-zinc-800 text-zinc-400'
+                  esLaElegida ? 'bg-violet-500 text-white' : 'bg-white/[0.06] text-zinc-400'
                 }`}
               >
                 {String.fromCharCode(65 + i)}
@@ -533,8 +533,8 @@ const ResultadoFinal: FC<{
       <section
         className={`rounded-2xl border p-5 text-center sm:p-7 ${
           correct === total && total > 0
-            ? 'border-emerald-500/30 bg-gradient-to-b from-emerald-950/30 to-zinc-950'
-            : 'border-violet-500/25 bg-gradient-to-b from-violet-950/30 to-zinc-950'
+            ? 'border-emerald-400/25 bg-gradient-to-b from-emerald-500/10 to-[#0c0c14]'
+            : 'border-violet-400/20 bg-gradient-to-b from-violet-500/10 to-[#0c0c14]'
         }`}
       >
         <span className="mb-2 block text-3xl" aria-hidden="true">
@@ -622,7 +622,7 @@ const Explicaciones: FC<{ explicaciones: Record<string, string>; date: string }>
   explicaciones,
   date,
 }) => (
-  <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
+  <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4">
     <h3 className="flex items-center gap-2 text-xs font-bold text-zinc-200">
       <Sparkles size={13} className="text-violet-400" />
       Explicaciones
@@ -644,7 +644,7 @@ const Explicaciones: FC<{ explicaciones: Record<string, string>; date: string }>
 const EstadoCargando = () => (
   <div className="flex min-h-[320px] items-center justify-center">
     <div className="text-center">
-      <Loader2 size={28} className="mx-auto mb-3 animate-spin text-violet-400" />
+      <Loader2 size={28} className="mx-auto mb-3 animate-spin text-violet-300" />
       <p className="text-xs text-zinc-500">Buscando la trivia de hoy...</p>
     </div>
   </div>
@@ -665,7 +665,7 @@ const Aviso: FC<{
         <button
           type="button"
           onClick={boton.onClick}
-          className="mt-4 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white hover:bg-violet-500"
+          className="mt-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110"
         >
           {boton.texto}
         </button>
