@@ -2665,19 +2665,20 @@ export const ChatView: React.FC = () => {
                   </button>
                 )}
 
-                {/* Personalizar el chat: abre el panel de apariencia.
-                    Icono solo en móvil, como Miembros: el nombre de
-                    la sala no se puede cortar. */}
-                <button
-                  type="button"
-                  onClick={abrirPanelApariencia}
-                  aria-label="Personalizar el chat"
-                  title="Personalizar el chat"
-                  className="chat-boton flex h-9 flex-shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-[11px] font-semibold text-zinc-300 transition-colors hover:border-violet-400/30 hover:bg-white/[0.06] hover:text-white"
-                >
-                  <Palette size={13} className="flex-shrink-0" />
-                  <span className="hidden sm:inline">Apariencia</span>
-                </button>
+                {/* Personalizar el chat: solo el equipo del club puede
+                    cambiar el fondo compartido que ven todos. */}
+                {esChatClub && (soyDuenoDelClub || soyModDelClub) && (
+                  <button
+                    type="button"
+                    onClick={abrirPanelApariencia}
+                    aria-label="Personalizar el chat"
+                    title="Personalizar el chat"
+                    className="chat-boton flex h-9 flex-shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-[11px] font-semibold text-zinc-300 transition-colors hover:border-violet-400/30 hover:bg-white/[0.06] hover:text-white"
+                  >
+                    <Palette size={13} className="flex-shrink-0" />
+                    <span className="hidden sm:inline">Apariencia</span>
+                  </button>
+                )}
               </div>
 
               {/* En un club no se enseña el código de invitación:
