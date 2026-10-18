@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bell, BellOff, Check, Loader2, Palette, Star, X } from 'lucide-react';
 
 import {
-  CHAT_PREFS_COLORS,
   CHAT_PREFS_MUTE,
   CHAT_PREFS_NOTIFY,
 } from '../../data/chatPrefs';
@@ -12,7 +11,7 @@ import type { ChatPrefs } from '../../types';
 // ======================================================
 // PANEL DE PREFERENCIAS POR CONVERSACIÓN
 // ======================================================
-// Color, apodo, avisos y favorito para UNA conversación.
+// Apodo, avisos y favorito para UNA conversación.
 // Cada participante guarda las suyas: nada de esto se
 // comparte con el otro.
 //
@@ -36,56 +35,6 @@ const Seccion: React.FC<{ titulo: string; children: React.ReactNode }> = ({
     {children}
   </section>
 );
-
-const FilaColor: React.FC<{
-  etiqueta: string;
-  valor: string | undefined;
-  onElegir: (hex: string | undefined) => void;
-}> = ({ etiqueta, valor, onElegir }) => {
-  const actual = typeof valor === 'string' ? valor.toLowerCase() : undefined;
-  return (
-    <div className="space-y-1.5">
-      <span className="block text-[11px] text-zinc-500">{etiqueta}</span>
-      <div className="flex flex-wrap items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => onElegir(undefined)}
-          title="Color del tema"
-          aria-label={`${etiqueta}: color del tema`}
-          aria-pressed={!valor}
-          className={`flex h-7 min-w-7 items-center justify-center rounded-lg border px-1.5 text-[10px] font-bold transition-colors ${
-            !valor
-              ? 'border-violet-500 bg-violet-950/40 text-violet-200'
-              : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-white'
-          }`}
-        >
-          Auto
-        </button>
-        {CHAT_PREFS_COLORS.map((c) => {
-          const activo = actual === c.hex;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => onElegir(activo ? undefined : c.hex)}
-              title={c.nombre}
-              aria-label={`${etiqueta}: ${c.nombre}`}
-              aria-pressed={activo}
-              style={{ backgroundColor: c.hex }}
-              className={`flex h-7 w-7 items-center justify-center rounded-lg border transition-transform ${
-                activo
-                  ? 'border-white ring-2 ring-violet-500'
-                  : 'border-zinc-700 hover:scale-110'
-              }`}
-            >
-              {activo && <Check size={13} className="text-white drop-shadow" />}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
 
 export const ChatPrefsPanel: React.FC<ChatPrefsPanelProps> = ({
   chatId,
@@ -160,8 +109,7 @@ export const ChatPrefsPanel: React.FC<ChatPrefsPanelProps> = ({
         <div className="flex-1 space-y-5 overflow-y-auto p-5">
           <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
             <span
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-sm font-black text-white shadow-md"
-              style={{ background: borrador.color ?? '#7c3aed' }}
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-sm font-black text-white shadow-md"
               aria-hidden="true"
             >
               Aa
@@ -178,14 +126,6 @@ export const ChatPrefsPanel: React.FC<ChatPrefsPanelProps> = ({
               <Star size={16} className="ml-auto flex-shrink-0 fill-amber-400 text-amber-400" />
             )}
           </div>
-
-          <Seccion titulo="Color">
-            <FilaColor
-              etiqueta="Color de mis mensajes"
-              valor={borrador.color}
-              onElegir={(hex) => pon({ color: hex })}
-            />
-          </Seccion>
 
           <Seccion titulo="Apodo local">
             <input
