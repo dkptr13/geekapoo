@@ -536,6 +536,29 @@ export const ChatView: React.FC = () => {
         if (!r.ok) {
           throw new Error(`el club no guardó la apariencia: ${r.error ?? 'error'}`);
         }
+        // `updateDoc` puede resolver desde la caché local aunque el
+        // servidor lo rechace: entonces el cambio se ve un rato y
+        // al recargar desaparece. Se relee del servidor para saber
+        // la verdad antes de cerrar el panel.
+        try {
+          const comp = await getDocFromServer(
+            doc(db, 'clubs', clubDelChat.id, 'channels', canalActivoId),
+          );
+          const guardado = (comp.data() as { chatApariencia?: unknown } | undefined)
+            ?.chatApariencia;
+          if (!guardado) {
+            throw new Error(
+              'el servidor no guardó la apariencia del club (revisa las reglas de Firestore)',
+            );
+          }
+        } catch (e: unknown) {
+          if (e instanceof Error && e.message.startsWith('el servidor no guardó')) throw e;
+          throw new Error(
+            `no se pudo verificar la apariencia del club: ${
+              e instanceof Error ? e.message : String(e)
+            }`,
+          );
+        }
       }
       // `setDoc` resuelve en la caché local: si el servidor
       // rechaza la escritura (reglas sin desplegar), el cambio
@@ -767,14 +790,6 @@ export const ChatView: React.FC = () => {
   // la suya.
   const aparienciaCompartida =
     esChatClub && canalActivo?.chatApariencia ? canalActivo.chatApariencia : null;
-  console.log(
-    '[Club] esChatClub:',
-    esChatClub,
-    '| canal:',
-    canalActivo?.id,
-    '| tiene apariencia compartida:',
-    !!aparienciaCompartida,
-  );
   const aparienciaVista = useMemo(
     () => resolverApariencia(borradorApariencia ?? aparienciaGuardada, aparienciaCompartida),
     [borradorApariencia, aparienciaGuardada, aparienciaCompartida],
