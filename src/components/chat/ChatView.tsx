@@ -458,10 +458,14 @@ export const ChatView: React.FC = () => {
   );
   const sinMovimiento = (borradorApariencia ?? aparienciaGuardada).reducirMovimiento === true;
 
+  // En un club, el panel edita la apariencia DEL CANAL (la que
+  // ve todo el club), no la personal de quien abre: si no, al
+  // guardar se pisaría con los valores de una sola cuenta.
   const abrirPanelApariencia = () => {
-    fondoPrevioRef.current = aparienciaGuardada.fondo?.url ?? null;
+    const base = aparienciaCompartida ?? aparienciaGuardada;
+    fondoPrevioRef.current = base.fondo?.url ?? null;
     setErrorApariencia(null);
-    setBorradorApariencia({ ...aparienciaGuardada });
+    setBorradorApariencia({ ...base });
     setPanelApariencia(true);
   };
 
@@ -763,6 +767,14 @@ export const ChatView: React.FC = () => {
   // la suya.
   const aparienciaCompartida =
     esChatClub && canalActivo?.chatApariencia ? canalActivo.chatApariencia : null;
+  console.log(
+    '[Club] esChatClub:',
+    esChatClub,
+    '| canal:',
+    canalActivo?.id,
+    '| tiene apariencia compartida:',
+    !!aparienciaCompartida,
+  );
   const aparienciaVista = useMemo(
     () => resolverApariencia(borradorApariencia ?? aparienciaGuardada, aparienciaCompartida),
     [borradorApariencia, aparienciaGuardada, aparienciaCompartida],
