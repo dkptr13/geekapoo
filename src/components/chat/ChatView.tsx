@@ -80,6 +80,7 @@ import { uploadChatImage } from '../../services/imageUpload';
 import { CommentGif } from '../community/CommentGif';
 import { ReactionBar } from '../community/ReactionBar';
 import { ClubDetail } from './ClubDetail';
+import { ChatPrefsPanel } from './ChatPrefsPanel';
 import { ClubDiscovery } from './ClubDiscovery';
 import { ClubListItem } from './ClubListItem';
 import { ClubChannelRail } from './ClubChannelRail';
@@ -184,6 +185,13 @@ export const ChatView: React.FC = () => {
   // «Chats» te deja en tus conversaciones.
   const [tabChats, setTabChats] = useState<TabChats>('privados');
   const [clubDetalle, setClubDetalle] = useState<string | null>(null);
+
+  // ── Panel de preferencias por conversación ────────────
+  // `prefsPanelFor` es el roomId whose chat se está personalizando
+  // (o null = cerrado). Se abre desde el menú de opciones de
+  // conversación (MoreVertical) y se guarda en
+  // `chats/{chatId}/prefs/{uid}`.
+  const [prefsPanelFor, setPrefsPanelFor] = useState<string | null>(null);
 
   // ── Barra lateral plegable ────────────────────────
   //
@@ -2312,6 +2320,22 @@ export const ChatView: React.FC = () => {
                             </span>
                           </button>
 
+                          <button
+                            onClick={() => {
+                              setOpenMenuFor(null);
+                              setPrefsPanelFor(room.id);
+                            }}
+                            className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
+                          >
+                            <Palette size={13} className="text-violet-400" />
+                            <span>
+                              Personalizar conversación
+                              <span className="block text-[10px] font-normal text-zinc-500">
+                                Color, apodo, avisos y favorito
+                              </span>
+                            </span>
+                          </button>
+
                           {room.type === 'direct' && otherParty && (
                             <button
                               onClick={() => handleAskBlockPerson(room)}
@@ -3936,6 +3960,18 @@ export const ChatView: React.FC = () => {
               no se recarga el historial. */}
           {clubActivoEnPanel && (
             <ClubDetail club={clubActivoEnPanel} onClose={() => setClubDetalle(null)} canalActivo={canalActivo} canalActivoId={canalActivoId} />
+          )}
+
+          {/* ── PANEL DE PREFERENCIAS POR CONVERSACIÓN ────
+              Se abre desde el menú de opciones de conversación
+              (MoreVertical → "Personalizar conversación"). Es un
+              modal fijo que guarda en `chats/{chatId}/prefs/{uid}`. */}
+          {prefsPanelFor && currentUser && (
+            <ChatPrefsPanel
+              chatId={prefsPanelFor}
+              uid={currentUser.uid}
+              onClose={() => setPrefsPanelFor(null)}
+            />
           )}
 
           {/* ── CAJÓN DE CANALES (móvil) ────────────────────
