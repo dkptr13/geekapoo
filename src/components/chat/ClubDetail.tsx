@@ -28,6 +28,7 @@ import { CLUB_CATEGORIES } from '../../types';
 import type { Club, ClubMember } from '../../types';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { ChatPrefsPanel } from './ChatPrefsPanel';
+import { actualizarCanal } from '../../services/canales';
 
 // ======================================================
 // DETALLE DEL CLUB
@@ -57,7 +58,7 @@ interface Props {
 
 type Vista = 'info' | 'miembros' | 'solicitudes' | 'config';
 
-export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
+export const ClubDetail: React.FC<Props> = ({ club, onClose, canalActivo, canalActivoId }) => {
   const { currentUser, usersList } = useAuth();
   const goToProfile = useGoToProfile();
   const {
@@ -682,6 +683,85 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
               <Palette size={13} />
               <span>Personalizar chat</span>
             </button>
+
+            {/* ── FONDO COMPARTIDO DEL CANAL ─────────────
+                Lo cambia el equipo del club y afecta a todos los
+                miembros de la conversación. Solo propietario
+                y moderadores. */}
+            {moderador && (
+              <section className="mt-3 space-y-2">
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                  Fondo del chat
+                </h4>
+                <p className="text-[10px] leading-relaxed text-zinc-600">
+                  Este fondo lo ven todos los miembros del club en sus canales.
+                </p>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {(
+                    [
+                      { id: 'ninguno', nombre: 'Sin fondo', css: '' },
+                      { id: 'tinta', nombre: 'Tinta', css: '#101014' },
+                      { id: 'vino', nombre: 'Vino', css: '#1c1016' },
+                      { id: 'bosque', nombre: 'Bosque', css: '#0e1512' },
+                      { id: 'ocaso-kyoto', nombre: 'Ocaso', css: 'linear-gradient(160deg,#241109,#4a2410 45%,#160c07)' },
+                      { id: 'ola', nombre: 'Ola', css: 'linear-gradient(160deg,#0f4c5c,#1d2b64 45%,#0f0c29)' },
+                      { id: 'llama', nombre: 'Llama', css: 'linear-gradient(160deg,#2d0000,#8e2de2 45%,#4a00e0)' },
+                    ] as const
+                  ).map((f) => {
+                    const activo = (canalActivo?.chatFondo?.preset ?? 'ninguno') === f.id;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() =>
+                          ejecutar(
+                            () =>
+                              canalActivoId
+                                ? actualizarCanal(club.id, canalActivoId, {
+                                    chatFondo: f.id === 'ninguno' ? null : { preset: f.id },
+                                  })
+                                : Promise.resolve({ ok: false, error: 'Canal no disponible.' }),
+                          'Fondo actualizado.',
+                        )
+                        }
+                        disabled={procesando}
+                        title={f.nombre}
+                        aria-pressed={activo}
+                        className={`h-12 rounded-xl border-2 transition-all disabled:opacity-50 ${
+                          activo
+                            ? 'border-violet-500 bg-violet-950/40'
+                            : 'border-white/[0.06] hover:border-white/[0.12]'
+                        }`}
+                      >
+                        <span
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.03]"
+                          style={{ background: f.css || 'transparent' }}
+                        />
+                        {activo && <Check size={12} className="text-violet-400" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                {canalActivo?.chatFondo?.url && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      ejecutar(
+                        () =>
+                          canalActivoId
+                            ? actualizarCanal(club.id, canalActivoId, { chatFondo: null })
+                            : Promise.resolve({ ok: false, error: 'Canal no disponible.' }),
+                        'Fondo eliminado.',
+                      )
+                    }
+                    disabled={procesando}
+                    className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs font-bold text-zinc-400 transition-colors hover:text-white disabled:opacity-50"
+                  >
+                    Eliminar fondo
+                  </button>
+                )}
+              </section>
+            )}
           </div>
         )}
 
