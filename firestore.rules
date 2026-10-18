@@ -2710,11 +2710,15 @@ match /users/{uid} {
       //     campos con formato válido.
       match /prefs/{uid} {
         allow read: if isSignedIn() && isSelf(uid);
-        allow create, update: if isSelf(uid)
-                              && request.resource.data.diff(resource.data)
-                                   .affectedKeys()
-                                   .hasAny(['color', 'nickname', 'notify', 'muteUntil', 'favorite'])
-                              && chatPrefsValida(request.resource.data);
+        // En create, resource.data es null: no se puede diff().
+        allow create: if isSelf(uid) && chatPrefsValida(request.resource.data);
+        // En update, resource.data existe: diff() indica qué campos
+        // cambiaron. hasAny permite tocar solo los de prefs.
+        allow update: if isSelf(uid)
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys()
+                           .hasAny(['color', 'nickname', 'notify', 'muteUntil', 'favorite'])
+                      && chatPrefsValida(request.resource.data);
         allow delete: if isSelf(uid);
       }
 

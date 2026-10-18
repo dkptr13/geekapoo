@@ -66,6 +66,7 @@ import {
   type AparienciaChat,
 } from '../../data/chatApariencia';
 import { deleteReplacedImage, uploadCommunityImage } from '../../services/imageUpload';
+import { getChatPrefs } from '../../services/chatPrefs';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useChat } from '../../context/ChatContext';
 import { useClubs } from '../../context/ClubsContext';
@@ -193,6 +194,11 @@ export const ChatView: React.FC = () => {
   // `chats/{chatId}/prefs/{uid}`.
   const [prefsPanelFor, setPrefsPanelFor] = useState<string | null>(null);
 
+  // Apodos por conversación: { roomId: apodo }. Se cargan al entrar
+  // y se actualizan al guardar. El nombre que se muestra en la
+  // lista y en la cabecera es el apodo si existe, si no el real.
+  const [nicknames, setNicknames] = useState<Record<string, string>>({});
+
   // ── Barra lateral plegable ────────────────────────
   //
   // Solo VISUAL: contraer no toca rooms, filtros, pestañas,
@@ -234,6 +240,38 @@ export const ChatView: React.FC = () => {
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
   }, [inputText, activeRoomId]);
+
+  // Carga los apodos de las salas visibles. Se actualizan al
+  // guardar desde el panel y al entrar en ChatView.
+  useEffect(() => {
+    if (!currentUser) return;
+    const cargar = async () => {
+      const entries = await Promise.all(
+        rooms.map(async (r) => {
+          const p = await getChatPrefs(currentUser.uid, r.id);
+          return [r.id, p.nickname] as const;
+        }),
+      );
+      const limpio: Record<string, string> = {};
+      for (const [id, n] of entries) {
+        if (n) limpio[id] = n;
+      }
+      setNicknames(limpio);
+    };
+    void cargar();
+  }, [rooms, currentUser]);
+
+  // Nombre visible de una sala: apodo si existe, si no el real.
+  const nombreVisible = (sala: ChatRoom): string =>
+    nicknames[sala.id] ??
+    (sala.type === 'direct'
+      ? (() => {
+          const other = usersList.find(
+            (u) => currentUser && sala.memberIds.includes(u.uid) && u.uid !== currentUser.uid,
+          );
+          return other?.displayName || other?.username || '';
+        })()
+      : sala.name);
 
   // ── Emojis y GIFs en el chat ─────────────────────────
   //
@@ -1202,8 +1240,10 @@ export const ChatView: React.FC = () => {
 
   const activeRoomName =
     activeRoom && activeRoom.type === 'direct' && activeOtherParty
-      ? activeOtherParty.displayName || activeOtherParty.username
-      : activeRoom?.name || '';
+      ? nicknames[activeRoom.id] || activeOtherParty.displayName || activeOtherParty.username
+      : activeRoom
+        ? nicknames[activeRoom.id] || activeRoom.name
+        : '';
 
   const activeRoomAvatar =
     activeRoom && activeRoom.type === 'direct' && activeOtherParty
@@ -2196,9 +2236,7 @@ export const ChatView: React.FC = () => {
                   (u) => currentUser && room.memberIds.includes(u.uid) && u.uid !== currentUser.uid,
                 );
                 const isDirect = room.type === 'direct' && !!otherParty;
-                const displayName = isDirect
-                  ? otherParty!.displayName || otherParty!.username
-                  : room.name;
+                const displayName = nombreVisible(room);
                 const otherPartyChatId = otherParty?.chatId;
                 const roomAvatar = isDirect
                   ? otherParty!.avatarUrl || room.avatar
@@ -3971,6 +4009,17 @@ export const ChatView: React.FC = () => {
               chatId={prefsPanelFor}
               uid={currentUser.uid}
               onClose={() => setPrefsPanelFor(null)}
+              onGuardado={(cid, prefs) => {
+                if (prefs.nickname) {
+                  setNicknames((m) => ({ ...m, [cid]: prefs.nickname! }));
+                } else {
+                  setNicknames((m) => {
+                    const next = { ...m };
+                    delete next[cid];
+                    return next;
+                  });
+                }
+              }}
             />
           )}
 

@@ -24,6 +24,7 @@ export interface ChatPrefsPanelProps {
   chatId: string;
   uid: string;
   onClose: () => void;
+  onGuardado?: (chatId: string, prefs: ChatPrefs) => void;
 }
 
 const Seccion: React.FC<{ titulo: string; children: React.ReactNode }> = ({
@@ -90,6 +91,7 @@ export const ChatPrefsPanel: React.FC<ChatPrefsPanelProps> = ({
   chatId,
   uid,
   onClose,
+  onGuardado,
 }) => {
   const [borrador, setBorrador] = useState<ChatPrefs>({});
   const [saving, setSaving] = useState(false);
@@ -115,6 +117,7 @@ export const ChatPrefsPanel: React.FC<ChatPrefsPanelProps> = ({
     setError(null);
     try {
       await saveChatPrefs(uid, chatId, borrador);
+      onGuardado?.(chatId, borrador);
       onClose();
     } catch (e) {
       console.error('[Chats] No se pudo guardar la preferencia:', e);
