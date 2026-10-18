@@ -19,7 +19,6 @@ import {
   Mail,
   BadgeCheck,
   Settings2,
-  Palette,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -27,7 +26,6 @@ import { useClubs } from '../../context/ClubsContext';
 import { CLUB_CATEGORIES } from '../../types';
 import type { Club, ClubMember } from '../../types';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
-import { ChatPrefsPanel } from './ChatPrefsPanel';
 import { actualizarCanal } from '../../services/canales';
 
 // ======================================================
@@ -92,8 +90,6 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose, canalActivo, canalA
   const [confirmarSalir, setConfirmarSalir] = useState(false);
   const [expulsandoA, setExpulsandoA] = useState<ClubMember | null>(null);
   const [transfiriendoA, setTransfiriendoA] = useState<ClubMember | null>(null);
-  // Panel de preferencias personales del chat (color, apodo, avisos).
-  const [prefsOpen, setPrefsOpen] = useState(false);
 
   const propietario = soyPropietario(club);
   const moderador = soyModerador(club);
@@ -671,19 +667,6 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose, canalActivo, canalA
               <span>Guardar cambios</span>
             </button>
 
-            {/* ── PREFERENCIAS PERSONALES DEL CHAT ──────────
-                Color, apodo, avisos y favorito: cada
-                participante ve la conversación con SUS
-                ajustes. No se comparte con nadie. */}
-            <button
-              type="button"
-              onClick={() => setPrefsOpen(true)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-bold text-zinc-200 transition-colors hover:text-white"
-            >
-              <Palette size={13} />
-              <span>Personalizar chat</span>
-            </button>
-
             {/* ── FONDO COMPARTIDO DEL CANAL ─────────────
                 Lo cambia el equipo del club y afecta a todos los
                 miembros de la conversación. Solo propietario
@@ -763,17 +746,6 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose, canalActivo, canalA
               </section>
             )}
           </div>
-        )}
-
-        {/* ── PANEL DE PREFERENCIAS PERSONALES ────────
-            Se monta solo mientras está abierto, como los
-            demás modales del club. */}
-        {prefsOpen && (
-          <ChatPrefsPanel
-            chatId={club.chatId}
-            uid={currentUser?.uid ?? ''}
-            onClose={() => setPrefsOpen(false)}
-          />
         )}
       </div>
 
