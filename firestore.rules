@@ -2119,6 +2119,42 @@ match /users/{uid} {
              && request.auth.uid in clubData(clubId).memberIds;
     }
 
+    /** Forma válida del fondo compartido de un canal de club. */
+    function fondoCanalValido(f) {
+      return f == null
+              || (f is map
+                  && (!('preset' in f) || f.preset is string)
+                  && (!('url' in f)
+                      || (f.url is string && f.url.size() <= 500
+                          && (f.url == '' || f.url.matches('https://.*'))))
+                  && (!('position' in f)
+                      || f.position in ['center', 'top', 'bottom'])
+                  && (!('dim' in f)
+                      || (f.dim is number && f.dim >= 0 && f.dim <= 80)));
+    }
+
+    /**
+     * Preferencias personales de una conversación (color, apodo,
+     * avisos, favorito). Cada usuario guarda las suyas: cambiar
+     * las propias no afecta a las de los demás.
+     */
+    function chatPrefsValida(p) {
+      return p == null
+              || (p is map
+                  && (!('color' in p)
+                      || (p.color is string
+                          && p.color.size() == 7
+                          && p.color.matches('^#[0-9a-fA-F]{6}$')))
+                  && (!('nickname' in p)
+                      || (p.nickname is string && p.nickname.size() <= 60))
+                  && (!('notify' in p)
+                      || p.notify in ['all', 'mentions', 'muted'])
+                  && (!('muteUntil' in p)
+                      || p.muteUntil in ['1h', '8h', '24h', 'until'])
+                  && (!('favorite' in p)
+                      || p.favorite is bool));
+    }
+
     function esPropietarioClub(clubId) {
       return isSignedIn()
              && clubExiste(clubId)
@@ -2471,6 +2507,8 @@ match /users/{uid} {
                       && request.resource.data.spoiler is bool
                       && request.resource.data.order is number
                       && request.resource.data.createdBy == request.auth.uid
+                      && (request.resource.data.chatFondo == null
+                          || fondoCanalValida(request.resource.data.chatFondo))
                       // El `id` es un slug interno: minúsculas,
                       // números y guiones, sin espacios.
                       && channelId.size() >= 1
@@ -2506,7 +2544,7 @@ match /users/{uid} {
                       && request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(
                              ['name', 'description', 'visibility',
-                              'spoiler', 'order', 'updatedAt'])
+                              'spoiler', 'order', 'chatFondo', 'updatedAt'])
                       && request.resource.data.name is string
                       && request.resource.data.name.size() >= 1
                       && request.resource.data.name.size() <= 40
@@ -2515,6 +2553,7 @@ match /users/{uid} {
                       && request.resource.data.visibility in ['all', 'mods']
                       && request.resource.data.spoiler is bool
                       && request.resource.data.order is number
+                      && fondoCanalValida(request.resource.data.chatFondo)
                       && (channelId != 'general'
                           || request.resource.data.visibility == 'all');
 
@@ -2657,6 +2696,26 @@ match /users/{uid} {
         allow read: if isSignedIn();
         allow create, delete: if isChatOwner(chatId) || isSelf(uid);
         allow update: if isAdmin();
+      }
+
+      // ── Preferencias personales por conversación ─────
+      //
+      // `chats/{chatId}/prefs/{uid}` guarda el color, apodo y
+      // avisos que el usuario ve SOLO en su pantalla. No es
+      // compartido: cada participante tiene sus prefs en su
+      // propio doc, y lo que pinta sale de las suyas.
+      //
+      //   · leer: cualquier miembro del chat (solo ve la suya).
+      //   · escribir: solo el dueño del doc (isSelf), y solo
+      //     campos con formato válido.
+      match /prefs/{uid} {
+        allow read: if isSignedIn() && isSelf(uid);
+        allow create, update: if isSelf(uid)
+                              && request.resource.data.diff(resource.data)
+                                   .affectedKeys()
+                                   .hasAny(['color', 'nickname', 'notify', 'muteUntil', 'favorite'])
+                              && chatPrefsValida(request.resource.data);
+        allow delete: if isSelf(uid);
       }
 
       match /messages/{messageId} {

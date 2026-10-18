@@ -1194,6 +1194,26 @@ export interface ClubMember {
   mutedUntil?: string; // ISO timestamp, si está silenciado
 }
 
+/** Modo de aviso de nuevas conversaciones. */
+export type ChatNotifyMode = 'all' | 'mentions' | 'muted';
+
+/** Duración del silencio cuando notify === 'muted'. */
+export type ChatMuteUntil = '1h' | '8h' | '24h' | 'until';
+
+/** Ajustes personales que cada participante guarda de un chat. */
+export interface ChatPrefs {
+  /** Color propio del chat (hex de 7 caracteres). */
+  color?: string;
+  /** Apodo local que el participante puso al contacto o grupo. */
+  nickname?: string;
+  /** Política de avisos de nuevas conversaciones. */
+  notify?: ChatNotifyMode;
+  /** Hasta cuándo está silenciada (solo si notify === 'muted'). */
+  muteUntil?: ChatMuteUntil;
+  /** Favorito personal: fija la conversación en la parte alta. */
+  favorite?: boolean;
+}
+
 export interface Club {
   id: string;
   /** Identificador único para URLs (slug). */
@@ -1317,6 +1337,13 @@ export interface ClubChannel {
   order: number;
   /** Uid de quien lo creó (propietario o moderador). */
   createdBy: string;
+  /** Fondo compartido del canal (visible para todos los miembros). */
+  chatFondo?: {
+    preset?: string;
+    url?: string;
+    position?: 'center' | 'top' | 'bottom';
+    dim?: number;
+  } | null;
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
 }

@@ -371,27 +371,37 @@ const ANCHO_CLASES: Record<AnchoBurbuja, string> = {
  * De la apariencia guardada a estilos listos para pintar. Todo
  * cae a la casa cuando falta o no vale: `sujetarApariencia`
  * ya limpió, aquí solo se traduce.
+ *
+ * `fondoCompartido` (el fondo del canal de un club) se aplica
+ * por encima del fondo de la apariencia personal: en un chat
+ * de club manda el fondo que puso el equipo, no el de cada uno.
  */
-export function resolverApariencia(valor: unknown): EstiloChatResuelto {
+export function resolverApariencia(
+  valor: unknown,
+  fondoCompartido?: FondoChat | null,
+): EstiloChatResuelto {
   const a = sujetarApariencia(valor);
   const tema = TEMAS_CHAT.find((t) => t.id === a.tema) ?? TEMAS_CHAT[0];
 
   // Fondo: imagen subida, preset de la galería o el del tema.
   // El velo (negro o blanco según tema) va siempre delante para
   // que el texto se lea.
+  // `fondoCompartido` (canal de club) sobrescribe el fondo
+  // personal: en un chat de club manda el equipo, no cada uno.
+  const fondo = fondoCompartido ?? a.fondo;
   const velo = tema.veloClaro
-    ? `rgba(255,255,255,${(a.fondo?.dim ?? 0) / 100})`
-    : `rgba(0,0,0,${(a.fondo?.dim ?? 0) / 100})`;
+    ? `rgba(255,255,255,${(fondo?.dim ?? 0) / 100})`
+    : `rgba(0,0,0,${(fondo?.dim ?? 0) / 100})`;
   let fondoLista: CSSProperties;
-  if (a.fondo?.url && /^https:\/\//i.test(a.fondo.url)) {
+  if (fondo?.url && /^https:\/\//i.test(fondo.url)) {
     fondoLista = {
-      backgroundImage: `linear-gradient(${velo},${velo}),url("${a.fondo.url}")`,
-      backgroundSize: a.fondo.ajuste === 'contain' ? 'contain' : 'cover',
-      backgroundPosition: `center ${a.fondo.position ?? 'center'}`,
+      backgroundImage: `linear-gradient(${velo},${velo}),url("${fondo.url}")`,
+      backgroundSize: fondo.ajuste === 'contain' ? 'contain' : 'cover',
+      backgroundPosition: `center ${fondo.position ?? 'center'}`,
       backgroundRepeat: 'no-repeat',
     };
-  } else if (a.fondo?.preset && a.fondo.preset !== FONDO_PREDETERMINADO_ID) {
-    const preset = FONDOS_CHAT.find((f) => f.id === a.fondo?.preset);
+  } else if (fondo?.preset && fondo.preset !== FONDO_PREDETERMINADO_ID) {
+    const preset = FONDOS_CHAT.find((f) => f.id === fondo?.preset);
     const base = preset && preset.css ? preset.css : 'transparent';
     fondoLista = {
       backgroundImage: `linear-gradient(${velo},${velo}),${base}`,

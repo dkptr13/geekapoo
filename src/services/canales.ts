@@ -400,7 +400,7 @@ export async function asegurarGeneral(
 export async function actualizarCanal(
   clubId: string,
   channelId: string,
-  cambios: Partial<Pick<ClubChannel, 'name' | 'description' | 'visibility' | 'spoiler' | 'order'>>,
+  cambios: Partial<Pick<ClubChannel, 'name' | 'description' | 'visibility' | 'spoiler' | 'order' | 'chatFondo'>>,
 ): Promise<CanalResult> {
   if (cambios.name !== undefined) {
     const name = cambios.name.trim();
