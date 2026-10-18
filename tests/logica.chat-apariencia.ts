@@ -128,4 +128,29 @@ assert.equal(resolverApariencia({ estilo: 'compacto' }).relleno, 'px-3 py-1.5');
 assert.ok(FONDOS_CHAT.length > 5);
 assert.ok(FONDOS_CHAT.every((f) => f.id && f.nombre));
 
+// ── Apariencia compartida del canal de club ───────────────
+// En un club, la apariencia del canal manda COMPLETA sobre la
+// personal: todos los miembros ven el mismo chat.
+const personal = { tema: 'personalizado' as const, colorPropio: '#2563eb' };
+const compartida = {
+  tema: 'personalizado' as const,
+  colorPropio: '#c026d3',
+  forma: 'cuadrada' as const,
+};
+const delClub = resolverApariencia(personal, compartida);
+assert.equal(delClub.burbujaPropia.background, '#c026d3');
+assert.equal(delClub.radio.borderRadius, '0.375rem');
+
+// Sin apariencia compartida, cada uno ve la suya.
+const soloPersonal = resolverApariencia(personal, null);
+assert.equal(soloPersonal.burbujaPropia.background, '#2563eb');
+assert.equal(resolverApariencia(personal).burbujaPropia.background, '#2563eb');
+
+// Una compartida vacía o sin tema NO pisa la personal: si nadie
+// ha configurado el canal, el club no debe verse raro.
+assert.equal(
+  resolverApariencia(personal, {} as never).burbujaPropia.background,
+  '#2563eb',
+);
+
 console.log('  chat-apariencia: TODO CORRECTO');

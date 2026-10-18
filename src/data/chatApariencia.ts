@@ -372,23 +372,26 @@ const ANCHO_CLASES: Record<AnchoBurbuja, string> = {
  * cae a la casa cuando falta o no vale: `sujetarApariencia`
  * ya limpió, aquí solo se traduce.
  *
- * `fondoCompartido` (el fondo del canal de un club) se aplica
- * por encima del fondo de la apariencia personal: en un chat
- * de club manda el fondo que puso el equipo, no el de cada uno.
+ * `compartida` es la apariencia del CANAL de un club (la que
+ * puso el equipo). Si viene, manda ENTERA sobre la personal:
+ * en un chat de club el marco es común y todos lo ven igual.
+ * Si no viene, cada uno ve su apariencia propia.
  */
 export function resolverApariencia(
   valor: unknown,
-  fondoCompartido?: FondoChat | null,
+  compartida?: AparienciaChat | null,
 ): EstiloChatResuelto {
-  const a = sujetarApariencia(valor);
+  // La del club gana completa si existe y trae algo.
+  const a =
+    compartida && (compartida as AparienciaChat).tema
+      ? sujetarApariencia(compartida)
+      : sujetarApariencia(valor);
   const tema = TEMAS_CHAT.find((t) => t.id === a.tema) ?? TEMAS_CHAT[0];
 
   // Fondo: imagen subida, preset de la galería o el del tema.
   // El velo (negro o blanco según tema) va siempre delante para
   // que el texto se lea.
-  // `fondoCompartido` (canal de club) sobrescribe el fondo
-  // personal: en un chat de club manda el equipo, no cada uno.
-  const fondo = fondoCompartido ?? a.fondo;
+  const fondo = a.fondo;
   const velo = tema.veloClaro
     ? `rgba(255,255,255,${(fondo?.dim ?? 0) / 100})`
     : `rgba(0,0,0,${(fondo?.dim ?? 0) / 100})`;

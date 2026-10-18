@@ -86,7 +86,7 @@ import { ClubDiscovery } from './ClubDiscovery';
 import { ClubListItem } from './ClubListItem';
 import { ClubChannelRail } from './ClubChannelRail';
 import { ClubChannelModal } from './ClubChannelModal';
-import { canalesVisibles } from '../../services/canales';
+import { canalesVisibles, actualizarCanal } from '../../services/canales';
 import { ChatPollCard } from './ChatPollCard';
 import { ChatTierCard } from '../tierlists/ChatTierCard';
 import { TierListEditor } from '../tierlists/TierListEditor';
@@ -513,6 +513,21 @@ export const ChatView: React.FC = () => {
           `escritura denegada: ${e instanceof Error ? e.message : String(e)}`,
         );
       }
+
+      // Si es un chat de club y el usuario es dueño o moderador,
+      // el fondo se guarda también en el canal para que todos los
+      // miembros lo vean igual (fondo compartido).
+      if (
+        esChatClub &&
+        (soyDuenoDelClub || soyModDelClub) &&
+        canalActivoId &&
+        clubDelChat
+      ) {
+        await actualizarCanal(clubDelChat.id, canalActivoId, {
+          chatApariencia: limpio,
+          chatFondo: limpio.fondo ?? null,
+        });
+      }
       // `setDoc` resuelve en la caché local: si el servidor
       // rechaza la escritura (reglas sin desplegar), el cambio
       // se revierte en silencio y el panel se cerraría en falso.
@@ -737,14 +752,15 @@ export const ChatView: React.FC = () => {
     [canalesVisiblesLista, canalActivoId],
   );
 
-  // En un chat de club manda el fondo del canal: todos los
-  // miembros ven el mismo fondo, no el personal de cada uno.
-  // Solo el equipo del club puede cambiarlo (ver ClubDetail).
-  const fondoCompartido =
-    esChatClub && canalActivo?.chatFondo ? canalActivo.chatFondo : null;
+  // En un chat de club manda la apariencia del CANAL: la puso el
+  // equipo desde «Apariencia» y la ven TODOS los miembros, no el
+  // marco personal de cada uno. Si el canal no tiene, cada uno ve
+  // la suya.
+  const aparienciaCompartida =
+    esChatClub && canalActivo?.chatApariencia ? canalActivo.chatApariencia : null;
   const aparienciaVista = useMemo(
-    () => resolverApariencia(borradorApariencia ?? aparienciaGuardada, fondoCompartido),
-    [borradorApariencia, aparienciaGuardada, fondoCompartido],
+    () => resolverApariencia(borradorApariencia ?? aparienciaGuardada, aparienciaCompartida),
+    [borradorApariencia, aparienciaGuardada, aparienciaCompartida],
   );
 
   const puedeGestionarCanales = !!clubDelChat && (soyDuenoDelClub || soyModDelClub);
@@ -3998,7 +4014,7 @@ export const ChatView: React.FC = () => {
               cerrarlo, el chat sigue exactamente donde estaba y
               no se recarga el historial. */}
           {clubActivoEnPanel && (
-            <ClubDetail club={clubActivoEnPanel} onClose={() => setClubDetalle(null)} canalActivo={canalActivo} canalActivoId={canalActivoId} />
+            <ClubDetail club={clubActivoEnPanel} onClose={() => setClubDetalle(null)} />
           )}
 
           {/* ── PANEL DE PREFERENCIAS POR CONVERSACIÓN ────

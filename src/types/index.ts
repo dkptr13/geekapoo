@@ -1344,6 +1344,16 @@ export interface ClubChannel {
     position?: 'center' | 'top' | 'bottom';
     dim?: number;
   } | null;
+  /**
+   * Apariencia COMPLETA compartida del canal.
+   *
+   * La pone el equipo del club (propietario o moderador) desde el
+   * botón «Apariencia» del chat, y la ven TODOS los miembros, no
+   * solo quien la guardó. Cuando está presente, manda sobre la
+   * apariencia personal de cada uno: en un chat de club el marco
+   * es común.
+   */
+  chatApariencia?: AparienciaChat | null;
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
 }

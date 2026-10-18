@@ -2134,6 +2134,45 @@ match /users/{uid} {
     }
 
     /**
+     * Apariencia compartida de un canal de club (la que pone el
+     * equipo desde «Apariencia» y ven todos los miembros).
+     *
+     * Solo comprueba que el mapa no traiga tipos imposibles: los
+     * colores son hex y el resto son listas cerradas de valores
+     * que el cliente ya sanea con `sujetarApariencia`. Rechazar un
+     * valor raro aquí rompería el guardado del equipo.
+     */
+    function aparienciaChatValida(a) {
+      return a == null
+              || (a is map
+                  && (!('tema' in a) || a.tema is string)
+                  && (!('colorPropio' in a)
+                      || a.colorPropio == null
+                      || (a.colorPropio is string
+                          && a.colorPropio.matches('^#[0-9a-fA-F]{6}$')))
+                  && (!('colorRecibido' in a)
+                      || a.colorRecibido == null
+                      || (a.colorRecibido is string
+                          && a.colorRecibido.matches('^#[0-9a-fA-F]{6}$')))
+                  && (!('textoPropio' in a)
+                      || a.textoPropio == null
+                      || (a.textoPropio is string
+                          && a.textoPropio.matches('^#[0-9a-fA-F]{6}$')))
+                  && (!('textoRecibido' in a)
+                      || a.textoRecibido == null
+                      || (a.textoRecibido is string
+                          && a.textoRecibido.matches('^#[0-9a-fA-F]{6}$')))
+                  && (!('fondo' in a) || fondoCanalValida(a.fondo))
+                  && (!('forma' in a) || a.forma is string)
+                  && (!('estilo' in a) || a.estilo is string)
+                  && (!('letra' in a) || a.letra is string)
+                  && (!('espaciado' in a) || a.espaciado is string)
+                  && (!('ancho' in a) || a.ancho is string)
+                  && (!('reducirMovimiento' in a)
+                      || a.reducirMovimiento is bool));
+    }
+
+    /**
      * Preferencias personales de una conversación (color, apodo,
      * avisos, favorito). Cada usuario guarda las suyas: cambiar
      * las propias no afecta a las de los demás.
@@ -2509,6 +2548,8 @@ match /users/{uid} {
                       && request.resource.data.createdBy == request.auth.uid
                       && (request.resource.data.chatFondo == null
                           || fondoCanalValida(request.resource.data.chatFondo))
+                      && (request.resource.data.chatApariencia == null
+                          || aparienciaChatValida(request.resource.data.chatApariencia))
                       // El `id` es un slug interno: minúsculas,
                       // números y guiones, sin espacios.
                       && channelId.size() >= 1
@@ -2544,7 +2585,7 @@ match /users/{uid} {
                       && request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(
                              ['name', 'description', 'visibility',
-                              'spoiler', 'order', 'chatFondo', 'updatedAt'])
+                              'spoiler', 'order', 'chatFondo', 'chatApariencia', 'updatedAt'])
                       && request.resource.data.name is string
                       && request.resource.data.name.size() >= 1
                       && request.resource.data.name.size() <= 40
@@ -2554,6 +2595,8 @@ match /users/{uid} {
                       && request.resource.data.spoiler is bool
                       && request.resource.data.order is number
                       && fondoCanalValida(request.resource.data.chatFondo)
+                      && (request.resource.data.chatApariencia == null
+                          || aparienciaChatValida(request.resource.data.chatApariencia))
                       && (channelId != 'general'
                           || request.resource.data.visibility == 'all');
 
