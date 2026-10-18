@@ -515,18 +515,23 @@ export const ChatView: React.FC = () => {
       }
 
       // Si es un chat de club y el usuario es dueño o moderador,
-      // el fondo se guarda también en el canal para que todos los
-      // miembros lo vean igual (fondo compartido).
+      // la apariencia se guarda en el CANAL para que la vea todo
+      // el club, no solo quien la pondría.
       if (
         esChatClub &&
         (soyDuenoDelClub || soyModDelClub) &&
         canalActivoId &&
         clubDelChat
       ) {
-        await actualizarCanal(clubDelChat.id, canalActivoId, {
+        const r = await actualizarCanal(clubDelChat.id, canalActivoId, {
           chatApariencia: limpio,
           chatFondo: limpio.fondo ?? null,
         });
+        // Sin esto, un rechazo del servidor (reglas sin desplegar)
+        // pasaría desapercibido y el club seguiría con su fondo.
+        if (!r.ok) {
+          throw new Error(`el club no guardó la apariencia: ${r.error ?? 'error'}`);
+        }
       }
       // `setDoc` resuelve en la caché local: si el servidor
       // rechaza la escritura (reglas sin desplegar), el cambio
