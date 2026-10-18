@@ -2119,59 +2119,6 @@ match /users/{uid} {
              && request.auth.uid in clubData(clubId).memberIds;
     }
 
-    /** Forma válida del fondo compartido de un canal de club. */
-    function fondoCanalValido(f) {
-      return f == null
-              || (f is map
-                  && (!('preset' in f) || f.preset is string)
-                  && (!('url' in f)
-                      || (f.url is string && f.url.size() <= 500
-                          && (f.url == '' || f.url.matches('https://.*'))))
-                  && (!('position' in f)
-                      || f.position in ['center', 'top', 'bottom'])
-                  && (!('dim' in f)
-                      || (f.dim is number && f.dim >= 0 && f.dim <= 80)));
-    }
-
-    /**
-     * Apariencia compartida de un canal de club (la que pone el
-     * equipo desde «Apariencia» y ven todos los miembros).
-     *
-     * Solo comprueba que el mapa no traiga tipos imposibles: los
-     * colores son hex y el resto son listas cerradas de valores
-     * que el cliente ya sanea con `sujetarApariencia`. Rechazar un
-     * valor raro aquí rompería el guardado del equipo.
-     */
-    function aparienciaChatValida(a) {
-      return a == null
-              || (a is map
-                  && (!('tema' in a) || a.tema is string)
-                  && (!('colorPropio' in a)
-                      || a.colorPropio == null
-                      || (a.colorPropio is string
-                          && a.colorPropio.matches('^#[0-9a-fA-F]{6}$')))
-                  && (!('colorRecibido' in a)
-                      || a.colorRecibido == null
-                      || (a.colorRecibido is string
-                          && a.colorRecibido.matches('^#[0-9a-fA-F]{6}$')))
-                  && (!('textoPropio' in a)
-                      || a.textoPropio == null
-                      || (a.textoPropio is string
-                          && a.textoPropio.matches('^#[0-9a-fA-F]{6}$')))
-                  && (!('textoRecibido' in a)
-                      || a.textoRecibido == null
-                      || (a.textoRecibido is string
-                          && a.textoRecibido.matches('^#[0-9a-fA-F]{6}$')))
-                  && (!('fondo' in a) || fondoCanalValida(a.fondo))
-                  && (!('forma' in a) || a.forma is string)
-                  && (!('estilo' in a) || a.estilo is string)
-                  && (!('letra' in a) || a.letra is string)
-                  && (!('espaciado' in a) || a.espaciado is string)
-                  && (!('ancho' in a) || a.ancho is string)
-                  && (!('reducirMovimiento' in a)
-                      || a.reducirMovimiento is bool));
-    }
-
     /**
      * Preferencias personales de una conversación (color, apodo,
      * avisos, favorito). Cada usuario guarda las suyas: cambiar
@@ -2547,9 +2494,75 @@ match /users/{uid} {
                       && request.resource.data.order is number
                       && request.resource.data.createdBy == request.auth.uid
                       && (request.resource.data.chatFondo == null
-                          || fondoCanalValida(request.resource.data.chatFondo))
+                          || (request.resource.data.chatFondo is map
+                              && (!('preset' in request.resource.data.chatFondo)
+                                  || request.resource.data.chatFondo.preset is string)
+                              && (!('url' in request.resource.data.chatFondo)
+                                  || (request.resource.data.chatFondo.url is string
+                                      && request.resource.data.chatFondo.url.size() <= 500
+                                      && (request.resource.data.chatFondo.url == ''
+                                          || request.resource.data.chatFondo.url
+                                               .matches('https://.*'))))
+                              && (!('position' in request.resource.data.chatFondo)
+                                  || request.resource.data.chatFondo.position
+                                       in ['center', 'top', 'bottom'])
+                              && (!('dim' in request.resource.data.chatFondo)
+                                  || (request.resource.data.chatFondo.dim is number
+                                      && request.resource.data.chatFondo.dim >= 0
+                                      && request.resource.data.chatFondo.dim <= 80))))
                       && (request.resource.data.chatApariencia == null
-                          || aparienciaChatValida(request.resource.data.chatApariencia))
+                          || (request.resource.data.chatApariencia is map
+                              && (!('tema' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.tema is string)
+                              && (!('colorPropio' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.colorPropio == null
+                                  || (request.resource.data.chatApariencia.colorPropio is string
+                                      && request.resource.data.chatApariencia.colorPropio
+                                           .matches('^#[0-9a-fA-F]{6}$')))
+                              && (!('colorRecibido' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.colorRecibido == null
+                                  || (request.resource.data.chatApariencia.colorRecibido is string
+                                      && request.resource.data.chatApariencia.colorRecibido
+                                           .matches('^#[0-9a-fA-F]{6}$')))
+                              && (!('textoPropio' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.textoPropio == null
+                                  || (request.resource.data.chatApariencia.textoPropio is string
+                                      && request.resource.data.chatApariencia.textoPropio
+                                           .matches('^#[0-9a-fA-F]{6}$')))
+                              && (!('textoRecibido' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.textoRecibido == null
+                                  || (request.resource.data.chatApariencia.textoRecibido is string
+                                      && request.resource.data.chatApariencia.textoRecibido
+                                           .matches('^#[0-9a-fA-F]{6}$')))
+                              && (!('fondo' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.fondo == null
+                                  || (request.resource.data.chatApariencia.fondo is map
+                                      && (!('preset'
+                                              in request.resource.data.chatApariencia.fondo)
+                                          || request.resource.data.chatApariencia.fondo.preset
+                                               is string)
+                                      && (!('dim'
+                                            in request.resource.data.chatApariencia.fondo)
+                                          || (request.resource.data.chatApariencia.fondo.dim
+                                              is number
+                                              && request.resource.data.chatApariencia.fondo.dim
+                                                   >= 0
+                                              && request.resource.data.chatApariencia.fondo.dim
+                                                   <= 80))))
+                              && (!('forma' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.forma is string)
+                              && (!('estilo' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.estilo is string)
+                              && (!('letra' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.letra is string)
+                              && (!('espaciado' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.espaciado is string)
+                              && (!('ancho' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.ancho is string)
+                              && (!('reducirMovimiento'
+                                    in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.reducirMovimiento
+                                       is bool)))
                       // El `id` es un slug interno: minúsculas,
                       // números y guiones, sin espacios.
                       && channelId.size() >= 1
@@ -2594,9 +2607,76 @@ match /users/{uid} {
                       && request.resource.data.visibility in ['all', 'mods']
                       && request.resource.data.spoiler is bool
                       && request.resource.data.order is number
-                      && fondoCanalValida(request.resource.data.chatFondo)
+                      && (request.resource.data.chatFondo == null
+                          || (request.resource.data.chatFondo is map
+                              && (!('preset' in request.resource.data.chatFondo)
+                                  || request.resource.data.chatFondo.preset is string)
+                              && (!('url' in request.resource.data.chatFondo)
+                                  || (request.resource.data.chatFondo.url is string
+                                      && request.resource.data.chatFondo.url.size() <= 500
+                                      && (request.resource.data.chatFondo.url == ''
+                                          || request.resource.data.chatFondo.url
+                                               .matches('https://.*'))))
+                              && (!('position' in request.resource.data.chatFondo)
+                                  || request.resource.data.chatFondo.position
+                                       in ['center', 'top', 'bottom'])
+                              && (!('dim' in request.resource.data.chatFondo)
+                                  || (request.resource.data.chatFondo.dim is number
+                                      && request.resource.data.chatFondo.dim >= 0
+                                      && request.resource.data.chatFondo.dim <= 80))))
                       && (request.resource.data.chatApariencia == null
-                          || aparienciaChatValida(request.resource.data.chatApariencia))
+                          || (request.resource.data.chatApariencia is map
+                              && (!('tema' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.tema is string)
+                              && (!('colorPropio' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.colorPropio == null
+                                  || (request.resource.data.chatApariencia.colorPropio is string
+                                      && request.resource.data.chatApariencia.colorPropio
+                                           .matches('^#[0-9a-fA-F]{6}$')))
+                              && (!('colorRecibido' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.colorRecibido == null
+                                  || (request.resource.data.chatApariencia.colorRecibido is string
+                                      && request.resource.data.chatApariencia.colorRecibido
+                                           .matches('^#[0-9a-fA-F]{6}$')))
+                              && (!('textoPropio' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.textoPropio == null
+                                  || (request.resource.data.chatApariencia.textoPropio is string
+                                      && request.resource.data.chatApariencia.textoPropio
+                                           .matches('^#[0-9a-fA-F]{6}$')))
+                              && (!('textoRecibido' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.textoRecibido == null
+                                  || (request.resource.data.chatApariencia.textoRecibido is string
+                                      && request.resource.data.chatApariencia.textoRecibido
+                                           .matches('^#[0-9a-fA-F]{6}$')))
+                              && (!('fondo' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.fondo == null
+                                  || (request.resource.data.chatApariencia.fondo is map
+                                      && (!('preset'
+                                              in request.resource.data.chatApariencia.fondo)
+                                          || request.resource.data.chatApariencia.fondo.preset
+                                               is string)
+                                      && (!('dim'
+                                            in request.resource.data.chatApariencia.fondo)
+                                          || (request.resource.data.chatApariencia.fondo.dim
+                                              is number
+                                              && request.resource.data.chatApariencia.fondo.dim
+                                                   >= 0
+                                              && request.resource.data.chatApariencia.fondo.dim
+                                                   <= 80))))
+                              && (!('forma' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.forma is string)
+                              && (!('estilo' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.estilo is string)
+                              && (!('letra' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.letra is string)
+                              && (!('espaciado' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.espaciado is string)
+                              && (!('ancho' in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.ancho is string)
+                              && (!('reducirMovimiento'
+                                    in request.resource.data.chatApariencia)
+                                  || request.resource.data.chatApariencia.reducirMovimiento
+                                       is bool)))
                       && (channelId != 'general'
                           || request.resource.data.visibility == 'all');
 
