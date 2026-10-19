@@ -134,6 +134,13 @@ export const PERMISOS_DELEGABLES: {
     porDefecto: false,
   },
   {
+    id: 'moderadorFijaMensajes',
+    etiqueta: 'Moderadores fijan mensajes',
+    descripcion: 'Marcar mensajes importantes del chat para que el club los tenga a mano.',
+    para: 'moderator',
+    porDefecto: false,
+  },
+  {
     id: 'adminBaneaPermanente',
     etiqueta: 'Admins pueden banear permanentemente',
     descripcion: 'Banear sin fecha de fin. Es la decisión más grave del club, así que va apagada por defecto.',
@@ -198,6 +205,7 @@ export function permisosDe(club: Club): Required<ClubPermisos> {
     moderadorRetiraMensajes: valor('moderadorRetiraMensajes', true),
     moderadorAdvierte: valor('moderadorAdvierte', true),
     moderadorGestionaCanales: valor('moderadorGestionaCanales', false),
+    moderadorFijaMensajes: valor('moderadorFijaMensajes', false),
     adminBaneaPermanente: valor('adminBaneaPermanente', false),
     adminEditaAspecto: valor('adminEditaAspecto', false),
     adminGestionaCanales: valor('adminGestionaCanales', false),

@@ -152,7 +152,7 @@ export const NotificationBell: React.FC = () => {
 
       {openPanel && (
         <div
-          className="absolute right-0 top-full z-50 mt-2 w-[calc(100vw-2rem)] max-w-[380px] overflow-hidden rounded-xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl backdrop-blur-xl"
+          className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-[calc(100vw-2rem)] max-w-[380px] overflow-y-auto overscroll-contain rounded-xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl backdrop-blur-xl"
         >
           {/* ==============================================
               CABECERA

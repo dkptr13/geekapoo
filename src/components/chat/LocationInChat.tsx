@@ -196,7 +196,7 @@ export const LocationMenu: FC<MenuProps> = ({
         createPortal(
           <div
             ref={ventanaRef}
-            className="geo-pop-in-arriba fixed z-[85] w-60 overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60"
+            className="geo-pop-in-arriba fixed z-[85] max-h-[70vh] w-60 overflow-y-auto overscroll-contain rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60"
             style={{ left: sitio.left, bottom: sitio.bottom }}
           >
           <p className="border-b border-zinc-800 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">

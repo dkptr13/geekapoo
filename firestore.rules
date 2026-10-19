@@ -2342,6 +2342,73 @@ match /users/{uid} {
     }
 
     /**
+     * Puede este usuario FIJAR un mensaje en ESTA conversación.
+     *
+     * En un chat de club, fijar es una decisión del club: el
+     * dueño siempre, un admin con el permiso `adminFijaMensajes`
+     * (encendido de serie) y un moderador solo si el propietario
+     * se lo concede con `moderadorFijaMensajes`.
+     *
+     * En un privado o un grupo no hay club detrás: cada
+     * conversación es de quienes están en ella, así que cualquier
+     * miembro puede fijar.
+     */
+    /**
+     * Los datos del club al que pertenece un chat de club.
+     *
+     * `null` si el chat no es de club, o si el club ya no
+     * existe. Se usa con `null` porque el lenguaje de reglas no
+     * tiene `if`: los `get()` sobre rutas que pueden no
+     * existir darían error de evaluación.
+     */
+    function clubDataDeChat(chatId) {
+      let c = chatData(chatId);
+      return c.type == 'club'
+             && c.slug is string
+             && exists(/databases/$(database)/documents/clubs/$(c.slug))
+             ? get(/databases/$(database)/documents/clubs/$(c.slug)).data
+             : null;
+    }
+
+    /**
+     * Puede este usuario FIJAR un mensaje en ESTA conversación.
+     *
+     * En un chat de club, fijar es una decisión del club: el
+     * dueño siempre, un admin con el permiso `adminFijaMensajes`
+     * (encendido de serie) y un moderador solo si el propietario
+     * se lo concede con `moderadorFijaMensajes`.
+     *
+     * En un privado o un grupo no hay club detrás: cada
+     * conversación es de quienes están en ella, así que cualquier
+     * miembro puede fijar.
+     */
+    function puedeFijarEnChat(chatId) {
+      let club = clubDataDeChat(chatId);
+      return isChatMember(chatId)
+             && (club == null
+                 || (esMiembroClub(club.slug)
+                     && (rangoDeClub(club, request.auth.uid) == 3
+                         || (rangoDeClub(club, request.auth.uid) == 2
+                             && permisoPorDefecto(club, 'adminFijaMensajes'))
+                         || (rangoDeClub(club, request.auth.uid) == 1
+                             && permisoActivado(club, 'moderadorFijaMensajes')))));
+    }
+
+    /**
+     * Puede este usuario QUITAR un mensaje de los fijados.
+     *
+     * Tres vías: quien lo fijó, quien escribió el mensaje (puede
+     * quitar su propio fijado) y quien puede fijar en general
+     * (el equipo del club).
+     */
+    function puedeDesfijar(chatId, messageId) {
+      let ref = /databases/$(database)/documents/chats/$(chatId)/fijados/$(messageId);
+      return exists(ref)
+             && (get(ref).data.fijadoPor == request.auth.uid
+                 || get(ref).data.autorId == request.auth.uid
+                 || puedeFijarEnChat(chatId));
+    }
+    /**
      * Puede este usuario RETIRAR un mensaje de otro en el chat
      * de un club.
      *
@@ -3304,6 +3371,45 @@ match /users/{uid} {
         allow delete: if isSelf(uid);
       }
 
+      // ── Mensajes fijados ──────────────────────────────
+      //
+      // `chats/{chatId}/fijados/{messageId}`: un documento por
+      // mensaje fijado, con el id del MENSAJE. Por eso no se
+      // puede fijar dos veces el mismo (el documento ya
+      // existiría) y por eso las reglas pueden comprobar la
+      // ruta exacta sin hacer ninguna consulta.
+      //
+      // El texto se copia aquí, así el panel se pinta sin
+      // descargar el historial del chat.
+      match /fijados/{messageId} {
+        allow read: if isChatMember(chatId);
+
+        allow create: if isChatMember(chatId)
+                      && puedeFijarEnChat(chatId)
+                      && request.resource.data.chatId == chatId
+                      && request.resource.data.messageId == messageId
+                      // No se puede inventar quién lo fijó.
+                      && request.resource.data.fijadoPor == request.auth.uid
+                      && request.resource.data.fijadoPorNombre is string
+                      && request.resource.data.autorId is string
+                      && request.resource.data.autorNombre is string
+                      && request.resource.data.texto is string
+                      && request.resource.data.texto.size() <= 300
+                      && request.resource.data.tipo is string
+                      && request.resource.data.mensajeCreadoEn is string
+                      // Y el mensaje tiene que existir de verdad:
+                      // no se puede fijar algo que no está.
+                      && exists(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId));
+
+        // Quitar es borrar el documento: el historial de lo
+        // que se fijó no hace falta conservarlo, y así no
+        // hay forma de reescribir un fijado.
+        allow delete: if puedeDesfijar(chatId, messageId);
+
+        // No se edita: para cambiar un fijado se quita y se
+        // vuelve a fijar.
+        allow update: if false;
+      }
       match /messages/{messageId} {
         allow read: if isChatMember(chatId);
 

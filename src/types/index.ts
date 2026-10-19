@@ -1337,6 +1337,13 @@ export interface ClubPermisos {
    * es del dueño (o de un admin con el permiso concedido).
    */
   moderadorGestionaCanales?: boolean;
+  /**
+   * Un moderador puede FIJAR mensajes importantes del chat.
+   *
+   * Por defecto NO: fijar es cosa del dueño y de los admins. Un
+   * moderador puede usarlo si el propietario se lo concede.
+   */
+  moderadorFijaMensajes?: boolean;
 
   // ── Administradores ─────────────────────────────────
 

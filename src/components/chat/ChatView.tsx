@@ -43,6 +43,7 @@ import {
   PanelLeftOpen,
   Palette,
   Trophy,
+  Pin,
 } from 'lucide-react';
 
 import { textoDeNuevos } from '../../utils/chatLectura';
@@ -86,6 +87,16 @@ import { ReactionBar } from '../community/ReactionBar';
 import { ClubDetail } from './ClubDetail';
 import { ChatPrefsPanel } from './ChatPrefsPanel';
 import { ClubRoleBadge } from './ClubRoleBadge';
+import { puedeHacer } from '../../data/clubModeracion';
+import { ChatFijadosPanel } from './ChatFijadosPanel';
+import { MenuMensaje } from './MenuMensaje';
+import { createPortal } from 'react-dom';
+import {
+  desfijarMensaje,
+  fijarMensaje,
+  subscribeFijados,
+  type ChatFijado,
+} from '../../services/chatFijados';
 import { SancionDialog } from './ClubSancionDialog';
 import { avisoDeSancion, estadoDe, fechaLegible, puedeSancionar } from '../../data/clubModeracion';
 import {
@@ -447,6 +458,115 @@ export const ChatView: React.FC = () => {
   // cambiar de conversación se limpia el error, como el resto
   // de avisos de la vista.
 
+  // ── Mensajes fijados ──────────────────────────────
+  //
+  // `fijados` son los mensajes fijados de la conversación
+  // ABIERTA. Se escuchan con un solo listener a la
+  // subcolección `chats/{chatId}/fijados`, sin tocar el
+  // historial: por eso el panel abre al instante.
+  const [fijados, setFijados] = useState<ChatFijado[]>([]);
+  const [fijadosCargando, setFijadosCargando] = useState(false);
+  const [panelFijados, setPanelFijados] = useState(false);
+  const [mensajeResaltado, setMensajeResaltado] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeRoomId) {
+      setFijados([]);
+      return;
+    }
+    setFijadosCargando(true);
+    return subscribeFijados(
+      activeRoomId,
+      (lista) => {
+        setFijados(lista);
+        setFijadosCargando(false);
+      },
+      () => setFijadosCargando(false),
+    );
+  }, [activeRoomId]);
+  /**
+   * Fija o quita un mensaje de los fijados de la conversación.
+   *
+   * El permiso lo vuelve a comprobar el SERVIDOR: aquí solo se
+   * avisa. En un club, quien puede fijar es el dueño y los admins
+   * con el permiso `adminFijaMensajes`; en un privado o un grupo,
+   * cualquiera de la conversación.
+   */
+  /** ¿Este mensaje está fijado? */
+  const estaFijado = (messageId: string) =>
+    fijados.some((f) => f.messageId === messageId);
+
+  /**
+   * ¿Puede la persona que mira fijar mensajes en ESTE chat?
+   *
+   * En un club, es el dueño y los admins con el permiso
+   * `adminFijaMensajes` (encendido de serie), más los
+   * moderadores si el propietario les da `moderadorFijaMensajes`.
+   * En un privado o un grupo, cualquiera de la conversación.
+   *
+   * Es la MISMA respuesta que dan las reglas: aquí solo decide
+   * si se pinta el botón.
+   */
+  const puedeFijarEnEsta = () => {
+    if (!esChatClub) return true;
+    if (!clubDelChat || !currentUser) return false;
+    return (
+      puedeHacer(clubDelChat, currentUser.uid, 'adminFijaMensajes').ok ||
+      puedeHacer(clubDelChat, currentUser.uid, 'moderadorFijaMensajes').ok
+    );
+  };
+  const alternarFijado = async (msg: ChatMessage) => {
+    if (!activeRoomId || !currentUser) return;
+    const yaEsta = fijados.some((f) => f.messageId === msg.id);
+    setFijadosCargando(true);
+    const r = yaEsta
+      ? await desfijarMensaje(activeRoomId, msg.id)
+      : await fijarMensaje({
+          chatId: activeRoomId,
+          msg,
+          uid: currentUser.uid,
+          nombre: nombreDeUsuario(currentUser.uid),
+        });
+    setFijadosCargando(false);
+    if (!r.ok) {
+      setActionFeedback(r.error ?? 'No se pudo cambiar el mensaje fijado.');
+      return;
+    }
+    setActionFeedback(yaEsta ? 'Mensaje quitado de los fijados.' : 'Mensaje fijado.');
+  };
+
+  /**
+   * Salta al mensaje original de un fijado.
+   *
+   * La conversación carga todos sus mensajes de golpe, así que el
+   * mensaje está en el DOM. Aun así se hace el scroll dos veces:
+   * las imágenes y los adjuntos tardan en cargar y, cuando lo
+   * hacen, el mensaje crece y deja de estar centrado. El segundo
+   * scroll, ya con las imágenes dentro, corrige la posición.
+   */
+  const irAMensaje = (messageId: string) => {
+    setPanelFijados(false);
+    setMensajeResaltado(messageId);
+    const buscar = () => {
+      const el = document.getElementById(`msg-${messageId}`);
+      if (!el) return false;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return true;
+    };
+    if (!buscar()) {
+      setActionFeedback('Ese mensaje ya no está en la conversación.');
+      return;
+    }
+    // Second pass: images and attachments change the height.
+    setTimeout(buscar, 350);
+    setTimeout(() => setMensajeResaltado(null), 2600);
+  };
+
+  /** Nombre del usuario para las etiquetas. */
+  const nombreDeUsuario = (uid: string) => {
+    const u = usersList.find((x) => x.uid === uid);
+    return u?.displayName || u?.username || 'Alguien';
+  };
   // ── Apariencia del chat ─────────────────────────
   //
   // `borradorApariencia` a null = panel cerrado. Mientras está
@@ -698,6 +818,47 @@ export const ChatView: React.FC = () => {
   // pendiente de confirmar. El borrado no se ejecuta hasta pulsar
   // una opción del modal.
   const [menuMsgId, setMenuMsgId] = useState<string | null>(null);
+  // El botón del menú abierto: con su posición se coloca el
+  // menú en la VENTANA (ver `posMenuMsg`), para que no se
+  // recorte contra el chat ni se salga de la pantalla.
+  const [menuMsgBoton, setMenuMsgBoton] = useState<HTMLElement | null>(null);
+  const [posMenuMsg, setPosMenuMsg] = useState<{ left: number; top: number } | null>(null);
+
+  // Coloca el menú al abrirlo y lo recoloca al cambiar el
+  // tamaño de la ventana. El ancho es el mismo que el del
+  // menu (w-48 = 12rem = 192px), para poder ajustarlo.
+  const colocarMenuMsg = useCallback(() => {
+    const boton = menuMsgBoton;
+    if (!boton) return;
+    const r = boton.getBoundingClientRect();
+    const ANCHO = 192;
+    const ALTO_MAX = 320;
+    const MARGEN = 8;
+    // A la derecha del botón, pero sin salirse de la ventana.
+    let left = r.right - ANCHO;
+    if (left < MARGEN) left = MARGEN;
+    if (left + ANCHO > window.innerWidth - MARGEN) {
+      left = window.innerWidth - ANCHO - MARGEN;
+    }
+    if (left < MARGEN) left = MARGEN;
+    // Debajo del botón; si no cabe, encima.
+    const alto = Math.min(ALTO_MAX, window.innerHeight - r.bottom - MARGEN * 2);
+    const top = alto < 120 && r.top > ALTO_MAX ? r.top - ALTO_MAX : r.bottom + 6;
+    setPosMenuMsg({ left, top: Math.max(MARGEN, top) });
+  }, [menuMsgBoton]);
+
+  useEffect(() => {
+    if (!menuMsgId) return;
+    colocarMenuMsg();
+    const alCambiar = () => colocarMenuMsg();
+    window.addEventListener('resize', alCambiar);
+    window.addEventListener('scroll', alCambiar, true);
+    return () => {
+      window.removeEventListener('resize', alCambiar);
+      window.removeEventListener('scroll', alCambiar, true);
+    };
+  }, [menuMsgId, colocarMenuMsg]);
+
   const [borrandoMsg, setBorrandoMsg] = useState<ChatMessage | null>(null);
   const [borrandoBusy, setBorrandoBusy] = useState(false);
   const [borrandoError, setBorrandoError] = useState<string | null>(null);
@@ -2542,7 +2703,12 @@ export const ChatView: React.FC = () => {
                       {menuOpen && (
                         <div
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute right-0 top-7 z-20 w-56 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-2xl"
+                          // `max-h` + scroll propio: si la lista de
+                          // acciones es más alta que el hueco, se
+                          // desplaza en vez de salirse de la
+                          // pantalla (en móvil, con el teclado
+                          // abierto, el hueco es muy pequeño).
+                          className="absolute right-0 top-7 z-20 max-h-[60vh] w-56 overflow-y-auto overscroll-contain rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-2xl"
                         >
                           <button
                             onClick={() => handleClearChat(room)}
@@ -2889,6 +3055,25 @@ export const ChatView: React.FC = () => {
                     <span className="hidden sm:inline">Apariencia</span>
                   </button>
                 )}
+
+                {/* Mensajes fijados: siempre visible (quien puede
+                    fijarlos es el equipo, pero verlos es de
+                    todos), y con el número de cuántos hay. */}
+                <button
+                  type="button"
+                  onClick={() => setPanelFijados(true)}
+                  aria-label="Mensajes fijados"
+                  title="Mensajes fijados"
+                  className="chat-boton relative flex h-9 flex-shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 text-[11px] font-semibold text-zinc-300 transition-colors hover:border-amber-400/30 hover:bg-white/[0.06] hover:text-white"
+                >
+                  <Pin size={13} className="flex-shrink-0" />
+                  <span className="hidden sm:inline">Fijados</span>
+                  {fijados.length > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-black text-white">
+                      {fijados.length}
+                    </span>
+                  )}
+                </button>
               </div>
 
               {/* En un club no se enseña el código de invitación:
@@ -3215,8 +3400,19 @@ export const ChatView: React.FC = () => {
                           </div>
                         )}
 
+                        {/* El id permite saltar a un mensaje concreto (desde el panel de
+                            fijados): `document.getElementById` lo encuentra sin
+                            recorrer el árbol. Y el resaltado avisa de que ese es
+                            el mensaje al que se saltó. */}
                         <div
-                          className={`group flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                          id={`msg-${msg.id}`}
+                          className={
+                            'group flex gap-2 rounded-lg transition-shadow duration-500 ' +
+                            (isMe ? 'flex-row-reverse' : 'flex-row') +
+                            (mensajeResaltado === msg.id
+                              ? ' ring-2 ring-violet-400/80 ring-offset-2 ring-offset-transparent'
+                              : '')
+                          }
                         >
                         {!isMe && (
                           <button
@@ -3254,6 +3450,18 @@ export const ChatView: React.FC = () => {
                                   distinto en cada club. */}
                               {esChatClub && (
                                 <ClubRoleBadge club={clubDelChat} uid={msg.senderId} size="xs" />
+                              )}
+                              {/* El distintivo de mensaje fijado: se
+                                  pinta en el propio mensaje, sin
+                                  abrir nada. */}
+                              {estaFijado(msg.id) && (
+                                <span
+                                  title="Este mensaje está fijado"
+                                  className="inline-flex items-center gap-0.5 whitespace-nowrap rounded border border-amber-400/30 bg-amber-400/10 px-1 py-px text-[9px] font-bold leading-tight text-amber-200"
+                                >
+                                  <Pin size={9} aria-hidden="true" />
+                                  Mensaje fijado
+                                </span>
                               )}
                             </span>
                           )}
@@ -3441,7 +3649,15 @@ export const ChatView: React.FC = () => {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setMenuMsgId(menuMsgId === msg.id ? null : msg.id);
+                                  if (menuMsgId === msg.id) {
+                                    setMenuMsgId(null);
+                                    setMenuMsgBoton(null);
+                                    return;
+                                  }
+                                  setMenuMsgId(msg.id);
+                                  // El botón se guarda para colocar el
+                                  // menú respecto a la ventana.
+                                  setMenuMsgBoton(e.currentTarget);
                                 }}
                                 aria-label={`Opciones del mensaje de ${senderNameOf(msg)}`}
                                 title="Opciones"
@@ -3453,94 +3669,43 @@ export const ChatView: React.FC = () => {
                                 <MoreVertical size={12} />
                               </button>
 
-                              {menuMsgId === msg.id && (
-                                <span className={`absolute bottom-5 z-20 block w-48 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-2xl ${isMe ? 'right-0' : 'left-0'}`}>
-                                  <button
-                                    type="button"
-                                    onClick={() => responderA(msg)}
-                                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
-                                  >
-                                    <Reply size={13} className="text-violet-400" />
-                                    <span>
-                                      Responder
-                                      <span className="block text-[10px] font-normal text-zinc-500">
-                                        Citar este mensaje
-                                      </span>
-                                    </span>
-                                  </button>
-
-                                  {isMe && (
-                                    <button
-                                      type="button"
-                                      onClick={() => empezarEdicion(msg)}
-                                      className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
-                                    >
-                                      <Pencil size={13} className="text-zinc-400" />
-                                      <span>
-                                        Editar
-                                        <span className="block text-[10px] font-normal text-zinc-500">
-                                          Cambiar el texto
-                                        </span>
-                                      </span>
-                                    </button>
-                                  )}
-
-                                  <button
-                                    type="button"
-                                    onClick={() => pedirBorrar(msg)}
-                                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
-                                  >
-                                    <Trash2 size={13} className="text-red-400" />
-                                    <span>
-                                      Eliminar mensaje
-                                      <span className="block text-[10px] font-normal text-zinc-500">
-                                        Para ti o para todos
-                                      </span>
-                                    </span>
-                                  </button>
-
-                                  {/* Moderación del club: solo el
-                                      equipo, y solo sobre mensajes de
-                                      OTRAS personas. El cargo y el
-                                      permiso los vuelve a comprobar
-                                      `puedeSancionar` al abrir el
-                                      diálogo: el botón no es la
-                                      seguridad, las reglas sí. */}
-                                  {esChatClub && soyModDelClub && !isMe && (
-                                    <>
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          abrirSancion(msg.senderId, 'silencio')
-                                        }
-                                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
-                                      >
-                                        <VolumeX size={13} className="text-orange-400" />
-                                        <span>
-                                          Silenciar usuario
-                                          <span className="block text-[10px] font-normal text-zinc-500">
-                                            No podrá escribir en este club
-                                          </span>
-                                        </span>
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        onClick={() => abrirSancion(msg.senderId, 'baneo')}
-                                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
-                                      >
-                                        <Ban size={13} className="text-red-400" />
-                                        <span>
-                                          Banear del club
-                                          <span className="block text-[10px] font-normal text-zinc-500">
-                                            Sale y no puede volver
-                                          </span>
-                                        </span>
-                                      </button>
-                                    </>
-                                  )}
-                                </span>
-                              )}
+                              {menuMsgId === msg.id &&
+                                posMenuMsg &&
+                                createPortal(
+                                  <MenuMensaje
+                                    posicion={posMenuMsg}
+                                    esMio={isMe}
+                                    puedeFijar={puedeFijarEnEsta()}
+                                    fijado={estaFijado(msg.id)}
+                                    onResponder={() => responderA(msg)}
+                                    onEditar={() => empezarEdicion(msg)}
+                                    onBorrar={() => pedirBorrar(msg)}
+                                    onFijar={() => {
+                                      setMenuMsgId(null);
+                                      setMenuMsgBoton(null);
+                                      void alternarFijado(msg);
+                                    }}
+                                    onSilenciar={
+                                      esChatClub && soyModDelClub && !isMe
+                                        ? () => {
+                                            setMenuMsgId(null);
+                                            setMenuMsgBoton(null);
+                                            abrirSancion(msg.senderId, 'silencio');
+                                          }
+                                        : undefined
+                                    }
+                                    onBanear={
+                                      esChatClub && soyModDelClub && !isMe
+                                        ? () => {
+                                            setMenuMsgId(null);
+                                            setMenuMsgBoton(null);
+                                            abrirSancion(msg.senderId, 'baneo');
+                                          }
+                                        : undefined
+                                    }
+                                  />,
+                                  document.body,
+                                )}
                             </span>
                           </div>
                         </div>
@@ -4436,6 +4601,32 @@ export const ChatView: React.FC = () => {
               onSubirFondo={subirFondoChat}
               onQuitarFondo={quitarFondoChat}
             />
+          )}
+
+          {/* ── PANEL DE MENSAJES FIJADOS ──────────────
+              Va por encima de la conversación, como el de
+              apariencia. Al saltar a un mensaje se cierra y
+              el chat se desplaza hasta él. */}
+          {panelFijados && (
+            <div className="fixed inset-0 z-[95] flex justify-end bg-black/60 backdrop-blur-sm sm:bg-black/40">
+              <div className="flex h-full w-full max-w-sm flex-col border-l border-white/[0.08] bg-[#0c0c14] shadow-2xl">
+                <ChatFijadosPanel
+                  fijados={fijados}
+                  cargando={fijadosCargando}
+                  onIrA={irAMensaje}
+                  onClose={() => setPanelFijados(false)}
+                  onQuitar={
+                    puedeFijarEnEsta()
+                      ? (f) => {
+                          void desfijarMensaje(activeRoomId ?? '', f.messageId).then((r) => {
+                            if (!r.ok) setActionFeedback(r.error ?? 'No se pudo quitar.');
+                          });
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            </div>
           )}
 
           {/* ── VISOR DE TIER LIST ──────────────────────────

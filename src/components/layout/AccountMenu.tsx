@@ -146,7 +146,7 @@ export const AccountMenu: React.FC<{
           // usa `geo-pop-in`, la animación de los paneles
           // flotantes del proyecto (`animate-in` no hace nada
           // aquí, no hay ese plugin).
-          className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] geo-pop-in origin-top-right overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl shadow-black/60 backdrop-blur-xl"
+          className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain geo-pop-in origin-top-right rounded-2xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl shadow-black/60 backdrop-blur-xl"
         >
           {/* ── Cabecera ─────────────────────────── */}
           <div className="flex items-center gap-3 border-b border-white/[0.06] bg-white/[0.02] px-4 py-3">
