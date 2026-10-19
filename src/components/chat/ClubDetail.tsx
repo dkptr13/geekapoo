@@ -19,13 +19,19 @@ import {
   Mail,
   BadgeCheck,
   Settings2,
+  Ban,
+  ShieldCheckIcon,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
 import { useClubs } from '../../context/ClubsContext';
 import { CLUB_CATEGORIES } from '../../types';
-import type { Club, ClubMember } from '../../types';
+import type { Club, ClubMember, ClubRango } from '../../types';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
+import { ClubModerationPanel } from './ClubModerationPanel';
+import { ClubRoleBadge } from './ClubRoleBadge';
+import { SancionDialog } from './ClubSancionDialog';
+import { aplicarSancion, cambiarRangoEquipo } from '../../services/clubModeracion';
 
 // ======================================================
 // DETALLE DEL CLUB
@@ -49,7 +55,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Vista = 'info' | 'miembros' | 'solicitudes' | 'config';
+type Vista = 'info' | 'miembros' | 'solicitudes' | 'moderacion' | 'config';
 
 export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
   const { currentUser, usersList } = useAuth();
@@ -86,6 +92,19 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
   const [expulsandoA, setExpulsandoA] = useState<ClubMember | null>(null);
   const [transfiriendoA, setTransfiriendoA] = useState<ClubMember | null>(null);
 
+  // ── Moderación ─────────────────────────────────────
+  // `sancionPara` abre el diálogo de silenciar/banear sobre una
+  // persona concreta (o `null` = cerrado). `moderacionAbierta`
+  // muestra el panel con el historial de sanciones del club.
+  const [sancionPara, setSancionPara] = useState<{
+    uid: string;
+    nombre: string;
+    tipo: 'silencio' | 'baneo';
+  } | null>(null);
+  const [sancionGuardando, setSancionGuardando] = useState(false);
+  const [sancionError, setSancionError] = useState<string | null>(null);
+  const [moderacionAbierta, setModeracionAbierta] = useState(false);
+
   const propietario = soyPropietario(club);
   const moderador = soyModerador(club);
   const miRol = miRolEn(club);
@@ -112,7 +131,15 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
   const miembros = useMemo(
     () =>
       Object.values(club.members).sort((a, b) => {
-        const orden = { owner: 0, moderator: 1, member: 2 };
+        // Dueño, admin, moderador y después miembros: el mismo
+        // orden de autoridad que usan las reglas, para que la
+        // lista se lea de arriba (quien manda) a abajo.
+        const orden: Record<ClubRango, number> = {
+          owner: 0,
+          admin: 1,
+          moderator: 2,
+          member: 3,
+        };
         if (orden[a.role] !== orden[b.role]) return orden[a.role] - orden[b.role];
         return Date.parse(b.joinedAt) - Date.parse(a.joinedAt);
       }),
@@ -170,6 +197,10 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
           string,
         ][])
       : []),
+    // El equipo tiene su propia pestaña para silencios, baneos e
+    // historial. No es una más de «Miembros»: es donde se
+    // revisa lo que ya se hizo y se levanta lo que toca.
+    ...(moderador ? ([['moderacion', 'Moderación']] as [Vista, string][]) : []),
     ...(propietario ? ([['config', 'Configuración']] as [Vista, string][]) : []),
   ];
 
@@ -395,8 +426,17 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                     </button>
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[11px] font-bold text-white">
-                        {nombreDe(m.uid)}
+                      <p className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold text-white">
+                        <span className="truncate">{nombreDe(m.uid)}</span>
+                        {/* Distintivo de cargo: sale de los arrays del
+                            club (los mismos que leen las reglas), no
+                            de `members[uid].role`. */}
+                        <ClubRoleBadge club={club} uid={m.uid} size="xs" />
+                        {silenciado && (
+                          <span className="rounded border border-orange-400/40 bg-orange-500/10 px-1 py-px text-[9px] font-bold text-orange-200">
+                            silenciado
+                          </span>
+                        )}
                       </p>
                       <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
                         {m.role === 'owner' && (
@@ -440,24 +480,34 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                         {propietario && (
                           <button
                             type="button"
-                            onClick={() =>
-                              ejecutar(
-                                () =>
-                                  cambiarRolAccion(
-                                    club.id,
-                                    m.uid,
-                                    m.role === 'moderator' ? 'member' : 'moderator',
-                                  ),
-                                m.role === 'moderator'
-                                  ? 'Rol de moderador retirado.'
-                                  : 'Ascendido a moderador.',
-                              )
-                            }
+                            onClick={() => {
+                              // member → moderator → admin → member.
+                              // Bajar de admin deja en miembro normal.
+                              const siguiente: 'admin' | 'moderator' | 'member' =
+                                m.role === 'admin'
+                                  ? 'member'
+                                  : m.role === 'moderator'
+                                    ? 'admin'
+                                    : 'moderator';
+                              setProcesando(true);
+                              setSancionError(null);
+                              void cambiarRangoEquipo({
+                                clubId: club.id,
+                                actorUid: currentUser?.uid ?? '',
+                                actorNombre: nombreDe(currentUser?.uid ?? ''),
+                                uid: m.uid,
+                                nombre: nombreDe(m.uid),
+                                rango: siguiente,
+                              })
+                                .then((r) => {
+                                  if (r.ok) avisar('ok', 'Cargo actualizado.');
+                                  else avisar('error', r.error ?? 'No se pudo cambiar el cargo.');
+                                })
+                                .finally(() => setProcesando(false));
+                            }}
                             disabled={procesando}
                             className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-violet-500/40 hover:text-violet-300 disabled:opacity-50"
-                            title={
-                              m.role === 'moderator' ? 'Quitar moderador' : 'Nombrar moderador'
-                            }
+                            title="Cambiar cargo (moderador / admin)"
                           >
                             {m.role === 'moderator' ? (
                               <ShieldOff size={12} />
@@ -467,24 +517,41 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                           </button>
                         )}
 
+                        {/* Silenciar y banear abren el MISMO diálogo: el
+                            tipo se elige dentro, así el motivo y la
+                            duración se rellenan igual en los dos casos. */}
                         <button
                           type="button"
-                          onClick={() =>
-                            ejecutar(
-                              () =>
-                                silenciar(
-                                  club.id,
-                                  m.uid,
-                                  silenciado ? '' : silencioDe7Dias(),
-                                ),
-                              silenciado ? 'Silencio levantado.' : 'Miembro silenciado 7 días.',
-                            )
-                          }
+                          onClick={() => {
+                            setSancionError(null);
+                            setSancionPara({
+                              uid: m.uid,
+                              nombre: nombreDe(m.uid),
+                              tipo: 'silencio',
+                            });
+                          }}
                           disabled={procesando}
                           className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-orange-500/40 hover:text-orange-300 disabled:opacity-50"
-                          title={silenciado ? 'Quitar silencio' : 'Silenciar 7 días'}
+                          title="Silenciar: elegir duración y motivo"
                         >
                           {silenciado ? <Volume2 size={12} /> : <VolumeX size={12} />}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSancionError(null);
+                            setSancionPara({
+                              uid: m.uid,
+                              nombre: nombreDe(m.uid),
+                              tipo: 'baneo',
+                            });
+                          }}
+                          disabled={procesando}
+                          className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
+                          title="Banear del club: elegir duración y motivo"
+                        >
+                          <Ban size={12} />
                         </button>
 
                         <button
@@ -566,6 +633,14 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
               ))
             )}
           </div>
+        )}
+
+        {/* ── MODERACIÓN ───────────────────────────────
+            Silencios, baneos e historial. Solo el equipo: las
+            reglas ya impiden leer las sanciones de otros
+            clubes, y esta pestaña solo se monta para él. */}
+        {vista === 'moderacion' && moderador && (
+          <ClubModerationPanel club={club} onClose={() => setVista('info')} />
         )}
 
         {/* ── CONFIGURACIÓN ───────────────────────────── */}
@@ -665,6 +740,53 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
           </div>
         )}
       </div>
+
+      {/* Diálogo de sanción. Se monta solo mientras `sancionPara`
+          apunta a alguien, y el tipo que abre (silencio o baneo)
+          es solo el valor inicial: dentro se puede cambiar. */}
+      {sancionPara && (
+        <SancionDialog
+          club={club}
+          actorUid={currentUser?.uid ?? ''}
+          actorNombre={nombreDe(currentUser?.uid ?? '')}
+          objetivoUid={sancionPara.uid}
+          objetivoNombre={sancionPara.nombre}
+          onClose={() => setSancionPara(null)}
+          guardando={sancionGuardando}
+          error={sancionError}
+          onAplicar={async ({ tipo, duracionMs, motivo }) => {
+            if (!sancionPara) return { ok: false, error: 'No hay nadie seleccionado.' };
+            setSancionGuardando(true);
+            setSancionError(null);
+            try {
+              const r = await aplicarSancion({
+                club,
+                actorUid: currentUser?.uid ?? '',
+                actorNombre: nombreDe(currentUser?.uid ?? ''),
+                objetivoUid: sancionPara.uid,
+                objetivoNombre: sancionPara.nombre,
+                tipo,
+                duracionMs,
+                motivo,
+              });
+              if (!r.ok) {
+                setSancionError(r.error ?? 'No se pudo aplicar la sanción.');
+                return { ok: false, error: r.error };
+              }
+              avisar(
+                'ok',
+                tipo === 'baneo'
+                  ? `${sancionPara.nombre} ha sido baneado del club.`
+                  : `${sancionPara.nombre} ha sido silenciado.`,
+              );
+              setSancionPara(null);
+              return { ok: true };
+            } finally {
+              setSancionGuardando(false);
+            }
+          }}
+        />
+      )}
 
       {/* ── CONFIRMACIONES ────────────────────────────── */}
 

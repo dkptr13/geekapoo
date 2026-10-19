@@ -103,6 +103,11 @@ service cloud.firestore {
      * función da false sin más.
      */
     function esModeradorClubDeChat(chatId) {
+      // Sin `let` ni retornos tempranos a propósito: dentro de una
+      // ruta Firestore solo se interpola un CAMPO del recurso
+      // (`$(chatData(chatId).slug)`), nunca una variable de
+      // reglas. Por eso el club se busca siempre por su slug
+      // completo en vez de por una variable intermedia.
       return isSignedIn()
              && chatData(chatId).type == 'club'
              && chatData(chatId).slug is string
@@ -110,11 +115,22 @@ service cloud.firestore {
              && request.auth.uid in
                   get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
                     .data.memberIds
+             // Igual que `esModeradorClub`: el admin también
+             // modera el chat, y sin esta rama no podría borrar ni
+             // un mensaje molesto.
              && (get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
                    .data.ownerId == request.auth.uid
                  || request.auth.uid in
                     get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
-                      .data.moderatorIds);
+                      .data.moderatorIds
+                 || ('adminIds' in
+                        get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+                          .data
+                     && get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+                          .data.adminIds is list
+                     && request.auth.uid in
+                          get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+                            .data.adminIds));
     }
 
     // Solo contadores de "me gusta" y de comentarios: cualquier usuario activo puede tocarlos
@@ -2165,10 +2181,217 @@ match /users/{uid} {
      * condición pudiera notarlo. El `role` de la ficha se
      * mantiene solo para mostrarlo en la interfaz.
      */
+    /**
+     * Equipo del club con facultad de moderar: dueño, admin o
+     * moderador.
+     *
+     * Los administradores entran aquí a propósito: según la
+     * jerarquía están POR ENCIMA de los moderadores, así que si
+     * no estuvieran en esta función no podrían ni quitar un
+     * mensaje molesto ni aplicar una sanción (toda sanción
+     * escribe además en el documento del club). Sin esta línea,
+     * un admin no podría moderar, que es justo lo contrario de lo
+     * que significa «admin».
+     *
+     * Lo que sigue SIN poder hacer un admin o un moderador es
+     * tocar `ownerId`, `adminIds`, `moderatorIds` o `permisos`:
+     * eso vive en otra rama del `allow update`, más restringida.
+     *
+     * `adminIds` no existe en los clubes anteriores a este
+     * sistema, así que se comprueba con `('adminIds' in c)`.
+     */
     function esModeradorClub(clubId) {
+      let c = clubData(clubId);
       return esMiembroClub(clubId)
-             && (clubData(clubId).ownerId == request.auth.uid
-                 || request.auth.uid in clubData(clubId).moderatorIds);
+             && (c.ownerId == request.auth.uid
+                 || request.auth.uid in c.moderatorIds
+                 || ('adminIds' in c
+                     && c.adminIds is list
+                     && request.auth.uid in c.adminIds));
+    }
+
+    // ======================================================
+    // MODERACIÓN DE CLUBES
+    // ======================================================
+    //
+    // La jerarquía se lee de los ARRAYS de primer nivel
+    // (`ownerId`, `adminIds`, `moderatorIds`) y nunca de
+    // `members[uid].role`: ese campo lo puede escribir el
+    // cliente y las reglas no podrían recorrer el mapa para
+    // compararlo. Con arrays, comparar rangos es un `in`.
+    //
+    // `adminIds` no existe en los clubes anteriores a este
+    // sistema, así que se comprueba con `('adminIds' in c)`
+    // antes de usarlo: si la clave no está, leerla daría error de
+    // evaluación y TODO lo que dependa de aquí se denegaría,
+    // incluidos los clubes antiguos.
+    function rangoDeClub(c, uid) {
+      return c.ownerId == uid ? 3
+           : ('adminIds' in c && c.adminIds is list && uid in c.adminIds) ? 2
+           : uid in c.moderatorIds ? 1
+           : 0;
+    }
+
+    /** Permiso que el propietario puede delegar en moderadores. */
+    function permisoModerador(c, nombre) {
+      return 'permisos' in c
+             && c.permisos is map
+             && (nombre in c.permisos)
+             && c.permisos[nombre] == true;
+    }
+
+    /**
+     * Si la persona tiene ahora mismo una sanción que le impide
+     * escribir en el club.
+     *
+     * El documento es `clubs/{clubId}/sancion/{uid}`, con el id
+     * IGUAL al uid. Eso es lo que hace esto posible: las reglas
+     * solo pueden consultar la ruta exacta de un documento
+     * (`exists()` y `get()` no admiten `where`), y aquí siempre
+     * se pregunta por una ruta que ya se conoce.
+     *
+     * La caducidad se compara contra `request.time` (la hora del
+     * SERVIDOR), no contra la del navegador: por eso un silencio
+     * caducado sigue caducado tras reiniciar la sesión, y un
+     * reloj manipulado no lo alarga.
+     */
+    function sancionado(clubId, uid) {
+      let ref = /databases/$(database)/documents/clubs/$(clubId)/sancion/$(uid);
+      return exists(ref)
+             && (get(ref).data.expira == null || request.time < get(ref).data.expira);
+    }
+
+    /**
+     * Puede este chat recibir un mensaje de quien lo escribe.
+     *
+     * Solo mira los chats de club: en un privado o en un grupo
+     * normal no hay sanciones que aplicar. El bloqueo es POR
+     * CLUB: silenciarse en uno no toca los demás chats.
+     */
+    function puedeEscribirEnChat(chatId) {
+      // El lenguaje de reglas NO tiene `if` ni retornos tempranos:
+      // una función es un `let` de expresiones y un `return`
+      // final. Por eso la pregunta se encadena con `||`: si el
+      // chat no es de club, o el club no existe, la respuesta es
+      // «sí puede escribir» y se sale ahí.
+      let c = chatData(chatId);
+      return c.type != 'club'
+             || !(c.slug is string)
+             || !clubExiste(c.slug)
+             || !sancionado(c.slug, request.auth.uid);
+    }
+
+    /**
+     * Si `actor` puede abrir una sanción contra `objetivo`.
+     *
+     *   1. Que el actor sea del equipo (rango >= 1).
+     *   2. Que no se sancione a sí mismo.
+     *   3. Que el objetivo sea de rango ESTRICTAMENTE inferior:
+     *      nadie toca a alguien de su rango ni de arriba. Así un
+     *      moderador no toca a otro moderador, un admin no a otro
+     *      admin, y el dueño solo a miembros y mods.
+     *   4. Que el actor pueda aplicar ese TIPO: un moderador solo
+     *      banea si el propietario lo habilitó, y nunca con
+     *      baneo permanente salvo permiso explícito.
+     */
+    function puedeSancionarA(clubId, actor, objetivo, tipo, permanente) {
+      let c = clubData(clubId);
+      let rActor = rangoDeClub(c, actor);
+      // Todas las barreras van encadenadas con `&&`, y la última
+      // es la del tipo de sanción. Al no haber `if`, el orden
+      // importa: lo barato va primero (es miembro, es del equipo)
+      // y lo que necesita leer `c` va después.
+      return esMiembroClub(clubId)
+             && rActor >= 1
+             && actor != objetivo
+             // Rango estrictamente inferior: nadie toca a alguien
+             // de su rango ni de arriba.
+             && rActor > rangoDeClub(c, objetivo)
+             // Un moderador solo banea si el propietario lo
+             // habilitó, y el baneo permanente le queda a dueño y
+             // admin. Para los demás, estas dos condiciones se
+             // cumple siempre (`rActor == 1` es falso).
+             && (rActor != 1
+                 || (tipo != 'baneo'
+                     || (permisoModerador(c, 'moderadorBanea')
+                         && (!permanente
+                             || permisoModerador(c, 'moderadorBaneoPermanente')))));
+    }
+
+    /**
+     * Si `actor` puede levantar (borrar) la sanción vigente de
+     * `objetivo`.
+     *
+     * Nadie toca lo de alguien de rango igual o superior. El
+     * dueño puede levantarlo todo, que es lo que hace falta para
+     * deshacer un error.
+     */
+    function puedeLevantarDe(clubId, actor, objetivo) {
+      let c = clubData(clubId);
+      let rActor = rangoDeClub(c, actor);
+      let ref = /databases/$(database)/documents/clubs/$(clubId)/sancion/$(objetivo);
+      // Tres salidas válidas, encadenadas:
+      //
+      //   · no es del equipo → no puede;
+      //   · levanta la suya, o la del club está vacía → sí;
+      //   · si la puso alguien de rango superior, no;
+      //   · si es del mismo rango y es moderador, hace falta el
+      //     permiso del propietario.
+      return esMiembroClub(clubId)
+             && rActor >= 1
+             && (actor == objetivo
+                 || !exists(ref)
+                 || (rActor > rangoDeClub(c, get(ref).data.aplicadaPor)
+                     && (rActor != 1
+                         || permisoModerador(c, 'moderadorLevanta'))));
+    }
+
+    /**
+     * Forma del documento de sanción VIGENTE.
+     *
+     * Recalca `clubId` contra la ruta: si no, un moderador del
+     * club A podría abrir `clubs/B/sancion/{uid}` con su club A
+     * dentro y las reglas no se enterarían.
+     */
+    function sancionVigenteValida(s, clubId, objetivo) {
+      return s is map
+             && ('clubId' in s && s.clubId == clubId)
+             && ('tipo' in s && s.tipo in ['silencio', 'baneo'])
+             && ('objetivoUid' in s && s.objetivoUid == objetivo)
+             && ('objetivoNombre' in s && s.objetivoNombre is string)
+             && ('motivo' in s && s.motivo is string && s.motivo.size() >= 5
+                 && s.motivo.size() <= 500)
+             && ('inicio' in s)
+             && ('expira' in s && (s.expira == null || s.expira is timestamp))
+             && ('permanente' in s && s.permanente is bool)
+             && ('aplicadaPor' in s && s.aplicadaPor == request.auth.uid)
+             && ('aplicadaPorNombre' in s && s.aplicadaPorNombre is string)
+             && ('aplicadaPorRango' in s
+                 && s.aplicadaPorRango in ['owner', 'admin', 'moderator', 'member'])
+             // Un silencio NUNCA es permanente: sin fecha de fin
+             // sería un baneo disfrazado. Solo el baneo lo admite.
+             && (s.tipo != 'silencio' || (s.permanente == false && s.expira != null))
+             && (s.permanente == false || s.expira == null);
+    }
+
+    /** Forma de una entrada del historial. */
+    function sancionHistorialValida(s, clubId) {
+      return s is map
+             && ('clubId' in s && s.clubId == clubId)
+             && ('tipo' in s && s.tipo in ['silencio', 'baneo'])
+             && ('objetivoUid' in s && s.objetivoUid is string)
+             && ('objetivoNombre' in s && s.objetivoNombre is string)
+             && ('motivo' in s && s.motivo is string && s.motivo.size() >= 5
+                 && s.motivo.size() <= 500)
+             && ('inicio' in s && s.inicio is string)
+             && ('fin' in s && (s.fin == null || s.fin is string))
+             && ('permanente' in s && s.permanente is bool)
+             && ('aplicadaPor' in s && s.aplicadaPor == request.auth.uid)
+             && ('aplicadaPorNombre' in s && s.aplicadaPorNombre is string)
+             && ('aplicadaPorRango' in s
+                 && s.aplicadaPorRango in ['owner', 'admin', 'moderator', 'member'])
+             && ('retirada' in s && s.retirada is bool)
+             && (s.tipo != 'silencio' || (s.permanente == false && s.fin != null));
     }
 
     /** Forma válida del mapa de miembros al crear el club. */
@@ -2327,8 +2550,8 @@ match /users/{uid} {
                              .affectedKeys().hasOnly(
                                ['name', 'description', 'coverUrl', 'iconUrl',
                                 'rules', 'accessType', 'members', 'memberIds',
-                                'memberCount', 'moderatorIds', 'ownerId',
-                                'updatedAt'])
+                                'memberCount', 'moderatorIds', 'adminIds',
+                                'ownerId', 'permisos', 'updatedAt'])
                         && duenoSigueDentro())
                     || (esModeradorClub(clubId)
                         && request.resource.data.diff(resource.data)
@@ -2367,6 +2590,11 @@ match /users/{uid} {
                     && clubExiste(clubId)
                     && resource.data.accessType == 'public'
                     && !(request.auth.uid in resource.data.memberIds)
+                    // Con un baneo vigente NO se puede reincorporar.
+                    // La caducidad la decide `request.time`, así que
+                    // al terminar el baneo el acceso vuelve solo, sin
+                    // que nadie tenga que borrar nada a mano.
+                    && !sancionado(clubId, request.auth.uid)
                     && request.auth.uid in request.resource.data.memberIds
                     && request.resource.data.memberIds.size()
                          == resource.data.memberIds.size() + 1
@@ -2417,6 +2645,11 @@ match /users/{uid} {
                       && !esMiembroClub(clubId)
                       && clubExiste(clubId)
                       && clubData(clubId).accessType != 'public'
+                      // Con un baneo vigente tampoco se puede
+                      // PEDIR entrar: la solicitud no se
+                      // aceptaría, y dejarla pasar solo
+                      // genera ruido.
+                      && !sancionado(clubId, request.auth.uid)
                       && requestId == request.resource.data.clubId
                                       + '_' + request.auth.uid;
 
@@ -2436,6 +2669,54 @@ match /users/{uid} {
                                .affectedKeys().hasOnly(['createdAt']));
 
         allow delete: if isAdmin() || esModeradorClub(clubId);
+      }
+
+      // ── Sanciones vigentes ────────────────────────────
+      //
+      // `clubs/{clubId}/sancion/{uid}`: UNA sanción viva por
+      // persona. El id del documento es su uid a propósito, para
+      // que las reglas puedan consultarla con `exists()`/`get()`
+      // (que solo aceptan la ruta exacta de un documento) y así
+      // bloquear el envío de mensajes en el chat del club.
+      //
+      //   · crear/editar: el equipo, y solo contra alguien de
+      //     rango estrictamente inferior (`puedeSancionarA`).
+      //     Editar cubre el caso de renewar una sanción caducada
+      //     que sigue ahí sin borrar.
+      //   · leer: la persona sancionada (para ver su aviso con el
+      //     motivo) y el equipo del club (para el panel). NO el
+      //     resto de miembros: los motivos no son públicos.
+      //   · borrar: quien pueda levantarla.
+      match /sancion/{uid} {
+        allow read: if esModeradorClub(clubId)
+                    || (isSignedIn() && request.auth.uid == uid);
+
+        allow create, update: if puedeSancionarA(
+                                  clubId,
+                                  request.auth.uid,
+                                  uid,
+                                  request.resource.data.tipo,
+                                  request.resource.data.permanente == true)
+                              && sancionVigenteValida(request.resource.data, clubId, uid);
+
+        allow delete: if puedeLevantarDe(clubId, request.auth.uid, uid);
+      }
+
+      // ── Historial de sanciones ───────────────────────
+      //
+      // Un documento por acción (silencio, baneo, retirada o
+      // cambio de rango). SOLO SE CREA: ni se edita ni se borra
+      // desde el cliente, ni siquiera siendo el propietario. Es la
+      // traza que se consulta si hay una disputa entre miembros, y
+      // por eso tiene que ser inalterable una vez escrita.
+      match /sanciones/{sancionId} {
+        allow read: if esModeradorClub(clubId)
+                    || (isSignedIn() && resource.data.objetivoUid == request.auth.uid);
+
+        allow create: if esModeradorClub(clubId)
+                      && sancionHistorialValida(request.resource.data, clubId);
+
+        allow update, delete: if false;
       }
 
       // ── Canales temáticos ─────────────────────────────
@@ -2493,7 +2774,8 @@ match /users/{uid} {
                       && request.resource.data.spoiler is bool
                       && request.resource.data.order is number
                       && request.resource.data.createdBy == request.auth.uid
-                      && (request.resource.data.chatFondo == null
+                      && (!('chatFondo' in request.resource.data)
+                          || request.resource.data.chatFondo == null
                           || (request.resource.data.chatFondo is map
                               && (!('preset' in request.resource.data.chatFondo)
                                   || request.resource.data.chatFondo.preset is string)
@@ -2510,7 +2792,8 @@ match /users/{uid} {
                                   || (request.resource.data.chatFondo.dim is number
                                       && request.resource.data.chatFondo.dim >= 0
                                       && request.resource.data.chatFondo.dim <= 80))))
-                      && (request.resource.data.chatApariencia == null
+                      && (!('chatApariencia' in request.resource.data)
+                          || request.resource.data.chatApariencia == null
                           || (request.resource.data.chatApariencia is map
                               && (!('tema' in request.resource.data.chatApariencia)
                                   || request.resource.data.chatApariencia.tema is string)
@@ -2607,7 +2890,8 @@ match /users/{uid} {
                       && request.resource.data.visibility in ['all', 'mods']
                       && request.resource.data.spoiler is bool
                       && request.resource.data.order is number
-                      && (request.resource.data.chatFondo == null
+                      && (!('chatFondo' in request.resource.data)
+                          || request.resource.data.chatFondo == null
                           || (request.resource.data.chatFondo is map
                               && (!('preset' in request.resource.data.chatFondo)
                                   || request.resource.data.chatFondo.preset is string)
@@ -2624,7 +2908,8 @@ match /users/{uid} {
                                   || (request.resource.data.chatFondo.dim is number
                                       && request.resource.data.chatFondo.dim >= 0
                                       && request.resource.data.chatFondo.dim <= 80))))
-                      && (request.resource.data.chatApariencia == null
+                      && (!('chatApariencia' in request.resource.data)
+                          || request.resource.data.chatApariencia == null
                           || (request.resource.data.chatApariencia is map
                               && (!('tema' in request.resource.data.chatApariencia)
                                   || request.resource.data.chatApariencia.tema is string)
@@ -2864,6 +3149,7 @@ match /users/{uid} {
         // ramas y el motivo de cada una ya está commented en la
         // definición.
         allow create: if isChatMember(chatId)
+                      && puedeEscribirEnChat(chatId)
                       && request.resource.data.senderId == request.auth.uid
                       && request.resource.data.body is string
                       && request.resource.data.body.size() <= 4000

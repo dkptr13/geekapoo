@@ -57,7 +57,13 @@ export type NotificationType =
   | 'achievement'
   | 'trivia'
   /** Alguien te ha escrito en el chat. Lleva `chatId` para abrir la conversación. */
-  | 'chat_message';
+  | 'chat_message'
+  /**
+   * Te han silenciado o baneado de un club (o te han levantado la
+   * sanción). Lleva el motivo en `snippet`. Es solo un aviso: desde
+   * aquí no se puede tocar la sanción.
+   */
+  | 'club_sanction';
 
 /**
  * Un aviso en la campana.

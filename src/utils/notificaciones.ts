@@ -36,7 +36,8 @@ type Icono =
   | 'reaction'
   | 'level'
   | 'medal'
-  | 'trivia';
+  | 'trivia'
+  | 'shield';
 
 const ESTILO: Record<NotificationType, { icono: Icono }> = {
   comment_reply: { icono: 'comment' },
@@ -51,6 +52,7 @@ const ESTILO: Record<NotificationType, { icono: Icono }> = {
   achievement: { icono: 'medal' },
   trivia: { icono: 'trivia' },
   chat_message: { icono: 'chat' },
+  club_sanction: { icono: 'shield' },
 };
 
 export function iconoDe(n: Pick<AppNotification, 'type' | 'reaction'>): string {
@@ -76,6 +78,8 @@ export function iconoDe(n: Pick<AppNotification, 'type' | 'reaction'>): string {
       return '🏆';
     case 'trivia':
       return '🎯';
+    case 'shield':
+      return '🛡️';
     default:
       return '🔔';
   }
@@ -125,6 +129,11 @@ export function textoDe(
       return `Trivia completada: ${n.triviaCorrect ?? 0} de ${n.triviaTotal ?? 0}`;
     case 'chat_message':
       return `${quien} te ha enviado un mensaje`;
+    case 'club_sanction':
+      // El texto preciso (tipo y club) lo compone el servidor y
+      // llega en `title`, que ya se devuelve arriba. Esto es solo
+      // para el caso de que faltara.
+      return `${quien} ha aplicado una sanción en un club tuyo`;
     default:
       return 'Tienes actividad en la comunidad';
   }

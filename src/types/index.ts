@@ -1185,7 +1185,16 @@ export const CLUB_CATEGORIES: { id: ClubCategory; label: string; icon: string }[
 
 export type ClubAccessType = 'public' | 'private' | 'request';
 
-export type ClubRole = 'owner' | 'moderator' | 'member';
+/**
+ * Cargo DENTRO de un club.
+ *
+ * `admin` se añadió con el sistema de moderación. Ojo: la
+ * autoridad real está en `ownerId` / `adminIds` / `moderatorIds`
+ * (arrays que las reglas pueden comparar). Este tipo describe el
+ * reflejo en la ficha de cada miembro, que se escribe en la
+ * MISMA operación que los arrays para que no se separen.
+ */
+export type ClubRole = 'owner' | 'admin' | 'moderator' | 'member';
 
 export interface ClubMember {
   uid: string;
@@ -1212,6 +1221,155 @@ export interface ChatPrefs {
   muteUntil?: ChatMuteUntil;
   /** Favorito personal: fija la conversación en la parte alta. */
   favorite?: boolean;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════
+ * MODERACIÓN DE CLUBES
+ * ══════════════════════════════════════════════════════════
+ *
+ * Las sanciones viven en la subcolección `clubs/{clubId}/sanciones/`,
+ * un documento por sanción. Se eligió una subcolección y no un
+ * campo más en `members[uid]` porque una sanción necesita motivo,
+ * quién la puso y cuándo se retiró: metido todo eso en la ficha
+ * del miembro, las reglas no podrían distinguir «le han cambiado
+ * el silencio» de «le han cambiado el rol» (`affectedKeys()` solo
+ * ve la clave de primer nivel del mapa).
+ *
+ * El club guarda además un índice denormalizado
+ * (`sancionesActivas`) porque las reglas sí necesitan comprobar
+ * la sanción de una persona concreta en cada envío.
+ */
+
+/** Silencio (no puede escribir) o baneo (además, no puede entrar). */
+export type SancionTipo = 'silencio' | 'baneo';
+
+/** Lo que el usuario ve: activa, expirada o retirada a mano. */
+export type SancionEstado = 'activa' | 'expirada' | 'retirada';
+
+/**
+ * Rango dentro de un club. La autoridad SIEMPRE se lee de
+ * `ownerId` / `adminIds` / `moderatorIds`, nunca de `members[uid].role`
+ * (que es solo un reflejo para pintar la interfaz).
+ */
+export type ClubRango = 'owner' | 'admin' | 'moderator' | 'member';
+
+/**
+ * Permisos que el propietario puededelegar en los moderadores.
+ *
+ * Los administradores NO tienen مجموع lo que ven: silenciar y
+ * banear siempre. Lo que cambia es hasta dónde llegan.
+ */
+export interface ClubPermisos {
+  /** Un moderador puede aplicar baneos (y no solo silencios). */
+  moderadorBanea?: boolean;
+  /** Un moderador puede levantar sanciones que él no aplicó. */
+  moderadorLevanta?: boolean;
+  /**
+   * Un moderador puede aplicar sanciones TEMPORALES, nunca
+   * permanentes. El baneo permanente es del propietario y de
+   * los administradores.
+   */
+  moderadorBaneoPermanente?: boolean;
+}
+
+/**
+ * Una sanción (silencio o baneo) aplicada a un miembro.
+ *
+ * El documento es INMUTABLE salvo por los campos de retirada:
+ * las reglas solo permiten actualizar `retirada`, `retiradaPor`,
+ * `retiradaPorNombre`, `retiradaEn` y `motivoRetirada`, y nunca
+ * borrar. Así el historial no se puede reescribir a posteriori.
+ */
+export interface ClubSancion {
+  id: string;
+  /** Club al que pertenece. También va en la ruta. */
+  clubId: string;
+  /** `silencio` o `baneo`. */
+  tipo: SancionTipo;
+  /** A quién se le aplica. */
+  objetivoUid: string;
+  /** Nombre del sancionado, para el panel sin tener que buscarlo. */
+  objetivoNombre: string;
+  /** Motivo obligatorio (1-500 caracteres). Sin motivo no hay sanción. */
+  motivo: string;
+  /** Inicio en ISO. */
+  inicio: string;
+  /** Fin en ISO. `null` = permanente (solo baneo). */
+  fin: string | null;
+  /** Un baneo sin fecha de fin. */
+  permanente: boolean;
+  /** Quién la aplicó. */
+  aplicadaPor: string;
+  /** Nombre de quien la aplicó (foto fija, como en los mensajes). */
+  aplicadaPorNombre: string;
+  /** Rango de quien la aplicó, para no permitir retirarla si no puede. */
+  aplicadaPorRango: ClubRango;
+  /** Retirada a mano antes de tiempo. */
+  retirada: boolean;
+  retiradaPor?: string;
+  retiradaPorNombre?: string;
+  /** Cuándo se retiró (ISO). */
+  retiradaEn?: string;
+  /** Por qué se retiró, si el que la levantó da un motivo. */
+  motivoRetirada?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+/**
+ * Documento de sanción VIGENTE: `clubs/{clubId}/sancion/{uid}`.
+ *
+ * El id es el uid de la persona sancionada, y por eso el
+ * bloqueo se puede comprobar en las reglas: siempre se pregunta
+ * por la persona que escribe, y esa ruta es conocida. Un
+ * documento se BORRA al levantar la sanción; el historial
+ * completo está aparte, en `sanciones/`.
+ */
+export interface ClubSancionVigente {
+  clubId: string;
+  tipo: SancionTipo;
+  objetivoUid: string;
+  objetivoNombre: string;
+  motivo: string;
+  /** ISO. */
+  inicio: string;
+  /**
+   * Cuándo termina, como Timestamp de Firestore (NO texto ISO):
+   * es contra `request.time` con lo que lo comparan las reglas.
+   * `null` = permanente.
+   */
+  expira: Timestamp | null;
+  permanente: boolean;
+  aplicadaPor: string;
+  aplicadaPorNombre: string;
+  aplicadaPorRango: ClubRango;
+}
+
+/**
+ * Entrada del registro de auditoría (`clubs/{clubId}/moderacion/`).
+ *
+ * SOLO se crea, nunca se edita ni se borra (`allow update, delete:
+ * if false`): es la traza que el propietario consulta si hay una
+ * disputa entre miembros.
+ */
+export interface ClubModeracionEvento {
+  id: string;
+  clubId: string;
+  /** Qué pasó: `silencio`, `baneo`, `retirada` o `rol`. */
+  accion: 'silencio' | 'baneo' | 'retirada' | 'rol';
+  /** A quién se le aplicó (o a quién se le cambió el rol). */
+  objetivoUid: string;
+  objetivoNombre: string;
+  /** Quién lo hizo. */
+  actorId: string;
+  actorNombre: string;
+  /** Rango de quien lo hizo, para el panel. */
+  actorRango: ClubRango;
+  motivo: string;
+  /** ISO. `null` si es permanente. */
+  fin: string | null;
+  createdAt: string;
 }
 
 export interface Club {
@@ -1246,6 +1404,25 @@ export interface Club {
    * (reglas) se lee de aquí y de `ownerId`.
    */
   moderatorIds: string[];
+  /**
+   * Administradores del club.
+   *
+   * Mismo criterio que `moderatorIds`: un array de primer nivel
+   * para que las reglas puedan comparar la jerarquía (dueño >
+   * admin > moderador > miembro) sin recorrer el mapa de
+   * miembros. Solo el propietario puede tocarlo.
+   *
+   * Opcional a propósito: los clubes creados antes de este
+   * sistema no lo tienen, y todos los lectores usan `?? []`.
+   */
+  adminIds?: string[];
+  /**
+   * Permisos que el propietario concede a los moderadores.
+   *
+   * Solo guardan lo que NO viene por defecto, así un club
+   * antiguo sin este campo se comporta igual que antes.
+   */
+  permisos?: ClubPermisos;
   /** Mapa de miembros: uid -> ClubMember. */
   members: Record<string, ClubMember>;
   /** Contador de miembros (desnormalizado para consultas rápidas). */

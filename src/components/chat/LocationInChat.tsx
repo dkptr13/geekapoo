@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FC } from 'react';
+import { createPortal } from 'react-dom';
 import { Map, MapPin, Loader2, Crosshair, AlertCircle, X, ExternalLink } from 'lucide-react';
 
 import type { LocationAttachment } from '../../types';
@@ -54,6 +55,10 @@ export const LocationMenu: FC<MenuProps> = ({
   const [abierto, setAbierto] = useState(false);
   const [buscando, setBuscando] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  // La ventana se dibuja en un portal (fuera del compositor), así
+  // necesita su propio ref: al cerrar al pulsar fuera hay que
+  // mirar los DOS, no solo el del botón.
+  const ventanaRef = useRef<HTMLDivElement>(null);
   const botonRef = useRef<HTMLButtonElement>(null);
 
   // ── Dónde se coloca la ventana ───────────────────────
@@ -113,7 +118,13 @@ export const LocationMenu: FC<MenuProps> = ({
     if (!abierto) return;
 
     const fuera = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setAbierto(false);
+      const nodo = e.target as Node;
+      // Con el portal, el menú ya no está dentro de `menuRef`: si
+      // solo se mirara ese ref, cualquier clic dentro de la propia
+      // ventana la cerraría al instante.
+      if (!menuRef.current?.contains(nodo) && !ventanaRef.current?.contains(nodo)) {
+        setAbierto(false);
+      }
     };
 
     const escape = (e: KeyboardEvent) => {
@@ -169,11 +180,25 @@ export const LocationMenu: FC<MenuProps> = ({
         {buscando ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
       </button>
 
-      {abierto && (
-        <div
-          className="geo-pop-in-arriba fixed z-[85] w-60 overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60"
-          style={{ left: sitio.left, bottom: sitio.bottom }}
-        >
+      {/* El menú va a un PORTAL, no aquí dentro.
+
+          La barra de escritura tiene `backdrop-blur`, y en Chrome
+          eso crea un bloque contenedor para los hijos `fixed`: su
+          `position: fixed` deja de ser respecto a la ventana y
+          pasa a ser respecto a la caja. El menú se colocaba dentro
+          de la propia caja de texto, detrás de su fondo al 95% de
+          opacidad, y no se veía NADA al pulsar el botón.
+
+          Con el portal cuelga de `body`, donde no hay ancestro con
+          `backdrop-filter`: el `fixed` vuelve a funcionar y las
+          coordenadas medidas del botón son las de la ventana. */}
+      {abierto &&
+        createPortal(
+          <div
+            ref={ventanaRef}
+            className="geo-pop-in-arriba fixed z-[85] w-60 overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60"
+            style={{ left: sitio.left, bottom: sitio.bottom }}
+          >
           <p className="border-b border-zinc-800 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
             Compartir ubicación
           </p>
@@ -207,8 +232,9 @@ export const LocationMenu: FC<MenuProps> = ({
               <span className="block text-[10px] text-zinc-500">Sin pedir ningún permiso</span>
             </span>
           </button>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

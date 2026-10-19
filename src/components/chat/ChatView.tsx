@@ -82,6 +82,14 @@ import { CommentGif } from '../community/CommentGif';
 import { ReactionBar } from '../community/ReactionBar';
 import { ClubDetail } from './ClubDetail';
 import { ChatPrefsPanel } from './ChatPrefsPanel';
+import { ClubRoleBadge } from './ClubRoleBadge';
+import { SancionDialog } from './ClubSancionDialog';
+import { avisoDeSancion, estadoDe, fechaLegible, puedeSancionar } from '../../data/clubModeracion';
+import {
+  aplicarSancion,
+  subscribeSancionPropia,
+} from '../../services/clubModeracion';
+import type { ClubSancion } from '../../types';
 import { ClubDiscovery } from './ClubDiscovery';
 import { ClubListItem } from './ClubListItem';
 import { ClubChannelRail } from './ClubChannelRail';
@@ -725,6 +733,67 @@ export const ChatView: React.FC = () => {
     return !!hasta && Date.parse(hasta) > Date.now();
   })();
 
+  // ── Sanción vigente en ESTE club ────────────────────
+  //
+  // Un solo documento (`clubs/{club}/sancion/{uid}`), el mismo
+  // que leen las reglas, así que lo que se ve aquí y lo que
+  // bloquea el envío en el servidor no pueden discrepar.
+  //
+  // Solo se escucha con el chat de club abierto. En privado no
+  // se monta: no hay sanciones ahí.
+  const [miSancion, setMiSancion] = useState<ClubSancion | null>(null);
+  useEffect(() => {
+    if (!esChatClub || !clubDelChat) {
+      setMiSancion(null);
+      return;
+    }
+    return subscribeSancionPropia(clubDelChat.id, currentUser?.uid ?? null, (s) => {
+      // Una sanción caducada deja de avisar: se limpia sola, sin
+      // que nadie la levante a mano.
+      setMiSancion(s && estadoDe(s) === 'activa' ? s : null);
+    });
+  }, [esChatClub, clubDelChat?.id, currentUser?.uid]);
+
+  /** Mi sanción vigente (silencio o baneo) en el club abierto. */
+  const sancionVigente = esChatClub ? miSancion : null;
+  const bloqueadoPorSancion = sancionVigente !== null;
+
+  // ── Abrir el diálogo de sanción desde el menú del mensaje ──
+  //
+  // Se comprueba el permiso ANTES de abrir: si no se puede, se
+  // avisa en vez de mostrar un diálogo que no iba a poder
+  // confirmar.
+  const [sancionPara, setSancionPara] = useState<{
+    uid: string;
+    nombre: string;
+    tipo: 'silencio' | 'baneo';
+  } | null>(null);
+  const [sancionGuardando, setSancionGuardando] = useState(false);
+  const [sancionError, setSancionError] = useState<string | null>(null);
+
+  const abrirSancion = (uid: string, tipo: 'silencio' | 'baneo') => {
+    setMenuMsgId(null);
+    if (!clubDelChat || !currentUser) return;
+    const nombre = usersList.find((u) => u.uid === uid);
+    const per = puedeSancionar(
+      clubDelChat,
+      currentUser.uid,
+      uid,
+      tipo,
+      tipo === 'baneo',
+    );
+    if (!per.ok) {
+      setActionFeedback(per.motivo ?? 'No tienes permiso para esa sanción.');
+      return;
+    }
+    setSancionError(null);
+    setSancionPara({
+      uid,
+      nombre: nombre?.displayName || nombre?.username || 'Este miembro',
+      tipo,
+    });
+  };
+
   // Si el usuario ya no es miembro del club, el chat no debe
   // seguir abierto. Sin esto, al ser expulsado con la pestaña
   // abierta la conversación se quedaba en pantalla aunque las
@@ -1088,6 +1157,18 @@ export const ChatView: React.FC = () => {
   };
 
   const enviar = (ubicacion?: LocationAttachment) => {
+    // Sanción vigente en este club: no se intenta ni intentar
+    // dejar el texto a medias. Esto es solo la barrera de la
+    // interfaz; la de verdad está en las reglas, que rechazan el
+    // mensaje aunque se llame a esta función a mano.
+    if (bloqueadoPorSancion) {
+      setActionFeedback(
+        sancionVigente?.tipo === 'baneo'
+          ? 'No puedes escribir en este club mientras dure la sanción.'
+          : 'Estás silenciado en este club.',
+      );
+      return;
+    }
     const sitio = ubicacion ?? null;
     const gif = ubicacion ? null : chatGif;
     const foto = ubicacion ? null : chatImageUrl;
@@ -2713,9 +2794,20 @@ export const ChatView: React.FC = () => {
                   </button>
                 )}
 
-                {/* Personalizar el chat: solo el equipo del club puede
-                    cambiar el fondo compartido que ven todos. */}
-                {esChatClub && (soyDuenoDelClub || soyModDelClub) && (
+                {/* Personalizar el chat.
+
+                    En un CLUB la apariencia es del club (la ve
+                    todo el mundo), así que solo el equipo la
+                    cambia: si un miembro normal la tocara, pondría
+                    su gusto a los demás.
+
+                    En un privado o un grupo no hay club detrás, así
+                    que la apariencia es de cada persona y el botón
+                    se queda para quien sea. De ahí el «no es club»
+                    en la condición: sin él, el botón desaparecería
+                    también de los privados, que es justo lo que no
+                    se quiere. */}
+                {(!esChatClub || soyDuenoDelClub || soyModDelClub) && (
                   <button
                     type="button"
                     onClick={abrirPanelApariencia}
@@ -2764,9 +2856,45 @@ export const ChatView: React.FC = () => {
                 </button>
               )}
 
-              {/* Aviso de miembro silenciado. Lo pone el moderador
-                  desde el panel de miembros, y el envío se bloquea
-                  en la caja de texto. */}
+              {/* Aviso de sanción vigente. El texto sale de la sanción
+                  real (motivo, fin, quién la puso), no de un
+                  texto fijo: la persona tiene que saber por qué
+                  está castigada y hasta cuándo. */}
+              {esChatClub && sancionVigente && (
+                <div
+                  role="status"
+                  className={`flex flex-wrap items-start gap-2 border-b px-4 py-2 ${
+                    sancionVigente.tipo === 'baneo'
+                      ? 'border-red-500/30 bg-red-500/10'
+                      : 'border-orange-500/30 bg-orange-500/10'
+                  }`}
+                >
+                  {sancionVigente.tipo === 'baneo' ? (
+                    <Ban size={13} className="mt-0.5 flex-shrink-0 text-red-400" />
+                  ) : (
+                    <VolumeX size={13} className="mt-0.5 flex-shrink-0 text-orange-400" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={`text-[11px] leading-relaxed ${
+                        sancionVigente.tipo === 'baneo' ? 'text-red-200' : 'text-orange-200'
+                      }`}
+                    >
+                      {avisoDeSancion(sancionVigente)}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-zinc-400">
+                      Aplicada por {sancionVigente.aplicadaPorNombre || 'el equipo del club'}.
+                      {sancionVigente.fin && (
+                        <> Termina el {fechaLegible(sancionVigente.fin)}.</>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Aviso de miembro silenciado (reflejo antiguo en la
+                  ficha, para silencios ya aplicados antes de este
+                  sistema). */}
               {esChatClub && estoySilenciado && (
                 <div className="flex items-center gap-2 border-b border-zinc-800 bg-orange-500/10 px-4 py-2">
                   <VolumeX size={13} className="flex-shrink-0 text-orange-400" />
@@ -3046,8 +3174,17 @@ export const ChatView: React.FC = () => {
                           className={`${aparienciaVista.ancho} space-y-1`}
                         >
                           {!isMe && (
-                            <span className="text-[11px] font-semibold text-violet-200/70 pl-1 block">
-                              {senderNameOf(msg)}
+                            // El cargo va junto al nombre, no dentro del
+                            // texto: así un nombre largo no empuja el
+                            // distintivo a la línea siguiente y en móvil
+                            // la cabecera del mensaje no crece.
+                            <span className="flex flex-wrap items-center gap-1.5 pl-1 text-[11px] font-semibold text-violet-200/70">
+                              <span className="min-w-0 truncate">{senderNameOf(msg)}</span>
+                              {/* Solo en chats de club: el cargo es
+                                  distinto en cada club. */}
+                              {esChatClub && (
+                                <ClubRoleBadge club={clubDelChat} uid={msg.senderId} size="xs" />
+                              )}
                             </span>
                           )}
 
@@ -3291,6 +3428,47 @@ export const ChatView: React.FC = () => {
                                       </span>
                                     </span>
                                   </button>
+
+                                  {/* Moderación del club: solo el
+                                      equipo, y solo sobre mensajes de
+                                      OTRAS personas. El cargo y el
+                                      permiso los vuelve a comprobar
+                                      `puedeSancionar` al abrir el
+                                      diálogo: el botón no es la
+                                      seguridad, las reglas sí. */}
+                                  {esChatClub && soyModDelClub && !isMe && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          abrirSancion(msg.senderId, 'silencio')
+                                        }
+                                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
+                                      >
+                                        <VolumeX size={13} className="text-orange-400" />
+                                        <span>
+                                          Silenciar usuario
+                                          <span className="block text-[10px] font-normal text-zinc-500">
+                                            No podrá escribir en este club
+                                          </span>
+                                        </span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => abrirSancion(msg.senderId, 'baneo')}
+                                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[11px] font-semibold text-zinc-200 transition-colors hover:bg-zinc-800"
+                                      >
+                                        <Ban size={13} className="text-red-400" />
+                                        <span>
+                                          Banear del club
+                                          <span className="block text-[10px] font-normal text-zinc-500">
+                                            Sale y no puede volver
+                                          </span>
+                                        </span>
+                                      </button>
+                                    </>
+                                  )}
                                 </span>
                               )}
                             </span>
@@ -3867,6 +4045,12 @@ export const ChatView: React.FC = () => {
                   <button
                     type="submit"
                     disabled={
+                      // Con una sanción vigente el envío no sale ni
+                      // enabled: es la misma barrera que el aviso de
+                      // arriba. Aun así, `enviar` vuelve a comprobarlo
+                      // y las reglas lo rechazan en el servidor: esto
+                      // es comodidad, no seguridad.
+                      bloqueadoPorSancion ||
                       editandoBusy ||
                       (editando
                         ? !inputText.trim() &&
@@ -4067,6 +4251,59 @@ export const ChatView: React.FC = () => {
                     delete next[cid];
                     return next;
                   });
+                }
+              }}
+            />
+          )}
+
+          {/* Diálogo de sanción, abierto desde el menú de un mensaje.
+              Montado solo mientras `sancionPara` apunta a
+              alguien. */}
+          {sancionPara && clubDelChat && currentUser && (
+            <SancionDialog
+              club={clubDelChat}
+              actorUid={currentUser.uid}
+              actorNombre={
+                usersList.find((u) => u.uid === currentUser.uid)?.displayName ||
+                usersList.find((u) => u.uid === currentUser.uid)?.username ||
+                'Moderación'
+              }
+              objetivoUid={sancionPara.uid}
+              objetivoNombre={sancionPara.nombre}
+              onClose={() => setSancionPara(null)}
+              guardando={sancionGuardando}
+              error={sancionError}
+              onAplicar={async ({ tipo, duracionMs, motivo }) => {
+                if (!sancionPara) return { ok: false, error: 'No hay nadie seleccionado.' };
+                setSancionGuardando(true);
+                setSancionError(null);
+                try {
+                  const r = await aplicarSancion({
+                    club: clubDelChat,
+                    actorUid: currentUser.uid,
+                    actorNombre:
+                      usersList.find((u) => u.uid === currentUser.uid)?.displayName ||
+                      usersList.find((u) => u.uid === currentUser.uid)?.username ||
+                      'Moderación',
+                    objetivoUid: sancionPara.uid,
+                    objetivoNombre: sancionPara.nombre,
+                    tipo,
+                    duracionMs,
+                    motivo,
+                  });
+                  if (!r.ok) {
+                    setSancionError(r.error ?? 'No se pudo aplicar la sanción.');
+                    return { ok: false, error: r.error };
+                  }
+                  setActionFeedback(
+                    tipo === 'baneo'
+                      ? `${sancionPara.nombre} ha sido baneado del club.`
+                      : `${sancionPara.nombre} ha sido silenciado.`,
+                  );
+                  setSancionPara(null);
+                  return { ok: true };
+                } finally {
+                  setSancionGuardando(false);
                 }
               }}
             />

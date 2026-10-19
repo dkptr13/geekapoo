@@ -3009,6 +3009,64 @@ export const onChatParticipado = onDocumentCreated(
   },
 );
 
+/**
+ * Sanciones de club: avisa a la persona sancionada.
+ *
+ * El aviso lo escribe la Function con el Admin SDK, igual que
+ * el resto, porque las reglas no permiten crear notificaciones
+ * desde el cliente (si lo hicieran, cualquiera podría avisar a
+ * quien quisiera). El id lleva el documento de origen, así un
+ * reintento del trigger no duplica el aviso.
+ *
+ * Solo avisa al sancionado, y solo del motivo y el tipo: no se
+ * manda ningún dato de otros miembros ni se le da forma de tocar
+ * la sanción desde la notificación.
+ */
+export const onClubSancionCreated = onDocumentCreated(
+  `${CLUBS}/{clubId}/sanciones/{sancionId}`,
+  async (event) => {
+    try {
+      const data = event.data?.data();
+      if (!data) return;
+
+      const objetivoUid = typeof data.objetivoUid === 'string' ? data.objetivoUid : '';
+      const aplicadaPor = typeof data.aplicadaPor === 'string' ? data.aplicadaPor : '';
+      const tipo = data.tipo === 'baneo' ? 'baneo' : 'silencio';
+      const motivo = typeof data.motivo === 'string' ? data.motivo : '';
+      if (!objetivoUid || !aplicadaPor) return;
+
+      // Una retirada no es un castigo: es lo contrario. Se avisa
+      // igualmente, pero con otro texto.
+      const retirada = data.retirada === true;
+
+      const clubId = event.params['clubId'];
+      const clubSnap = await db.doc(`${CLUBS}/${clubId}`).get();
+      const club = clubSnap.data();
+      const clubName = typeof club?.name === 'string' ? club.name : 'un club';
+
+      const actorSnap = await db.doc(`${USERS}/${aplicadaPor}`).get();
+      const actor = actorSnap.data();
+
+      await notificar({
+        id: `sancion_${clubId}_${event.params['sancionId']}`,
+        type: 'club_sanction',
+        recipientId: objetivoUid,
+        actorId: aplicadaPor,
+        actorName: typeof actor?.displayName === 'string' ? actor.displayName : 'Moderación',
+        actorAvatar: typeof actor?.avatarUrl === 'string' ? actor.avatarUrl : '',
+        title: retirada
+          ? `Sanción levantada en ${clubName}`
+          : tipo === 'baneo'
+            ? `Has sido baneado de ${clubName}`
+            : `Has sido silenciado en ${clubName}`,
+        snippet: motivo,
+      });
+    } catch (e) {
+      logger.error('Fallo avisando de una sanción de club', { error: e });
+    }
+  },
+);
+
 /** Crear una tier list: cuenta para su autor. */
 export const onTierListCreated = onDocumentCreated(
   `${TIERLISTS}/{tierListId}`,
