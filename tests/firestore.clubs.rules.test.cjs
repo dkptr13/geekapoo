@@ -2,17 +2,17 @@
 });
   });
 // ------------------------------------------------------------
-// ENTRAR EN CLUB PÚBLICO (sin solicitud)
+// ENTRAR EN CLUB Pï¿½BLICO (sin solicitud)
 // ------------------------------------------------------------
 
-describe('Entrar en un club público (auto-unirse)', () => {
+describe('Entrar en un club pï¿½blico (auto-unirse)', () => {
   const slug = 'club-publico-test';
 
   beforeEach(async () => {
     await sembrar(async (f) => {
       await setDoc(doc(f, 'clubs', slug), nuevoClub(DUENO, {
         slug,
-        name: 'Club Público',
+        name: 'Club Pï¿½blico',
         accessType: 'public',
         moderatorIds: [],
       }));
@@ -23,7 +23,7 @@ describe('Entrar en un club público (auto-unirse)', () => {
     });
   });
 
-  it('un usuario puede añadirse a sí mismo en la ficha del club', async () => {
+  it('un usuario puede aï¿½adirse a sï¿½ mismo en la ficha del club', async () => {
     await assertSucceeds(
       updateDoc(doc(db(ALICE), 'clubs', slug), {
         memberIds: [DUENO, ALICE],
@@ -37,7 +37,7 @@ describe('Entrar en un club público (auto-unirse)', () => {
     );
   });
 
-  it('y también en el chat del club (memberIds + hiddenFor)', async () => {
+  it('y tambiï¿½n en el chat del club (memberIds + hiddenFor)', async () => {
     await assertSucceeds(
       updateDoc(doc(db(ALICE), 'chats', 'chat-club-1'), {
         memberIds: [DUENO, ALICE],
@@ -607,20 +607,79 @@ describe('Miembros y roles de un club', () => {
     );
   });
 
-  it('el moderador SÃ puede expulsar a un miembro', async () => {
+  it('el moderador PUEDE silenciar (tocar la ficha de otro)', async () => {
+    // Silenciar no cambia la lista de miembros: solo la ficha.
+    // Eso lo puede el equipo entero, siempre.
     await assertSucceeds(
+      updateDoc(doc(db(MOD), 'clubs', 'club-de-frieren'), {
+        members: {
+          [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+          [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+          [CARA]: { uid: CARA, role: 'member', joinedAt: '2026-01-03T00:00:00.000Z', mutedUntil: '2026-12-31T00:00:00.000Z' },
+        },
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('pero NO puede expulsar a un miembro', async () => {
+    // Expulsar quita a alguien de la lista de miembros, y eso
+    // es del dueÃ±o o de un admin con el permiso concedido.
+    await assertFails(
       updateDoc(doc(db(MOD), 'clubs', 'club-de-frieren'), conMiembros({
         [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
         [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
       })),
     );
+  });
 
-    // Y el chat del club tiene que perderlo tambiÃ©n.
+  it('un admin SI puede expulsar si el propietario le da el permiso', async () => {
+    await sembrar(async (f) => {
+      // Un admin es un miembro del club: sin estar en 'memberIds'
+      // las reglas no le dan ningÃºn poder (el club entero se
+      // apoya en la pertenencia).
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        adminIds: [ALICE],
+        permisos: { adminExpulsa: true },
+        memberIds: [DUENO, MOD, CARA, ALICE],
+        members: {
+          [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+          [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+          [CARA]: { uid: CARA, role: 'member', joinedAt: '2026-01-03T00:00:00.000Z' },
+          [ALICE]: { uid: ALICE, role: 'admin', joinedAt: '2026-01-04T00:00:00.000Z' },
+        },
+        memberCount: 4,
+      });
+    });
     await assertSucceeds(
-      updateDoc(doc(db(MOD), 'chats', 'chat-club-1'), {
-        memberIds: [DUENO, MOD],
-        hiddenFor: arrayUnion(CARA),
-      }),
+      updateDoc(doc(db(ALICE), 'clubs', 'club-de-frieren'), conMiembros({
+        [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+        [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+        [ALICE]: { uid: ALICE, role: 'admin', joinedAt: '2026-01-04T00:00:00.000Z' },
+      })),
+    );
+  });
+
+  it('y un admin SIN ese permiso no puede', async () => {
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        adminIds: [ALICE],
+        memberIds: [DUENO, MOD, CARA, ALICE],
+        members: {
+          [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+          [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+          [CARA]: { uid: CARA, role: 'member', joinedAt: '2026-01-03T00:00:00.000Z' },
+          [ALICE]: { uid: ALICE, role: 'admin', joinedAt: '2026-01-04T00:00:00.000Z' },
+        },
+        memberCount: 4,
+      });
+    });
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'clubs', 'club-de-frieren'), conMiembros({
+        [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+        [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+        [ALICE]: { uid: ALICE, role: 'admin', joinedAt: '2026-01-04T00:00:00.000Z' },
+      })),
     );
   });
 

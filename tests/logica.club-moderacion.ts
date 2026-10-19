@@ -20,8 +20,11 @@ import {
   filtrarSanciones,
   minutosAMs,
   motivoValido,
+  puedeAdvertir,
+  puedeHacer,
   puedeLevantar,
   puedeSancionar,
+  permisosDe,
   rangoEnClub,
   DURACIONES_SANCION,
   MOTIVO_MAX,
@@ -120,8 +123,11 @@ assert.equal(puedeSancionar(clubConBaneo, MOD, M1, 'baneo', false).ok, true);
 assert.equal(puedeSancionar(clubConBaneo, MOD, M1, 'baneo', true).ok, false);
 assert.equal(puedeSancionar(club, MOD, M1, 'silencio', true).ok, false);
 
-// Un admin y el dueño sí pueden banear y banear permanente.
-assert.equal(puedeSancionar(club, ADMIN, M1, 'baneo', true).ok, true);
+// Un admin puede banear, pero el PERMANENTE depende de un
+// permiso que el propietario concede (viene apagado). El dueño
+// siempre puede.
+assert.equal(puedeSancionar(club, ADMIN, M1, 'baneo', false).ok, true);
+assert.equal(puedeSancionar(club, ADMIN, M1, 'baneo', true).ok, false);
 assert.equal(puedeSancionar(club, DUE, M1, 'baneo', true).ok, true);
 
 // ── 4. Levantar sanciones ──
@@ -281,4 +287,81 @@ assert.equal(RANGO_META.moderator.etiqueta, 'Moderador');
 // Un miembro normal no tiene distintivo: se devuelve vacío.
 assert.equal(RANGO_META.member.etiqueta, '');
 
+// ── Permisos delegables ─────────────────────────────
+//
+// Un club SIN `permisos` se comporta con los valores por
+// defecto. Un permiso presente en `false` está apagado a
+// propósito: esa diferencia es la que permite al propietario
+// QUITAR una capacidad que venía de serie.
+const clubConPermisos = { ...club, permisos: { moderadorBanea: true } };
+
+assert.equal(permisosDe(club).moderadorBanea, false, 'baneo a mods: apagado de serie');
+assert.equal(permisosDe(clubConPermisos).moderadorBanea, true);
+assert.equal(permisosDe(club).moderadorRetiraMensajes, true, 'retirar mensajes: encendido de serie');
+assert.equal(
+  permisosDe({ ...club, permisos: { moderadorRetiraMensajes: false } }).moderadorRetiraMensajes,
+  false,
+  'apagado a propósito aunque el club lo guarde en false',
+);
+assert.equal(permisosDe(club).adminBaneaPermanente, false, 'baneo permanente: apagado de serie');
+assert.equal(permisosDe(club).adminExpulsa, true, 'expulsar: encendido de serie');
+
+// El dueño puede TODO, con o sin permisos guardados.
+assert.equal(puedeHacer(club, DUE, 'moderadorBanea').ok, true);
+assert.equal(puedeHacer(club, DUE, 'adminBaneaPermanente').ok, true);
+assert.equal(puedeHacer(club, DUE, 'adminEditaAspecto').ok, true);
+
+// Un miembro no puede nada.
+assert.equal(puedeHacer(club, M1, 'moderadorBanea').ok, false);
+assert.equal(puedeHacer(club, M1, 'adminExpulsa').ok, false);
+
+// Un admin solo lo que le hayan concedido.
+assert.equal(puedeHacer(club, ADMIN, 'adminBaneaPermanente').ok, false);
+assert.equal(
+  puedeHacer(clubConPermisos, ADMIN, 'adminBaneaPermanente').ok,
+  false,
+  'el permiso es de los admins, no de los moderadores',
+);
+assert.equal(puedeHacer(club, ADMIN, 'adminExpulsa').ok, true, 'expulsar: sí de serie');
+assert.equal(puedeHacer(club, ADMIN, 'adminEditaAspecto').ok, false);
+
+// Un moderador solo lo suyo.
+assert.equal(puedeHacer(club, MOD, 'moderadorBanea').ok, false);
+assert.equal(puedeHacer(clubConPermisos, MOD, 'moderadorBanea').ok, true);
+assert.equal(puedeHacer(club, MOD, 'moderadorRetiraMensajes').ok, true);
+assert.equal(puedeHacer(club, MOD, 'adminExpulsa').ok, false, 'un mod no expulsa');
+
+// Un moderador con el permiso de moderar NO puede}bquear
+// permanentemente: eso no se delega a nadie.
+assert.equal(puedeSancionar(clubConPermisos, MOD, M1, 'baneo', false).ok, true);
+assert.equal(puedeSancionar(clubConPermisos, MOD, M1, 'baneo', true).ok, false);
+
+// El baneo permanente de un admin depende de su permiso.
+assert.equal(puedeSancionar(club, ADMIN, M1, 'baneo', true).ok, false);
+assert.equal(
+  puedeSancionar({ ...club, permisos: { adminBaneaPermanente: true } }, ADMIN, M1, 'baneo', true).ok,
+  true,
+);
+
+// Los roles de un club no afectan a otros: un admin de un
+// club no es admin de otro.
+const clubAjeno = { ...club, id: 'otro', slug: 'otro', ownerId: M1, adminIds: [], moderatorIds: [] };
+assert.equal(rangoEnClub(clubAjeno, ADMIN), 'member');
+assert.equal(puedeHacer(clubAjeno, ADMIN, 'adminExpulsa').ok, false);
+assert.equal(puedeSancionar(clubAjeno, ADMIN, M2, 'silencio', false).ok, false);
+
+// Advertir: lo puede el equipo, y no es una sanción.
+assert.equal(puedeAdvertir(club, MOD), true);
+assert.equal(puedeAdvertir(club, ADMIN), true);
+assert.equal(puedeAdvertir(club, DUE), true);
+assert.equal(puedeAdvertir(club, M1), false, 'un miembro no advierte');
+assert.equal(
+  puedeAdvertir({ ...club, permisos: { moderadorAdvierte: false } }, MOD),
+  false,
+  'el propietario puede quitarle el aviso a los moderadores',
+);
+
+// Un aviso NUNCA está activo: no bloquea nada.
+const aviso = { ...base, tipo: 'advertencia' as const, fin: null, permanente: false };
+assert.equal(estadoDe(aviso, ahora), 'expirada');
 console.log('  club-moderacion: TODO CORRECTO');

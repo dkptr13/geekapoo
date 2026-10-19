@@ -2254,12 +2254,70 @@ match /users/{uid} {
            : 0;
     }
 
-    /** Permiso que el propietario puede delegar en moderadores. */
-    function permisoModerador(c, nombre) {
+    /**
+     * Un permiso delegable que está ENCENDIDO.
+     *
+     * Si el club no guarda ese permiso, el valor por defecto es
+     * APAGADO: son capacidades que el propietario tiene que
+     * conceder expresamente.
+     */
+    function permisoActivado(c, nombre) {
       return 'permisos' in c
              && c.permisos is map
              && (nombre in c.permisos)
              && c.permisos[nombre] == true;
+    }
+
+    /**
+     * Un permiso delegable que viene ENCENDIDO de serie.
+     *
+     * La diferencia con `permisoActivado` es la clave que se
+     * guarda: si NO está, se usa el valor por defecto (encendido);
+     * si está en `false`, el propietario lo ha apagado a
+     * propósito. Por eso aquí la ausencia NO significa `false`.
+     */
+    function permisoPorDefecto(c, nombre) {
+      return !('permisos' in c)
+             || !(c.permisos is map)
+             || !(nombre in c.permisos)
+             || c.permisos[nombre] == true;
+    }
+
+    /** Es administrador de ESTE club (no el admin global de la web). */
+    function esAdminClub(c, uid) {
+      return 'adminIds' in c
+             && c.adminIds is list
+             && uid in c.adminIds;
+    }
+
+    /**
+     * Puede este usuario gestionar los canales del club.
+     *
+     * El dueño siempre. Un admin solo con `adminGestionaCanales`
+     * y un moderador solo con `moderadorGestionaCanales`: los
+     * canales son configuración del club y no vienen de serie.
+     */
+    function puedeGestionarCanales(clubId) {
+      let c = clubData(clubId);
+      let r = rangoDeClub(c, request.auth.uid);
+      return esMiembroClub(clubId)
+             && (r == 3
+                 || (r == 2 && permisoActivado(c, 'adminGestionaCanales'))
+                 || (r == 1 && permisoActivado(c, 'moderadorGestionaCanales')));
+    }
+
+    /**
+     * Puede este usuario editar el ASPECTO del club (nombre,
+     * descripción, icono, banner, normas).
+     *
+     * El dueño siempre; un admin solo con `adminEditaAspecto`.
+     */
+    function puedeEditarAspecto(clubId) {
+      let c = clubData(clubId);
+      return esMiembroClub(clubId)
+             && (rangoDeClub(c, request.auth.uid) == 3
+                 || (rangoDeClub(c, request.auth.uid) == 2
+                     && permisoActivado(c, 'adminEditaAspecto')));
     }
 
     /**
@@ -2283,6 +2341,32 @@ match /users/{uid} {
              && (get(ref).data.expira == null || request.time < get(ref).data.expira);
     }
 
+    /**
+     * Puede este usuario RETIRAR un mensaje de otro en el chat
+     * de un club.
+     *
+     * El dueño y los administradores siempre. Un moderador solo
+     * con el permiso `moderadorRetiraMensajes`, que viene
+     * encendido de serie pero el propietario puede apagarlo.
+     *
+     * Es una función aparte de `esModeradorClubDeChat` porque esa
+     * se usa para más cosas (encuestas, canales restringidos) y
+     * esta capacidad es la que se puede delegar.
+     */
+    function puedeRetirarMensajesDeChat(chatId) {
+      // Sin `if`: el lenguaje de reglas solo admite expresiones.
+      let c = chatData(chatId);
+      let club = get(/databases/$(database)/documents/clubs/$(c.slug)).data;
+      return isSignedIn()
+             && c.type == 'club'
+             && c.slug is string
+             && exists(/databases/$(database)/documents/clubs/$(c.slug))
+             && request.auth.uid in club.memberIds
+             && (rangoDeClub(club, request.auth.uid) == 3
+                 || rangoDeClub(club, request.auth.uid) == 2
+                 || (rangoDeClub(club, request.auth.uid) == 1
+                     && permisoPorDefecto(club, 'moderadorRetiraMensajes')));
+    }
     /**
      * Puede este chat recibir un mensaje de quien lo escribe.
      *
@@ -2335,9 +2419,12 @@ match /users/{uid} {
              // cumple siempre (`rActor == 1` es falso).
              && (rActor != 1
                  || (tipo != 'baneo'
-                     || (permisoModerador(c, 'moderadorBanea')
-                         && (!permanente
-                             || permisoModerador(c, 'moderadorBaneoPermanente')))));
+                     || (permisoActivado(c, 'moderadorBanea') && !permanente)))
+             // El baneo PERMANENTE es del dueño, y de los admins
+             // solo si el propietario lo ha habilitado.
+             && (rActor != 2
+                 || (tipo != 'baneo' || !permanente
+                     || permisoActivado(c, 'adminBaneaPermanente')));
     }
 
     /**
@@ -2352,10 +2439,17 @@ match /users/{uid} {
       let c = clubData(clubId);
       let rActor = rangoDeClub(c, actor);
       let ref = /databases/$(database)/documents/clubs/$(clubId)/sancion/$(objetivo);
-      // Tres salidas válidas, encadenadas:
+      // Salidas válidas, encadenadas:
       //
       //   · no es del equipo → no puede;
       //   · levanta la suya, o la del club está vacía → sí;
+      //   · levanta la que aplicaste TÚ, aunque sea del mismo
+      //     rango: si has silenciado a alguien y te arrepientes,
+      //     poder deshacerlo es lo mínimo. Sin esta línea, un
+      //     moderador se quedaba sin poder quitar ni las
+      //     sanciones que él mismo había puesto, y el botón
+      //     del panel le mentía: el cliente lo daba por bueno y
+      //     el servidor lo rechazaba.
       //   · si la puso alguien de rango superior, no;
       //   · si es del mismo rango y es moderador, hace falta el
       //     permiso del propietario.
@@ -2363,9 +2457,13 @@ match /users/{uid} {
              && rActor >= 1
              && (actor == objetivo
                  || !exists(ref)
+                 || (exists(ref) && actor == get(ref).data.aplicadaPor)
                  || (rActor > rangoDeClub(c, get(ref).data.aplicadaPor)
-                     && (rActor != 1
-                         || permisoModerador(c, 'moderadorLevanta'))));
+                     && (rActor != 2
+                         || permisoActivado(c, 'adminLevanta')))
+                 || (rActor == rangoDeClub(c, get(ref).data.aplicadaPor)
+                     && rActor == 1
+                     && permisoActivado(c, 'moderadorLevanta')));
     }
 
     /**
@@ -2390,8 +2488,13 @@ match /users/{uid} {
              && ('aplicadaPorNombre' in s && s.aplicadaPorNombre is string)
              && ('aplicadaPorRango' in s
                  && s.aplicadaPorRango in ['owner', 'admin', 'moderator', 'member'])
-             // Un silencio NUNCA es permanente: sin fecha de fin
-             // sería un baneo disfrazado. Solo el baneo lo admite.
+             // `rolPrevio` guarda el cargo que tenía antes del
+             // baneo, para devolverla al club tal cual estaba.
+             && (!('rolPrevio' in s)
+                 || s.rolPrevio in ['owner', 'admin', 'moderator', 'member'])
+             // Un silencio NUNCA es permanente: sin fecha de
+             // fin sería un baneo sin salir del club. Solo el
+             // baneo lo admite, y solo el dueño o un admin.
              && (s.tipo != 'silencio' || (s.permanente == false && s.expira != null))
              && (s.permanente == false || s.expira == null);
     }
@@ -2400,7 +2503,10 @@ match /users/{uid} {
     function sancionHistorialValida(s, clubId) {
       return s is map
              && ('clubId' in s && s.clubId == clubId)
-             && ('tipo' in s && s.tipo in ['silencio', 'baneo'])
+             // 'advertencia' solo es válida en el historial: es un
+             // aviso sin consecuencia, no una sanción.
+             && ('tipo' in s && s.tipo in ['silencio', 'baneo', 'advertencia'])
+             && (s.tipo != 'advertencia' || (s.fin == null && s.permanente == false))
              && ('objetivoUid' in s && s.objetivoUid is string)
              && ('objetivoNombre' in s && s.objetivoNombre is string)
              && ('motivo' in s && s.motivo is string && s.motivo.size() >= 5
@@ -2413,6 +2519,11 @@ match /users/{uid} {
              && ('aplicadaPorRango' in s
                  && s.aplicadaPorRango in ['owner', 'admin', 'moderator', 'member'])
              && ('retirada' in s && s.retirada is bool)
+             // `rolPrevio` es el cargo que tenía la persona antes
+             // del baneo: al desbanearla se le devuelve el club
+             // con ese cargo, no con uno por defecto.
+             && (!('rolPrevio' in s)
+                 || s.rolPrevio in ['owner', 'admin', 'moderator', 'member'])
              && (s.tipo != 'silencio' || (s.permanente == false && s.fin != null));
     }
 
@@ -2567,6 +2678,8 @@ match /users/{uid} {
       // rama del moderador hace lo mismo con el dueño: un
       // moderador tampoco puede expulsar al propietario.
       allow update: if isAdmin()
+                    // El dueño: todo lo del club, y además los
+                    // permisos y los roles.
                     || (esPropietarioClub(clubId)
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(
@@ -2575,12 +2688,50 @@ match /users/{uid} {
                                 'memberCount', 'moderatorIds', 'adminIds',
                                 'ownerId', 'permisos', 'updatedAt'])
                         && duenoSigueDentro())
+                    // El ASPECTO del club, para un admin con el
+                    // permiso 'adminEditaAspecto' concedido. Solo
+                    // eso: ni los roles, ni los miembros, ni la
+                    // propiedad.
+                    || (puedeEditarAspecto(clubId)
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(
+                               ['name', 'description', 'coverUrl', 'iconUrl',
+                                'rules', 'updatedAt'])
+                        && duenoSigueDentro())
+                    // El equipo que no es el dueño (admins y
+                    // moderadores): la ficha de OTROS miembros.
+                    //
+                    //   · silenciar   → los dos, siempre.
+                    //   · expulsar    → solo un admin con
+                    //                     'adminExpulsa'. Se
+                    //                     distingue porque
+                    //                     expulsar cambia la
+                    //                     lista de miembros
+                    //                     ('memberIds'), y
+                    //                     silenciar no.
+                    //   · nada más: ni roles, ni permisos, ni
+                    //     propiedad, ni configuración.
                     || (esModeradorClub(clubId)
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(
                                ['members', 'memberIds', 'memberCount', 'updatedAt'])
                         && soloAJenos()
-                        && duenoSigueDentro());
+                        && duenoSigueDentro()
+                        && ((request.resource.data.memberIds.size()
+                                  == resource.data.memberIds.size()
+                              && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+                              && resource.data.memberIds.hasAll(request.resource.data.memberIds))
+                            // AÑADIR a alguien (aceptar una solicitud) sí lo
+                            // puede el equipo: es parte de su trabajo.
+                            || request.resource.data.memberIds.size()
+                                 == resource.data.memberIds.size() + 1
+                            // EXPULSAR a alguien (quitándolo) es otra
+                            // cosa: solo un admin con el permiso. El
+                            // dueño tiene su propia rama más arriba.
+                            || (request.resource.data.memberIds.size()
+                                 == resource.data.memberIds.size() - 1
+                                && esAdminClub(clubData(clubId), request.auth.uid)
+                                && permisoActivado(clubData(clubId), 'adminExpulsa'))));
 
       // Salir del club: quitarse a uno mismo de las tres
       // listas. Exactamente una persona menos, y soy yo.
@@ -2781,7 +2932,7 @@ match /users/{uid} {
                     || (clubExiste(clubId)
                         && clubData(clubId).accessType in ['public', 'request']);
 
-        allow create: if (esModeradorClub(clubId) || isAdmin())
+        allow create: if (puedeGestionarCanales(clubId) || isAdmin())
                       && request.resource.data.id == channelId
                       && request.resource.data.clubId == clubId
                       && request.resource.data.chatId is string
@@ -2899,7 +3050,7 @@ match /users/{uid} {
         // orden. El `id`, el `clubId`, el `chatId`, el creador y
         // la creación no se tocan nunca. El `general` sigue
         // público siempre.
-        allow update: if (esModeradorClub(clubId) || isAdmin())
+        allow update: if (puedeGestionarCanales(clubId) || isAdmin())
                       && request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(
                              ['name', 'description', 'visibility',
@@ -2990,7 +3141,7 @@ match /users/{uid} {
         // Borrar: todo menos el `general`. El historial se va
         // con el canal (el cliente vacía antes el chat para que
         // no quede legible por rutas antiguas).
-        allow delete: if (esModeradorClub(clubId) || isAdmin())
+        allow delete: if (puedeGestionarCanales(clubId) || isAdmin())
                       && channelId != 'general';
       }
     }
@@ -3227,7 +3378,7 @@ match /users/{uid} {
         // moderador daría permission-denied y el club no podría
         // mantener el orden del grupo.
         allow update, delete: if isAdmin()
-                             || (esModeradorClubDeChat(chatId)
+                             || (puedeRetirarMensajesDeChat(chatId)
                                  && request.resource.data.body == ''
                                  && request.resource.data.deletedForEveryone == true
                                  && request.resource.data.createdAt == resource.data.createdAt

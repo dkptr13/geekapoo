@@ -20,15 +20,18 @@ import {
   calcularFin,
   estadoDe,
   motivoValido,
+  puedeAdvertir,
   puedeLevantar,
   puedeSancionar,
   rangoEnClub,
+  PERMISOS_DELEGABLES,
 } from '../data/clubModeracion';
 import type {
   Club,
   ClubModeracionEvento,
   ClubPermisos,
   ClubRango,
+  ClubRole,
   ClubSancion,
   SancionTipo,
 } from '../types';
@@ -83,7 +86,12 @@ function mapearSancion(id: string, data: Record<string, unknown>): ClubSancion {
   return {
     id,
     clubId: typeof data.clubId === 'string' ? data.clubId : '',
-    tipo: data.tipo === 'baneo' ? 'baneo' : 'silencio',
+    tipo:
+      data.tipo === 'baneo'
+        ? 'baneo'
+        : data.tipo === 'advertencia'
+          ? 'advertencia'
+          : 'silencio',
     objetivoUid: typeof data.objetivoUid === 'string' ? data.objetivoUid : '',
     objetivoNombre: typeof data.objetivoNombre === 'string' ? data.objetivoNombre : '',
     motivo: typeof data.motivo === 'string' ? data.motivo : '',
@@ -177,6 +185,11 @@ export async function aplicarSancion(params: {
 
   const rangoActor = rangoEnClub(club, actorUid) ?? 'member';
   const inicioIso = new Date().toISOString();
+  // El cargo que tenía ANTES del baneo. El baneo saca a la
+  // persona del club, así que al desbanearla hay que devolverla
+  // con el cargo que tenía: si no, un moderador baneado
+  // volvería como miembro normal sin que nadie lo decidiera.
+  const rolPrevio = club.members?.[objetivoUid]?.role ?? 'member';
 
   const registro = {
     clubId: club.id,
@@ -191,6 +204,7 @@ export async function aplicarSancion(params: {
     aplicadaPorNombre: actorNombre,
     aplicadaPorRango: rangoActor,
     retirada: false,
+    ...(tipo === 'baneo' ? { rolPrevio } : {}),
     createdAt: serverTimestamp(),
   };
 
@@ -208,6 +222,7 @@ export async function aplicarSancion(params: {
     aplicadaPor: actorUid,
     aplicadaPorNombre: actorNombre,
     aplicadaPorRango: rangoActor,
+    ...(tipo === 'baneo' ? { rolPrevio } : {}),
   };
 
   try {
@@ -296,13 +311,52 @@ export async function levantarSancion(params: {
     batch.delete(refActiva);
 
     const miembros = { ...(club.members ?? {}) };
-    if (miembros[objetivoUid]) {
+
+    if (vigente.tipo === 'baneo') {
+      // El baneo SACÓ a la persona del club, así que al
+      // desbanearla hay que devolverla: si no, se quedaba fuera
+      // para siempre y el baneo era una expulsión sin vuelta atrás.
+      // Vuelve con el cargo que tenía antes, no con el que le
+      // toque por defecto.
+      const rolPrevio =
+        (snap.data().rolPrevio as ClubRole | undefined) ?? 'member';
+      if (!miembros[objetivoUid]) {
+        miembros[objetivoUid] = {
+          uid: objetivoUid,
+          role: rolPrevio,
+          joinedAt: new Date().toISOString(),
+        };
+      }
+    } else if (miembros[objetivoUid]) {
+      // Un silencio no saca a nadie del club: solo se limpia la
+      // marca para que pueda escribir otra vez.
       const { mutedUntil: _fuera, ...resto } = miembros[objetivoUid];
       miembros[objetivoUid] = resto;
     }
-    batch.update(doc(db, CLUBS, club.id), { members: miembros, updatedAt: serverTimestamp() });
 
-    batch.set(doc(db, CLUBS, club.id, SANCIONES), {
+    // `memberIds` es la lista espejo que leen las reglas, así que
+    // va en la misma escritura que `members`.
+    const memberIdsAntes = (await getDoc(doc(db, CLUBS, club.id))).data()?.memberIds;
+    const memberIds = Array.isArray(memberIdsAntes)
+      ? memberIdsAntes
+      : Object.keys(miembros);
+    if (vigente.tipo === 'baneo' && !memberIds.includes(objetivoUid)) {
+      memberIds.push(objetivoUid);
+    }
+
+    batch.update(doc(db, CLUBS, club.id), {
+      members: miembros,
+      memberIds,
+      memberCount: Object.keys(miembros).length,
+      updatedAt: serverTimestamp(),
+    });
+
+    // La entrada del historial va con id automático. `doc()` con
+    // una ruta de COLECCIÓN (clubs/{id}/sanciones) no vale:
+    // `doc()` necesita una ruta de documento, y una de colección
+    // son 3 segmentos impares. Para eso está `collection()`:
+    // `doc(collection(...))` genera el id.
+    batch.set(doc(collection(db, CLUBS, club.id, SANCIONES)), {
       clubId: club.id,
       accion: 'retirada',
       tipo: vigente.tipo,
@@ -327,6 +381,62 @@ export async function levantarSancion(params: {
       ok: false,
       error: e instanceof Error ? e.message : 'No se pudo levantar la sanción.',
     };
+  }
+}
+
+/**
+ * Avisa a un miembro SIN sanctionarlo.
+ *
+ * Un aviso no bloquea nada: no hay documento de sanción viva,
+ * solo una entrada en el historial del club. Es lo que usa el
+ * moderador para decir «va en serio» sin castigar de más, y
+ * queda constancia de que se le dijo.
+ *
+ * Requiere el permiso `moderadorAdvierte` (viene encendido de
+ * serie, pero el propietario puede apagarlo).
+ */
+export async function advertirMiembro(params: {
+  club: Club;
+  actorUid: string;
+  actorNombre: string;
+  objetivoUid: string;
+  objetivoNombre: string;
+  motivo: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const { club, actorUid, actorNombre, objetivoUid, objetivoNombre } = params;
+  const motivo = motivoValido(params.motivo);
+  if (!motivo) return { ok: false, error: 'Escribe un motivo de al menos 5 caracteres.' };
+
+  if (!puedeAdvertir(club, actorUid)) {
+    return { ok: false, error: 'No tienes permiso para advertir en este club.' };
+  }
+  if (rangoEnClub(club, objetivoUid) === null) {
+    return { ok: false, error: 'Esa persona ya no es miembro del club.' };
+  }
+  if (rangoEnClub(club, actorUid) === 'member') {
+    return { ok: false, error: 'Solo el equipo del club puede advertir.' };
+  }
+
+  try {
+    await addDoc(collection(db, CLUBS, club.id, SANCIONES), {
+      clubId: club.id,
+      tipo: 'advertencia',
+      objetivoUid,
+      objetivoNombre,
+      motivo,
+      inicio: new Date().toISOString(),
+      // Un aviso no caduca: es un hecho, no una sanción.
+      fin: null,
+      permanente: false,
+      aplicadaPor: actorUid,
+      aplicadaPorNombre: actorNombre,
+      aplicadaPorRango: rangoEnClub(club, actorUid) ?? 'member',
+      retirada: false,
+      createdAt: serverTimestamp(),
+    });
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: e instanceof Error ? e.message : 'No se pudo enviar el aviso.' };
   }
 }
 
@@ -533,18 +643,30 @@ export async function cambiarRangoEquipo(params: {
   }
 }
 
-/** El propietario ajusta qué pueden hacer los moderadores. */
+/**
+ * El propietario guarda qué permisos delega.
+ *
+ * Se escriben TODOS los permisos, encendidos o apagados: así
+ * queda constancia de lo que el propietario decidió, y apagar
+ * uno que venía por defecto es tan solo un `false` (si la clave
+ * no estuviera, el club usaría el valor por defecto y no se
+ * podría quitar nada).
+ *
+ * Solo el propietario puede llamarlo: las reglas dejan el
+ * campo `permisos` únicamente en su rama.
+ */
 export async function guardarPermisos(
   clubId: string,
   permisos: ClubPermisos,
 ): Promise<{ ok: boolean; error?: string }> {
+  const p = permisos as Record<string, unknown>;
+  const salir: Record<string, boolean> = {};
+  for (const info of PERMISOS_DELEGABLES) {
+    salir[info.id] = p[info.id] === true;
+  }
   try {
     await updateDoc(doc(db, CLUBS, clubId), {
-      permisos: {
-        moderadorBanea: permisos.moderadorBanea === true,
-        moderadorLevanta: permisos.moderadorLevanta === true,
-        moderadorBaneoPermanente: permisos.moderadorBaneoPermanente === true,
-      },
+      permisos: salir,
       updatedAt: serverTimestamp(),
     });
     return { ok: true };

@@ -277,7 +277,7 @@ export const ClubModerationPanel: React.FC<{
                           ) : (
                             <CheckCheck size={11} />
                           )}
-                          Levantar sanción
+                          {s.tipo === 'baneo' ? 'Desbanear del club' : 'Quitar el silencio'}
                         </button>
                       ) : (
                         <p className="text-[10px] italic text-zinc-600">
@@ -317,11 +317,24 @@ export const ClubModerationPanel: React.FC<{
               Levantar sanción
             </h4>
             <p className="text-[11px] leading-relaxed text-zinc-400">
-              Se le quitará la sanción a{' '}
-              <strong className="text-white">
-                {pedidoLevantar.objetivoNombre || nombreDe(pedidoLevantar.objetivoUid)}
-              </strong>{' '}
-              y podrá escribir y volver a entrar al club de inmediato.
+              {pedidoLevantar.tipo === 'baneo' ? (
+                <>
+                  Se le quitará el baneo a{' '}
+                  <strong className="text-white">
+                    {pedidoLevantar.objetivoNombre || nombreDe(pedidoLevantar.objetivoUid)}
+                  </strong>{' '}
+                  y <strong className="text-white">vuelve al club</strong> con el cargo que
+                  tenía antes del baneo.
+                </>
+              ) : (
+                <>
+                  Se le quitará el silencio a{' '}
+                  <strong className="text-white">
+                    {pedidoLevantar.objetivoNombre || nombreDe(pedidoLevantar.objetivoUid)}
+                  </strong>{' '}
+                  y podrá escribir en el club de inmediato.
+                </>
+              )}
             </p>
             <div className="space-y-1.5">
               <label

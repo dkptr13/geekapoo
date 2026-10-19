@@ -1254,8 +1254,19 @@ export interface ChatPrefs {
  * la sanción de una persona concreta en cada envío.
  */
 
-/** Silencio (no puede escribir) o baneo (además, no puede entrar). */
-export type SancionTipo = 'silencio' | 'baneo';
+/**
+ * Qué se le aplicó a una persona.
+ *
+ *   · 'silencio'   → no puede escribir en el chat del club.
+ *   · 'baneo'      → además sale del club y no puede volver.
+ *   · 'advertencia' → solo un AVISO, sin consecuencia: no
+ *     bloquea nada, pero queda escrito en el historial del club.
+ *     Los moderadores lo usan para avisar sin sanctionar.
+ *
+ * 'advertencia' solo existe en el HISTORIAL: nunca hay un
+ * documento de sanción viva de ese tipo.
+ */
+export type SancionTipo = 'silencio' | 'baneo' | 'advertencia';
 
 /** Lo que el usuario ve: activa, expirada o retirada a mano. */
 export type SancionEstado = 'activa' | 'expirada' | 'retirada';
@@ -1273,17 +1284,103 @@ export type ClubRango = 'owner' | 'admin' | 'moderator' | 'member';
  * Los administradores NO tienen مجموع lo que ven: silenciar y
  * banear siempre. Lo que cambia es hasta dónde llegan.
  */
+/**
+ * Permisos que el propietario puede DELEGAR dentro de su club.
+ *
+ * Son los que separan a un administrador de un moderador, y a un
+ * moderador de un miembro. Lo que NO está aquí NO se puede
+ * delegar nunca: la propiedad, la seguridad, el reparto de roles
+ * superiores y el borrado del club son del propietario, y punto.
+ *
+ * Cada permiso guarda tres cosas:
+ *
+ *   · Si está en el club, vale lo que vale. Si NO está, se usa
+ *     el valor por defecto de `PERMISOS_POR_DEFECTO`. Así un club
+ *     antiguo (sin este campo) se comporta igual que antes, y el
+ *     propietario puede activar O DESACTIVAR cada cosa: quitar
+ *     un permiso es escribirlo en `false`, no borrarlo.
+ */
 export interface ClubPermisos {
-  /** Un moderador puede aplicar baneos (y no solo silencios). */
+  // ── Moderadores ────────────────────────────────────
+
+  /**
+   * Un moderador puede aplicar baneos temporales.
+   *
+   * Por defecto NO: silenciar sí, banear no. Si lo activa, el
+   * baneo TEMPORAL, nunca el permanente.
+   */
   moderadorBanea?: boolean;
-  /** Un moderador puede levantar sanciones que él no aplicó. */
+  /**
+   * Un moderador puede levantar sanciones que él NO aplicó.
+   *
+   * Por defecto NO: siempre puede levantar las suyas.
+   */
   moderadorLevanta?: boolean;
   /**
-   * Un moderador puede aplicar sanciones TEMPORALES, nunca
-   * permanentes. El baneo permanente es del propietario y de
-   * los administradores.
+   * Un moderador puede retirar mensajes de otros usuarios.
+   *
+   * Por defecto SÍ: es lo más básico de la convivencia y ya
+   * podía hacerlo. El propietario puede quitárselo.
    */
-  moderadorBaneoPermanente?: boolean;
+  moderadorRetiraMensajes?: boolean;
+  /**
+   * Un moderador puede ADVERTIR a un usuario (un aviso sin
+   * sanción, que queda en el historial).
+   *
+   * Por defecto SÍ.
+   */
+  moderadorAdvierte?: boolean;
+  /**
+   * Un moderador puede crear, editar y eliminar canales.
+   *
+   * Por defecto NO: los canales son configuración del club, y eso
+   * es del dueño (o de un admin con el permiso concedido).
+   */
+  moderadorGestionaCanales?: boolean;
+
+  // ── Administradores ─────────────────────────────────
+
+  /**
+   * Un administrador puede aplicar baneos PERMANENTES.
+   *
+   * Por defecto NO: el baneo permanente es una de las decisiones
+   * más graves de un club, y por defecto es solo del propietario.
+   */
+  adminBaneaPermanente?: boolean;
+  /**
+   * Un administrador puede editar el aspecto del club: nombre,
+   * descripción, icono, banner y normas.
+   *
+   * Por defecto NO: el contenido del club es del propietario.
+   */
+  adminEditaAspecto?: boolean;
+  /**
+   * Un administrador puede crear, editar, ordenar y eliminar
+   * canales.
+   *
+   * Por defecto NO.
+   */
+  adminGestionaCanales?: boolean;
+  /**
+   * Un administrador puede levantar sanciones de los moderadores.
+   *
+   * Por defecto SÍ: para deshacer un exceso hace falta poder
+   * hacerlo. NUNCA puede levantar las de otro administrador ni
+   * las del propietario: eso es del dueño siempre.
+   */
+  adminLevanta?: boolean;
+  /**
+   * Un administrador puede expulsar miembros del club.
+   *
+   * Por defecto SÍ.
+   */
+  adminExpulsa?: boolean;
+  /**
+   * Un administrador puede fijar mensajes importantes.
+   *
+   * Por defecto SÍ.
+   */
+  adminFijaMensajes?: boolean;
 }
 
 /**

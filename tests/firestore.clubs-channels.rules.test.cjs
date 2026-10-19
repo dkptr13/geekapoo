@@ -196,8 +196,25 @@ describe('Crear canales', () => {
     );
   });
 
-  it('un moderador del club también', async () => {
+  it('un moderador del club, si el propietario le da el permiso', async () => {
+    await sembrar(async (f) => {
+      // Los canales son configuración del club: un moderador
+      // necesita que el propietario se lo conceda.
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        permisos: { moderadorGestionaCanales: true },
+      });
+    });
     await assertSucceeds(
+      setDoc(
+        doc(db(MOD), 'clubs', 'club-de-frieren', 'channels', 'fanart'),
+        nuevoCanal('fanart', { chatId: 'chat-fanart', createdBy: MOD }),
+      ),
+    );
+  });
+
+  it('un moderador SIN permiso de canales NO puede crearlos', async () => {
+    // El club no tiene 'moderadorGestionaCanales' concedido.
+    await assertFails(
       setDoc(
         doc(db(MOD), 'clubs', 'club-de-frieren', 'channels', 'fanart'),
         nuevoCanal('fanart', { chatId: 'chat-fanart', createdBy: MOD }),
@@ -383,7 +400,14 @@ describe('Editar y borrar canales', () => {
     });
   });
 
-  it('un moderador edita nombre y descripción', async () => {
+  it('un moderador edita nombre y descripción, con permiso', async () => {
+    await sembrar(async (f) => {
+      // Los canales son configuración del club: un moderador
+      // necesita que el propietario se lo conceda.
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        permisos: { moderadorGestionaCanales: true },
+      });
+    });
     await assertSucceeds(
       updateDoc(doc(db(MOD), 'clubs', 'club-de-frieren', 'channels', 'teorias'), {
         name: 'Teorías locas',
@@ -417,7 +441,14 @@ describe('Editar y borrar canales', () => {
     );
   });
 
-  it('un moderador borra un canal normal', async () => {
+  it('un moderador borra un canal normal, con permiso', async () => {
+    await sembrar(async (f) => {
+      // Los canales son configuración del club: un moderador
+      // necesita que el propietario se lo conceda.
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        permisos: { moderadorGestionaCanales: true },
+      });
+    });
     await assertSucceeds(
       deleteDoc(doc(db(MOD), 'clubs', 'club-de-frieren', 'channels', 'teorias')),
     );

@@ -29,9 +29,20 @@ import { CLUB_CATEGORIES } from '../../types';
 import type { Club, ClubMember, ClubRango } from '../../types';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { ClubModerationPanel } from './ClubModerationPanel';
+import { ClubPermisosPanel } from './ClubPermisosPanel';
 import { ClubRoleBadge } from './ClubRoleBadge';
 import { SancionDialog } from './ClubSancionDialog';
-import { aplicarSancion, cambiarRangoEquipo } from '../../services/clubModeracion';
+import {
+  advertirMiembro,
+  aplicarSancion,
+  cambiarRangoEquipo,
+  levantarSancion,
+} from '../../services/clubModeracion';
+import {
+  puedeAdvertir as puedeAdvertirEnClub,
+  puedeHacer,
+  rangoEnClub,
+} from '../../data/clubModeracion';
 
 // ======================================================
 // DETALLE DEL CLUB
@@ -108,6 +119,31 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
   const propietario = soyPropietario(club);
   const moderador = soyModerador(club);
   const miRol = miRolEn(club);
+  // Un admin con el permiso `adminEditaAspecto` puede entrar en
+  // la configuración del club. Los interruptores de permisos, eso
+  // sí, siguen siendo solo del dueño.
+  const puedeEditarAspecto =
+    !!currentUser && puedeHacer(club, currentUser.uid, 'adminEditaAspecto').ok;
+  // Banear y expulsar dependen de permisos delegables: un
+  // moderador solo puede banear si el propietario se lo concede,
+  // y nunca expulsa (eso es del dueño o de un admin).
+  const rangoActual = rangoEnClub(club, currentUser?.uid);
+  const puedeBanear =
+    !!currentUser &&
+    (propietario ||
+      rangoActual === 'admin' ||
+      puedeHacer(club, currentUser.uid, 'moderadorBanea').ok);
+  const puedeExpulsar =
+    !!currentUser && (propietario || puedeHacer(club, currentUser.uid, 'adminExpulsa').ok);
+  // Advertir es un aviso sin consecuencia: lo puede el equipo.
+  const puedeAdvertir = !!currentUser && puedeAdvertirEnClub(club, currentUser.uid);
+
+  // Aviso sin sanción: `advertenciaPara` es a quién, `null` = cerrado.
+  const [advertenciaPara, setAdvertenciaPara] = useState<{ uid: string; nombre: string } | null>(
+    null,
+  );
+  const [advertenciaMotivo, setAdvertenciaMotivo] = useState('');
+  const [advertenciaGuardando, setAdvertenciaGuardando] = useState(false);
 
   // Solo se ven las solicitudes de ESTE club.
   const solicitudes = useMemo(
@@ -201,7 +237,12 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
     // historial. No es una más de «Miembros»: es donde se
     // revisa lo que ya se hizo y se levanta lo que toca.
     ...(moderador ? ([['moderacion', 'Moderación']] as [Vista, string][]) : []),
-    ...(propietario ? ([['config', 'Configuración']] as [Vista, string][]) : []),
+    // La configuración es del dueño, y también de un admin con el
+    // permiso `adminEditaAspecto`: es lo que significa ese
+    // permiso. Dentro, la sección de permisos es solo del dueño.
+    ...(propietario || puedeEditarAspecto
+      ? ([['config', 'Configuración']] as [Vista, string][])
+      : []),
   ];
 
   return (
@@ -519,50 +560,102 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
 
                         {/* Silenciar y banear abren el MISMO diálogo: el
                             tipo se elige dentro, así el motivo y la
-                            duración se rellenan igual en los dos casos. */}
+                            duración se rellenan igual en los dos casos.
+
+                            Si la persona YA está silenciada, este
+                            botón quita el silencio en vez de abrir
+                            el diálogo: el silencio es reversible y
+                            no hace falta pedir motivo para
+                            devolverle la palabra. */}
                         <button
                           type="button"
                           onClick={() => {
+                            if (!silenciado) {
+                              setSancionError(null);
+                              setSancionPara({
+                                uid: m.uid,
+                                nombre: nombreDe(m.uid),
+                                tipo: 'silencio',
+                              });
+                              return;
+                            }
+                            setProcesando(true);
                             setSancionError(null);
-                            setSancionPara({
-                              uid: m.uid,
-                              nombre: nombreDe(m.uid),
-                              tipo: 'silencio',
-                            });
+                            void levantarSancion({
+                              club,
+                              actorUid: currentUser?.uid ?? '',
+                              actorNombre: nombreDe(currentUser?.uid ?? ''),
+                              objetivoUid: m.uid,
+                              objetivoNombre: nombreDe(m.uid),
+                            })
+                              .then((r) => {
+                                if (r.ok) avisar('ok', 'Silencio quitado.');
+                                else avisar('error', r.error ?? 'No se pudo quitar el silencio.');
+                              })
+                              .finally(() => setProcesando(false));
                           }}
                           disabled={procesando}
                           className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-orange-500/40 hover:text-orange-300 disabled:opacity-50"
-                          title="Silenciar: elegir duración y motivo"
+                          title={
+                            silenciado
+                              ? 'Quitar el silencio'
+                              : 'Silenciar: elegir duración y motivo'
+                          }
                         >
                           {silenciado ? <Volume2 size={12} /> : <VolumeX size={12} />}
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSancionError(null);
-                            setSancionPara({
-                              uid: m.uid,
-                              nombre: nombreDe(m.uid),
-                              tipo: 'baneo',
-                            });
-                          }}
-                          disabled={procesando}
-                          className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
-                          title="Banear del club: elegir duración y motivo"
-                        >
-                          <Ban size={12} />
-                        </button>
+                        {/* Advertir: un aviso sin consecuencia. Deja
+                            constancia en el historial, pero no bloquea
+                            nada. */}
+                        {puedeAdvertir && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSancionError(null);
+                              setAdvertenciaPara({
+                                uid: m.uid,
+                                nombre: nombreDe(m.uid),
+                              });
+                            }}
+                            disabled={procesando}
+                            className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-amber-500/40 hover:text-amber-300 disabled:opacity-50"
+                            title="Advertir: dejar constancia del aviso, sin sanctionar"
+                          >
+                            <AlertCircle size={12} />
+                          </button>
+                        )}
 
-                        <button
-                          type="button"
-                          onClick={() => setExpulsandoA(m)}
-                          disabled={procesando}
-                          className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
-                          title="Expulsar del club"
-                        >
-                          <UserMinus size={12} />
-                        </button>
+                        {puedeBanear && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSancionError(null);
+                              setSancionPara({
+                                uid: m.uid,
+                                nombre: nombreDe(m.uid),
+                                tipo: 'baneo',
+                              });
+                            }}
+                            disabled={procesando}
+                            className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
+                            title="Banear del club: elegir duración y motivo"
+                          >
+                            <Ban size={12} />
+                          </button>
+                        )}
+
+                        {puedeExpulsar && (
+                          <button
+                            type="button"
+                            onClick={() => setExpulsandoA(m)}
+                            disabled={procesando}
+                            className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 transition-colors hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
+                            title="Expulsar del club"
+                          >
+                            <UserMinus size={12} />
+                          </button>
+                        )}
                       </div>
                     )}
                   </li>
@@ -644,7 +737,7 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
         )}
 
         {/* ── CONFIGURACIÓN ───────────────────────────── */}
-        {vista === 'config' && propietario && (
+        {vista === 'config' && (propietario || puedeEditarAspecto) && (
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-[11px] font-bold text-zinc-300">
@@ -737,10 +830,113 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
               <span>Guardar cambios</span>
             </button>
 
+            {/* ── ROLES Y PERMISOS ─────────────────────
+                La tabla de qué puede hacer cada cargo y los
+                interruptores de los permisos delegables. Los
+                interruptores solo son del dueño: un admin puede
+                verlos, pero no cambiar lo que el club permite. */}
+            <section className="space-y-2 border-t border-white/[0.06] pt-4">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                Roles y permisos
+              </h4>
+              <ClubPermisosPanel club={club} />
+            </section>
           </div>
         )}
       </div>
 
+      {/* Aviso sin sanción. Se monta solo mientras `advertenciaPara`
+          apunta a alguien. */}
+      {advertenciaPara && (
+        <div
+          className="fixed inset-0 z-[125] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+          onClick={advertenciaGuardando ? undefined : () => setAdvertenciaPara(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Advertir a un miembro"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm space-y-4 rounded-2xl border border-white/[0.08] bg-[#0c0c14] p-5 shadow-2xl"
+          >
+            <h4 className="flex items-center gap-2 text-sm font-bold text-white">
+              <AlertCircle size={15} className="text-amber-300" />
+              Advertir a {advertenciaPara.nombre}
+            </h4>
+            <p className="text-[11px] leading-relaxed text-zinc-400">
+              Un aviso no bloquea nada: la persona podrá seguir escribiendo. Queda
+              registrado en el historial de moderación del club, para que se sepa
+              que se le avisó.
+            </p>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="motivo-advertencia"
+                className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500"
+              >
+                Motivo del aviso <span className="text-red-400">*</span>
+              </label>
+              <textarea
+                id="motivo-advertencia"
+                value={advertenciaMotivo}
+                onChange={(e) => setAdvertenciaMotivo(e.target.value)}
+                rows={3}
+                maxLength={500}
+                placeholder="Explica el aviso que se le hace."
+                className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
+              />
+            </div>
+            {sancionError && (
+              <p
+                role="alert"
+                className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-[11px] text-red-300"
+              >
+                {sancionError}
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setAdvertenciaPara(null)}
+                disabled={advertenciaGuardando}
+                className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-bold text-zinc-300 transition-colors hover:text-white disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={advertenciaGuardando || advertenciaMotivo.trim().length < 5}
+                onClick={() => {
+                  if (!advertenciaPara) return;
+                  setAdvertenciaGuardando(true);
+                  setSancionError(null);
+                  void advertirMiembro({
+                    club,
+                    actorUid: currentUser?.uid ?? '',
+                    actorNombre: nombreDe(currentUser?.uid ?? ''),
+                    objetivoUid: advertenciaPara.uid,
+                    objetivoNombre: advertenciaPara.nombre,
+                    motivo: advertenciaMotivo,
+                  })
+                    .then((r) => {
+                      if (r.ok) {
+                        avisar('ok', `Aviso enviado a ${advertenciaPara.nombre}.`);
+                        setAdvertenciaPara(null);
+                        setAdvertenciaMotivo('');
+                      } else {
+                        setSancionError(r.error ?? 'No se pudo enviar el aviso.');
+                      }
+                    })
+                    .finally(() => setAdvertenciaGuardando(false));
+                }}
+                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-700 px-4 py-2 text-xs font-bold text-white transition-all hover:brightness-110 disabled:opacity-50"
+              >
+                {advertenciaGuardando && <Loader2 size={12} className="animate-spin" />}
+                Enviar aviso
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Diálogo de sanción. Se monta solo mientras `sancionPara`
           apunta a alguien, y el tipo que abre (silencio o baneo)
           es solo el valor inicial: dentro se puede cambiar. */}

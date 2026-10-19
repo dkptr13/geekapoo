@@ -74,14 +74,198 @@ export function rangoEnClub(club: Club | null | undefined, uid: string | null | 
   return 'member';
 }
 
-/** Permisos efectivos, rellenando los que el club no guardó. */
+/**
+ * Permisos delegables: los que el propietario puede activar o
+ * desactivar.
+ *
+ * `porDefecto` es lo que pasa cuando el club NO guarda ese
+ * permiso. Importa distinguir «no está» de «está en false»:
+ * lo primero usa el valor por defecto, lo segundo lo apaga a
+ * propósito. Por eso `permisosDe` mira si la clave EXISTE.
+ */
+export const PERMISOS_DELEGABLES: {
+  id: keyof ClubPermisos;
+  etiqueta: string;
+  descripcion: string;
+  /**
+   * A qué rol se le concede.
+   *
+   * Habla el MISMO idioma que `ClubRango` ('moderator'), no el
+   * del texto: si se mezclaran, la comparación con el rango del
+   * actor no casaría nunca y ningún moderador podría recibir un
+   * permiso.
+   */
+  para: 'moderator' | 'admin';
+  porDefecto: boolean;
+}[] = [
+  {
+    id: 'moderadorBanea',
+    etiqueta: 'Moderadores pueden banear',
+    descripcion: 'Aplicar baneos temporales. El baneo permanente nunca les corresponde.',
+    para: 'moderator',
+    porDefecto: false,
+  },
+  {
+    id: 'moderadorLevanta',
+    etiqueta: 'Moderadores levantan sanciones ajenas',
+    descripcion: 'Quitar sanciones que aplicaron otros moderadores. Las suyas siempre puede quitarlas.',
+    para: 'moderator',
+    porDefecto: false,
+  },
+  {
+    id: 'moderadorRetiraMensajes',
+    etiqueta: 'Moderadores retiran mensajes',
+    descripcion: 'Borrar mensajes de otros que incumplan las normas del club.',
+    para: 'moderator',
+    porDefecto: true,
+  },
+  {
+    id: 'moderadorAdvierte',
+    etiqueta: 'Moderadores pueden advertir',
+    descripcion: 'Avisar a alguien sin llegar a sanctionarlo. Queda registrado en el historial.',
+    para: 'moderator',
+    porDefecto: true,
+  },
+  {
+    id: 'moderadorGestionaCanales',
+    etiqueta: 'Moderadores gestionan canales',
+    descripcion: 'Crear, editar, ordenar y eliminar canales del club.',
+    para: 'moderator',
+    porDefecto: false,
+  },
+  {
+    id: 'adminBaneaPermanente',
+    etiqueta: 'Admins pueden banear permanentemente',
+    descripcion: 'Banear sin fecha de fin. Es la decisión más grave del club, así que va apagada por defecto.',
+    para: 'admin',
+    porDefecto: false,
+  },
+  {
+    id: 'adminEditaAspecto',
+    etiqueta: 'Admins editan el aspecto del club',
+    descripcion: 'Cambiar nombre, descripción, icono, banner y normas del club.',
+    para: 'admin',
+    porDefecto: false,
+  },
+  {
+    id: 'adminGestionaCanales',
+    etiqueta: 'Admins gestionan canales',
+    descripcion: 'Crear, editar, ordenar y eliminar canales del club.',
+    para: 'admin',
+    porDefecto: false,
+  },
+  {
+    id: 'adminLevanta',
+    etiqueta: 'Admins levantan sanciones de moderadores',
+    descripcion: 'Quitar sanciones aplicadas por moderadores. Las de otro admin o las del propietario nunca.',
+    para: 'admin',
+    porDefecto: true,
+  },
+  {
+    id: 'adminExpulsa',
+    etiqueta: 'Admins expulsan miembros',
+    descripcion: 'Quitar a alguien del club y quitarle el acceso al chat.',
+    para: 'admin',
+    porDefecto: true,
+  },
+  {
+    id: 'adminFijaMensajes',
+    etiqueta: 'Admins fijan mensajes',
+    descripcion: 'Marcar un mensaje como importante para que el club lo tenga a mano.',
+    para: 'admin',
+    porDefecto: true,
+  },
+];
+
+/**
+ * Permisos efectivos del club, rellenando los que no guarda.
+ *
+ * Un permiso ausente usa su valor por defecto; uno presente en
+ * `false` está apagado a propósito. Esa diferencia es la que
+ * permite al propietario «quitar» un permiso que venía activado.
+ */
 export function permisosDe(club: Club): Required<ClubPermisos> {
-  const p = club.permisos ?? {};
-  return {
-    moderadorBanea: p.moderadorBanea === true,
-    moderadorLevanta: p.moderadorLevanta === true,
-    moderadorBaneoPermanente: p.moderadorBaneoPermanente === true,
+  const p = (club.permisos ?? {}) as Record<string, unknown>;
+  const valor = (id: keyof ClubPermisos, porDefecto: boolean): boolean => {
+    const info = PERMISOS_DELEGABLES.find((x) => x.id === id);
+    const def = info ? info.porDefecto : porDefecto;
+    return id in p ? p[id] === true : def;
   };
+
+  return {
+    moderadorBanea: valor('moderadorBanea', false),
+    moderadorLevanta: valor('moderadorLevanta', false),
+    moderadorRetiraMensajes: valor('moderadorRetiraMensajes', true),
+    moderadorAdvierte: valor('moderadorAdvierte', true),
+    moderadorGestionaCanales: valor('moderadorGestionaCanales', false),
+    adminBaneaPermanente: valor('adminBaneaPermanente', false),
+    adminEditaAspecto: valor('adminEditaAspecto', false),
+    adminGestionaCanales: valor('adminGestionaCanales', false),
+    adminLevanta: valor('adminLevanta', true),
+    adminExpulsa: valor('adminExpulsa', true),
+    adminFijaMensajes: valor('adminFijaMensajes', true),
+  };
+}
+
+/**
+ * Si `actorUid` puede hacer esta cosa en ESTE club.
+ *
+ * Es la pregunta que hace la interfaz antes de pintar un
+ * botón. La respuesta real la dan las reglas de Firestore, que
+ * aplican los mismos valores por defecto: esto es la misma
+ * respuesta, no la seguridad.
+ *
+ * Lo que NO se puede delegar nunca, ni con todos los permisos
+ * activated: la propiedad del club, el reparto de roles
+ * superiores, la eliminación del club y los permisos globales
+ * de la web.
+ */
+export function puedeHacer(
+  club: Club,
+  actorUid: string,
+  permiso: keyof ClubPermisos,
+): { ok: boolean; motivo?: string } {
+  const rango = rangoEnClub(club, actorUid);
+  if (!rango || rango === 'member') {
+    return { ok: false, motivo: 'Solo el equipo del club puede hacer esto.' };
+  }
+  // El dueño lo puede todo: es el que reparte los permisos.
+  if (rango === 'owner') return { ok: true };
+
+  const p = permisosDe(club);
+  if (!p[permiso]) {
+    const info = PERMISOS_DELEGABLES.find((x) => x.id === permiso);
+    return {
+      ok: false,
+      motivo: `El propietario no te ha dado este permiso (${info?.etiqueta ?? permiso}).`,
+    };
+  }
+  // Y el permiso solo vale para el rango al que se le concede.
+  const info = PERMISOS_DELEGABLES.find((x) => x.id === permiso);
+  if (info && info.para !== rango) {
+    return {
+      ok: false,
+      motivo: `Este permiso es para ${
+        info.para === 'admin' ? 'los administradores' : 'los moderadores'
+      }.`,
+    };
+  }
+  return { ok: true };
+}
+
+/**
+ * Si `actorUid` puede ADVERTIR a alguien en este club.
+ *
+ * Un aviso no bloquea nada, así que es menos grave que una
+ * sanción: el dueño siempre puede, y un moderador con el
+ * permiso `moderadorAdvierte` (encendido de serie).
+ */
+export function puedeAdvertir(club: Club, actorUid: string): boolean {
+  const rango = rangoEnClub(club, actorUid);
+  if (!rango || rango === 'member') return false;
+  if (rango === 'owner') return true;
+  if (rango === 'admin') return true;
+  return permisosDe(club).moderadorAdvierte;
 }
 
 /** `true` si la persona es parte del equipo (dueño, admin o mod). */
@@ -130,20 +314,34 @@ export function puedeSancionar(
     };
   }
 
+  // Qué tipo de sanción puede aplicar este actor:
+  //
+  //   · moderador → baneo temporal solo con `moderadorBanea`.
+  //     El permanente NUNCA: ni con todos los permisos.
+  //   · admin     → baneo permanente solo con
+  //     `adminBaneaPermanente`; el temporal con `moderadorBanea`
+  //     no le hace falta (un admin banea por defecto).
+  //   · dueño     → todo.
+  const p = permisosDe(club);
   if (actor === 'moderator') {
-    const p = permisosDe(club);
     if (tipo === 'baneo' && !p.moderadorBanea) {
       return {
         ok: false,
         motivo: 'El propietario no ha habilitado el baneo a los moderadores.',
       };
     }
-    if (tipo === 'baneo' && permanente && !p.moderadorBaneoPermanente) {
+    if (tipo === 'baneo' && permanente) {
       return {
         ok: false,
-        motivo: 'El baneo permanente está reservado al propietario y a los administradores.',
+        motivo: 'El baneo permanente no corresponde a los moderadores.',
       };
     }
+  }
+  if (actor === 'admin' && tipo === 'baneo' && permanente && !p.adminBaneaPermanente) {
+    return {
+      ok: false,
+      motivo: 'El propietario no ha habilitado el baneo permanente a los administradores.',
+    };
   }
 
   // Un silencio nunca es permanente, para nadie: sin fecha de fin
@@ -204,6 +402,18 @@ export function puedeLevantar(
     }
   }
 
+  // Rango inferior (un admin levantando la de un moderador):
+  // el propietario puede quitarle esa capacidad al admin.
+  if (pesoActor > pesoQuienPuso && actor === 'admin') {
+    if (!permisosDe(club).adminLevanta) {
+      return {
+        ok: false,
+        motivo:
+          'El propietario no ha habilitado a los administradores a levantar sanciones de moderadores.',
+      };
+    }
+  }
+
   return { ok: true };
 }
 
@@ -251,6 +461,10 @@ export function minutosAMs(minutos: number): number | null {
  */
 export function estadoDe(sancion: ClubSancion, ahora: number = Date.now()): SancionEstado {
   if (sancion.retirada) return 'retirada';
+  // Un aviso no es una sanción: no bloquea nada y no caduca, así
+  // que nunca está «activo». Se muestra como caducado, que es
+  // como aparece en el historial: un hecho, no una medida.
+  if (sancion.tipo === 'advertencia') return 'expirada';
   if (!sancion.permanente && sancion.fin) {
     const fin = Date.parse(sancion.fin);
     if (Number.isFinite(fin) && fin <= ahora) return 'expirada';
