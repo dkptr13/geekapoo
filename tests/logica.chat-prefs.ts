@@ -73,4 +73,31 @@ assert.deepEqual(sujetarPrefs({ hacker: 'x' }), {});
 // Test 20: mutado sin muteUntil → se conserva (el panel lo pide aparte).
 assert.deepEqual(sujetarPrefs({ notify: 'muted' }), { notify: 'muted' });
 
+// ── El fondo va POR CONVERSACIÓN ─────────────────────────
+// Sin la clave `fondo`, la conversación nunca se tocó: se usa el
+// fondo general. Con `fondo: null`, esta conversación está sin
+// fondo. Las dos cosas son distintas y se guardan distintas.
+assert.deepEqual(sujetarPrefs({ color: '#7c3aed' }), { color: '#7c3aed' });
+assert.equal('fondo' in sujetarPrefs({ color: '#7c3aed' }), false);
+
+const conFondo = sujetarPrefs({ fondo: { url: 'https://x/y.jpg', dim: 12 } });
+assert.equal(conFondo.fondo?.url, 'https://x/y.jpg');
+assert.equal(conFondo.fondo?.dim, 12);
+assert.equal(conFondo.fondo?.ajuste, 'cover');
+assert.equal(conFondo.fondo?.position, 'center');
+
+const sinFondo = sujetarPrefs({ fondo: null });
+assert.equal('fondo' in sinFondo, true);
+assert.equal(sinFondo.fondo, null);
+
+// Un fondo con forma rara se limpia, no se cuela.
+const raro = sujetarPrefs({ fondo: { url: 'no-es-una-url', dim: 999 } });
+assert.equal(raro.fondo, null);
+const ajustado = sujetarPrefs({
+  fondo: { url: 'https://x/y.jpg', dim: 999, ajuste: 'contain', position: 'top' },
+});
+assert.equal(ajustado.fondo?.dim, 80);
+assert.equal(ajustado.fondo?.ajuste, 'contain');
+assert.equal(ajustado.fondo?.position, 'top');
+
 console.log('  chat-prefs: TODO CORRECTO');

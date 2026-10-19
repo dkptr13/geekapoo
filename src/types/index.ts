@@ -7,7 +7,7 @@ import type {
   PersonajeFavorito,
   TipoVitrina,
 } from '../data/profileCustomization';
-import type { AparienciaChat } from '../data/chatApariencia';
+import type { AparienciaChat, FondoChat } from '../data/chatApariencia';
 
 export type UserRole = 'user' | 'moderator' | 'admin';
 
@@ -1221,6 +1221,19 @@ export interface ChatPrefs {
   muteUntil?: ChatMuteUntil;
   /** Favorito personal: fija la conversación en la parte alta. */
   favorite?: boolean;
+  /**
+   * Fondo PROPIO de esta conversación.
+   *
+   * Vive aquí, y no en `users/{uid}.chatApariencia`, porque ese
+   * campo es UNO para toda la cuenta: al guardar un fondo en un
+   * club, pisaba el que la persona tenía en sus privados. Al
+   * guardarlo por conversación, cada chat tiene el suyo.
+   *
+   * `null` significa «esta conversación, sin fondo». Si la clave
+   * NO está, es que nunca se tocó y se usa el fondo general
+   * (el antiguo `chatApariencia.fondo`) como respaldo.
+   */
+  fondo?: FondoChat | null;
 }
 
 /**

@@ -298,6 +298,24 @@ export function sujetarApariencia(valor: unknown): AparienciaChat {
 }
 
 /**
+ * Pone el fondo de UNA conversación por encima del general.
+ *
+ * El fondo es lo único que es por conversación: cada chat tiene el
+ * suyo, y lo que la persona eligió en un club no puede cambiar lo
+ * que ve en sus privados.
+ *
+ * `undefined` = esta conversación nunca tuvo fondo propio, así que
+ * se usa el general. `null` = esta conversación, sin fondo.
+ */
+export function sujetoConFondo(
+  a: AparienciaChat,
+  fondoPorChat?: FondoChat | null,
+): AparienciaChat {
+  if (fondoPorChat === undefined) return a;
+  return { ...a, fondo: fondoPorChat };
+}
+
+/**
  * Arma el mapa tal cual se guarda en Firestore.
  *
  * Sin claves `undefined`: Firestore las rechaza dentro de un
@@ -380,12 +398,13 @@ const ANCHO_CLASES: Record<AnchoBurbuja, string> = {
 export function resolverApariencia(
   valor: unknown,
   compartida?: AparienciaChat | null,
+  fondoPorChat?: FondoChat | null,
 ): EstiloChatResuelto {
   // La del club gana completa si existe y trae algo.
   const a =
     compartida && (compartida as AparienciaChat).tema
       ? sujetarApariencia(compartida)
-      : sujetarApariencia(valor);
+      : sujetoConFondo(sujetarApariencia(valor), fondoPorChat);
   const tema = TEMAS_CHAT.find((t) => t.id === a.tema) ?? TEMAS_CHAT[0];
 
   // Fondo: imagen subida, preset de la galería o el del tema.

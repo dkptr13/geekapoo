@@ -2154,7 +2154,29 @@ match /users/{uid} {
                   && (!('muteUntil' in p)
                       || p.muteUntil in ['1h', '8h', '24h', 'until'])
                   && (!('favorite' in p)
-                      || p.favorite is bool));
+                      || p.favorite is bool)
+                  // El FONDO es por conversación: cada chat tiene el
+                  // suyo, para que cambiar el de un club no toque el
+                  // de los privados. `null` significa «este chat, sin
+                  // fondo»; si la clave no está, es que nunca se
+                  // tocó y se usa el general.
+                  && (!('fondo' in p)
+                      || p.fondo == null
+                      || (p.fondo is map
+                          && p.fondo.size() <= 5
+                          && (!('preset' in p.fondo) || p.fondo.preset is string)
+                          && (!('url' in p.fondo)
+                              || (p.fondo.url is string
+                                  && p.fondo.url.size() <= 500
+                                  && (p.fondo.url == ''
+                                      || p.fondo.url.matches('https://.*'))))
+                          && (!('ajuste' in p.fondo)
+                              || p.fondo.ajuste in ['cover', 'contain'])
+                          && (!('position' in p.fondo)
+                              || p.fondo.position in ['center', 'top', 'bottom'])
+                          && (!('dim' in p.fondo)
+                              || (p.fondo.dim is number
+                                  && p.fondo.dim >= 0 && p.fondo.dim <= 80)))));
     }
 
     function esPropietarioClub(clubId) {
@@ -3125,7 +3147,8 @@ match /users/{uid} {
         allow update: if isSelf(uid)
                       && request.resource.data.diff(resource.data)
                            .affectedKeys()
-                           .hasAny(['color', 'nickname', 'notify', 'muteUntil', 'favorite'])
+                           .hasAny(['color', 'nickname', 'notify', 'muteUntil', 'favorite',
+                                       'fondo'])
                       && chatPrefsValida(request.resource.data);
         allow delete: if isSelf(uid);
       }

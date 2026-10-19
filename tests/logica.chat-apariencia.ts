@@ -153,4 +153,40 @@ assert.equal(
   '#2563eb',
 );
 
+// ── El fondo es POR CONVERSACIÓN ─────────────────────────
+// Poner una imagen en un club no puede cambiar el fondo de los
+// privados: el fondo se guarda en el documento de cada chat.
+const conFondo = resolverApariencia(
+  { tema: 'oscuro' },
+  null,
+  { url: 'https://x/privado.jpg', dim: 0 },
+);
+assert.ok(String(conFondo.fondoLista.backgroundImage).includes('privado.jpg'));
+
+// Un chat sin fondo propio (`undefined`) usa el general.
+const sinFondoPropio = resolverApariencia(
+  { tema: 'oscuro', fondo: { preset: 'tinta', dim: 0 } },
+  null,
+  undefined,
+);
+assert.ok(String(sinFondoPropio.fondoLista.backgroundImage).includes('#101014'));
+
+// Un chat con fondo propio en `null` está SIN fondo, aunque el
+// general tenga uno.
+const fondoNulo = resolverApariencia(
+  { tema: 'oscuro', fondo: { preset: 'tinta', dim: 0 } },
+  null,
+  null,
+);
+assert.equal(fondoNulo.fondoLista.backgroundImage, undefined);
+
+// En un club manda la del canal, con su fondo: el fondo propio
+// de la conversación no pisa el compartido.
+const clubConFondo = resolverApariencia(
+  { tema: 'oscuro' },
+  { tema: 'oscuro', fondo: { preset: 'vino', dim: 0 } },
+  { url: 'https://x/mio.jpg', dim: 0 },
+);
+assert.ok(String(clubConFondo.fondoLista.backgroundImage).includes('#1c1016'));
+
 console.log('  chat-apariencia: TODO CORRECTO');

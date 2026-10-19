@@ -62,11 +62,14 @@ import {
   APARIENCIA_POR_DEFECTO,
   aparienciaAGuardar,
   resolverApariencia,
+  sujetoConFondo,
   sujetarApariencia,
   type AparienciaChat,
+  type FondoChat,
 } from '../../data/chatApariencia';
 import { deleteReplacedImage, uploadCommunityImage } from '../../services/imageUpload';
 import { getChatPrefs } from '../../services/chatPrefs';
+import { saveFondoChat, subscribeChatPrefs } from '../../services/chatPrefs';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useChat } from '../../context/ChatContext';
 import { useClubs } from '../../context/ClubsContext';
@@ -460,9 +463,33 @@ export const ChatView: React.FC = () => {
   // anterior para no dejar huérfanos en Storage.
   const fondoPrevioRef = useRef<string | null>(null);
 
+  // ── Fondo PROPIO de esta conversación ──────────────────
+  //
+  // Cada chat tiene su fondo. Se guarda en
+  // `chats/{chatId}/prefs/{uid}` (un documento por chat y
+  // persona) y NO en el perfil: en el perfil (`chatApariencia`)
+  // solo había UN fondo para toda la cuenta, así que poner una
+  // imagen en el club cambiaba también la de los privados.
+  //
+  //   undefined → este chat nunca tuvo fondo propio: se usa el
+  //                general de antes (el `chatApariencia.fondo`).
+  //   null      → este chat, sin fondo.
+  //   un objeto → el fondo de este chat.
+  const [fondoDelChat, setFondoDelChat] = useState<FondoChat | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!activeRoomId || !currentUser) {
+      setFondoDelChat(undefined);
+      return;
+    }
+    return subscribeChatPrefs(activeRoomId, currentUser.uid, (prefs) => {
+      setFondoDelChat('fondo' in prefs ? prefs.fondo : undefined);
+    });
+  }, [activeRoomId, currentUser?.uid]);
+
   const aparienciaGuardada = useMemo(
-    () => sujetarApariencia(currentUser?.chatApariencia),
-    [currentUser],
+    () => sujetoConFondo(sujetarApariencia(currentUser?.chatApariencia), fondoDelChat),
+    [currentUser, fondoDelChat],
   );
   const sinMovimiento = (borradorApariencia ?? aparienciaGuardada).reducirMovimiento === true;
 
@@ -517,40 +544,46 @@ export const ChatView: React.FC = () => {
     setErrorApariencia(null);
     try {
       const limpio = aparienciaAGuardar(borradorApariencia);
-      console.log('[Chats] Guardando apariencia:', JSON.stringify(limpio));
-      try {
-        await updateProfileData({ chatApariencia: limpio });
-      } catch (e: unknown) {
-        throw new Error(
-          `escritura denegada: ${e instanceof Error ? e.message : String(e)}`,
-        );
-      }
 
-      // Si es un chat de club y el usuario es dueño o moderador,
-      // la apariencia se guarda en el CANAL para que la vea todo
-      // el club, no solo quien la pondría.
-      if (
+      // ¿Estamos personalizando el club o tu propio chat?
+      //
+      // En un club (donde el panel solo lo abre el equipo) lo que
+      // se guarda es la apariencia DEL CANAL, que ve todo el
+      // club. En un privado o un grupo es tu apariencia, y su
+      // FONDO es solo de esa conversación.
+      //
+      // Esto es lo que arregla que poner una imagen en el club
+      // cambiara también el fondo de los privados: antes TODO se
+      // guardaba en `users/{uid}.chatApariencia`, que es un
+      // único documento para toda la cuenta.
+      const esClub =
         esChatClub &&
         (soyDuenoDelClub || soyModDelClub) &&
-        canalActivoId &&
-        clubDelChat
-      ) {
-        const r = await actualizarCanal(clubDelChat.id, canalActivoId, {
+        !!canalActivoId &&
+        !!clubDelChat;
+
+      if (esClub) {
+        // ── Club: solo el canal ──────────────────────
+        // El perfil NO se toca: si se escribiera, el fondo del
+        // club se plantaría en los chats privados de todo el
+        // mundo, que es justo lo que pasaba.
+        const r = await actualizarCanal(clubDelChat!.id, canalActivoId!, {
           chatApariencia: limpio,
           chatFondo: limpio.fondo ?? null,
         });
-        // Sin esto, un rechazo del servidor (reglas sin desplegar)
-        // pasaría desapercibido y el club seguiría con su fondo.
+        // Sin esto, un rechazo del servidor (reglas sin
+        // desplegar) pasaría desapercibido y el club seguiría con
+        // su fondo.
         if (!r.ok) {
           throw new Error(`el club no guardó la apariencia: ${r.error ?? 'error'}`);
         }
-        // `updateDoc` puede resolver desde la caché local aunque el
-        // servidor lo rechace: entonces el cambio se ve un rato y
-        // al recargar desaparece. Se relee del servidor para saber
-        // la verdad antes de cerrar el panel.
+        // `updateDoc` puede resolver desde la caché local aunque
+        // el servidor lo rechace: entonces el cambio se ve un rato
+        // y al recargar desaparece. Se relee del servidor para
+        // saber la verdad antes de cerrar el panel.
         try {
           const comp = await getDocFromServer(
-            doc(db, 'clubs', clubDelChat.id, 'channels', canalActivoId),
+            doc(db, 'clubs', clubDelChat!.id, 'channels', canalActivoId!),
           );
           const guardado = (comp.data() as { chatApariencia?: unknown } | undefined)
             ?.chatApariencia;
@@ -567,42 +600,74 @@ export const ChatView: React.FC = () => {
             }`,
           );
         }
-      }
-      // `setDoc` resuelve en la caché local: si el servidor
-      // rechaza la escritura (reglas sin desplegar), el cambio
-      // se revierte en silencio y el panel se cerraría en falso.
-      // Se comprueba contra el servidor antes de cerrar.
-      let enServidor;
-      try {
-        const comp = await getDocFromServer(doc(db, 'users', currentUser.uid));
-        enServidor = sujetarApariencia(
-          (comp.data() as { chatApariencia?: unknown } | undefined)?.chatApariencia,
-        );
-      } catch (e: unknown) {
-        throw new Error(
-          `verificación denegada: ${e instanceof Error ? e.message : String(e)}`,
-        );
-      }
-      // Basta con que lo enviado esté tal cual en el servidor:
-      // al leer, `sujetar` expande valores por defecto que lo
-      // enviado no trae, así que la igualdad total nunca cuadra.
-      const coincide = (esperado: unknown, real: unknown): boolean => {
-        if (esperado === null || typeof esperado !== 'object') return esperado === real;
-        if (Array.isArray(esperado)) {
-          return (
-            Array.isArray(real) &&
-            esperado.length === (real as unknown[]).length &&
-            esperado.every((v, i) => coincide(v, (real as unknown[])[i]))
+      } else {
+        // ── Chat propio: perfil + fondo de ESTE chat ───
+        // El perfil guarda el resto (colores, forma, tipografía),
+        // que es personal y vale para todos tus chats privados.
+        // El FONDO no: va en `chats/{chatId}/prefs/{uid}`, que
+        // es de esta conversación y solo de esta.
+        const { fondo: _fueraDelPerfil, ...perfil } = limpio;
+        try {
+          await updateProfileData({ chatApariencia: perfil as AparienciaChat });
+        } catch (e: unknown) {
+          throw new Error(
+            `escritura denegada: ${e instanceof Error ? e.message : String(e)}`,
           );
         }
-        if (real === null || typeof real !== 'object' || Array.isArray(real)) return false;
-        const e = esperado as Record<string, unknown>;
-        const r = real as Record<string, unknown>;
-        return Object.keys(e).every((k) => k in r && coincide(e[k], r[k]));
-      };
-      if (!coincide(limpio, enServidor)) {
-        throw new Error('el servidor no devolvió lo guardado');
+
+        // El fondo, en su documento. `null` es «este chat, sin
+        // fondo»: se guarda explícitamente para que no salga el
+        // fondo general de antes.
+        if (activeRoomId) {
+          try {
+            await saveFondoChat(currentUser.uid, activeRoomId, limpio.fondo ?? null);
+          } catch (e: unknown) {
+            throw new Error(
+              `no se pudo guardar el fondo de esta conversación: ${
+                e instanceof Error ? e.message : String(e)
+              }`,
+            );
+          }
+          setFondoDelChat(limpio.fondo ?? null);
+        }
+
+        // `setDoc` resuelve en la caché local: si el servidor
+        // rechaza la escritura (reglas sin desplegar), el cambio
+        // se revierte en silencio y el panel se cerraría en falso.
+        // Se comprueba contra el servidor antes de cerrar.
+        let enServidor;
+        try {
+          const comp = await getDocFromServer(doc(db, 'users', currentUser.uid));
+          enServidor = sujetarApariencia(
+            (comp.data() as { chatApariencia?: unknown } | undefined)?.chatApariencia,
+          );
+        } catch (e: unknown) {
+          throw new Error(
+            `verificación denegada: ${e instanceof Error ? e.message : String(e)}`,
+          );
+        }
+        // Basta con que lo enviado esté tal cual en el servidor:
+        // al leer, `sujetar` expande valores por defecto que lo
+        // enviado no trae, así que la igualdad total nunca cuadra.
+        const coincide = (esperado: unknown, real: unknown): boolean => {
+          if (esperado === null || typeof esperado !== 'object') return esperado === real;
+          if (Array.isArray(esperado)) {
+            return (
+              Array.isArray(real) &&
+              esperado.length === (real as unknown[]).length &&
+              esperado.every((v, i) => coincide(v, (real as unknown[])[i]))
+            );
+          }
+          if (real === null || typeof real !== 'object' || Array.isArray(real)) return false;
+          const e = esperado as Record<string, unknown>;
+          const r = real as Record<string, unknown>;
+          return Object.keys(e).every((k) => k in r && coincide(e[k], r[k]));
+        };
+        if (!coincide(perfil, enServidor)) {
+          throw new Error('el servidor no devolvió lo guardado');
+        }
       }
+
       deleteReplacedImage(fondoPrevioRef.current ?? '', limpio.fondo?.url ?? '');
       setPanelApariencia(false);
       setBorradorApariencia(null);
@@ -860,8 +925,13 @@ export const ChatView: React.FC = () => {
   const aparienciaCompartida =
     esChatClub && canalActivo?.chatApariencia ? canalActivo.chatApariencia : null;
   const aparienciaVista = useMemo(
-    () => resolverApariencia(borradorApariencia ?? aparienciaGuardada, aparienciaCompartida),
-    [borradorApariencia, aparienciaGuardada, aparienciaCompartida],
+    () =>
+      resolverApariencia(
+        borradorApariencia ?? aparienciaGuardada,
+        aparienciaCompartida,
+        fondoDelChat,
+      ),
+    [borradorApariencia, aparienciaGuardada, aparienciaCompartida, fondoDelChat],
   );
 
   const puedeGestionarCanales = !!clubDelChat && (soyDuenoDelClub || soyModDelClub);

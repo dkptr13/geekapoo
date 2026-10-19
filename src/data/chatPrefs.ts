@@ -1,4 +1,5 @@
 import type { ChatPrefs, ChatMuteUntil, ChatNotifyMode } from '../types';
+import type { FondoChat } from './chatApariencia';
 
 // ======================================================
 // PREFERENCIAS POR CONVERSACIÓN — LÓGICA PURA
@@ -43,9 +44,41 @@ const enLista = <T extends string>(v: unknown, lista: readonly T[]): v is T =>
 const hexValido = (v: unknown): string | undefined =>
   typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v) ? v.toLowerCase() : undefined;
 
+/**
+ * Fondo de una conversación, ya limpio.
+ *
+ * Devuelve `null` cuando no hay fondo, y eso significa «esta
+ * conversación, sin fondo». Es distinto de que la clave NO
+ * exista: eso quiere decir que la conversación nunca se tocó y
+ * se usa el fondo general.
+ */
+export function fondoValido(v: unknown): FondoChat | null {
+  if (!v || typeof v !== 'object') return null;
+  const f = v as Record<string, unknown>;
+  const preset = typeof f.preset === 'string' ? f.preset : undefined;
+  const url =
+    typeof f.url === 'string' && /^https:\/\//i.test(f.url)
+      ? f.url.slice(0, 500)
+      : undefined;
+  if (!preset && !url) return null;
+  return {
+    ...(preset ? { preset } : {}),
+    ...(url ? { url } : {}),
+    ajuste: f.ajuste === 'contain' ? 'contain' : 'cover',
+    position: f.position === 'top' || f.position === 'bottom' ? f.position : 'center',
+    dim:
+      typeof f.dim === 'number' && Number.isFinite(f.dim)
+        ? Math.min(80, Math.max(0, Math.round(f.dim)))
+        : 0,
+  };
+}
+
 /** Sanea una entrada desconocida a un `ChatPrefs` guardable. */
 export function sujetarPrefs(v: unknown): ChatPrefs {
-  const p = (v ?? {}) as Record<string, unknown>;
+  // El `in` solo funciona sobre objetos: una cadena o un número
+  // que llegan de Firestore (o de una consola) no son un mapa y
+  // hay que tratarlos como vacíos.
+  const p = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>;
   return {
     ...(hexValido(p.color) !== undefined ? { color: hexValido(p.color)! } : {}),
     ...(typeof p.nickname === 'string' && p.nickname.trim().length > 0
@@ -54,5 +87,10 @@ export function sujetarPrefs(v: unknown): ChatPrefs {
     ...(enLista(p.notify, ['all', 'mentions', 'muted']) ? { notify: p.notify } : {}),
     ...(enLista(p.muteUntil, ['1h', '8h', '24h', 'until']) ? { muteUntil: p.muteUntil } : {}),
     ...(p.favorite === true ? { favorite: true } : {}),
+    // El fondo se guarda SIEMPRE, incluso si es null: `null`
+    // significa «esta conversación, sin fondo», que es distinto
+    // de «nunca se tocó» (donde la clave no está y se usa el
+    // fondo general).
+    ...('fondo' in p ? { fondo: fondoValido(p.fondo) } : {}),
   };
 }
