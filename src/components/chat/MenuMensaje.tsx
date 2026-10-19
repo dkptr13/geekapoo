@@ -57,6 +57,7 @@ export const MenuMensaje: React.FC<MenuMensajeProps> = ({
   return (
     <div
       role="menu"
+      data-menu-mensaje
       style={{ left: posicion.left, top: posicion.top }}
       className="fixed z-[120] block max-h-[70vh] w-48 overflow-y-auto overscroll-contain rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-2xl"
     >

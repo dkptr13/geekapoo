@@ -801,6 +801,28 @@ export const ChatView: React.FC = () => {
   const [generatingCode, setGeneratingCode] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [openMenuFor, setOpenMenuFor] = useState<string | null>(null);
+
+  // El menú de la lista de conversaciones se cierra al pulsar
+  // fuera, y también con la tecla Escape.
+  useEffect(() => {
+    if (!openMenuFor) return;
+    const fuera = (e: MouseEvent) => {
+      const nodo = e.target as HTMLElement | null;
+      // Si el clic cayó dentro del propio menú, no se cierra:
+      // si no, la acción del botón no se ejecutaría.
+      if (nodo?.closest?.('[data-menu-conversacion]')) return;
+      setOpenMenuFor(null);
+    };
+    const escape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenMenuFor(null);
+    };
+    document.addEventListener('mousedown', fuera);
+    document.addEventListener('keydown', escape);
+    return () => {
+      document.removeEventListener('mousedown', fuera);
+      document.removeEventListener('keydown', escape);
+    };
+  }, [openMenuFor]);
   // Usuario a punto de ser eliminado. No se borra al pulsar el
   // menú: primero sale una confirmación, porque el error de
   // pulsarlo sin querer era fácil de cometer.
@@ -846,6 +868,38 @@ export const ChatView: React.FC = () => {
     const top = alto < 120 && r.top > ALTO_MAX ? r.top - ALTO_MAX : r.bottom + 6;
     setPosMenuMsg({ left, top: Math.max(MARGEN, top) });
   }, [menuMsgBoton]);
+
+  // El menú se cierra al pulsar en cualquier otro sitio: en el
+  // chat, en otro mensaje o fuera de la ventana.
+  //
+  // El menú vive en un portal, así que no se puede mirar si el
+  // clic cayó dentro mirando el árbol del chat: se marca con
+  // `data-menu-mensaje` y se busca en el documento.
+  useEffect(() => {
+    if (!menuMsgId) return;
+    const fuera = (e: MouseEvent) => {
+      const nodo = e.target as Node;
+      // El botón que lo abrió.
+      if (menuMsgBoton?.contains(nodo)) return;
+      // El propio menú.
+      const propio = document.querySelector('[data-menu-mensaje]');
+      if (propio?.contains(nodo)) return;
+      setMenuMsgId(null);
+      setMenuMsgBoton(null);
+    };
+    const escape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuMsgId(null);
+        setMenuMsgBoton(null);
+      }
+    };
+    document.addEventListener('mousedown', fuera);
+    document.addEventListener('keydown', escape);
+    return () => {
+      document.removeEventListener('mousedown', fuera);
+      document.removeEventListener('keydown', escape);
+    };
+  }, [menuMsgId, menuMsgBoton]);
 
   useEffect(() => {
     if (!menuMsgId) return;
@@ -2708,6 +2762,7 @@ export const ChatView: React.FC = () => {
                           // desplaza en vez de salirse de la
                           // pantalla (en móvil, con el teclado
                           // abierto, el hueco es muy pequeño).
+                          data-menu-conversacion
                           className="absolute right-0 top-7 z-20 max-h-[60vh] w-56 overflow-y-auto overscroll-contain rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-2xl"
                         >
                           <button
