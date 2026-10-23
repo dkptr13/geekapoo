@@ -37,4 +37,16 @@ export const PERSONAJES = [
 
   ["Zodyl Typhon", "", "supporting", "ゾディル・テュフォン", "Shunsuke Takeuchi",
    "De los Saqueadores, de los que mandan. Su nombre pesa en la segunda mitad."],
+
+  ["Semiu Grier", "", "supporting", "セミュ・グライア", "Mie Sonozaki",
+   "La recepcionista del cuartel de los Barrenderos. Controla quien entra y quien sale, y sabe mas de lo que parece."],
+
+  ["Tamsy Caines", "", "supporting", "タムジー・ケインズ", "Mitsuki Saiga",
+   "Barrendero del grupo de Enjin. Pelea con lo que pilla y vacila a Rudo sin maldad."],
+
+  ["Tomme Mima", "", "supporting", "トウム・ミマ", "Hisako Toujou",
+   "Barrendera del grupo, rapida y directa. No se anda con rodeos ni en combate ni fuera."],
+
+  ["Follo Tunito", "", "supporting", "フォロ・ツニート", "Kazuki Ura",
+   "Barrendero del grupo de Enjin. Apoya a Rudo cuando los demas dudan."],
 ];

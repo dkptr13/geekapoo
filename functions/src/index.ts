@@ -41,7 +41,7 @@
  */
 
 import { initializeApp } from 'firebase-admin/app';
-import { FieldValue, getFirestore, FieldPath } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore, FieldPath, Timestamp } from 'firebase-admin/firestore';
 import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
@@ -71,6 +71,13 @@ initializeApp();
 const db = getFirestore();
 
 const USERS = 'users';
+/**
+ * Registro duradero de baneos. Una colección plana con el uid como
+ * id, escrita SOLO por este archivo con el Admin SDK. Las reglas de
+ * Firestore y Storage la consultan para que un baneo sobreviva a
+ * borrar y recrear el perfil.
+ */
+const ACCOUNT_RESTRICTIONS = 'accountRestrictions';
 /**
  * Subcolecciones de seguimiento. Los mismos nombres que en
  * `src/types/follows.ts` y `services/follows.ts`.
@@ -2778,22 +2785,364 @@ async function contarEn(ruta: string): Promise<number> {
 // El rol se lee del documento del usuario con el Admin SDK, que
 // es la unica fuente que no depende de lo que diga el cliente.
 
-/** Lanza si el que llama no es del equipo. Devuelve su uid. */
+/**
+ * Lanza si el que llama no es del equipo. Devuelve su uid.
+ *
+ * Ademas del rol, se exige que el perfil EXISTA y que la cuenta no
+ * tenga un baneo vigente. Son las mismas tres condiciones que
+ * `isActive()` en las reglas, y por el mismo motivo: una cuenta de
+ * Auth sin perfil, o un miembro del equipo baneado, no puede seguir
+ * usando el panel aunque su documento diga `role: 'admin'`.
+ *
+ * Se miran las DOS copias del baneo (el registro duradero y la
+ * bandera visible) para que una cuenta baneada antes de existir
+ * `accountRestrictions` tampoco se cuele.
+ */
 async function exigirAdmin(auth: unknown): Promise<string> {
   const uid = (auth as { uid?: string } | undefined)?.uid;
   if (!uid) {
     throw new HttpsError('unauthenticated', 'Tienes que iniciar sesion.');
   }
 
-  const snap = await db.doc(`${USERS}/${uid}`).get();
-  const rol = snap.data()?.role;
+  const [snap, restriccion] = await Promise.all([
+    db.doc(`${USERS}/${uid}`).get(),
+    db.doc(`${ACCOUNT_RESTRICTIONS}/${uid}`).get(),
+  ]);
+
+  if (!snap.exists) {
+    throw new HttpsError(
+      'permission-denied',
+      'Tu cuenta no tiene perfil de usuario.',
+    );
+  }
+
+  const datos = snap.data();
+  const rol = datos?.role;
 
   if (rol !== 'admin' && rol !== 'moderator') {
     throw new HttpsError('permission-denied', 'No tienes permiso para esto.');
   }
 
+  const baneoDuradero =
+    restriccion.exists &&
+    restriccion.data()?.activo === true &&
+    restriccion.data()?.tipo === 'ban';
+
+  if (baneoDuradero || datos?.isBanned === true) {
+    throw new HttpsError(
+      'permission-denied',
+      'Tu cuenta esta baneada y no puede usar el panel.',
+    );
+  }
+
   return uid;
 }
+
+// ======================================================
+// REGISTRO DURABLE DE BANEOS
+// ======================================================
+//
+// Un baneo NO puede vivir solo en `users/{uid}.isBanned`: ese
+// documento lo puede borrar su dueño (el borrado legítimo de
+// cuenta) y, al volver a entrar, el cliente se lo recrea con
+// `isBanned: false`. Si la sanción viviera solo ahí, borrar y
+// recrear sería la forma más fácil de saltarse un baneo.
+//
+// Por eso la fuente de verdad es `accountRestrictions/{uid}`,
+// que solo escribe este archivo con el Admin SDK. Las reglas de
+// Firestore y Storage la consultan en `isBanned()`. El documento
+// de `users` sigue llevando la copia visible para el panel.
+//
+// Las dos escrituras van en una transacción: o quedan las dos
+// copias de acuerdo, o no queda ninguna.
+
+/**
+ * Deja el baneo (o su levantamiento) en el registro duradero y en
+ * la copia visible de `users/{uid}`, a la vez.
+ *
+ * `fechaFin` solo se usa al banear: `null` es un baneo permanente.
+ * Al levantar la restricción se conserva el motivo y la fecha del
+ * baneo original (con `merge`), y se añade quién y cuándo lo
+ * levantó, para que el registro siga contando lo que pasó.
+ */
+async function guardarBaneo(
+  uid: string,
+  activo: boolean,
+  motivo: string | null,
+  fechaFin: Timestamp | null,
+  por: string,
+): Promise<void> {
+  const restriccionRef = db.doc(`${ACCOUNT_RESTRICTIONS}/${uid}`);
+  const usuarioRef = db.doc(`${USERS}/${uid}`);
+
+  await db.runTransaction(async (tx) => {
+    const [usuario, restriccion] = await Promise.all([
+      tx.get(usuarioRef),
+      tx.get(restriccionRef),
+    ]);
+
+    if (!usuario.exists && activo) {
+      // Para banear hace falta un perfil: el panel trabaja sobre
+      // usuarios que existen. Para LEVANTAR una restricción no: si
+      // el baneado borró su perfil, el registro sigue ahí y un
+      // administrador (o la limpieza de baneos temporales) tiene
+      // que poder desactivarlo igualmente.
+      throw new HttpsError('not-found', 'Ese usuario no existe.');
+    }
+
+    if (activo) {
+      const datos: Record<string, unknown> = {
+        uid,
+        tipo: 'ban',
+        activo: true,
+        motivo,
+        fechaFin,
+        // La fecha de alta no se pisa si la restricción ya existía
+        // (por ejemplo, un rebaneo después de un levantamiento).
+        creadoEn: restriccion.exists
+          ? restriccion.data()?.creadoEn ?? FieldValue.serverTimestamp()
+          : FieldValue.serverTimestamp(),
+        actualizadoEn: FieldValue.serverTimestamp(),
+        actualizadoPor: por,
+      };
+      tx.set(restriccionRef, datos);
+    } else {
+      tx.set(
+        restriccionRef,
+        {
+          uid,
+          tipo: 'ban',
+          activo: false,
+          actualizadoEn: FieldValue.serverTimestamp(),
+          actualizadoPor: por,
+          levantadoEn: FieldValue.serverTimestamp(),
+          levantadoPor: por,
+        },
+        { merge: true },
+      );
+    }
+
+    if (usuario.exists) {
+      tx.update(usuarioRef, { isBanned: activo });
+    }
+  });
+}
+
+/**
+ * Banea a un usuario.
+ *
+ * La llama el panel con `httpsCallable`. El rol se comprueba aquí,
+ * con el documento real, no con lo que diga el cliente. Los
+ * moderadores pueden banear usuarios normales; a otro moderador o
+ * a un admin solo lo puede banear un admin.
+ *
+ * `fechaFinMs` es opcional: sin ella el baneo es permanente. Si
+ * viene, tiene que ser futura; un baneo temporal vencido lo
+ * levanta sola `levantarBaneosVencidos`.
+ */
+export const banearUsuario = onCall(async (request) => {
+  const adminUid = await exigirAdmin(request.auth);
+
+  const uid = typeof request.data?.uid === 'string' ? request.data.uid.trim() : '';
+  const motivo =
+    typeof request.data?.motivo === 'string'
+      ? request.data.motivo.trim().slice(0, 500)
+      : '';
+  const fechaFinMs =
+    typeof request.data?.fechaFinMs === 'number' ? request.data.fechaFinMs : null;
+
+  if (!uid) throw new HttpsError('invalid-argument', 'Falta el usuario.');
+
+  if (uid === adminUid) {
+    throw new HttpsError(
+      'invalid-argument',
+      'No puedes banear tu propia cuenta.',
+    );
+  }
+
+  const objetivo = await db.doc(`${USERS}/${uid}`).get();
+  if (!objetivo.exists) {
+    throw new HttpsError('not-found', 'Ese usuario no existe.');
+  }
+
+  const rolObjetivo = objetivo.data()?.role;
+  const llamante = await db.doc(`${USERS}/${adminUid}`).get();
+  const rolLlamante = llamante.data()?.role;
+
+  // El panel ya esconde el botón, pero el servidor no se fía de la
+  // interfaz: un moderador no puede banear a otro moderador ni a
+  // un admin.
+  if (
+    (rolObjetivo === 'admin' || rolObjetivo === 'moderator') &&
+    rolLlamante !== 'admin'
+  ) {
+    throw new HttpsError(
+      'permission-denied',
+      'No puedes banear a un miembro del equipo.',
+    );
+  }
+
+  let fechaFin: Timestamp | null = null;
+  if (fechaFinMs !== null) {
+    if (!Number.isFinite(fechaFinMs) || fechaFinMs <= Date.now()) {
+      throw new HttpsError(
+        'invalid-argument',
+        'La fecha de fin del baneo tiene que ser futura.',
+      );
+    }
+    fechaFin = Timestamp.fromMillis(fechaFinMs);
+  }
+
+  await guardarBaneo(uid, true, motivo || null, fechaFin, adminUid);
+
+  logger.info('Usuario baneado', {
+    objetivo: uid,
+    por: adminUid,
+    motivo,
+    permanente: fechaFin === null,
+  });
+
+  return {
+    ok: true,
+    uid,
+    activo: true,
+    fechaFin: fechaFin ? fechaFin.toMillis() : null,
+  };
+});
+
+/**
+ * Levanta el baneo de un usuario.
+ *
+ * No borra el documento de `accountRestrictions`: lo marca
+ * `activo: false`. Así queda constancia de que hubo una sanción y
+ * de quién la levantó, y el registro sigue existiendo si hay que
+ * volver a banear.
+ */
+export const desbanearUsuario = onCall(async (request) => {
+  const adminUid = await exigirAdmin(request.auth);
+
+  const uid = typeof request.data?.uid === 'string' ? request.data.uid.trim() : '';
+  if (!uid) throw new HttpsError('invalid-argument', 'Falta el usuario.');
+
+  await guardarBaneo(uid, false, null, null, adminUid);
+
+  logger.info('Usuario desbaneado', { objetivo: uid, por: adminUid });
+
+  return { ok: true, uid, activo: false };
+});
+
+/**
+ * Levanta los baneos temporales que ya han vencido.
+ *
+ * Las reglas solo miran `activo` (no comparan fechas: Storage no
+ * tiene `request.time` y no queremos dos lenguajes distintos para
+ * lo mismo), así que alguien tiene que poner ese `activo` a false.
+ * Va cada hora, como el cierre de encuestas: una hora de más en un
+ * baneo temporal no cambia nada.
+ *
+ * Se consulta solo por `activo == true` y se filtra en memoria
+ * para no depender de un índice compuesto.
+ */
+export const levantarBaneosVencidos = onSchedule('every 1 hours', async () => {
+  try {
+    const ahora = Timestamp.now();
+    const snap = await db
+      .collection(ACCOUNT_RESTRICTIONS)
+      .where('activo', '==', true)
+      .limit(500)
+      .get();
+
+    let levantados = 0;
+
+    for (const d of snap.docs) {
+      const datos = d.data();
+      if (datos.tipo !== 'ban') continue;
+
+      const fin = datos.fechaFin;
+      if (!fin || typeof fin.toMillis !== 'function') continue;
+      if (fin.toMillis() > ahora.toMillis()) continue;
+
+      try {
+        await guardarBaneo(d.id, false, null, null, 'sistema');
+        levantados += 1;
+      } catch (e) {
+        logger.error('No se pudo levantar un baneo vencido', {
+          uid: d.id,
+          error: e,
+        });
+      }
+    }
+
+    if (levantados > 0) {
+      logger.info('Baneos temporales levantados', { levantados });
+    }
+  } catch (e) {
+    logger.error('No se pudieron revisar los baneos vencidos', { error: e });
+  }
+});
+
+/**
+ * Vuelca los baneos antiguos al registro duradero.
+ *
+ * Antes de existir `accountRestrictions`, un baneo solo vivía en
+ * `users/{uid}.isBanned`. Ese documento lo puede borrar su dueño,
+ * así que los baneos anteriores a este cambio seguirían siendo
+ * fáciles de esquivar: bastaría con borrar el perfil y volver a
+ * entrar. Esta callable recorre los perfiles con la bandera puesta
+ * y crea el registro que falte.
+ *
+ * Es idempotente: si ya hay una restricción activa, no la toca. Se
+ * llama una vez después de desplegar (desde el panel o con
+ * `httpsCallable`); no hace falta programarla.
+ */
+export const sincronizarBaneos = onCall(
+  { timeoutSeconds: 300 },
+  async (request) => {
+    await exigirAdmin(request.auth);
+
+    const snap = await db.collection(USERS).where('isBanned', '==', true).get();
+
+    let creados = 0;
+    let existentes = 0;
+
+    for (const usuario of snap.docs) {
+      const ref = db.doc(`${ACCOUNT_RESTRICTIONS}/${usuario.id}`);
+      const actual = await ref.get();
+      const datosActuales = actual.data();
+
+      if (datosActuales?.activo === true && datosActuales?.tipo === 'ban') {
+        existentes += 1;
+        continue;
+      }
+
+      await ref.set(
+        {
+          uid: usuario.id,
+          tipo: 'ban',
+          activo: true,
+          motivo:
+            typeof datosActuales?.motivo === 'string'
+              ? datosActuales.motivo
+              : 'Baneo anterior al registro duradero',
+          fechaFin: datosActuales?.fechaFin ?? null,
+          creadoEn: datosActuales?.creadoEn ?? FieldValue.serverTimestamp(),
+          actualizadoEn: FieldValue.serverTimestamp(),
+          actualizadoPor: 'migracion',
+        },
+        { merge: true },
+      );
+      creados += 1;
+    }
+
+    logger.info('Baneos antiguos sincronizados', {
+      revisados: snap.size,
+      creados,
+      existentes,
+    });
+
+    return { revisados: snap.size, creados, existentes };
+  },
+);
 
 /**
  * Lee y escribe la configuracion de la gamificacion.

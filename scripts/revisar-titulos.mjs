@@ -115,7 +115,7 @@ for (const prefijo of prefijos.keys()) {
 
 // ── Buscar en TVDB ─────────────────────────────────────────────────
 
-const { comoBuscar } = await import(new URL('./busquedas-anime.mjs', import.meta.url));
+const { comoBuscarTvdb } = await import(new URL('./busquedas-anime.mjs', import.meta.url));
 
 async function capitulosDe(serie) {
   const salida = [];
@@ -142,7 +142,7 @@ for (const [prefijo, { id, buscar }] of prefijos) {
     continue;
   }
 
-  const termino = comoBuscar(id, buscar ?? '');
+  const termino = comoBuscarTvdb(id, buscar ?? '');
 
   const candidatas = await pedir(
     `/search?query=${encodeURIComponent(termino)}&type=series&limit=8`,

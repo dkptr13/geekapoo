@@ -13,7 +13,7 @@
 // haciendo su trabajo, y no hay que hacer nada.
 
 import { coleccion, escribir, str, num } from './firestore-rest.mjs';
-import { comoBuscar } from './busquedas-anime.mjs';
+import { comoBuscarTvdb } from './busquedas-anime.mjs';
 import { capituloEnTvdb } from './temporadas-tvdb.mjs';
 
 const clave = process.env.TVDB_KEY;
@@ -72,7 +72,7 @@ const usadas = new Set(
     .filter(Boolean),
 );
 
-const termino = comoBuscar(animeId, str(anime.f, 'title'));
+const termino = comoBuscarTvdb(animeId, str(anime.f, 'title'));
 
 const candidatas = await pedir(
   `/search?query=${encodeURIComponent(termino)}&type=series&limit=8`,

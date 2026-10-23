@@ -19,4 +19,12 @@ export const TAGS = {
   'Fuki Harukawa': ['Lycoris', 'Rival', 'Recta'],
   'Sakura Otome': ['Lycoris', 'Novata', 'Ansiosa'],
   'Robota': ['Hacker', 'Cobarde', 'Antagonista'],
+  'Saori Shinohara': ['Camarera', 'Cafe', 'Callada'],
+  'Erika Janome': ['Compañera', 'Floristeria', 'Alegre'],
+  'Himegama': ['Compañera', 'Instituto Alan', 'Discreta'],
+  'Hacker': ['Hacker', 'Majima', 'Silencioso'],
+  'Hibana Kagari': ['Lycoris', 'Admiradora', 'Joven'],
+  'Jin': ['Compañero', 'DA', 'Discreto'],
+  'Matsushita': ['Compañero', 'DA', 'Callado'],
+  'Abe': ['Compañero', 'DA', 'Callado'],
 };

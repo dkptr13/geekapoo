@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { FC } from 'react';
-import { Database, Loader2, AlertTriangle, CheckCircle2, Rocket, XCircle, Trash2, Search } from 'lucide-react';
+import { Database, Loader2, AlertTriangle, CheckCircle2, Rocket, XCircle, Trash2, Search, ShieldAlert } from 'lucide-react';
+import { httpsCallable } from 'firebase/functions';
 
+import { functions } from '../../lib/firebase';
 import { runFullMigration, type SeedReport, type StepReport } from '../../services/seed';
 import {
   buscarImagenesHuerfanas,
@@ -95,6 +97,38 @@ export const MigrationPanel: FC = () => {
   const [buscando, setBuscando] = useState(false);
   const [limpiando, setLimpiando] = useState(false);
   const [errorHuerfanos, setErrorHuerfanos] = useState<string | null>(null);
+
+  // Migración de los baneos que existían antes de
+  // `accountRestrictions`. Es una callable porque el registro
+  // duradero solo lo escribe el servidor.
+  const [sincronizandoBaneos, setSincronizandoBaneos] = useState(false);
+  const [baneos, setBaneos] = useState<{
+    revisados: number;
+    creados: number;
+    existentes: number;
+  } | null>(null);
+  const [errorBaneos, setErrorBaneos] = useState<string | null>(null);
+
+  const handleSincronizarBaneos = async () => {
+    if (sincronizandoBaneos) return;
+    setSincronizandoBaneos(true);
+    setBaneos(null);
+    setErrorBaneos(null);
+    try {
+      const llamar = httpsCallable<
+        Record<string, never>,
+        { revisados: number; creados: number; existentes: number }
+      >(functions, 'sincronizarBaneos');
+      const { data } = await llamar({});
+      setBaneos(data);
+    } catch (e: unknown) {
+      setErrorBaneos(
+        e instanceof Error ? e.message : 'No se pudieron sincronizar los baneos.',
+      );
+    } finally {
+      setSincronizandoBaneos(false);
+    }
+  };
 
   const handleBuscar = async () => {
     if (buscando || limpiando) return;
@@ -221,6 +255,58 @@ export const MigrationPanel: FC = () => {
           </ul>
         </div>
       )}
+
+      {/* ==================================================
+          BANEOS ANTERIORES AL REGISTRO DURADERO
+          ==================================================
+          Antes, un baneo solo vivía en `users/{uid}.isBanned`.
+          Ese documento se puede borrar, así que hay que volcar
+          los baneos antiguos a `accountRestrictions`. La callable
+          es idempotente: no toca los que ya estén registrados. */}
+      <div className="space-y-3 rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-red-600/20">
+            <ShieldAlert size={17} className="text-red-400" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold text-white">Baneos anteriores</h3>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+              Copia al registro duradero los baneos que solo existen en el documento del
+              usuario. Hace falta una vez después de desplegar las funciones nuevas: sin
+              esto, un baneado antiguo podría borrar su perfil y volver a entrar.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSincronizarBaneos}
+          disabled={sincronizandoBaneos}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-600/80 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {sincronizandoBaneos ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <ShieldAlert size={14} />
+          )}
+          {sincronizandoBaneos ? 'Sincronizando...' : 'Sincronizar baneos'}
+        </button>
+
+        {baneos && (
+          <p className="flex items-center gap-1.5 text-[11px] text-emerald-400">
+            <CheckCircle2 size={13} />
+            Revisados {baneos.revisados} · creados {baneos.creados} · ya existían{' '}
+            {baneos.existentes}
+          </p>
+        )}
+
+        {errorBaneos && (
+          <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
+            <XCircle size={14} className="mt-0.5 flex-shrink-0 text-red-400" />
+            <p className="min-w-0 break-words text-[11px] text-red-300/80">{errorBaneos}</p>
+          </div>
+        )}
+      </div>
 
       {/* ==================================================
           IMÁGENES HUÉRFANAS

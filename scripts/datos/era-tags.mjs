@@ -20,4 +20,9 @@ export const TAGS = {
   'Kazu': ['Amigo', 'Manitas', 'Grupo'],
   'Osamu': ['Amigo', 'Grupo', 'Juegos'],
   'Akemi Hinazuki': ['Madre', 'Violenta', 'Pista'],
+  'Takahashi': ['Compañero', 'Revival', 'Asustado'],
+  'Kumi': ['Compañera', 'Grupo', 'Salvada'],
+  'Sawada': ['Policía', 'Investigador', 'Pista'],
+  'Hamada': ['Compañero', 'Grupo', 'Salvado'],
+  'Aya Nakanishi': ['Compañera', 'Grupo', 'Salvada'],
 };

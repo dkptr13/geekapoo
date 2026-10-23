@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
-import { db } from '../../lib/firebase';
+import { db, functions } from '../../lib/firebase';
 import { collectionOf } from '../../services/catalogAdmin';
 import { toIsoString } from '../../services/firestoreUtils';
 import { SUPPORT_TICKETS } from '../../services/support';
@@ -152,8 +153,19 @@ export function useAdminCatalog() {
     [],
   );
 
+  /**
+   * Banea o desbanea a un usuario.
+   *
+   * NO escribe `users/{uid}.isBanned` desde el cliente: eso lo
+   * hacen las callables `banearUsuario` / `desbanearUsuario`, que
+   * además escriben el registro duradero `accountRestrictions`.
+   * Escribir solo el documento del usuario dejaría el baneo a medias:
+   * al borrar y recrear el perfil, volvería a estar activo.
+   */
   const setUserBanned = useCallback(async (uid: string, banned: boolean): Promise<void> => {
-    await updateDoc(doc(db, 'users', uid), { isBanned: banned });
+    const nombre = banned ? 'banearUsuario' : 'desbanearUsuario';
+    const llamar = httpsCallable<{ uid: string }, { ok: boolean }>(functions, nombre);
+    await llamar({ uid });
   }, []);
 
   /**

@@ -432,23 +432,47 @@ service cloud.firestore {
         : null;
     }
     function isAdmin() { return myRole() == 'admin'; }
+    function isModerator() { return myRole() == 'admin' || myRole() == 'moderator'; }
 
-    // OJO: hay que comparar con "== true", no con "!= true".
-    // Un campo ausente vale null, y en las reglas de seguridad
-    // "null != true" es FALSE, así que con "!= true" un usuario
-    // sin campo isBanned quedaría bloqueado por error.
+    // El baneo vive en DOS sitios:
+    //   - users/{uid}.isBanned: la copia visible que pinta el panel.
+    //   - accountRestrictions/{uid}: el registro DURADERO, que solo
+    //     escriben las Cloud Functions con el Admin SDK.
+    // Manda el registro: asi, borrar el perfil y volver a entrar no
+    // levanta la sancion (el perfil se recrea, el registro sigue).
     function isBanned() {
-      return hasProfile()
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBanned == true;
+      return (isSignedIn()
+              && exists(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid))
+              && 'activo' in get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid)).data
+              && get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid)).data.activo == true
+              && get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid)).data.tipo == 'ban')
+             || (hasProfile()
+                 && 'isBanned' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+                 && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBanned == true);
     }
-    function isActive() { return isSignedIn() && !isBanned(); }
+    // Ademas de no estar baneado, tiene que existir el perfil: una
+    // cuenta de Auth sin documento en users no puede publicar.
+    function isActive() { return isSignedIn() && hasProfile() && !isBanned(); }
+
+    // El registro de sanciones solo lo escribe el servidor. Ni el
+    // usuario, ni un moderador, ni un admin desde el navegador.
+    match /accountRestrictions/{uid} {
+      allow read: if isSignedIn()
+                  && (request.auth.uid == uid || isAdmin() || isModerator());
+      allow write: if false;
+    }
 
     match /users/{uid} {
       allow read: if isSignedIn();
       allow create: if isAdmin()
-                    || (isSelf(uid) && request.resource.data.role == 'user');
+                    || (isSelf(uid)
+                        && request.resource.data.role == 'user'
+                        && (!('isBanned' in request.resource.data)
+                            || request.resource.data.isBanned == false));
       // El usuario NO puede tocar role, isBanned ni chatId
-      allow update: if isAdmin()
+      allow update: if (isAdmin()
+                        && !request.resource.data.diff(resource.data)
+                             .affectedKeys().hasAny(['isBanned']))
                     || (isSelf(uid)
                         && !request.resource.data.diff(resource.data)
                              .affectedKeys().hasAny(['role','isBanned','chatId','uid']));

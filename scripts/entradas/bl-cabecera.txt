@@ -1,0 +1,12 @@
+// TEMPORADA 1 - Blue Lock (2022)
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// Veinticuatro capitulos del 8 de octubre de 2022 al 26 de marzo de
+// 2023, en 8bit. Los titulos japoneses salen de la tabla de capitulos
+// de la wiki en japones; los titulos, las fechas y las notas, de IMDb
+// (serie tt15222080, 35.261 votos, nota 8,1).
+//
+// Los titulos en ingles son los de IMDb y los japoneses los de la
+// wiki: cada fuente pone el suyo y no siempre coinciden, asi que se
+// guardan los dos.

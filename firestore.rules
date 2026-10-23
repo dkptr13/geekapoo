@@ -37,6 +37,22 @@ service cloud.firestore {
       return myRole() == 'admin' || myRole() == 'moderator';
     }
 
+    // ── BANEOS: DOS FUENTES Y UNA SOLA VERDAD ──────────────
+    //
+    // El estado de sanción vive en DOS sitios, a propósito:
+    //
+    //   1. `users/{uid}.isBanned` es la COPIA VISIBLE: la pinta el
+    //      panel y la lee la app para enseñar el aviso.
+    //   2. `accountRestrictions/{uid}` es el REGISTRO DURADERO.
+    //      Solo lo escriben las Cloud Functions con el Admin SDK;
+    //      el cliente no puede crearlo, editarlo ni borrarlo.
+    //
+    // El registro es el que manda en las reglas. Sin él, a un
+    // baneado le bastaba con borrar su documento de `users/{uid}`
+    // y volver a entrar: la app le creaba un perfil nuevo con
+    // `isBanned: false` y el baneo desaparecía. Ahora el registro
+    // sobrevive al perfil y la cuenta sigue sin poder escribir.
+    //
     // Importante: hay que comparar con "== true" y no con "!= true".
     // Un campo ausente vale null, y en las reglas de seguridad
     // "null != true" es false (no true), así que un usuario sin campo
@@ -51,22 +67,43 @@ service cloud.firestore {
     //
     // No se puede usar "data.get('isBanned', false)" para sortearlo:
     // el "get" de las reglas solo acepta la clave, sin valor por
-    // defecto, así que Passaría dos argumentos y es un error de
+    // defecto, así que pasaría dos argumentos y es un error de
     // sintaxis. La forma buena es comprobar antes con "in".
-    //
-    // Esto no ha explotado porque todas las cuentas que crea
-    // AuthContext llevan "isBanned: false" siempre, pero cualquier
-    // cuenta anterior a ese campo (o creada a mano desde la consola)
-    // no podría publicar hilos, comentarios ni nada.
-    function isBanned() {
-      return hasProfile()
-             && 'isBanned' in myDoc().data
-             && myDoc().data.isBanned == true;
+    function miRestriccion() {
+      return get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid));
     }
 
-    // Un usuario baneado puede leer, pero no escribir contenido
+    // ¿Hay un baneo VIGENTE en el registro duradero?
+    //
+    // `activo` lo pone y lo quita la Cloud Function. El `tipo` deja
+    // sitio a otras restricciones futuras (por ejemplo, un silencio
+    // global) sin que bloqueen todo como un baneo.
+    function restriccionActiva() {
+      return isSignedIn()
+             && exists(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid))
+             && 'activo' in miRestriccion().data
+             && miRestriccion().data.activo == true
+             && 'tipo' in miRestriccion().data
+             && miRestriccion().data.tipo == 'ban';
+    }
+
+    function isBanned() {
+      return restriccionActiva()
+             || (hasProfile()
+                 && 'isBanned' in myDoc().data
+                 && myDoc().data.isBanned == true);
+    }
+
+    // Un usuario baneado puede leer, pero no escribir contenido.
+    //
+    // Además de no estar baneado, TIENE QUE EXISTIR su perfil: una
+    // cuenta de Firebase Auth sin documento en `users` no es un
+    // usuario de la comunidad y no puede publicar nada. Antes esta
+    // función solo miraba "no está baneado", e `isBanned()` daba
+    // false cuando el perfil no existía, así que una cuenta sin
+    // perfil podía escribir hilos, comentarios, follows y demás.
     function isActive() {
-      return isSignedIn() && !isBanned();
+      return isSignedIn() && hasProfile() && !isBanned();
     }
 
     // Datos del chat PADRE.
@@ -893,7 +930,37 @@ service cloud.firestore {
                  && (!('ancho' in c) || (c.ancho in ['estrecho', 'normal', 'ancho']))
                  && (!('reducirMovimiento' in c) || c.reducirMovimiento is bool);
              }
-match /users/{uid} {
+    // ======================================================
+    // REGISTRO DURABLE DE RESTRICCIONES (BANEOS)
+    // ======================================================
+    //
+    // Una colección plana, con el uid como id: un documento por
+    // persona, igual que `users`. La escribe SOLO la Cloud Function
+    // `banearUsuario` / `desbanearUsuario` con el Admin SDK; las
+    // reglas de abajo no dejan escribirla desde el cliente ni
+    // siquiera a un administrador.
+    //
+    // ¿Por qué no vale con `users/{uid}.isBanned`? Porque ese
+    // documento lo puede borrar su dueño (es el borrado legítimo
+    // de cuenta) y, al volver a entrar, la app se lo recrea. Si el
+    // baneo viviera solo ahí, borrar y recrear sería la forma más
+    // fácil de saltarse una sanción. Este registro no se borra con
+    // el perfil.
+    match /accountRestrictions/{uid} {
+      // El propio usuario puede consultar su restricción (la app lo
+      // hace al recrear un perfil); el equipo puede verla desde el
+      // panel. Los demás no tienen por qué conocer las sanciones
+      // ajenas.
+      allow read: if isSignedIn()
+                  && (request.auth.uid == uid || isAdmin() || isModerator());
+
+      // Ni el usuario, ni un moderador, ni un administrador. Los
+      // baneos se aplican con las callables, que comprueban el rol
+      // en el servidor y escriben las dos copias en una transacción.
+      allow write: if false;
+    }
+
+    match /users/{uid} {
       allow read: if isSignedIn();
 
       // El 'create' tambien tiene que mirar los campos de
@@ -905,9 +972,28 @@ match /users/{uid} {
       // En un 'create' no se puede usar diff() (no hay documento
       // anterior contra el que comparar), asi que lo que se mira son
       // las claves que trae el documento nuevo.
-      allow create: if isAdmin()
+      allow create: if (isAdmin()
+                        // Ni siquiera un admin crea una cuenta "ya
+                        // baneada" desde el navegador: el estado de
+                        // sanción solo lo pone la callable, que
+                        // escribe también el registro duradero.
+                        && (!('isBanned' in request.resource.data)
+                            || request.resource.data.isBanned == false))
                     || (isSelf(uid)
+                        // El rol NUNCA se lo pone el cliente: si no
+                        // es exactamente 'user', la creación falla.
+                        // Así no hay forma de nacer admin ni
+                        // moderador aunque se llame a setDoc a mano.
                         && request.resource.data.role == 'user'
+                        // El estado de sanción tampoco. Se admite el
+                        // `false` explícito porque es lo que escribe
+                        // AuthContext al crear la cuenta, pero no se
+                        // puede nacer baneado ni con otro valor. El
+                        // baneo de verdad vive en
+                        // `accountRestrictions` y lo escribe el
+                        // servidor.
+                        && (!('isBanned' in request.resource.data)
+                            || request.resource.data.isBanned == false)
                         && !request.resource.data.keys().hasAny(
                             ['xp', 'level', 'xpEnNivel', 'xpParaSiguienteNivel',
                              'stats', 'medals', 'equippedTitle',
@@ -921,7 +1007,19 @@ match /users/{uid} {
                              // de golpe todas las medallas de comunidad.
                              'followersCount', 'followingCount']));
 
-      allow update: if isAdmin()
+      // ── Quién puede actualizar el perfil ───────────────
+      //
+      // El estado de sanción (`isBanned`) NO se toca desde el
+      // cliente, ni siquiera con rol de admin o moderador: solo lo
+      // cambian las callables `banearUsuario` / `desbanearUsuario`,
+      // que escriben a la vez el registro duradero
+      // `accountRestrictions/{uid}`. Si un cliente pudiera ponerlo,
+      // las dos copias se desincronizarían (por ejemplo, un
+      // "desbaneo" que deja la restricción activa y al usuario
+      // bloqueado para siempre).
+      allow update: if (isAdmin()
+                        && !request.resource.data.diff(resource.data)
+                             .affectedKeys().hasAny(['isBanned']))
                     || (isSelf(uid)
                         && ('chatApariencia' in request.resource.data)
                         && request.resource.data.diff(resource.data)
@@ -1005,11 +1103,7 @@ match /users/{uid} {
                     || (isSelf(uid)
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(['equippedTitle'])
-                        && tituloValido())
-                    || (isModerator()
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['isBanned'])
-                        && !(resource.data.role in ['admin', 'moderator']));
+                        && tituloValido());
 
       // Borrado: el admin, o el propio usuario.
       //
@@ -1022,6 +1116,11 @@ match /users/{uid} {
       // antes por los hilos, los comentarios, las solicitudes y
       // los bloqueados, porque Firestore no borra en cascada (ver
       // services/accountSettings.ts).
+      //
+      // Lo que NO borra es `accountRestrictions/{uid}`: vive en
+      // otra colección y el cliente no tiene escritura allí. Así,
+      // borrar el perfil no sirve para quitarse un baneo; solo la
+      // callable `desbanearUsuario` levanta la restricción.
       allow delete: if isAdmin() || isSelf(uid);
 
       // ── Libro mayor de XP ─────────────────────────────

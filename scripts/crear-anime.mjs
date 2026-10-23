@@ -52,7 +52,7 @@ if (!prefijo || prefijo.startsWith('-')) {
   process.exit(1);
 }
 
-const { ANIME, ANIME_ID } = await import(
+const { ANIME, ANIME_ID, ALIASES } = await import(
   new URL(`./datos/${prefijo}-meta.mjs`, import.meta.url)
 );
 
@@ -120,6 +120,19 @@ const anime = {
   slug: v.str(ANIME_ID),
   title: v.str(ANIME.titulo),
   japaneseTitle: v.str(ANIME.japaneseTitle ?? ''),
+
+  // ── Títulos alternativos ───────────────────────────────
+  // Los que la gente escribe para encontrar esta obra. Los
+  // pone el agente que añade el anime, a mano, en el fichero
+  // de datos; aquí solo se copian al documento, que es lo que
+  // lee la búsqueda inteligente ("alternativeTitles").
+  //
+  // Si el fichero de datos no los define, el campo se deja
+  // como estaba: una ficha vieja que ya los traía no debe
+  // perderlos por volver a cargarla.
+  ...(Array.isArray(ALIASES)
+    ? { alternativeTitles: v.arr(ALIASES.map((a) => v.str(a))) }
+    : {}),
 
   // ── Ficha ──────────────────────────────────────────
   synopsis: v.str(ANIME.synopsis ?? ''),

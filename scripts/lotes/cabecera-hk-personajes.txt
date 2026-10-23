@@ -1,0 +1,7 @@
+// PERSONAJES - Haikyuu!!
+//
+// Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
+//
+// Nombres, japones, voces y roles vienen de AniList (20464) y
+// los resúmenes son propios, en castellano. Todos los personajes
+// salen en la temporada 1.

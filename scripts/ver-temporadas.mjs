@@ -1,34 +1,24 @@
-// Las temporadas de cada anime, con año y título, para revisar el
-// emparejamiento con AniList antes de escribir nada.
-//
-//    node scripts/ver-temporadas.mjs
+// La franquicia entera de un anime en AniList, con fecha, formato y
+// capitulos, para decidir el orden cronologico de las temporadas.
+//   node scripts/ver-temporadas.mjs <id-anilist>
+import { arbol } from './anilist.mjs';
 
-import { coleccion, str, num } from './firestore-rest.mjs';
+const id = Number(process.argv[2]);
+const { base, todos } = await arbol(id);
 
-const seasons = await coleccion('seasons');
+console.log(`base: ${base.id} "${base.titulo}"`);
+console.log(`piezas: ${todos.size}\n`);
 
-const animes = await coleccion('animes');
-const nombreDe = new Map(animes.map((a) => [a.id, str(a.f, 'title') || a.id]));
+const lista = [...todos.values()].sort((a, b) => {
+  const fa = a.fecha ?? '9999';
+  const fb = b.fecha ?? '9999';
+  if (fa !== fb) return fa < fb ? -1 : 1;
+  return a.id - b.id;
+});
 
-const porAnime = new Map();
-
-for (const s of seasons) {
-  const k = str(s.f, 'animeId');
-  porAnime.set(k, [...(porAnime.get(k) ?? []), s]);
-}
-
-for (const [animeId, lista] of [...porAnime].sort()) {
-  console.log(`\n${animeId}  (${nombreDe.get(animeId) ?? '??'})`);
-
-  for (const s of lista.sort((a, b) => num(a, 'number') - num(b, 'number'))) {
-    const n = num(s, 'number');
-    const anio = num(s, 'year');
-    const titulo = str(s.f, 'title');
-    const poster = str(s.f, 'posterUrl') ? 'poster SI' : 'poster --';
-    const banner = str(s.f, 'bannerUrl') ? 'banner SI' : 'banner --';
-
-    console.log(
-      `  T${n}  ${anio ?? '????'}  ${(titulo || '(sin titulo)').padEnd(28)} ${poster}  ${banner}`,
-    );
-  }
+for (const m of lista) {
+  console.log(
+    `  ${m.id}  ${String(m.fecha ?? '?').padEnd(10)}  ${String(m.formato ?? '').padEnd(8)}` +
+      ` ${String(m.capitulos ?? '?').padStart(3)} caps  ${m.titulo}`,
+  );
 }

@@ -232,6 +232,22 @@ ver, porque las reglas son otro lenguaje:
    evaluación y la regla entera cae con `PERMISSION_DENIED`, así que
    cualquier cuenta sin ese campo (las anteriores a que existiera)
    no podía publicar nada.
+3. El baneo se podía esquivar borrando el perfil. `isBanned()` solo
+   miraba `users/{uid}.isBanned`, un documento que su dueño puede
+   borrar; al volver a entrar, `AuthContext` lo recreaba con
+   `isBanned: false` y el baneo desaparecía. Ahora la fuente de
+   verdad es `accountRestrictions/{uid}`, que solo escriben las
+   callables `banearUsuario` / `desbanearUsuario` con el Admin SDK.
+   `tests/firestore.baneregistro.rules.test.cjs` comprueba el ciclo
+   completo: borrar el perfil, recrearlo y seguir sin poder publicar.
+   Además, `isActive()` exige que el perfil exista: antes una cuenta
+   de Auth sin documento en `users` podía escribir en toda la web.
+
+Si ya había baneos antes de este cambio, sus documentos no tienen
+registro duradero. Después de desplegar las funciones hay que llamar
+una vez a la callable `sincronizarBaneos` (solo equipo) —o pulsar
+«Sincronizar baneos» en el panel de Migración— para volcarlos; es
+idempotente y no toca los que ya estén registrados.
 
 Si añades o cambias reglas, añade también el caso a esa prueba. Es
 la única forma de que alguien lo compruebe sin desplegar.
@@ -247,4 +263,5 @@ la única forma de que alguien lo compruebe sin desplegar.
 | "Missing or insufficient permissions" al equipar un título | Esa medalla no está desbloqueada en el documento del usuario |
 | Las medallas temáticas no se conceden | Falta asignar el anime en el panel |
 | Un usuario antiguo tiene 0 XP | Hay que recalcularlo a mano |
+| Un baneo anterior a este cambio no sobrevive a borrar el perfil | Falta ejecutar una vez la callable `sincronizarBaneos` |
 | El panel dice que la callable no existe | Las funciones no están desplegadas, o el nombre de la función no coincide |

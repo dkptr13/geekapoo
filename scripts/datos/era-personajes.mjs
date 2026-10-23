@@ -24,7 +24,7 @@ export const PERSONAJES = [
   ["Kenya Kobayashi", "", "supporting", "小林賢也", "You Taichi",
    "El listo de la clase que pilla a Satoru raro y lo ayuda a esconder a Kayo. Frío y leal."],
 
-  ["Hiromi Sugita", "", "supporting", "杉田広美", "Atsushi Tamaru",
+  ["Hiromi Sugita", "", "supporting", "杉田広美", "Akari Kitou",
    "Uno de los tres que iban a morir y compañero de juegos. Se salva por estar con el grupo."],
 
   ["Jun Shiratori", "", "supporting", "白鳥潤", "Daichuu Mizushima",
@@ -41,4 +41,19 @@ export const PERSONAJES = [
 
   ["Akemi Hinazuki", "", "supporting", "雛月明美", "Akemi Okamura",
    "La madre de Kayo que la encierra y la apalea. Su violencia es la primera pista."],
+
+  ["Takahashi", "", "supporting", "高橋", "Eiji Takeuchi",
+   "El compañero de clase que ve el revival de Satoru y que se asusta. Uno de los que se salva."],
+
+  ["Kumi", "", "supporting", "久美", "Reika Uyama",
+   "La compañera de clase que se salva por estar con el grupo. Poca atención, mucha suerte."],
+
+  ["Sawada", "", "supporting", "澤田", "Tooru Ookawa",
+   "El policía que investiga los secuestros y que sigue la pista de Yashiro."],
+
+  ["Hamada", "", "supporting", "浜田", "Asami Yoshida",
+   "El compañero de clase que se salva por estar con el grupo."],
+
+  ["Aya Nakanishi", "", "supporting", "中西彩", "Sayaka Kaneko",
+   "La compañera de clase que se salva por estar con el grupo."],
 ];

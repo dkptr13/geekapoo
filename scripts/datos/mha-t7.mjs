@@ -1,0 +1,51 @@
+// TEMPORADA 7 - My Hero Academia (2024)
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// 21 capitulos. Los titulos japoneses y las fechas salen de Wikipedia;
+// las notas, de IMDb (serie tt5626028, 8,2 con unos 128.000 votos).
+
+export const T7 = [
+  [1, '¡A tiempo! Un granuja del oeste', '欧米ギリギリ!!ぶっちぎりの凄い奴', '2024-05-04', 8.5,
+    '¡A tiempo! Un granuja del oeste. Un granuja del oeste.'],
+  [2, 'Espectro', '亡霊', '2024-05-11', 9.1,
+    'Espectro. Un espectro aparece en la batalla final.'],
+  [3, 'Villano', '敵', '2024-05-18', 8,
+    'Villano. Un villano se revela en la batalla final.'],
+  [4, 'La historia de cómo todos nos hicimos héroes', '皆がヒーローになるまでの物語', '2024-05-25', 7.2,
+    'La historia de cómo todos nos hicimos héroes. La historia de los héroes.'],
+  [5, 'Let You Down', '', '2024-06-01', 7.9,
+    'Let You Down. El villano deja caer a Deku.'],
+  [6, 'División', '', '2024-06-08', 8.8,
+    'División. La clase se divide en equipos.'],
+  [7, 'Inflación', '', '2024-06-15', 7.8,
+    'Inflación. La inflación del poder de Deku.'],
+  [8, 'Dos llamaradas', '二つの赫灼', '2024-06-22', 9.3,
+    'Dos llamaradas. Dos llamaradas.'],
+  [9, 'Extras', '', '2024-06-29', 8.5,
+    'Extras. Los extras de la batalla final.'],
+  [10, 'Héroe herido, ardiendo brillante', '焼身照命!! 手負いのヒーロー', '2024-07-13', 9.3,
+    'Héroe herido, ardiendo brillante. El héroe herido.'],
+  [11, 'La luz se desvanece en lluvia', '', '2024-07-20', 9.7,
+    'La luz se desvanece en lluvia. La luz se desvanece.'],
+  [12, 'Los que defienden, los que violan', '禦ぐ者と侵す者', '2024-08-03', 9,
+    'Los que defienden, los que violan. Los que defienden.'],
+  [13, 'Una cadena de eventos', '連なる星霜', '2024-08-17', 9.5,
+    'Una cadena de eventos. La cadena de eventos.'],
+  [14, 'Junto a Shoji', 'しょーじくんといっしょ。', '2024-08-24', 8.1,
+    'Junto a Shoji. Shoji lucha junto a sus compañeros.'],
+  [15, 'Efecto mariposa', '', '2024-08-31', 8.1,
+    'Efecto mariposa. El efecto mariposa.'],
+  [16, 'La cadena hasta ahora', 'ここに至るまでの連なり', '2024-09-07', 9,
+    'La cadena hasta ahora. La cadena.'],
+  [17, 'Esperanzas', '', '2024-09-14', 8.7,
+    'Esperanzas. Las esperanzas de la clase 1-A.'],
+  [18, 'Es un mundo pequeño', '', '2024-09-21', 8.8,
+    'Es un mundo pequeño. Un mundo pequeño.'],
+  [19, 'Estoy aquí', '', '2024-09-28', 9.8,
+    'Estoy aquí. Deku está aquí para luchar.'],
+  [20, 'El ego de una chica', '少女のエゴ', '2024-10-05', 8.7,
+    'El ego de una chica. El ego de una chica.'],
+  [21, 'Batalla sin "quirk"', '"個性"無き戦い', '2024-10-12', 9.4,
+    'Batalla sin "quirk". La batalla sin quirk.'],
+];

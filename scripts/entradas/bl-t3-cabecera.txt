@@ -1,0 +1,14 @@
+// TEMPORADA 3 - Blue Lock VS. U-20 JAPAN (2024)
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// El arco de la U-20 es la segunda parte de la serie en Japon y
+// va despues de la pelicula de Nagi. Catorce capitulos del 5 de
+// octubre al 28 de diciembre de 2024.
+//
+// Los titulos japoneses salen de TVDB (408629, temporada 2) y los
+// titulos, las fechas y las notas, de IMDb (tt15222080, temporada 2).
+//
+// La tercera temporada de la serie en Japon, NEO EGOIST LEAGUE, no
+// esta en IMDb ni en TVDB con capitulos: no hay de donde sacar sus
+// titulos, fechas ni notas, asi que no entra.

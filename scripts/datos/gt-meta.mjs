@@ -29,6 +29,21 @@ export const ANIME = {
 
 export const ANIME_ID = 'golden-time';
 
+// ── TITULOS ALTERNATIVOS ──────────────────────────────────────
+//
+// Lo que la gente escribe para encontrar esta obra en el buscador:
+// el titulo en ingles, el romanizado, el japones con otro criterio y
+// los sinónimos que de verdad se usan. Los escribe el agente que anade
+// el anime, a mano, y se guardan en "alternativeTitles" del documento de
+// Firestore, que es lo que la busqueda inteligente ya lee.
+//
+// Solo titulos de ESTA obra: nada de lo que pertenezca a otra serie.
+// Y sin repeticiones: el buscador normaliza los titulos, asi que dos
+// alias que se leen igual sobran.
+export const ALIASES = [
+  'Golden Time (2013)',
+];
+
 /**
  * Nota de la serie completa en IMDb, serie tt3105452: 7,6 con unos
  * 7.000 votos. El 24 es lo mejor con 8,9 y el 7 lo peor con 6,3.

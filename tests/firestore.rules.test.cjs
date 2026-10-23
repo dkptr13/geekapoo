@@ -588,20 +588,20 @@ describe('gamificacion: XP y medallas', () => {
       await assertFails(updateDoc(doc(db(BOB), 'users', BOB), { role: 'admin' }));
     });
 
-    it('un moderador sigue pudiendo banear a un usuario normal', async () => {
+    it('un moderador NO puede banear escribiendo el documento', async () => {
+      // El baneo solo lo aplica la callable `banearUsuario`, que
+      // escribe también `accountRestrictions` en la misma
+      // transacción. Si el cliente pudiera poner `isBanned`, las
+      // dos copias se desincronizarían (un "desbaneo" desde el
+      // panel dejaría la restricción duradera activa).
+      await assertFails(updateDoc(doc(db(MOD), 'users', BOB), { isBanned: true }));
       await assertFails(
         updateDoc(doc(db(MOD), 'users', BOB), { isBanned: true, xp: 5000 }),
-        // Deberia FALLAR porque toca xp tambien.
       );
     });
 
-    it('el moderador puede banear SINO tocar el XP', async () => {
-      await assertSucceeds(updateDoc(doc(db(MOD), 'users', BOB), { isBanned: true }));
-      // Se deshace para que el resto de pruebas no salga de una
-      // cuenta baneada (y porque una cuenta baneada no puede
-      // publicar, que es justo lo que comprueba la prueba de
-      // hilos de abajo).
-      await assertSucceeds(updateDoc(doc(db(MOD), 'users', BOB), { isBanned: false }));
+    it('ni un admin puede banear escribiendo el documento', async () => {
+      await assertFails(updateDoc(doc(db('jefe'), 'users', BOB), { isBanned: true }));
     });
 
     it('una cuenta SIN campo isBanned puede publicar igual', async () => {

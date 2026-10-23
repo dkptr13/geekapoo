@@ -1,0 +1,12 @@
+// TEMPORADA 1 - Haikyuu!! (2014)
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// Veinticinco capitulos del 5 de abril al 21 de septiembre de 2014,
+// en Production I.G. Los titulos japoneses salen de la tabla de
+// capitulos de la wiki en japones; los titulos, las fechas y las
+// notas, de IMDb (serie tt3398540, 57.456 votos, nota 8,7).
+//
+// Los titulos en ingles son los de IMDb y los japoneses los de la
+// wiki: cada fuente pone el suyo y no siempre coinciden, asi que se
+// guardan los dos.

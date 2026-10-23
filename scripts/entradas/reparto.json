@@ -1,0 +1,878 @@
+{
+  "20464": [
+    {
+      "id": 64769,
+      "rol": "main",
+      "nombre": "Shouyou Hinata",
+      "ja": "日向翔陽",
+      "voz": "Ayumu Murase",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b64769-WoWlCMLLgJ14.png"
+    },
+    {
+      "id": 64771,
+      "rol": "main",
+      "nombre": "Tobio Kageyama",
+      "ja": "影山飛雄",
+      "voz": "Kaito Ishikawa",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b64771-BuCVs7B8bBdh.png"
+    },
+    {
+      "id": 67321,
+      "rol": "supporting",
+      "nombre": "Koushi Sugawara",
+      "ja": "菅原孝支",
+      "voz": "Miyu Irino",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b67321-cxP7NdI0JC3H.png"
+    },
+    {
+      "id": 67323,
+      "rol": "supporting",
+      "nombre": "Daichi Sawamura",
+      "ja": "澤村大地",
+      "voz": "Satoshi Hino",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b67323-yFbLDAfJ5ysG.png"
+    },
+    {
+      "id": 67325,
+      "rol": "supporting",
+      "nombre": "Ryuunosuke Tanaka",
+      "ja": "田中龍之介",
+      "voz": "Yuu Hayashi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b67325-yPkbZJkofp5w.jpg"
+    },
+    {
+      "id": 67327,
+      "rol": "supporting",
+      "nombre": "Yuu Nishinoya",
+      "ja": "西谷夕",
+      "voz": "Nobuhiko Okamoto",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b67327-zQb1dlC7joPb.jpg"
+    },
+    {
+      "id": 67329,
+      "rol": "supporting",
+      "nombre": "Kei Tsukishima",
+      "ja": "月島蛍",
+      "voz": "Kouki Uchiyama",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b67329-k7mDdqQ6rJ4w.png"
+    },
+    {
+      "id": 67331,
+      "rol": "supporting",
+      "nombre": "Chikara Ennoshita",
+      "ja": "縁下力",
+      "voz": "Toshiki Masuda",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/n67331-skTD3AJ7jrWr.png"
+    },
+    {
+      "id": 67333,
+      "rol": "supporting",
+      "nombre": "Asahi Azumane",
+      "ja": "東峰旭",
+      "voz": "Yoshimasa Hosoya",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b67333-on5KXeKxZqKs.png"
+    },
+    {
+      "id": 67689,
+      "rol": "supporting",
+      "nombre": "Kiyoko Shimizu",
+      "ja": "清水潔子",
+      "voz": "Kaori Nazuka",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b67689-QaYw1qDMjwKM.png"
+    },
+    {
+      "id": 70857,
+      "rol": "supporting",
+      "nombre": "Kouji Sekimukai",
+      "ja": "関向幸治",
+      "voz": "Seigo Yokota",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b70857-UXTpSRfkS1Xj.png"
+    },
+    {
+      "id": 70859,
+      "rol": "supporting",
+      "nombre": "Yukitaka Izumi",
+      "ja": "泉行高",
+      "voz": "Kyousuke Ikeda",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b70859-IZDZD34pzMms.png"
+    },
+    {
+      "id": 70861,
+      "rol": "supporting",
+      "nombre": "Keishin Ukai",
+      "ja": "烏養繋心",
+      "voz": "Kazunari Tanaka",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b70861-mW9IE5G9Ov8J.jpg"
+    },
+    {
+      "id": 71267,
+      "rol": "supporting",
+      "nombre": "Kenma Kozume",
+      "ja": "孤爪研磨",
+      "voz": "Yuuki Kaji",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b71267-q44J2MXMinXD.jpg"
+    },
+    {
+      "id": 71269,
+      "rol": "supporting",
+      "nombre": "Tetsurou Kuroo",
+      "ja": "黒尾鉄朗",
+      "voz": "Yuuichi Nakamura",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b71269-pi9vjyxKPFAu.jpg"
+    },
+    {
+      "id": 71609,
+      "rol": "supporting",
+      "nombre": "Tadashi Yamaguchi",
+      "ja": "山口忠",
+      "voz": "Souma Saitou",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b71609-5Ht0aqB34eEa.png"
+    },
+    {
+      "id": 71611,
+      "rol": "supporting",
+      "nombre": "Tooru Oikawa",
+      "ja": "及川徹",
+      "voz": "Daisuke Namikawa",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b71611-cUZwVfzeNXD9.png"
+    },
+    {
+      "id": 73673,
+      "rol": "supporting",
+      "nombre": "Taketora Yamamoto",
+      "ja": "山本猛虎",
+      "voz": "Seigo Yokota",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/n73673-SbfcLzHol5y7.jpg"
+    },
+    {
+      "id": 73675,
+      "rol": "supporting",
+      "nombre": "Sou Inuoka",
+      "ja": "犬岡走",
+      "voz": "Kyousuke Ikeda",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/n73675-23YnN9WbIVIc.jpg"
+    },
+    {
+      "id": 73677,
+      "rol": "supporting",
+      "nombre": "Yuuki Shibayama",
+      "ja": "芝山優生",
+      "voz": "Takumi Watanabe",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b73677-Q6cR5bzHez9T.jpg"
+    },
+    {
+      "id": 73679,
+      "rol": "supporting",
+      "nombre": "Ittetsu Takeda",
+      "ja": "武田一鉄",
+      "voz": "Hiroshi Kamiya",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/n73679-OS9fOsMjSJua.png"
+    },
+    {
+      "id": 73681,
+      "rol": "supporting",
+      "nombre": "Yuutarou Kindaichi",
+      "ja": "金田一勇太郎",
+      "voz": "Makoto Furukawa",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b73681-DBHzToOoEFVb.jpg"
+    },
+    {
+      "id": 74029,
+      "rol": "supporting",
+      "nombre": "Nobuyuki Kai",
+      "ja": "海信行",
+      "voz": "Takanori Hoshino",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/n74029-xW8i6uI2NdEY.jpg"
+    },
+    {
+      "id": 74033,
+      "rol": "supporting",
+      "nombre": "Morisuke Yaku",
+      "ja": "夜久衛輔",
+      "voz": "Shinnosuke Tachibana",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b74033-pevzERaxK8hB.png"
+    },
+    {
+      "id": 74039,
+      "rol": "supporting",
+      "nombre": "Shouhei Fukunaga",
+      "ja": "福永招平",
+      "voz": "Shouta Chounan",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b74039-Jja8IH5oQcuT.jpg"
+    },
+    {
+      "id": 74591,
+      "rol": "supporting",
+      "nombre": "Manabu Naoi",
+      "ja": "直井学",
+      "voz": "Kanehira Yamamoto",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b74591-mkUKSp93qOKU.jpg"
+    },
+    {
+      "id": 74593,
+      "rol": "supporting",
+      "nombre": "Yasufumi Nekomata",
+      "ja": "猫又育史",
+      "voz": "Nobuaki Fukuda",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b74593-Mal8sd4pNOVF.jpg"
+    },
+    {
+      "id": 75636,
+      "rol": "supporting",
+      "nombre": "Hajime Iwaizumi",
+      "ja": "岩泉一",
+      "voz": "Hiroyuki Yoshino",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b75636-d8LM75218eDS.png"
+    },
+    {
+      "id": 76814,
+      "rol": "supporting",
+      "nombre": "Hayato Ikejiri",
+      "ja": "池尻隼人",
+      "voz": "Hiromu Miyazaki",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b76814-U1bpPGfQdZkA.jpg"
+    },
+    {
+      "id": 77165,
+      "rol": "supporting",
+      "nombre": "Yui Michimiya",
+      "ja": "道宮結",
+      "voz": "Asami Seto",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b77165-H2YhpXe7bk9u.jpg"
+    },
+    {
+      "id": 77413,
+      "rol": "supporting",
+      "nombre": "Kaname Moniwa",
+      "ja": "茂庭要",
+      "voz": "Takashi Onozuka",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b77413-XuqkC1XD1T22.png"
+    },
+    {
+      "id": 77415,
+      "rol": "supporting",
+      "nombre": "Kenji Futakuchi",
+      "ja": "二口堅治",
+      "voz": "Masatomo Nakazawa",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b77415-T3E1rohigs8j.jpg"
+    },
+    {
+      "id": 77417,
+      "rol": "supporting",
+      "nombre": "Takanobu Aone",
+      "ja": "青根高伸",
+      "voz": "Hiroki Matsukawa",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b77417-XxLvn0PHaPGG.jpg"
+    },
+    {
+      "id": 77419,
+      "rol": "supporting",
+      "nombre": "Nobuteru Irihata",
+      "ja": "入畑伸照 ",
+      "voz": "Mitsuaki Hoshino",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b77419-MunWILU6gUJa.jpg"
+    },
+    {
+      "id": 80511,
+      "rol": "supporting",
+      "nombre": "Yuusuke Takinoue",
+      "ja": "滝ノ上祐輔",
+      "voz": "Shuuhei Sakaguchi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b80511-UdUNR2OI5ipW.png"
+    },
+    {
+      "id": 80513,
+      "rol": "supporting",
+      "nombre": "Makoto Shimada",
+      "ja": "嶋田誠",
+      "voz": "Tomoaki Maeno",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/80513.jpg"
+    },
+    {
+      "id": 80515,
+      "rol": "supporting",
+      "nombre": "Hisashi Kinoshita",
+      "ja": "木下久志",
+      "voz": "Nobuyori Sagara",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b80515-iSRjeok2Ogif.jpg"
+    },
+    {
+      "id": 80517,
+      "rol": "supporting",
+      "nombre": "Kazuhito Narita",
+      "ja": "成田一仁",
+      "voz": "Koutarou Nishiyama",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/80517-NOTmRuD0WECQ.jpg"
+    },
+    {
+      "id": 89508,
+      "rol": "supporting",
+      "nombre": "Akira Kunimi",
+      "ja": "国見英",
+      "voz": "Atsushi Tamaru",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b89508-Qx1QErebdTaD.jpg"
+    },
+    {
+      "id": 137468,
+      "rol": "supporting",
+      "nombre": "Issei Matsukawa",
+      "ja": "松川一静",
+      "voz": "Isamu Yuusen",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137468-fjZut9jfWPf6.png"
+    },
+    {
+      "id": 137469,
+      "rol": "supporting",
+      "nombre": "Shinji Watari",
+      "ja": "渡親治",
+      "voz": "Arthur Lounsbery",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137469-eT6wrlHXWuv6.jpg"
+    },
+    {
+      "id": 137470,
+      "rol": "supporting",
+      "nombre": "Takahiro Hanamaki",
+      "ja": "花巻貴大",
+      "voz": "Tooru Sakurai",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137470-bM0JpKqbB0oK.png"
+    },
+    {
+      "id": 137471,
+      "rol": "supporting",
+      "nombre": "Sadayuki Mizoguchi",
+      "ja": "溝口貞幸",
+      "voz": "Seirou Ogino",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137471-AKKCdEj83s76.png"
+    },
+    {
+      "id": 137472,
+      "rol": "supporting",
+      "nombre": "Shigeru Yahaba",
+      "ja": "矢巾秀",
+      "voz": "Kengo Kawanishi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137472-iEIwkEV8ATZk.jpg"
+    },
+    {
+      "id": 137473,
+      "rol": "supporting",
+      "nombre": "Tamahiko Teshiro",
+      "ja": "手白球彦",
+      "voz": "",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137473-RWG3xtfKR7Da.png"
+    },
+    {
+      "id": 137482,
+      "rol": "supporting",
+      "nombre": "Takurou Oiwake",
+      "ja": "追分拓朗",
+      "voz": "Shinichirou Miki",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137482-EgU20W0nK30E.png"
+    },
+    {
+      "id": 137484,
+      "rol": "supporting",
+      "nombre": "Yutaka Obara",
+      "ja": "小原豊",
+      "voz": "Isamu Yuusen",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137484-4ZEEgblmwOSJ.png"
+    },
+    {
+      "id": 137485,
+      "rol": "supporting",
+      "nombre": "Kousuke Sakunami",
+      "ja": "作並浩輔",
+      "voz": "Mao Oonishi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137485-6YpryJyKtuc5.png"
+    },
+    {
+      "id": 137486,
+      "rol": "supporting",
+      "nombre": "Takehito Sasaya",
+      "ja": "笹谷武仁",
+      "voz": "Junji Majima",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137486-3eGWIl1faU31.png"
+    },
+    {
+      "id": 137541,
+      "rol": "supporting",
+      "nombre": "Ikkei Ukai",
+      "ja": "烏養一繋",
+      "voz": "Hiroshi Naka",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137541-ezvI4unNftsC.png"
+    },
+    {
+      "id": 137604,
+      "rol": "supporting",
+      "nombre": "Taiga Sakurai",
+      "ja": "桜井大河",
+      "voz": "Arthur Lounsbery",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137604-fPVY7XgzBVFt.png"
+    },
+    {
+      "id": 137605,
+      "rol": "supporting",
+      "nombre": "Kazuma Chaya",
+      "ja": "茶屋和馬",
+      "voz": "Kiyohito Yoshikai",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137605-0SJQebSWBpvz.png"
+    },
+    {
+      "id": 137606,
+      "rol": "supporting",
+      "nombre": "Yoshiharu Haga",
+      "ja": "芳賀良治",
+      "voz": "Kiyotaka Furushima",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137606-O7BCDqjkY0Kc.png"
+    },
+    {
+      "id": 137607,
+      "rol": "supporting",
+      "nombre": "Hikaru Komaki",
+      "ja": "駒木輝",
+      "voz": "Ken Takeuchi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137607-mAIFdXKNftVs.jpg"
+    },
+    {
+      "id": 137608,
+      "rol": "supporting",
+      "nombre": "Rikuto Shibuya",
+      "ja": "渋谷陸斗",
+      "voz": "Nobuyori Sagara",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137608-nPBrgOOiUWy2.png"
+    },
+    {
+      "id": 137609,
+      "rol": "supporting",
+      "nombre": "Hiroki Tamagawa",
+      "ja": "玉川弘樹",
+      "voz": "Takashi Oohara",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b137609-mqvX50Zu0VHK.png"
+    },
+    {
+      "id": 139519,
+      "rol": "supporting",
+      "nombre": "Natsu Hinata",
+      "ja": "日向夏",
+      "voz": "Haruka Yamazaki",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b139519-RX8EDSLsgZ7S.png"
+    },
+    {
+      "id": 139523,
+      "rol": "supporting",
+      "nombre": "Hidenori Uchizawa",
+      "ja": "内沢英紀",
+      "voz": "Ryo Kuratomi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b139523-EBn51tZKEZWc.png"
+    },
+    {
+      "id": 139525,
+      "rol": "supporting",
+      "nombre": "Yukinari Mori",
+      "ja": "森行成",
+      "voz": "Tooru Sakurai",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b139525-Cvem9gkKeNrK.png"
+    },
+    {
+      "id": 290163,
+      "rol": "supporting",
+      "nombre": "Asuka Hirama",
+      "ja": "平間あすか",
+      "voz": "Ai Kakuma",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b290163-uDfPsXmEEe2r.jpg"
+    },
+    {
+      "id": 290164,
+      "rol": "supporting",
+      "nombre": "Manaka Ujiie",
+      "ja": "氏家愛花",
+      "voz": "Haruka Terui",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b290164-buJA35e3Cw4q.jpg"
+    },
+    {
+      "id": 290165,
+      "rol": "supporting",
+      "nombre": "Chizuru Sasaki",
+      "ja": "佐々木千鶴",
+      "voz": "Hyang-Lee Kim",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b290165-cQ84dCjQaDl6.jpg"
+    },
+    {
+      "id": 290202,
+      "rol": "supporting",
+      "nombre": "Yasushi Kamasaki",
+      "ja": "鎌先靖志",
+      "voz": "Takuya Satou",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b290202-EXzXudq8MNEI.jpg"
+    },
+    {
+      "id": 290203,
+      "rol": "supporting",
+      "nombre": "Kyoutou",
+      "ja": "教頭",
+      "voz": "Yasumichi Kushida",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b290203-o4BCJp17CYQQ.jpg"
+    },
+    {
+      "id": 290205,
+      "rol": "supporting",
+      "nombre": "Mao Aihara",
+      "ja": "相原真緒",
+      "voz": "Rie Suegara",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b290205-mEyG2nYbiM2e.jpg"
+    }
+  ],
+  "137822": [
+    {
+      "id": 140856,
+      "rol": "main",
+      "nombre": "Yoichi Isagi",
+      "ja": "潔世一",
+      "voz": "Kazuki Ura",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b140856-wVzKSyvU7R5B.png"
+    },
+    {
+      "id": 162213,
+      "rol": "main",
+      "nombre": "Meguru Bachira",
+      "ja": "蜂楽廻",
+      "voz": "Tasuku Kaito",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b162213-4czykzdxmWG6.png"
+    },
+    {
+      "id": 162214,
+      "rol": "main",
+      "nombre": "Rensuke Kunigami",
+      "ja": "國神錬介",
+      "voz": "Yuuki Ono",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b162214-9x9Q3A9rxpx8.png"
+    },
+    {
+      "id": 167444,
+      "rol": "main",
+      "nombre": "Hyouma Chigiri",
+      "ja": "千切豹馬",
+      "voz": "Souma Saitou",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b167444-JTHkkJAX4E3q.png"
+    },
+    {
+      "id": 140857,
+      "rol": "supporting",
+      "nombre": "Jinpachi Ego",
+      "ja": "絵心甚八",
+      "voz": "Hiroshi Kamiya",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b140857-DOTyKBCufon9.png"
+    },
+    {
+      "id": 140859,
+      "rol": "supporting",
+      "nombre": "Ryousuke Kira",
+      "ja": "吉良涼介",
+      "voz": "Kenichi Suzumura",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b140859-NVKkWDRxfjmv.png"
+    },
+    {
+      "id": 162969,
+      "rol": "supporting",
+      "nombre": "Seishirou Nagi",
+      "ja": "凪誠士郎",
+      "voz": "Nobunaga Shimazaki",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b162969-WGnGyVQrFi0X.png"
+    },
+    {
+      "id": 169392,
+      "rol": "supporting",
+      "nombre": "Wataru Kuon",
+      "ja": "久遠渡",
+      "voz": "Masatomo Nakazawa",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169392-IWGJIFHcBsLa.png"
+    },
+    {
+      "id": 169393,
+      "rol": "supporting",
+      "nombre": "Yudai Imamura",
+      "ja": "今村遊大",
+      "voz": "Shouya Chiba",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169393-v2sZMcol9gtH.jpg"
+    },
+    {
+      "id": 169394,
+      "rol": "supporting",
+      "nombre": "Reo Mikage",
+      "ja": "御影玲王",
+      "voz": "Yuuma Uchida",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169394-8KDqHUN1VyGC.png"
+    },
+    {
+      "id": 169395,
+      "rol": "supporting",
+      "nombre": "Rin Itoshi",
+      "ja": "糸師凛",
+      "voz": "Kouki Uchiyama",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169395-oYTkJnimI3Eu.png"
+    },
+    {
+      "id": 169396,
+      "rol": "supporting",
+      "nombre": "Aoshi Tokimitsu",
+      "ja": "時光青志",
+      "voz": "Shinnosuke Tachibana",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169396-H7Te5t4JXfRU.png"
+    },
+    {
+      "id": 169397,
+      "rol": "supporting",
+      "nombre": "Sae Itoshi",
+      "ja": "糸師冴",
+      "voz": "Takahiro Sakurai",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169397-wC55onsv5u8t.jpg"
+    },
+    {
+      "id": 169398,
+      "rol": "supporting",
+      "nombre": "Gurimu Igarashi",
+      "ja": "五十嵐栗夢",
+      "voz": "Aoi Ichikawa",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169398-jGTUsTkP7z4H.png"
+    },
+    {
+      "id": 169399,
+      "rol": "supporting",
+      "nombre": "Okuhito Iemon",
+      "ja": "伊右衛門送人",
+      "voz": "Ryuunosuke Watanuki",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169399-Y9TEpu1qhsWK.jpg"
+    },
+    {
+      "id": 169400,
+      "rol": "supporting",
+      "nombre": "Jyuubei Aryuu",
+      "ja": "蟻生十兵衛",
+      "voz": "Katsuyuki Konishi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169400-ulG1Ke7yRn7Y.png"
+    },
+    {
+      "id": 169401,
+      "rol": "supporting",
+      "nombre": "Shouei Barou",
+      "ja": "馬狼照英",
+      "voz": "Junichi Suwabe",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169401-jeepvEsqW4Ns.png"
+    },
+    {
+      "id": 169402,
+      "rol": "supporting",
+      "nombre": "Jingo Raichi",
+      "ja": "雷市陣吾",
+      "voz": "Yoshitsugu Matsuoka",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169402-JlISsoEunCxH.png"
+    },
+    {
+      "id": 169403,
+      "rol": "supporting",
+      "nombre": "Ikki Niko",
+      "ja": "二子一揮",
+      "voz": "Natsuki Hanae",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169403-x8h2FGUA5eya.png"
+    },
+    {
+      "id": 169404,
+      "rol": "supporting",
+      "nombre": "Gin Gagamaru",
+      "ja": "我牙丸吟",
+      "voz": "Shuugo Nakamura",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169404-90OF8t2ukD9H.jpg"
+    },
+    {
+      "id": 169405,
+      "rol": "supporting",
+      "nombre": "Anri Teieri",
+      "ja": "帝襟アンリ",
+      "voz": "Eri Yukimura",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169405-RFVC95ooQp13.png"
+    },
+    {
+      "id": 169406,
+      "rol": "supporting",
+      "nombre": "Zantetsu Tsurugi",
+      "ja": "剣城斬鉄",
+      "voz": "Kazuyuki Okitsu",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b169406-wTagOOkC7fi5.jpg"
+    },
+    {
+      "id": 179957,
+      "rol": "supporting",
+      "nombre": "Asahi Naruhaya",
+      "ja": "成早朝日",
+      "voz": "Daishi Kajita",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b179957-IjUVBSDq8tWc.png"
+    },
+    {
+      "id": 186875,
+      "rol": "supporting",
+      "nombre": "Ryuusei Shidou",
+      "ja": "士道龍聖",
+      "voz": "Yuuichi Nakamura",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b186875-JGHisZO21JxJ.png"
+    },
+    {
+      "id": 187523,
+      "rol": "supporting",
+      "nombre": "Eita Otoya",
+      "ja": "乙夜影汰",
+      "voz": "Kengo Kawanishi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b187523-84UYaB9Xtg8O.png"
+    },
+    {
+      "id": 187524,
+      "rol": "supporting",
+      "nombre": "Tabito Karasu",
+      "ja": "烏旅人",
+      "voz": "Makoto Furukawa",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b187524-HlZ4yDd2eGcT.png"
+    },
+    {
+      "id": 191409,
+      "rol": "supporting",
+      "nombre": "Kenyu Yukimiya",
+      "ja": "雪宮剣優",
+      "voz": "Takuya Eguchi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b191409-qU7sRhVmpgRQ.png"
+    },
+    {
+      "id": 269064,
+      "rol": "supporting",
+      "nombre": "Julian Loki",
+      "ja": "ジュリアン・ロキ",
+      "voz": "Hiro Shimono",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b269064-h21qmRQjaek6.jpg"
+    },
+    {
+      "id": 269065,
+      "rol": "supporting",
+      "nombre": "Adam Blake",
+      "ja": "アダム・ブレイク",
+      "voz": "Daisuke Takahashi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b269065-Ofvc4btZNih1.jpg"
+    },
+    {
+      "id": 284964,
+      "rol": "supporting",
+      "nombre": "Junichi Wanima",
+      "ja": "鰐間淳壱",
+      "voz": "Ryouta Suzuki",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b284964-uVJVSIAr2cB3.jpg"
+    },
+    {
+      "id": 284965,
+      "rol": "supporting",
+      "nombre": "Keisuke Wanima",
+      "ja": "鰐間計助",
+      "voz": "Ryouta Suzuki",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b284965-93igj5yBKpDO.jpg"
+    },
+    {
+      "id": 289961,
+      "rol": "supporting",
+      "nombre": "Hibiki Ookawa",
+      "ja": "大川響鬼",
+      "voz": "Yuuki Shin",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b289961-0C6DkMMCP1m1.png"
+    },
+    {
+      "id": 290639,
+      "rol": "supporting",
+      "nombre": "Hirotoshi Buratsuta",
+      "ja": "不乱蔦宏俊",
+      "voz": "Bin Shimada",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b290639-s0Hs0fRbshWI.png"
+    },
+    {
+      "id": 291170,
+      "rol": "supporting",
+      "nombre": "Shuusaku Nihei",
+      "ja": "弐瓶集作",
+      "voz": "Yoshihito Sasaki",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b291170-kgPlxRoWbAwi.jpg"
+    },
+    {
+      "id": 291176,
+      "rol": "supporting",
+      "nombre": "Girolan Dabadie",
+      "ja": "ジローラン・ダバディ",
+      "voz": "Souta Arai",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b291176-uLbEKe4sBj1c.jpg"
+    },
+    {
+      "id": 293017,
+      "rol": "supporting",
+      "nombre": "Reo no Chichi",
+      "ja": "玲王の父",
+      "voz": "Hiroki Touchi",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b293017-RJCTt5gWb4D9.jpg"
+    },
+    {
+      "id": 293018,
+      "rol": "supporting",
+      "nombre": "Reo no Haha",
+      "ja": "玲王の母",
+      "voz": "Saori Hayami",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b293018-g1LzHzVQWewm.jpg"
+    },
+    {
+      "id": 293893,
+      "rol": "supporting",
+      "nombre": "Issei Isagi",
+      "ja": "潔一生",
+      "voz": "Kouichi Souma",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b293893-AtEc9JdGiyHG.jpg"
+    },
+    {
+      "id": 293894,
+      "rol": "supporting",
+      "nombre": "Iyo Isagi",
+      "ja": "潔伊世",
+      "voz": "Mai Nakahara",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b293894-SVjDnQE0aIYm.jpg"
+    },
+    {
+      "id": 297190,
+      "rol": "supporting",
+      "nombre": "Mahiru Naruhaya",
+      "ja": "成早真昼",
+      "voz": "Yui Horie",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b297190-b2Zc3X782Dpt.png"
+    },
+    {
+      "id": 299060,
+      "rol": "supporting",
+      "nombre": "Yuu Bachira",
+      "ja": "蜂楽優",
+      "voz": "Yuuko Kaida",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b299060-O5zirBDDRc6a.jpg"
+    },
+    {
+      "id": 300790,
+      "rol": "supporting",
+      "nombre": "Dada Silva",
+      "ja": "ダダ・シウバ",
+      "voz": "Robert Waterman",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b300790-OxPfdP6WIOOp.jpg"
+    },
+    {
+      "id": 300811,
+      "rol": "supporting",
+      "nombre": "Leonardo Luna",
+      "ja": "レオナルド・ルナ",
+      "voz": "Shinichirou Kamio",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b300811-znoRRICcQKiL.jpg"
+    },
+    {
+      "id": 300812,
+      "rol": "supporting",
+      "nombre": "Pablo Cabassos",
+      "ja": "パブロ・カバソス",
+      "voz": "Wataru Komada",
+      "img": "https://s4.anilist.co/file/anilistcdn/character/large/b300812-68JTZiSqi5Jp.jpg"
+    }
+  ]
+}

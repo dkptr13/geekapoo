@@ -48,7 +48,7 @@
 
 import { readdir } from 'node:fs/promises';
 import { coleccion, escribir, str, num } from './firestore-rest.mjs';
-import { comoBuscar } from './busquedas-anime.mjs';
+import { comoBuscarTvdb } from './busquedas-anime.mjs';
 import { capituloDe } from './emparejar-capitulo.mjs';
 import { limpiar } from './normalizar-titulo.mjs';
 import { temporadaEnTvdb } from './temporadas-tvdb.mjs';
@@ -308,7 +308,7 @@ for (const anime of animes) {
     continue;
   }
 
-  const termino = comoBuscar(id, str(anime.f, 'title'));
+  const termino = comoBuscarTvdb(id, str(anime.f, 'title'));
 
   let candidatas;
 

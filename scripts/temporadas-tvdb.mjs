@@ -51,9 +51,41 @@
 
 /** @type {Record<string, Record<number, number>>} */
 export const TEMPORADA_TVDB = {
+  // Blue Lock va en orden cronologico y mezcla serie, pelicula y
+  // arco especial. TVDB guarda la pelicula en el cajon de la
+  // temporada 0 (la de todo lo que no es serie de television) y el
+  // arco de la U-20 en su temporada 2.
+  //
+  //   catalogo T1  la serie                      TVDB S1
+  //   catalogo T2  la pelicula EPISODE Nagi      TVDB S0
+  //   catalogo T3  el arco VS. U-20 JAPAN       TVDB S2
+  'blue-lock': { 2: 0, 3: 2 },
+
+  // Haikyuu va en orden cronologico: la serie, el especial de la
+  // U-20 y los dos arcos de 2020. En TVDB la temporada 0 es el
+  // cajon de las peliculas y los OVA, que en el catalogo van
+  // aparte por orden de salida.
+  //
+  //   catalogo T1  la serie                          TVDB S1
+  //   catalogo T2  la segunda temporada             TVDB S2
+  //   catalogo T3  el especial Karasuno vs. Shiratorizawa  TVDB S3
+  //   catalogo T4  los dos arcos de 2020            TVDB S4
+  'haikyuu': { 2: 2, 3: 3, 4: 4 },
+
   // La OVA de Toradora esta en el cajon de la temporada 0 de TVDB y es
   // la temporada 2 del catalogo.
   toradora: { 2: 0 },
+
+  // Chunibyo mezcla dos series de television con dos OVA y una pelicula.
+  // TVDB guarda las tres piezas sueltas en la temporada 0 (S0E1, S0E2 y
+  // S0E4) y las dos series en las temporadas 1 y 2.
+  //
+  //   catalogo T1  la primera serie                TVDB S1
+  //   catalogo T2  la OVA de Navidad               TVDB S0E1
+  //   catalogo T3  Ren                             TVDB S2
+  //   catalogo T4  la OVA de Ren                   TVDB S0E2
+  //   catalogo T5  la pelicula Take On Me          TVDB S0E4
+  'love-chunibyo-and-other-delusions': { 2: 0, 4: 0, 5: 0 },
 
   // Lo mismo con la pelicula previa de No Game No Life. El catalogo la
   // cuenta como temporada 2, que es una pelicula y no un capitulo 0, y
@@ -101,10 +133,21 @@ export const TEMPORADA_TVDB = {
   //   catalogo T5  luna de miel (2024)           TVDB S0E4+E5
   'las-quintillizas': { 3: 0, 4: 0, 5: 0 },
 
-  // La peli de KonoSuba va como T3 y TVDB la guarda en Specials
-  // (S0E5). La T5 es la S3 de TVDB. Bakuen va aparte: es otra serie
-  // en TVDB (420657) y sus miniaturas se ponen a mano.
-  'konosuba': { 3: 0, 5: 3 },
+  // KonoSuba va en orden de emision: tres series, dos OVAs, la peli y
+  // los dos BONUS STAGE. TVDB guarda las series en S1 a S3 y deja las
+  // dos OVAs, la peli y los especiales en Specials (S0E3 a S0E7).
+  // Bakuen va aparte: es otra serie en TVDB (420657) y sus miniaturas
+  // se ponen a mano.
+  //
+  //   catalogo T1  serie 2016              TVDB S1
+  //   catalogo T2  OVA del collar          TVDB S0E3
+  //   catalogo T3  serie 2017              TVDB S2
+  //   catalogo T4  OVA del retrato         TVDB S0E4
+  //   catalogo T5  pelicula 2019           TVDB S0E5
+  //   catalogo T6  Bakuen 2023             TVDB 420657
+  //   catalogo T7  serie 2024              TVDB S3
+  //   catalogo T8  BONUS STAGE 2025        TVDB S0E6 y S0E7
+  'konosuba': { 2: 0, 4: 0, 5: 0, 7: 3, 8: 0 },
 
   // El especial #0.8 de Burn the Witch va como T2 y TVDB lo guarda
   // en Specials (S0E1). La serie ONA coincide sola.
@@ -223,8 +266,94 @@ export const TEMPORADA_TVDB = {
   // aparte en TVDB (339268) y sus miniaturas se ponen a mano,
   // como Bakuen en KonoSuba (420657).
   'steins-gate': { 2: 0 },
-};
 
+  // Hunter x Hunter mete la serie entera en una sola temporada del
+  // catalogo, pero TVDB la parte en tres bloques de produccion. El
+  // emparejador no puede comparar numeros de temporada; usa el titulo
+  // japones unico y el caso SIN_COMPROBAR_NUMERO. Las dos peliculas van
+  // como T2 y T3 y TVDB las guarda en Specials (S0E1 y S0E2).
+  'hunter-x-hunter': { 2: 0, 3: 0 },
+
+  // Overlord: las cuatro temporadas de television coinciden con las de
+  // TVDB (294002), pero van en orden de publicacion, con el OVA y las
+  // peliculas intercalados. El OVA y las tres peliculas van en la
+  // temporada 0, que es el cajon de todo lo que no es serie de
+  // television.
+  //
+  //   catalogo T1  Overlord (2015)          TVDB S1
+  //   catalogo T2  el OVA de 2016            TVDB S0
+  //   catalogo T3  El rey muerto (2017)     TVDB S0
+  //   catalogo T4  El heroe oscuro (2017)   TVDB S0
+  //   catalogo T5  Overlord II (2018)       TVDB S2
+  //   catalogo T6  Overlord III (2018)      TVDB S3
+  //   catalogo T7  Overlord IV (2022)       TVDB S4
+  //   catalogo T8  El reino sagrado (2024)  TVDB S0
+  'overlord': { 2: 0, 3: 0, 4: 0, 5: 2, 6: 3, 7: 4, 8: 0 },
+
+  // Sword Art Online: en orden de publicacion. Las peliculas (el
+  // especial Extra Edition, la Ordinal Scale y las dos de Progressive)
+  // van en la temporada 0. Gun Gale Online es otra serie en TVDB
+  // (335815) y sus miniaturas se ponen a mano, como Bakuen en
+  // KonoSuba (420657).
+  //
+  //   catalogo T1  la serie (2012)              TVDB S1
+  //   catalogo T2  Extra Edition (2013)          TVDB S0
+  //   catalogo T3  SAO II (2014)                TVDB S2
+  //   catalogo T4  Ordinal Scale (2017)          TVDB S0
+  //   catalogo T5  Gun Gale Online (2018)        TVDB 335815
+  //   catalogo T6  Alicization (2018)            TVDB S3
+  //   catalogo T7  War of Underworld (2019)     TVDB S4
+  //   catalogo T8  Progressive, Aria (2021)      TVDB S0
+  //   catalogo T9  Progressive, Scherzo (2022)   TVDB S0
+  //   catalogo T10 Gun Gale Online II (2024)     TVDB 335815
+  //   catalogo T11 Unanswered//butterfly (2026) no esta en TVDB
+  'sword-art-online': { 2: 0, 3: 2, 4: 0, 6: 3, 7: 4, 8: 0, 9: 0, 11: 0 },
+
+  // One Punch Man: las tres temporadas de television coinciden con las
+  // de TVDB (293088), con el especial y los OVA intercalados por fecha
+  // de publicacion. El especial y los dos grupos de OVA van en la
+  // temporada 0.
+  //
+  //   catalogo T1  la serie (2015)          TVDB S1
+  //   catalogo T2  Road to Hero (2015)      TVDB S0
+  //   catalogo T3  los OVA (2015-2016)      TVDB S0
+  //   catalogo T4  One Punch Man 2 (2019)   TVDB S2
+  //   catalogo T5  los OVA 2 (2019-2020)    TVDB S0
+  //   catalogo T6  One Punch Man 3 (2025)   TVDB S3
+  'one-punch-man': { 2: 0, 3: 0, 4: 2, 5: 0, 6: 3 },
+
+  // Mob Psycho 100 y Vinland Saga no necesitan mapa: sus temporadas de
+  // television coinciden con las de TVDB (307375 y 359274). Los capitulos
+  // intercalados (el OVA de Reigen, el especial de Mob Psycho 100 II y
+  // los dos de Vinland Saga) estan en la temporada 0 de TVDB y sus
+  // miniaturas se ponen a mano.
+
+  // Tensei Shitara Slime Datta Ken va en orden de publicacion, con las
+  // pelis y los capitulos originales en DVD intercalados. TVDB (352408)
+  // mete en la temporada 0 todo lo que no es serie de television: los
+  // cinco capitulos en DVD, la peli Scarlet Bond y el ONA de Coleus.
+  //
+  //   catalogo T1  la serie (2018)             TVDB S1
+  //   catalogo T2  los capitulos en DVD (2019)  TVDB S0
+  //   catalogo T3  la segunda (2021)            TVDB S2
+  //   catalogo T4  Scarlet Bond (2022)          TVDB S0
+  //   catalogo T5  Coleus no Yume (2023)        TVDB S0
+  //   catalogo T6  la tercera (2024)            TVDB S3
+  //   catalogo T7  Lágrimas del mar azul (2026) TVDB S0 (no esta aun)
+  //   catalogo T8  la cuarta (2026)             TVDB S4
+  'tensei-shitara-slime-datta-ken': { 2: 0, 3: 2, 4: 0, 5: 0, 6: 3, 7: 0, 8: 4 },
+
+  // Shinmai Maou no Testament va en orden de publicacion, con los dos
+  // OVA y la peli Departures intercalados. TVDB (284719) mete en la
+  // temporada 0 todo lo que no es serie de television.
+  //
+  //   catalogo T1  la primera serie (2015)     TVDB S1
+  //   catalogo T2  el primer OVA (2015)        TVDB S0
+  //   catalogo T3  Burst (2015)                TVDB S2
+  //   catalogo T4  el segundo OVA (2016)       TVDB S0
+  //   catalogo T5  Departures (2018)           TVDB S0
+  'shinmai-maou-no-testament': { 2: 0, 3: 2, 4: 0, 5: 0 },
+};
 /**
  * Que capitulo de TVDB es el capitulo N de una temporada del catalogo.
  *
@@ -363,6 +492,11 @@ export function capituloEnTvdb(animeId, temporada, numero) {
  */
 export const SIN_COMPROBAR_NUMERO = new Set([
   'saekano-how-to-raise-a-boring-girlfriend',
+  // TVDB reparte los 148 episodios en bloques de 58, 78 y 12, que no
+  // son temporadas. El titulo japones de cada episodio es unico, asi
+  // que el emparejador puede buscar por titulo sin comparar el numero
+  // de temporada.
+  'hunter-x-hunter',
 ]);
 
 /**

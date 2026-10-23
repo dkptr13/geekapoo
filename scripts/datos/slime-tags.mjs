@@ -1,0 +1,50 @@
+// ETIQUETAS - Tensei Shitara Slime Datta Ken (2018)
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+//
+// Maximo 40 caracteres por etiqueta. La etiqueta corta sirve para
+// reconocer al personaje en la ficha de la temporada sin leer la
+// descripcion entera.
+export const TAGS = {
+  "Rimuru Tempest": ["Protagonista", "Limo", "Tempest"],
+  "Gran Sabio": ["Habilidad", "Asesor", "Voz interior"],
+  "Veldora Tempest": ["Dragón", "Reyes Demonio", "Manga"],
+  "Shizu": ["Maestra", "Katana", "Alma"],
+  "Benimaru": ["General", "Oni", "Leal"],
+  "Shion": ["Secretaria", "Oni", "Temperamental"],
+  "Shuna": ["Producción", "Oni", "Enamorada"],
+  "Souei": ["Espía", "Oni", "Ninjatō"],
+  "Hakurou": ["Maestro", "Ogro", "Veterano"],
+  "Milim Nava": ["Reyes Demonio", "Demoniaca", "Niña"],
+  "Ramiris": ["Reina", "Hadas", "Madre"],
+  "Diablo": ["Arcaabuzero", "Reyes Demonio", "Admirable"],
+  "Ranga": ["Fenrir", "Lobo", "Guardia"],
+  "Rigurd": ["Duende", "Jefe", "Leal"],
+  "Gobta": ["Duende", "Bromista", "Espía"],
+  "Gabiru": ["Inventor", "Duende", "Exagerado"],
+  "Kurobe": ["Herrero", "Oni", "Tempest"],
+  "Geld": ["Orco", "General", "Honor"],
+  "Treyni": ["Dryada", "Contable", "Bar"],
+  "Frey": ["Reyes Demonio", "Candidata", "Fénix"],
+  "Luminous Valentine": ["Luminaria", "Arca Sagrada", "Rival"],
+  "Hinata Sakaguchi": ["Caballero", "Cruzado", "Rencor"],
+  "Leon Cromwell": ["Reyes Demonio", "Antagonista", "El Dorado"],
+  "Yuuki Kagurazaka": ["Caballero", "Manipulador", "Manga"],
+  "Testarossa": ["Primordial", "Reyes Demonio", "Arco"],
+  "Carrera": ["Archdemonio", "Demonio", "Tempest"],
+  "Ultima": ["Primordial", "Reyes Demonio", "Violeta"],
+  "Kagali": ["Elfa", "Secretaria", "Arlequín"],
+  "Elmesia El-Ru Sarion": ["Emperatriz", "Elfa", "Riqueza"],
+  "Gido": ["Aventurero", "Ladrón", "Guardia"],
+  "Kaval": ["Aventurero", "Luchador", "Guardia"],
+  "Tiss": ["Maestra", "Clase S", "Mandon"],
+  "Souka": ["Hermana", "Espía", "Kijin"],
+  "Chiffon": ["Guerrera", "Acacia", "Coleus"],
+  "Zenobia": ["Princesa", "Enferma", "Coleus"],
+  "Gustav": ["Antagonista", "Médico", "Maldición"],
+  "Djeese": ["Antagonista", "Ministro", "Submarino"],
+  "Zodon": ["Antagonista", "Noble", "Poder"],
+  "Beretta": ["Golem", "Guardia", "Ramis"],
+  "Alice Rondo": ["Clase S", "Títeres", "Magia"],
+  "Chloe Aubert": ["Clase S", "Magia de agua", "Amiga"],
+};

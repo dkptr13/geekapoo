@@ -38,6 +38,35 @@ import { User } from '../types';
 
 
 // ======================================================
+// REGISTRO DURABLE DE BANEOS
+// ======================================================
+//
+// El baneo de verdad no vive en `users/{uid}.isBanned` (ese
+// documento lo puede borrar su dueño), sino en
+// `accountRestrictions/{uid}`, que solo escriben las Cloud
+// Functions. Se consulta al crear un perfil porque el perfil se
+// puede borrar y recrear: sin esta lectura, un baneado que borrase
+// su documento volvería con `isBanned: false`.
+//
+// Si la lectura falla (reglas antiguas, sin conexión...), se
+// devuelve `false` y no se inventa un baneo: las reglas de
+// Firestore y Storage consultan el registro en cada escritura de
+// todos modos.
+async function restriccionVigente(uid: string): Promise<boolean> {
+  try {
+    const snap = await getDoc(doc(db, 'accountRestrictions', uid));
+    if (!snap.exists()) return false;
+
+    const data = snap.data() as { activo?: boolean; tipo?: string };
+    return data.activo === true && data.tipo === 'ban';
+  } catch (e) {
+    console.error('[Auth] No se pudo leer el registro de restricciones:', e);
+    return false;
+  }
+}
+
+
+// ======================================================
 // TIPOS
 // ======================================================
 
@@ -352,7 +381,7 @@ export const AuthProvider = ({
 
         pararDoc = onSnapshot(
           userDocRef,
-          (userDoc) => {
+          async (userDoc) => {
 
             // ✅ LOG AÑADIDO AQUÍ
             console.log('perfil en vivo - ¿Existe doc?', userDoc.exists());
@@ -369,8 +398,20 @@ export const AuthProvider = ({
               // texto ISO, igual que en el directorio de usuarios
               // de arriba: si no, un `serverTimestamp` recién
               // escrito llegaría como objeto y no como string.
+              //
+              // El baneo se mira en las dos fuentes: la bandera del
+              // perfil y el registro duradero. Hace falta porque un
+              // baneado puede borrar su perfil y la app lo recrea
+              // con `isBanned: false`; sin esta lectura, la interfaz
+              // le diría que está activo aunque las reglas le sigan
+              // bloqueando las escrituras.
+              const baneado =
+                firestoreUser.isBanned === true ||
+                (await restriccionVigente(fbUser.uid));
+
               setCurrentUser({
                 ...firestoreUser,
+                isBanned: baneado,
                 createdAt: toIsoString(firestoreUser.createdAt),
               });
 
@@ -382,6 +423,14 @@ export const AuthProvider = ({
                   .trim() ||
                 fbUser.email?.split('@')[0] ||
                 'UserGeek';
+
+              // El perfil se acaba de borrar (o es la primera
+              // vez). Antes de recrearlo se mira el registro
+              // duradero: si hay un baneo vigente, el perfil nace
+              // con el estado local de baneado. Las reglas lo
+              // aplican igualmente aunque el documento diga
+              // `isBanned: false`.
+              const baneado = await restriccionVigente(fbUser.uid);
 
               const newUser: User = {
                 uid: fbUser.uid,
@@ -399,6 +448,8 @@ export const AuthProvider = ({
 
               // Al escribir, este mismo listener salta de nuevo y
               // pone el documento ya creado. No se espera aquí.
+              // `isBanned` se escribe siempre `false`: la regla de
+              // creación no deja al cliente ponerse una sanción.
               setDoc(userDocRef, {
                 ...newUser,
                 createdAt: serverTimestamp(),
@@ -407,7 +458,7 @@ export const AuthProvider = ({
               // ✅ LOG AÑADIDO AQUÍ
               console.log('perfil en vivo - Perfil nuevo creado con rol:', newUser.role);
 
-              setCurrentUser(newUser);
+              setCurrentUser(baneado ? { ...newUser, isBanned: true } : newUser);
             }
 
             setLoading(false);
@@ -513,7 +564,14 @@ export const AuthProvider = ({
         console.log('login() - USUARIO FIRESTORE:', firestoreUser);
         console.log('login() - ROL:', firestoreUser.role);
 
-        setCurrentUser(firestoreUser);
+        // Igual que en el listener: la bandera del perfil puede
+        // haberse quedado atrás si el usuario lo borró y la app lo
+        // recreó. Manda el registro duradero.
+        const baneado =
+          firestoreUser.isBanned === true ||
+          (await restriccionVigente(fbUser.uid));
+
+        setCurrentUser({ ...firestoreUser, isBanned: baneado });
 
       } else {
 
@@ -521,6 +579,11 @@ export const AuthProvider = ({
           fbUser.displayName ||
           fbUser.email?.split('@')[0] ||
           'UserGeek';
+
+        // Mismo caso que en el listener: el perfil no existe (lo
+        // acaban de borrar o es la primera entrada). Se consulta el
+        // registro duradero antes de recrearlo.
+        const baneado = await restriccionVigente(fbUser.uid);
 
         const newUser: User = {
           uid: fbUser.uid,
@@ -544,7 +607,7 @@ export const AuthProvider = ({
         // ✅ LOG AÑADIDO AQUÍ
         console.log('login() - Perfil nuevo creado con rol:', newUser.role);
 
-        setCurrentUser(newUser);
+        setCurrentUser(baneado ? { ...newUser, isBanned: true } : newUser);
       }
 
       closeAuth();

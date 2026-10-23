@@ -108,7 +108,7 @@ const datos = async () => {
   return { ...meta, CAPITULOS: capitulos, PERSONAJES, TAGS };
 };
 
-const { ANIME_ID, EPISODIOS_TOTAL, RATING_SERIE, TEMPORADAS, CAPITULOS, PERSONAJES, TAGS } =
+const { ANIME_ID, EPISODIOS_TOTAL, RATING_SERIE, TEMPORADAS, CAPITULOS, PERSONAJES, TAGS, ALIASES } =
   await datos();
 
 const token = await tokenDeAcceso();
@@ -366,30 +366,42 @@ for (const [nombre, temporada, rol, japones, voz, desc] of PERSONAJES) {
 }
 
 // ──────────────────────────────────────────────────────────
-// 3. LA NOTA DE LA SERIE Y EL RECUENTO DE CAPITULOS
+// 3. LA NOTA DE LA SERIE, EL RECUENTO DE CAPITULOS Y LOS ALIAS
 // ──────────────────────────────────────────────────────────
 //
-// Dos campos del anime que el panel no guarda en "crear anime". Se
-// actualizan con un PATCH limitado a esos dos campos, porque un
+// Campos del anime que el panel no guarda en "crear anime". Se
+// actualizan con un PATCH limitado a esos campos, porque un
 // update completo con el anime entero pisaria lo que alguien haya
 // corregido en el panel desde que se creo.
 //
 // La mascara de campos no es opcional: sin ella el REST borra del
 // documento todo lo que no venga en el cuerpo, y el anime se
 // quedaria sin synopsis ni categorias.
+//
+// Los alias ("alternativeTitles") van en la misma llamada: son
+// datos del fichero, como la nota, y los pone el agente que anade
+// el anime. Si el fichero no los define, el campo no entra en la
+// mascara y la ficha conserva los que ya tuviera.
 
 const animeUrl = `${BASE}/animes/${ANIME_ID}`;
 
-const rAnime = await fetch(
-  `${animeUrl}?updateMask.fieldPaths=rating&updateMask.fieldPaths=episodesCount`,
-  {
-    method: 'PATCH',
-    headers,
-    body: JSON.stringify({
-      fields: { rating: v.dbl(RATING_SERIE), episodesCount: v.num(EPISODIOS_TOTAL) },
-    }),
-  },
-);
+const camposAnime = {
+  rating: v.dbl(RATING_SERIE),
+  episodesCount: v.num(EPISODIOS_TOTAL),
+};
+
+const conAlias = Array.isArray(ALIASES);
+if (conAlias) camposAnime.alternativeTitles = v.arr(ALIASES.map((a) => v.str(a)));
+
+const mascara = Object.keys(camposAnime)
+  .map((campo) => `updateMask.fieldPaths=${campo}`)
+  .join('&');
+
+const rAnime = await fetch(`${animeUrl}?${mascara}`, {
+  method: 'PATCH',
+  headers,
+  body: JSON.stringify({ fields: camposAnime }),
+});
 
 if (!rAnime.ok) {
   throw new Error(`animes/${ANIME_ID}: ${rAnime.status} ${await rAnime.text()}`);

@@ -54,7 +54,7 @@
 // serie, las fechas no quadrarian.
 
 import { coleccion, escribir, str, num } from './firestore-rest.mjs';
-import { comoBuscar } from './busquedas-anime.mjs';
+import { comoBuscarTvdb } from './busquedas-anime.mjs';
 import { capituloEnTvdb } from './temporadas-tvdb.mjs';
 
 const clave = process.env.TVDB_KEY;
@@ -160,7 +160,7 @@ for (const anime of animes) {
 
   if (!sinImagen.length) continue;
 
-  const termino = comoBuscar(id, str(anime.f, 'title'));
+  const termino = comoBuscarTvdb(id, str(anime.f, 'title'));
 
   const candidatas = await pedir(
     `/search?query=${encodeURIComponent(termino)}&type=series&limit=8`,

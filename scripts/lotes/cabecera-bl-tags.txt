@@ -1,0 +1,7 @@
+// ETIQUETAS - Blue Lock
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+//
+// Máximo 40 caracteres por etiqueta. Lo que marca al personaje
+// dentro del club: su papel en el equipo y lo que le
+// caracteriza.

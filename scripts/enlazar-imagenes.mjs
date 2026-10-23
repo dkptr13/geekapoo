@@ -153,8 +153,65 @@ const ANIMES = [
   { id: 'steins-gate', buscar: 'Steins;Gate' },
   { id: 'erased', buscar: 'Boku dake ga Inai Machi' },
   { id: 'koe-no-katachi', buscar: 'Koe no Katachi' },
+  { id: 'blue-box', buscar: 'Blue Box' },
+  { id: 'fire-force', buscar: 'Fire Force' },
+  { id: 'overlord', buscar: 'Overlord' },
+  { id: 'sword-art-online', buscar: 'Sword Art Online' },
+  { id: 'the-promised-neverland', buscar: 'The Promised Neverland' },
+  { id: 'one-punch-man', buscar: 'One Punch Man' },
+  { id: 'mob-psycho-100', buscar: 'Mob Psycho 100' },
+  { id: 'vinland-saga', buscar: 'Vinland Saga' },
+  { id: 'hunter-x-hunter', buscar: 'Hunter x Hunter (2011)' },
+  { id: 'tensei-shitara-slime-datta-ken', buscar: '転生したらスライムだった件' },
+  { id: 'i-parry-everything', buscar: '俺は全てを【パリイ】する' },
+  { id: 'marriagetoxin', buscar: 'Marriagetoxin' },
+  { id: 'shinmai-maou-no-testament', buscar: '新妹魔王の契約者' },
+  { id: 'blue-lock', buscar: 'Blue Lock' },
+  { id: 'haikyuu', buscar: 'Haikyuu!!' },
+  { id: 'the-tunnel-to-summer-the-exit-of-goodbyes', buscar: 'The Tunnel to Summer, the Exit of Goodbyes' },
+  { id: 'bang-dream-ave-mujica', buscar: 'BanG Dream! Ave Mujica' },
+  { id: 'love-chunibyo-and-other-delusions', buscar: 'Chuunibyou demo Koi ga Shitai!' },
+  { id: 'dandadan', buscar: 'Dandadan' },
+  { id: 'fullmetal-alchemist-brotherhood', buscar: 'Hagane no Renkinjutsushi: FULLMETAL ALCHEMIST' },
+  { id: 'the-rising-of-the-shield-hero', buscar: 'Tate no Yuusha no Nariagari' },
+  { id: 'naruto', buscar: 'NARUTO' },
+  { id: 'tsukimichi-moonlit-fantasy', buscar: 'Tsuki ga Michibiku Isekai Douchuu' },
+  { id: 'violet-evergarden', buscar: 'Violet Evergarden' },
+  { id: 'naruto-shippuden', buscar: 'NARUTO: Shippuuden' },
+  { id: 'hell-s-paradise', buscar: 'Jigokuraku' },
+  { id: 'kimi-ni-todoke-from-me-to-you', buscar: 'Kimi ni Todoke' },
+  { id: 'sakamoto-days', buscar: 'SAKAMOTO DAYS' },
+  { id: 'cosmic-princess-kaguya', buscar: 'Chou Kaguya-hime!' },
+  { id: 'cyberpunk-edgerunners-season-2', buscar: 'Cyberpunk: Edgerunners 2' },
+  { id: 'my-hero-academia', buscar: 'Boku no Hero Academia' },
+  { id: 'another', buscar: 'Another' },
+  { id: 'dr-stone', buscar: 'Dr. Stone' },
+  { id: 'el-diario-de-la-boticaria', buscar: 'The Apothecary Diaries' },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
+
+// El titulo con el que se busca en AniList no siempre es el que se
+// guarda en el catalogo. La T3 de Hunter x Hunter va en castellano
+// ("La última misión") y en AniList se llama "The Last Mission": sin
+// esta traduccion el emparejador no la encuentra y la pelicula se
+// queda sin portada.
+//
+//   anime -> { numero de temporada: titulo en AniList }
+const TITULOS_EN_ANILIST = {
+  'hunter-x-hunter': { 3: 'The Last Mission' },
+  // El Slime: en AniList las pelis y los capitulos en DVD se llaman por
+  // su titulo japones, y el emparejador los busca por el nuestro, que
+  // esta en castellano. Con el titulo de AniList, cada temporada cae en
+  // la suya: sin esto, la peli de 2026 se lleva la portada de la cuarta
+  // temporada, que tambien es de 2026.
+  'tensei-shitara-slime-datta-ken': {
+    2: 'Tensei Shitara Slime Datta Ken OVA',
+    4: 'Tensei Shitara Slime Datta Ken: Guren no Kizuna-hen',
+    7: 'Tensei Shitara Slime Datta Ken: Soukai no Namida-hen',
+    8: 'Tensei Shitara Slime Datta Ken 4th Season Part 1 & 2',
+  },
+};
+
 // ── Estado ─────────────────────────────────────────────────────────
 const cambios = [];
 const omitidos = [];
@@ -304,10 +361,11 @@ if (pide('temporadas')) {
         `${suyas.length} temporadas, ${todos.size} medias relacionados`,
     );
     const laBase = base ?? [...todos.values()][0];
+    const titulosEnAnilist = TITULOS_EN_ANILIST[anime.id] ?? {};
     const conNumeroYAnio = suyas.map((s) => ({
       numero: num(s, 'number') ?? 0,
       anio: num(s, 'year'),
-      titulo: str(s.f, 'title'),
+      titulo: titulosEnAnilist[num(s, 'number') ?? 0] ?? str(s.f, 'title'),
     }));
     const decisiones = elegirTemporadas(conNumeroYAnio, todos, laBase);
     for (const [i, s] of suyas.entries()) {

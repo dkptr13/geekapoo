@@ -15,4 +15,8 @@ export const TAGS = {
   "Amo Empool": ["Hospitalidad", "Trampa"],
   "Jabber Wonger": ["Saqueador"],
   "Zodyl Typhon": ["Saqueador", "Manda"],
+  "Semiu Grier": ["Recepcionista", "Control", "Barrenderos"],
+  "Tamsy Caines": ["Barrendero", "Enjin", "Lucha"],
+  "Tomme Mima": ["Barrendera", "Directa", "Rapida"],
+  "Follo Tunito": ["Barrendero", "Apoyo", "Rudo"],
 };

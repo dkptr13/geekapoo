@@ -34,6 +34,26 @@ service firebase.storage {
       return myRole() == 'admin' || myRole() == 'moderator';
     }
 
+    // El baneo se consulta en DOS sitios, igual que en
+    // `firestore.rules`:
+    //
+    //   1. El registro duradero `accountRestrictions/{uid}`, que
+    //      solo escribe la Cloud Function con el Admin SDK.
+    //   2. La copia visible `users/{uid}.isBanned`, por si el
+    //      registro aún no existe (cuentas baneadas antes de este
+    //      cambio).
+    //
+    // Sin el registro, a un baneado le bastaría con borrar su
+    // perfil y volver a entrar para subir imágenes otra vez.
+    function restriccionActiva() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/accountRestrictions/$(request.auth.uid))
+        && 'activo' in firestore.get(/databases/(default)/documents/accountRestrictions/$(request.auth.uid)).data
+        && firestore.get(/databases/(default)/documents/accountRestrictions/$(request.auth.uid)).data.activo == true
+        && 'tipo' in firestore.get(/databases/(default)/documents/accountRestrictions/$(request.auth.uid)).data
+        && firestore.get(/databases/(default)/documents/accountRestrictions/$(request.auth.uid)).data.tipo == 'ban';
+    }
+
     // Si el usuario esta baneado.
     //
     // El `.data.isBanned` lleva la comprobacion "el campo existe"
@@ -51,9 +71,10 @@ service firebase.storage {
     // Con el `in` delante, un usuario sin el campo no esta baneado, que
     // es lo correcto.
     function isBanned() {
-      return hasProfile()
-        && 'isBanned' in firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isBanned == true;
+      return restriccionActiva()
+        || (hasProfile()
+            && 'isBanned' in firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data
+            && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isBanned == true);
     }
 
     // ────────────────────────────────────────────────────────

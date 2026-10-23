@@ -1,0 +1,24 @@
+1|El sueño
+2|Monstruo
+3|El cero del futbol
+4|Premonición e intuición
+5|Renacer
+6|Lo siento
+7|Arremolinarse
+8|La fórmula del gol
+9|Despertar
+10|Tal cual es
+11|La última pieza
+12|La segunda selección
+13|El grupo de tres
+14|Los genios y los normales
+15|Devorar
+16|La fusión de tres
+17|Burro
+18|El escenario del protagonista
+19|El chico que baila
+20|El juego combinado
+21|Yo no estoy
+22|La voz
+23|Suerte
+24|Ya ha llegado el momento

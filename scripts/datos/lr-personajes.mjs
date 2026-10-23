@@ -41,4 +41,28 @@ export const PERSONAJES = [
 
   ['Robota', '', 'supporting', 'ロボ太', 'Yuuki Sakakihara',
    'Hacker segundon al servicio de Majima que traiciona a quien haga falta por seguir vivo. Cobarde con suerte y dedos rapidos. Su USB retransmite la que se lia en la torre.'],
+
+  ['Saori Shinohara', '', 'supporting', '篠原沙保里', 'Aino Shimada',
+   'La camarera del cafe que cubre el turno cuando Chisato esta fuera. Callada y eficiente.'],
+
+  ['Erika Janome', '', 'supporting', '蛇ノ目エリカ', 'Yuka Yagami',
+   'La compañera de trabajo de Chisato en la floristeria. Alegre y despistada.'],
+
+  ['Himegama', '', 'supporting', '姫蒲', 'Satomi Ootani',
+   'La compañera del instituto Alan que cubre a Majima. Discreta y leal.'],
+
+  ['Hacker', '', 'supporting', 'ハッカー', 'Shunichi Maki',
+   'El hacker que cubre a Majima en la sombra. Silencioso y eficiente.'],
+
+  ['Hibana Kagari', '', 'supporting', '篝ヒバナ', 'Hodaka Mieno',
+   'La compañera de Chisato del DA que la admira. Joven y entusiasta.'],
+
+  ['Jin', '', 'supporting', 'ジン', 'Mitsutoshi Shundou',
+   'El compañero del DA que cubre a Chisato en la sombra. Discreto y eficiente.'],
+
+  ['Matsushita', '', 'supporting', '松下', 'Teruo Seki',
+   'El compañero del DA que cubre a Chisato en la sombra. Callado y eficiente.'],
+
+  ['Abe', '', 'supporting', '阿部', 'Hiroshi Shirokuma',
+   'El compañero del DA que cubre a Chisato en la sombra. Callado y eficiente.'],
 ];

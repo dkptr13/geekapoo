@@ -31,6 +31,24 @@ export const ANIME = {
 
 export const ANIME_ID = 'burn-the-witch';
 
+// ── TITULOS ALTERNATIVOS ──────────────────────────────────────
+//
+// Lo que la gente escribe para encontrar esta obra en el buscador:
+// el titulo en ingles, el romanizado, el japones con otro criterio y
+// los sinónimos que de verdad se usan. Los escribe el agente que anade
+// el anime, a mano, y se guardan en "alternativeTitles" del documento de
+// Firestore, que es lo que la busqueda inteligente ya lee.
+//
+// Solo titulos de ESTA obra: nada de lo que pertenezca a otra serie.
+// Y sin repeticiones: el buscador normaliza los titulos, asi que dos
+// alias que se leen igual sobran.
+//
+// La serie corta se suele llamar asi, con el titulo en mayusculas.
+export const ALIASES = [
+  'Burn the Witch: Rōnin',
+  'Burn the Witch (2020)',
+];
+
 /**
  * Unos titulos con titulo oficial en ingles.
  *

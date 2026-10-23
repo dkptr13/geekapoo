@@ -1,0 +1,57 @@
+// TEMPORADA 1 - Dr. Stone (2019)
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+// Los titulos en castellano y las fechas salen del anexo de temporada de la
+// wikipedia en espanol; los titulos japoneses, de TVDB; las notas, de IMDb
+// (tt9679542). Los resumenes son traduccion de la wikipedia en ingles.
+
+export const T1 = [
+  [1, 'Mundo de piedra', 'STONE WORLD', '2019-07-05', 8.2,
+   'Después de cinco años de enamoramiento, Taiju Oki está a punto de confesar su amor a su compañero de estudios Yuzuriha Ogawa. De repente una luz verde [[petrificación en la mitología y la ficción'],
+  [2, 'Rey del mundo de piedra', 'KING OF THE STONE WORLD', '2019-07-12', 8,
+   'Senku y Taiju preparan suficiente líquido de reactivación para liberar a una persona de la piedra, y Taiju elige a Yuzuriha como el primer sujeto. Sin embargo, de repente son perseguidos por un grupo de leones hambrientos, lo que los lleva a revivir al luchador más fuerte de su ciudad, Tsukasa Shishio, para luchar contra ellos.'],
+  [3, 'Armas de la ciencia', '科学の武器', '2019-07-19', 7.7,
+   'Consciente de la intención asesina de Tsukasa, Senku lo envía a la fuente del fluido de reactivación mientras él y Taiju preparan un lote de fluido de reactivación para finalmente revivir a Yuzuriha. Necesitando armas científicas para detener la ola de asesinatos de Tsukasa, Senku y los demás comienzan a viajar hacia Hakone, y Yuzuriha logra encontrar el [[Kōtoku-in].'],
+  [4, 'Dispara la señal de humo', '狼煙をあげろ', '2019-07-26', 8.1,
+   'Después de que Senku crea con éxito un lote de pólvora, que Taiju prende fuego accidentalmente, el grupo ve una fuente diferente de humo en la distancia, lo que sugiere que hay otros supervivientes. Senku decide encender más la pólvora para usarla como señal de humo, lo que lleva a Tsukasa a encontrarlo y usar a Yuzuriha como rehén para obtener la receta.'],
+  [5, 'El principio del mundo de piedra', 'STONE WORLD THE BEGINNING', '2019-08-02', 7.9,
+   'Con Senku aparentemente muerto después de que Tsukasa le propina un golpe fatal en el cuello, Taiju y Yuzuriha usan su pólvora para provocar una explosión alrededor de Tsukasa, permitiéndoles escapar.'],
+  [6, 'Dos países del mundo de piedra', '石の世界の二つの国', '2019-08-09', 8.2,
+   'El flashback continúa y muestra cómo Senku encontró a Taiju y comenzó a trabajar para despetrificarlo. De vuelta al presente, Senku revive con éxito gracias al fluido de reactivación, lo que le lleva a sentir más curiosidad por las propiedades regenerativas del fluido.'],
+  [7, 'El paradero de dos millones de años', '200万年の在処', '2019-08-16', 8,
+   'Kohaku lleva a Senku de regreso a su aldea, donde se encuentra con los guardias Kinro y Ginro y con un hechicero llamado Chrome. Aunque los intentos de Chrome de hechicería no logran demostrar su superioridad, Senku se da cuenta de que la hechicería de Chrome es en realidad el comienzo primitivo de los primeros descubrimientos científicos del Mundo de Piedra.'],
+  [8, 'Camino de piedra', 'STONE ROAD', '2019-08-23', 8,
+   'Cuando Senku, Kohaku y Chrome comienzan a buscar los elementos necesarios para crear un antibiótico, cuentan con la ayuda de otro aldeano llamado Suika. Al necesitar más mano de obra para convertir la arena de hierro en hierro, la pandilla envía a Suika para obtener información sobre lo que quieren los aldeanos.'],
+  [9, 'Que se haga la luz de la ciencia', 'この手に科学の灯を', '2019-08-30', 8.6,
+   'Durante su patrocinio de ramen, Gen Asagiri, un [[Mentalismo] revivido, se acerca a la pandilla.'],
+  [10, 'Una tenue alianza', '薄っぺらの同盟', '2019-09-06', 7.9,
+   'Mientras recuerda el momento en que Tsukasa lo revivió por primera vez, Gen es repentinamente atacado por un misterioso asaltante, y apenas logra sobrevivir gracias a las bolsas de sangre falsas con las que se había protegido.'],
+  [11, 'Mundo claro', 'CLEAR WORLD', '2019-09-13', 8.1,
+   'Senku usa arena de cuarzo para producir vidrio, que usa para crear gafas para el miope Suika. Al carecer de las habilidades necesarias para [[soplar vidrio'],
+  [12, 'Compañeros espalda con espalda', '背中合わせの仲間たち', '2019-09-20', 8,
+   'Se revela que la lanza plateada hecha por Senku es un sensor para detectar gases venenosos provenientes de un charco de ácido sulfúrico, que necesitan para el antibiótico. Conociendo los riesgos involucrados, Senku se ofrece a enseñarle a Chrome todo lo que sabe sobre ciencia en caso de que muera, pero Chrome se niega y en su lugar propone un equipo.'],
+  [13, 'Guerrero ensmacarado', '仮面の戦士', '2019-09-27', 8.6,
+   'Una vez obtenidos los ingredientes base, Senku y los demás comienzan a producir los otros elementos para el antibiótico. Al necesitar alcohol para los elementos restantes, Senku termina uniéndose a los demás en el Grand Bout, que ofrece [[Alcohol (droga)'],
+  [14, 'Amo de la llama', 'MASTER OF FLAME', '2019-10-04', 8.2,
+   'Magma engaña a Kinro para que consulte al árbitro para poder atacar por detrás y ganar el partido. Luego hace que Mantle abandone su combate contra Chrome para descalificar a Kohaku, quien no logra regresar a tiempo.'],
+  [15, 'La culminación de dos millones de años', '200万年の結晶', '2019-10-11', 9,
+   'Después del partido de Chrome, Ginro le informa a Ruri que él y Senku lanzarían sus partidos para que Chrome y ella pudieran estar juntos. Cuando Ruri dice que se casará con quien gane y que no elegirá bando, Ginro está decidido a ganarle a Senku y ser el nuevo jefe al que todos temen.'],
+  [16, 'Una historia para la eternidad', '幾千年物語', '2019-10-18', 8.7,
+   'Ruri revela que se enteró del nombre de Senku a través de un cuento que le transmitió su madre. La historia habla del padre de Senku, Byakuya, quien se convirtió en astronauta después de que Senku hiciera un traje eléctrico para ayudarlo a aprobar el examen de natación de JAXA.'],
+  [17, 'Cien noches y mil cielos', '百の夜と千の空', '2019-10-25', 9.2,
+   'Después de que Byakuya deduce que el fenómeno se originó en América del Sur, Shamil, Lillian y Connie se aventuran a bajar a la superficie, pero terminan en medio del océano, lo que llevó a Byakuya y los demás a bajar y rescatarlos.'],
+  [18, 'Guerra de piedra', 'STONE WARS', '2019-11-01', 8.4,
+   'Un grupo del ejército de Tsukasa, liderado por un hombre llamado Hyoga, se acerca a la aldea y derrota a Kinro. Como Ginro no está dispuesto a cortar el puente que lleva a la aldea con Kinro todavía en él, Senku, con la ayuda de Gen y Magma, convence al grupo de Hyoga de que ya han producido armas, lo que los obliga a retirarse.'],
+  [19, 'A la modernidad', 'そして現代へ', '2019-11-08', 7.9,
+   'Hyoga revela que su ataque fue simplemente una distracción para que su aliado, Homura, pudiera colarse y prender fuego a la aldea, obligando a los aldeanos a salir a la intemperie. Queriendo proteger el reino de la ciencia, Suika logra atraer a las tropas de Hyoga lejos de la aldea y dejarlos a él y a Homura por encima de los gases venenosos.'],
+  [20, 'La era de la energía', '動力の時代', '2019-11-15', 8.3,
+   'Senku e Ishigami Village comienzan a trabajar en el teléfono celular y planean completar su construcción para la primavera. Para fabricar filamentos de oro para cableado, Senku crea una máquina de algodón de azúcar para probar con azúcar. Senku le lleva algodón de azúcar a Homura, quien ha estado espiando el Reino de la Ciencia.'],
+  [21, 'Club de manualidades pesadas', 'スパルタ工作クラブ', '2019-11-22', 8.2,
+   'Ahora que hay electricidad disponible, Senku mecaniza el proceso de fabricación del hierro, liberando a los aldeanos para prepararse para el invierno. Mientras tanto, Senku, Chrome y Kaseki comienzan a desarrollar bombillas que les permiten celebrar la Navidad decorando un árbol.'],
+  [22, 'El tesoro', 'THE TREASURE', '2019-11-29', 8.4,
+   'En busca de tungsteno, Senku, Chrome y Magma buscan una cueva cercana. Después de encontrar una veta de mica, Magma intenta salvar a Senku de caer en un sumidero, pero ambos finalmente quedan atrapados. Chrome los salva a ambos llenando el sumidero con agua.'],
+  [23, 'Ola de ciencias', '科学の波', '2019-12-06', 8.2,
+   'Senku revela el montón de scheelita para la preparación final. Después de ser triturado hasta obtener un polvo fino, el tungsteno que contiene debe calentarse a una temperatura extremadamente alta para que sea utilizable. Mientras Senku prepara el polvo de tungsteno, encarga a Chrome y Kaseki crear un método para detectar el calentamiento a alta temperatura.'],
+  [24, 'Oído a distancias infinitas', '声は無限の彼方へ', '2019-12-13', 9,
+   'Para consternación de los aldeanos, Senku les informa que necesitan dos teléfonos celulares para funcionar completamente. Después de probar el teléfono celular a través de un cable, Ruri le cuenta a Senku sobre uno de los Cien Cuentos, insinuando una cápsula del tiempo sellada en la lápida de Byakuya: un disco de vidrio.']
+];

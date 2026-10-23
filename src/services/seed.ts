@@ -168,11 +168,16 @@ async function recomputeCategoryCounts(): Promise<StepReport> {
 // ────────────────────────────────────────────────────────
 // 3b. COMPLETAR CAMPOS QUE FALTAN EN LOS USUARIOS
 // ────────────────────────────────────────────────────────
-// Las cuentas creadas antes de esta migración no tienen
-// "isBanned". En las reglas de seguridad eso se traducía en
-// "null != true", que es false, y bloqueaba todas las
-// publicaciones. Además, un usuario sin "role" no puede ser
-// admin ni moderador porque isAdmin() compara contra null.
+// Las cuentas creadas antes de esta migración no tienen "role"
+// ni "chatId". Un usuario sin "role" no puede ser admin ni
+// moderador porque isAdmin() compara contra null, y sin "chatId"
+// el buscador de contactos no lo encuentra.
+//
+// "isBanned" ya NO se rellena aquí: las reglas tratan un campo
+// ausente como "no baneado" (comprueban con `in` antes de leerlo)
+// y el estado de sanción solo lo escribe el servidor. Un update
+// del cliente que toque ese campo se rechaza, aunque sea para
+// ponerlo a false.
 // ────────────────────────────────────────────────────────
 
 async function ensureUserFields(): Promise<StepReport> {
@@ -184,7 +189,6 @@ async function ensureUserFields(): Promise<StepReport> {
     const data = d.data() as Record<string, unknown>;
     const patch: Record<string, unknown> = {};
 
-    if (data.isBanned === undefined) patch.isBanned = false;
     if (data.role === undefined) patch.role = 'user';
     if (data.lastSeen === undefined) patch.lastSeen = 'En línea';
 
@@ -212,7 +216,7 @@ async function ensureUserFields(): Promise<StepReport> {
     skipped: snapshot.size - patched,
     details:
       patched > 0
-        ? `${patched} de ${snapshot.size} usuarios rellenados con isBanned, role, lastSeen y chatId.`
+        ? `${patched} de ${snapshot.size} usuarios rellenados con role, lastSeen y chatId.`
         : `Los ${snapshot.size} usuarios ya tenían todos los campos.`,
   };
 }

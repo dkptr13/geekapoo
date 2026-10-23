@@ -40,6 +40,21 @@ export const ANIME = {
 
 export const ANIME_ID = 'charlotte';
 
+// ── TITULOS ALTERNATIVOS ──────────────────────────────────────
+//
+// Lo que la gente escribe para encontrar esta obra en el buscador:
+// el titulo en ingles, el romanizado, el japones con otro criterio y
+// los sinónimos que de verdad se usan. Los escribe el agente que anade
+// el anime, a mano, y se guardan en "alternativeTitles" del documento de
+// Firestore, que es lo que la busqueda inteligente ya lee.
+//
+// Solo titulos de ESTA obra: nada de lo que pertenezca a otra serie.
+// Y sin repeticiones: el buscador normaliza los titulos, asi que dos
+// alias que se leen igual sobran.
+export const ALIASES = [
+  'Charlotte (2015)',
+];
+
 /**
  * Nota de la serie en IMDb (tt4574736): 7,5 con unos 11.000 votos.
  *

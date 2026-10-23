@@ -201,6 +201,30 @@ const nombrePegado = (texto) =>
  */
 const ROTO = /[\uFFFD\u0370-\u03FF\u0400-\u04FF]|\?{2,}/;
 
+/**
+ * Normaliza un titulo como hace el buscador, para comparar alias.
+ *
+ * Copia de `normalizarBusqueda` de `src/utils/busqueda.ts`: minusculas,
+ * sin tildes ni macrones, sin puntuacion y con las variantes de
+ * romanizacion unificadas. Dos titulos que se normalizan igual son el
+ * mismo para el buscador, asi que no pueden repetirse.
+ */
+const normalizaTitulo = (valor) =>
+  String(valor)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/ou/g, 'o')
+    .replace(/uu/g, 'u')
+    .replace(/oo/g, 'o')
+    .replace(/ee/g, 'e')
+    .replace(/aa/g, 'a')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 let fallos = 0;
 const anotar = (ok, mensaje) => {
   if (!ok) {
@@ -213,7 +237,7 @@ const anotar = (ok, mensaje) => {
 // 1. LA FICHA DEL ANIME
 // ──────────────────────────────────────────────────────────
 
-const { ANIME, ANIME_ID, EPISODIOS_TOTAL, RATING_SERIE, TEMPORADAS } = meta;
+const { ANIME, ANIME_ID, EPISODIOS_TOTAL, RATING_SERIE, TEMPORADAS, ALIASES } = meta;
 
 /**
  * Si el meta pone esto a `true`, no se exige que el titulo japones de los
@@ -254,6 +278,51 @@ anotar(
   ANIME_ID === slugDelTitulo,
   `el id "${ANIME_ID}" no es el slug del titulo (seria "${slugDelTitulo}")`,
 );
+
+// ──────────────────────────────────────────────────────────
+// LOS TITULOS ALTERNATIVOS
+// ──────────────────────────────────────────────────────────
+//
+// Los alias son los nombres por los que la gente busca la obra
+// ("Ataque a los Titanes", "Attack on Titan", "Shingeki no Kyojin").
+// Los pone a mano el agente que anade el anime, en el fichero de
+// datos, y se guardan en "alternativeTitles" del documento.
+//
+// Aqui se comprueba lo que se puede comprobar sin mirar el resto del
+// catalogo: que no esten vacios, que no repitan el titulo principal
+// (que ya se busca) ni el japones (que ya se guarda aparte), que no
+// se repitan entre ellos y que no traigan texto roto.
+//
+// Que un alias NO sea el titulo de otra obra no se puede comprobar
+// aqui: eso lo mira el test de datos, que compara todas las fichas.
+
+if (ALIASES !== undefined) {
+  anotar(Array.isArray(ALIASES), 'ALIASES tiene que ser una lista de textos');
+
+  if (Array.isArray(ALIASES)) {
+    const vistos = new Map();
+    const clavePrincipal = normalizaTitulo(ANIME.titulo);
+    const claveJapones = normalizaTitulo(ANIME.japaneseTitle);
+
+    for (const alias of ALIASES) {
+      const donde = `alias "${alias}"`;
+
+      anotar(typeof alias === 'string' && alias.trim().length > 0, `${donde}: vacio`);
+      if (typeof alias !== 'string') continue;
+
+      anotar(!ROTO.test(alias), `${donde}: texto roto`);
+      anotar(alias.length <= 80, `${donde}: demasiado largo (${alias.length})`);
+
+      const clave = normalizaTitulo(alias);
+
+      anotar(clave !== clavePrincipal, `${donde}: es el titulo principal`);
+      anotar(clave !== claveJapones, `${donde}: es el titulo japones`);
+      anotar(!vistos.has(clave), `${donde}: repite "${vistos.get(clave)}"`);
+
+      vistos.set(clave, alias);
+    }
+  }
+}
 
 anotar(RATING_SERIE > 0 && RATING_SERIE <= 10, `nota de serie imposible: ${RATING_SERIE}`);
 

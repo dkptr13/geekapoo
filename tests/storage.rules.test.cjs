@@ -48,6 +48,9 @@ const fs = require('fs');
 const ALICE = 'alice';
 const BOB = 'bob';
 const CARA = 'carla'; // cuenta normal que NO está en ningún chat
+const BANEADO = 'baneado';
+const BANEADO_REGISTRO = 'baneado-registro';
+const DESBANEADO = 'desbaneado';
 
 /** Un PNG de 1x1, porque lo que se comprueba son las reglas. */
 const PNG = Buffer.from(
@@ -153,6 +156,35 @@ describe('reglas de Storage', () => {
       await setDoc(doc(f, 'users', ALICE), { displayName: 'alice' });
       await setDoc(doc(f, 'users', BOB), { displayName: 'bob' });
       await setDoc(doc(f, 'users', CARA), { displayName: 'carla' });
+
+      // Baneos: uno con la bandera visible y otro SOLO con el
+      // registro duradero (su perfil dice isBanned:false, como
+      // quedaría después de borrarlo y recrearlo).
+      await setDoc(doc(f, 'users', BANEADO), {
+        displayName: 'baneado',
+        isBanned: true,
+      });
+      await setDoc(doc(f, 'users', BANEADO_REGISTRO), {
+        displayName: 'baneado por registro',
+        isBanned: false,
+      });
+      await setDoc(doc(f, 'accountRestrictions', BANEADO_REGISTRO), {
+        uid: BANEADO_REGISTRO,
+        tipo: 'ban',
+        activo: true,
+      });
+
+      // Y uno al que ya le levantaron la sanción: el documento del
+      // registro sigue ahí, pero inactivo.
+      await setDoc(doc(f, 'users', DESBANEADO), {
+        displayName: 'desbaneado',
+        isBanned: false,
+      });
+      await setDoc(doc(f, 'accountRestrictions', DESBANEADO), {
+        uid: DESBANEADO,
+        tipo: 'ban',
+        activo: false,
+      });
     });
   });
 
@@ -231,6 +263,30 @@ describe('reglas de Storage', () => {
             'chats/chat1/group-avatar/1700000000-vieja.jpg',
           ),
         ),
+      );
+    });
+  });
+
+  // ── BANEOS ────────────────────────────────────────────
+  describe('baneos', () => {
+    it('un usuario baneado NO puede subir imágenes a la comunidad', async () => {
+      // El avatar propio no se bloquea (cambiarlo no publica nada),
+      // pero las imágenes de hilos y comentarios sí.
+      await assertFails(subir(BANEADO, `community/${BANEADO}/1700000000.jpg`));
+    });
+
+    it('el registro duradero bloquea aunque el perfil diga isBanned:false', async () => {
+      // Es el estado que queda después de borrar el perfil y
+      // volver a entrar: el documento nuevo nace con
+      // `isBanned: false`, pero la restricción sigue activa.
+      await assertFails(
+        subir(BANEADO_REGISTRO, `community/${BANEADO_REGISTRO}/1700000000.jpg`),
+      );
+    });
+
+    it('un baneo levantado (activo:false) deja subir otra vez', async () => {
+      await assertSucceeds(
+        subir(DESBANEADO, `community/${DESBANEADO}/1700000000.jpg`),
       );
     });
   });
