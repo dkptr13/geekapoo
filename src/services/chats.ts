@@ -23,9 +23,11 @@ import { mapWithId, toDate, toIsoString, withId, Timestamp } from './firestoreUt
 import { esUrlDeGifValida } from './gifs';
 import { ubicacionPlausible } from './ubicacion';
 import { deleteStoredImage, storagePathFromUrl, uploadChatImage } from './imageUpload';
+import { inviteToGroup } from './chatRequests';
 import type {
   ChatMessage,
   ChatReplyTo,
+  ChatRequest,
   ChatRoom,
   GifAttachment,
   GroupListing,
@@ -179,14 +181,13 @@ export function subscribeMessages(
 // ────────────────────────────────────────────────────────
 
 /**
- * Abre un chat privado con otra persona, saltándose la
- * solicitud.
+ * Abre un chat privado desde el servidor.
  *
- * SOLO se usa al contactar a un grupo ya creado o en
- * migraciones. El flujo normal de la interfaz es mandar una
- * solicitud (ver chatRequests.ts) y que la conversación se
- * cree al aceptarla: así el documento de conversación solo
- * existe entre personas que ya se han aceptado.
+ * Es una herramienta de administración/migración: el flujo normal
+ * de la interfaz es mandar una solicitud (ver chatRequests.ts) y que
+ * la conversación se cree al aceptarla. Un usuario normal NO puede
+ * abrirle una conversación a nadie: la callable
+ * `abrirChatDirecto` exige ser del equipo.
  */
 export async function createDirectChat(
   owner: Speaker,
@@ -197,22 +198,15 @@ export async function createDirectChat(
   }
 
   try {
-    const ref = doc(collection(db, CHATS));
-    await setDoc(ref, {
-      type: 'direct',
-      name: nameOf(target),
-      avatar: target.avatarUrl,
-      ownerId: owner.uid,
-      memberIds: [owner.uid, target.uid],
-      hiddenFor: [],
-      lastMessage: 'Conversación iniciada',
-      lastMessageAt: serverTimestamp(),
-      lastMessageSenderId: owner.uid,
-      readAt: { [owner.uid]: serverTimestamp() },
-      createdAt: serverTimestamp(),
-    });
+    const llamar = httpsCallable(functions, 'abrirChatDirecto');
+    const respuesta = await llamar({ targetUid: target.uid });
+    const datos = respuesta.data as { chatId?: string };
 
-    return { ok: true, chatId: ref.id };
+    if (typeof datos?.chatId !== 'string') {
+      return { ok: false, error: 'No se pudo crear la conversación.' };
+    }
+
+    return { ok: true, chatId: datos.chatId };
   } catch (e: unknown) {
     return { ok: false, error: messageOf(e, 'No se pudo crear la conversación.') };
   }
@@ -368,8 +362,24 @@ export async function ensureGroupCode(
       const snap = await getDoc(doc(db, 'groupCodes', room.code));
       if (snap.exists()) {
         const data = snap.data() as { groupId?: string; ownerId?: string };
-        if (data.groupId === room.id && data.ownerId === owner.uid) {
-          return { ok: true, code: room.code };
+        if (data.groupId === room.id) {
+          if (data.ownerId === owner.uid) {
+            return { ok: true, code: room.code };
+          }
+
+          // El grupo cambió de dueño y el índice se quedó con el
+          // anterior. El dueño actual puede reclamarlo (las
+          // reglas lo permiten si el chat ya es suyo), así que
+          // conservamos el mismo código en vez de crear otro.
+          try {
+            await updateDoc(doc(db, 'groupCodes', room.code), {
+              ownerId: owner.uid,
+              ownerName: nameOf(owner).slice(0, 60),
+            });
+            return { ok: true, code: room.code };
+          } catch (e) {
+            console.warn('[Chats] No se pudo reclamar el índice del código:', e);
+          }
         }
       }
     } catch (e) {
@@ -391,7 +401,7 @@ export async function ensureGroupCode(
         groupId: room.id,
         name: room.name,
         ownerId: owner.uid,
-        ownerName: nameOf(owner),
+        ownerName: nameOf(owner).slice(0, 60),
         memberCount: room.memberIds.length,
         createdAt: serverTimestamp(),
       });
@@ -645,7 +655,36 @@ export async function transferGroupOwnership(
   chatId: string,
   newOwnerId: string,
 ): Promise<void> {
-  await updateDoc(doc(db, CHATS, chatId), { ownerId: newOwnerId });
+  const chatRef = doc(db, CHATS, chatId);
+  await updateDoc(chatRef, { ownerId: newOwnerId });
+
+  // El índice público del código también guarda quién es el
+  // dueño. Si no lo actualizáramos, quien entrara con el código
+  // mandaría la solicitud al dueño ANTIGUO y las reglas la
+  // rechazarían (el dueño real ya es otro). Es best-effort: el
+  // traspaso del chat ya está hecho y el nuevo dueño puede
+  // reclamar el índice al abrir el grupo.
+  try {
+    const chatSnap = await getDoc(chatRef);
+    const code = (chatSnap.data() as { code?: string } | undefined)?.code;
+    if (!code) return;
+
+    const ownerSnap = await getDoc(doc(db, 'users', newOwnerId));
+    const owner = ownerSnap.data() as
+      | { displayName?: string; username?: string }
+      | undefined;
+    const ownerName = (owner?.displayName || owner?.username || 'Miembro').slice(0, 60);
+
+    await updateDoc(doc(db, 'groupCodes', code), {
+      ownerId: newOwnerId,
+      ownerName,
+    });
+  } catch (e) {
+    console.warn(
+      '[Chats] El grupo cambió de dueño, pero no se pudo actualizar el índice del código:',
+      e,
+    );
+  }
 }
 
 /**
@@ -696,16 +735,39 @@ export async function setGroupAvatar(
   return url;
 }
 
-/** El dueño añade un miembro al grupo. */
-export async function addGroupMember(
+/**
+ * El dueño invita a alguien al grupo.
+ *
+ * No lo añade directamente: crea una solicitud `invite` y la
+ * persona entra cuando la acepta. La regla de `chatRequests`
+ * comprueba que quien invita es el dueño y que el invitado no es
+ * ya miembro; la Cloud Function hace la entrada real.
+ */
+export async function inviteGroupMember(
   chatId: string,
-  memberId: string,
+  owner: Speaker,
+  target: Speaker,
+  existing: ChatRequest[] = [],
 ): Promise<void> {
-  await updateDoc(doc(db, CHATS, chatId), {
-    memberIds: arrayUnion(memberId),
-    // Si estaba oculto, vuelve a verse.
-    hiddenFor: arrayRemove(memberId),
-  });
+  const snap = await getDoc(doc(db, CHATS, chatId));
+  if (!snap.exists()) throw new Error('El grupo ya no existe.');
+
+  const data = snap.data() as { type?: string; ownerId?: string; name?: string };
+  if (data.type !== 'group') throw new Error('Ese chat no es un grupo.');
+  if (data.ownerId !== owner.uid) {
+    throw new Error('Solo quien creó el grupo puede invitar.');
+  }
+
+  const resultado = await inviteToGroup(
+    owner,
+    target,
+    { id: chatId, name: data.name ?? 'Grupo' },
+    existing,
+  );
+
+  if (!resultado.ok) {
+    throw new Error(resultado.error ?? 'No se pudo enviar la invitación.');
+  }
 }
 
 /** El dueño expulsa a un miembro. */
@@ -1008,10 +1070,15 @@ function mensajeDeBorrado(e: unknown): string {
 // ────────────────────────────────────────────────────────
 
 export function messageOf(e: unknown, fallback: string): string {
+  const code = (e as { code?: string } | null)?.code ?? '';
+
+  if (code.includes('permission-denied') || (e instanceof Error && e.message.includes('permission-denied'))) {
+    return 'No tienes permiso para hacer esa acción en esta conversación.';
+  }
+  if (code.includes('resource-exhausted')) {
+    return 'El grupo ya tiene el máximo de miembros.';
+  }
   if (e instanceof Error) {
-    if (e.message.includes('permission-denied')) {
-      return 'No tienes permiso para hacer esa acción en esta conversación.';
-    }
     return e.message;
   }
   return fallback;

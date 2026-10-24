@@ -13,8 +13,9 @@ import {
   updateDoc,
   type Unsubscribe,
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
-import { db } from '../lib/firebase';
+import { db, functions } from '../lib/firebase';
 import { toIsoString } from './firestoreUtils';
 import type {
   Club,
@@ -430,10 +431,26 @@ export async function actualizarCanal(
   }
 
   try {
-    await updateDoc(doc(db, 'clubs', clubId, CANALES, channelId), {
-      ...cambios,
-      updatedAt: serverTimestamp(),
-    });
+    // La visibilidad NO se puede cambiar desde el cliente: si un
+    // canal pasa a `mods`, hay que sacar del chat a los que no son
+    // del equipo, y si vuelve a `all`, hay que meterlos. Eso lo hace
+    // `cambiarVisibilidadCanal` en una transacción, para que no haya
+    // un instante en el que el canal sea restringido pero el
+    // historial siga abierto.
+    const { visibility, ...resto } = cambios;
+
+    if (visibility !== undefined) {
+      const llamar = httpsCallable(functions, 'cambiarVisibilidadCanal');
+      await llamar({ clubId, channelId, visibility });
+    }
+
+    if (Object.keys(resto).length > 0) {
+      await updateDoc(doc(db, 'clubs', clubId, CANALES, channelId), {
+        ...resto,
+        updatedAt: serverTimestamp(),
+      });
+    }
+
     return { ok: true, channelId };
   } catch (e: unknown) {
     return { ok: false, error: messageOf(e, 'No se pudo actualizar el canal.') };
@@ -523,8 +540,17 @@ export async function eliminarCanal(club: Club, channel: ClubChannel): Promise<C
 
 function messageOf(e: unknown, fallback: string): string {
   const code = (e as { code?: string } | null)?.code ?? '';
-  if (code === 'permission-denied') {
+  if (code.includes('permission-denied')) {
     return 'No tienes permiso para esta acción.';
+  }
+  if (code.includes('unavailable') || code.includes('deadline-exceeded')) {
+    return 'No hay conexión con el servidor. Inténtalo de nuevo.';
+  }
+  if (code.includes('not-found')) {
+    return 'Ese canal ya no existe.';
+  }
+  if (code.includes('failed-precondition') || code.includes('unauthenticated')) {
+    return 'No se ha podido completar la operación.';
   }
   if (e instanceof Error && e.message) return e.message;
   return fallback;

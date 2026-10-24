@@ -1697,7 +1697,7 @@ export const ChatView: React.FC = () => {
     }
   };
 
-  // ── Añadir miembro (solo el dueño del grupo) ─────────
+  // ── Invitar a un miembro (solo el dueño del grupo) ───
   const handleAddMember = async () => {
     if (!activeRoom || !addMemberInput.trim() || busyAction) return;
 
@@ -1719,7 +1719,7 @@ export const ChatView: React.FC = () => {
     if (result.ok) {
       setAddMemberInput('');
       setMemberFeedback({
-        success: `${target.displayName || target.username} se unió al grupo.`,
+        success: `Invitación enviada a ${target.displayName || target.username}. Debe aceptarla para entrar.`,
       });
     } else {
       setMemberFeedback({ error: result.error });
@@ -2412,14 +2412,16 @@ export const ChatView: React.FC = () => {
                                 {req.fromName}
                               </p>
                               <p className="text-[10px] text-zinc-500">
-                                {req.type === 'group'
-                                  ? `Quiere entrar en "${req.groupName}"`
-                                  : 'Quiere chatear contigo'}
+                                {req.type === 'invite'
+                                  ? `Te invita a unirte a "${req.groupName}"`
+                                  : req.type === 'group'
+                                    ? `Quiere entrar en "${req.groupName}"`
+                                    : 'Quiere chatear contigo'}
                               </p>
                             </div>
                           </div>
 
-                          {wasBlocked && (
+                          {wasBlocked && req.type === 'direct' && (
                             <p className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-[10px] text-amber-300">
                               Tenías a esta persona bloqueada. Si aceptas, vuelve a poder hablar
                               con ella.
@@ -2475,9 +2477,11 @@ export const ChatView: React.FC = () => {
                         />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[11px] font-semibold text-zinc-200">
-                            {req.type === 'group'
-                              ? `Entrada a "${req.groupName}"`
-                              : `Chat con ${req.toName ?? req.toId.slice(0, 6)}`}
+                            {req.type === 'invite'
+                              ? `Invitación a "${req.groupName}"`
+                              : req.type === 'group'
+                                ? `Entrada a "${req.groupName}"`
+                                : `Chat con ${req.toName ?? req.toId.slice(0, 6)}`}
                           </p>
                           <p className="text-[10px] text-amber-400">Esperando respuesta</p>
                         </div>
@@ -3992,7 +3996,7 @@ export const ChatView: React.FC = () => {
                             handleAddMember();
                           }
                         }}
-                        placeholder="ID del usuario a añadir..."
+                        placeholder="ID del usuario a invitar..."
                         className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-mono text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                       />
                       <button
@@ -4001,7 +4005,7 @@ export const ChatView: React.FC = () => {
                         className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-3 py-2 text-xs font-bold text-white hover:bg-violet-500 disabled:opacity-50"
                       >
                         {busyAction ? <Loader2 size={13} className="animate-spin" /> : <UserPlus size={13} />}
-                        <span>Añadir</span>
+                        <span>Invitar</span>
                       </button>
                     </div>
                   )}

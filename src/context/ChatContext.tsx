@@ -8,11 +8,11 @@ import React, {
 } from 'react';
 
 import {
-  addGroupMember,
   clearConversationFor,
   createGroupChat as createGroupChatService,
   findGroupByCode,
   hideChat,
+  inviteGroupMember,
   leaveGroup,
   markChatRead,
   messageOf,
@@ -563,11 +563,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // ── Solicitudes ──────────────────────────────────────
 
-  const findUser = useCallback(
-    (uid: string): User | undefined => usersList.find((u) => u.uid === uid),
-    [usersList],
-  );
-
   /**
    * Pide hablar con una persona. NO crea la conversación:
    * espera a que la otra acepte.
@@ -609,32 +604,23 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   /**
    * Acepta o rechaza una solicitud.
    *
-   * Al aceptar una solicitud DIRECTA se crea la conversación en
-   * ese momento, y el bloqueado se levanta: aceptar a alguien
-   * que te había bloqueado es precisamente cómo se vuelve a
-   * hablar con ella.
+   * La escritura final la hace la Cloud Function
+   * `responderSolicitudChat`: aquí solo se comprueba lo que se
+   * puede comprobar en cliente para dar un error amable (por
+   * ejemplo, que quien acepta una entrada es el dueño). El
+   * servidor vuelve a comprobarlo todo contra el documento real.
+   *
+   * Al aceptar una solicitud DIRECTA se crea la conversación y el
+   * bloqueado se levanta: aceptar a alguien que te había bloqueado
+   * es precisamente cómo se vuelve a hablar con ella.
    */
   const respondToChatRequest = useCallback(
     async (request: ChatRequest, accept: boolean): Promise<ChatResult> => {
       if (!currentUser) return { ok: false, error: 'Debes iniciar sesión.' };
 
-      const other =
-        request.type === 'direct'
-          ? findUser(request.fromId)
-          : undefined;
-
-      if (request.type === 'direct' && !other) {
-        return {
-          ok: false,
-          error: 'No se pudo cargar el perfil de quien te ha escrito.',
-        };
-      }
-
-      if (request.type === 'group' && !currentUser) {
-        return { ok: false, error: 'Debes iniciar sesión.' };
-      }
-
-      // Un miembro del grupo, no el dueño, no puede aceptarla.
+      // Un miembro del grupo, no el dueño, no puede aceptar una
+      // entrada. Las invitaciones las acepta el invitado, así que
+      // no pasan por esta comprobación.
       if (request.type === 'group' && request.groupId) {
         const group = rooms.find((r) => r.id === request.groupId);
         if (group && group.ownerId !== currentUser.uid) {
@@ -645,24 +631,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await respondToRequest(
         request,
         accept ? 'accepted' : 'rejected',
-        currentUser,
-        other,
       );
 
       if (!result.ok) return { ok: false, error: result.error };
 
       if (accept) {
-        if (request.type === 'group' && request.groupId) {
-          const group = rooms.find((r) => r.id === request.groupId);
-          if (group?.code) {
-            await syncGroupMemberCount(group.code, group.memberIds.length + 1);
-          }
-        } else {
+        if (
+          request.type === 'direct' &&
+          blockedIds.includes(request.fromId)
+        ) {
           // Levantar el bloqueo: volver a hablar con alguien
           // empieza por volver a aceptarlo.
-          if (blockedIds.includes(request.fromId)) {
-            await unblockUser(currentUser.uid, request.fromId).catch(() => undefined);
-          }
+          await unblockUser(currentUser.uid, request.fromId).catch(() => undefined);
         }
 
         if (result.chatId) setActiveRoomId(result.chatId);
@@ -670,7 +650,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { ok: true, roomId: result.chatId, chatId: result.chatId };
     },
-    [currentUser, findUser, rooms, blockedIds],
+    [currentUser, rooms, blockedIds],
   );
 
   const cancelChatRequest = useCallback(
@@ -845,7 +825,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
           await leaveGroup(room.id, currentUser.uid);
-          if (room.code) await syncGroupMemberCount(room.code, room.memberIds.length - 1);
+          // El contador del índice lo mantiene el trigger
+          // `onChatMembersChanged`; el dueño anterior ya no puede
+          // escribir en él después de traspasar el grupo.
         }
         return { ok: true };
       } catch (e: unknown) {
@@ -871,6 +853,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async (room: ChatRoom, target: User): Promise<ChatResult> => {
       const problem = requireGroupOwner(room);
       if (problem) return { ok: false, error: problem };
+      if (!currentUser) return { ok: false, error: 'Debes iniciar sesión.' };
 
       if (room.memberIds.includes(target.uid)) {
         return {
@@ -885,15 +868,30 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
+      const yaInvitado = outgoingRequests.some(
+        (r) =>
+          r.type === 'invite' &&
+          r.groupId === room.id &&
+          r.toId === target.uid,
+      );
+      if (yaInvitado) {
+        return {
+          ok: false,
+          error: `Ya has invitado a ${target.displayName || target.username}.`,
+        };
+      }
+
       try {
-        await addGroupMember(room.id, target.uid);
-        if (room.code) await syncGroupMemberCount(room.code, room.memberIds.length + 1);
+        await inviteGroupMember(room.id, currentUser, target, outgoingRequests);
         return { ok: true };
       } catch (e: unknown) {
-        return { ok: false, error: messageOf(e, 'No se pudo añadir al miembro.') };
+        return {
+          ok: false,
+          error: messageOf(e, 'No se pudo enviar la invitación.'),
+        };
       }
     },
-    [requireGroupOwner, blockedIds],
+    [requireGroupOwner, blockedIds, currentUser, outgoingRequests],
   );
 
   const removeMember = useCallback(

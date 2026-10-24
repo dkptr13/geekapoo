@@ -17,8 +17,9 @@ import {
   where,
   type Unsubscribe,
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
-import { db } from '../lib/firebase';
+import { db, functions } from '../lib/firebase';
 import { toIsoString } from './firestoreUtils';
 import { deleteStoredImage, storagePathFromUrl } from './imageUpload';
 import { listarCanales } from './canales';
@@ -540,72 +541,22 @@ export function esModerador(club: Club | null, uid: string | null): boolean {
 }
 
 /**
- * Añade un miembro al club y a sus chats de canal.
+ * Entra en un club público.
  *
- * Entran el chat histórico y TODOS los canales públicos
- * (`all`): si la persona se quedara fuera de alguno, vería
- * el canal en la lista sin poder leerlo. A los restringidos
- * (`mods`) no entra: ahí solo está el equipo, y se entra al
- * ascender (ver `cambiarRol`).
- *
- * Todo va junto en la transacción: ficha + N chats. Cada
- * escritura la comprueban las reglas por separado (rama de
- * auto-join en clubes públicos).
+ * La transacción real (ficha + chats) la hace la Cloud Function
+ * `unirseClubPublico` con el Admin SDK. Antes la hacía el cliente,
+ * pero las reglas de cada escritura de un lote se evalúan contra el
+ * estado ANTERIOR: el chat no podía comprobar que la persona ya era
+ * miembro del club, y quedaba un hueco para leer el historial de un
+ * club público sin haberse unido.
  */
 export async function anadirMiembro(
   clubId: string,
-  nuevo: Speaker,
+  _nuevo: Speaker,
 ): Promise<ClubResult> {
   try {
-    // Los chats se resuelven FUERA de la transacción: dentro
-    // solo hay gets por documento, que es lo único que una
-    // transacción acepta. Si la lista falla, se aborta el join
-    // entero: entrar a medias (ficha sí, canales no) dejaría
-    // canales visibles sin acceso hasta reentrar.
-    const abiertos = (await listarCanales(clubId)).filter((c) => c.visibility === 'all');
-
-    await runTransaction(db, async (tx) => {
-      const clubRef = doc(db, CLUBS, clubId);
-      const snap = await tx.get(clubRef);
-      if (!snap.exists()) throw new Error('El club ya no existe.');
-
-      const data = snap.data();
-      const miembros = { ...((data.members ?? {}) as Record<string, ClubMember>) };
-      const chatId = data.chatId as string;
-
-      if (miembros[nuevo.uid]) return;
-
-      miembros[nuevo.uid] = {
-        uid: nuevo.uid,
-        role: 'member',
-        joinedAt: new Date().toISOString(),
-      };
-
-      const uids = Object.keys(miembros);
-
-      tx.update(clubRef, {
-        members: miembros,
-        memberIds: uids,
-        memberCount: uids.length,
-        updatedAt: serverTimestamp(),
-      });
-
-      // El histórico más cada canal público, sin duplicar el
-      // chat si el `general` migrado ya lo apunta.
-      const chats = [chatId, ...abiertos.map((c) => c.chatId)].filter(
-        (id, i, arr) => typeof id === 'string' && id.length > 0 && arr.indexOf(id) === i,
-      );
-
-      for (const id of chats) {
-        // Se le quita de `hiddenFor` por si había salido antes:
-        // si no, el chat no le aparecería en su lista.
-        tx.update(doc(db, 'chats', id), {
-          memberIds: arrayUnion(nuevo.uid),
-          hiddenFor: arrayRemove(nuevo.uid),
-        });
-      }
-    });
-
+    const llamar = httpsCallable(functions, 'unirseClubPublico');
+    await llamar({ clubId });
     return { ok: true };
   } catch (e: unknown) {
     return { ok: false, error: messageOf(e, 'No se pudo añadir al miembro.') };
@@ -646,12 +597,26 @@ export async function quitarMiembro(
 
       const uids = Object.keys(miembros);
 
-      tx.update(clubRef, {
+      const cambiosClub: Record<string, unknown> = {
         members: miembros,
         memberIds: uids,
         memberCount: uids.length,
         updatedAt: serverTimestamp(),
-      });
+      };
+
+      // Si la persona era moderadora o admin del club, sale también
+      // de esos arrays. Si no, `equipoDeClub()` seguiría contándola
+      // para los canales `mods` aunque ya no fuera miembro, y las
+      // reglas que exigen que el chat tenga EXACTAMENTE al equipo
+      // fallarían al crear o sincronizar un canal.
+      if (Array.isArray(data.moderatorIds)) {
+        cambiosClub.moderatorIds = data.moderatorIds.filter((m) => m !== uid);
+      }
+      if (Array.isArray(data.adminIds)) {
+        cambiosClub.adminIds = data.adminIds.filter((m) => m !== uid);
+      }
+
+      tx.update(clubRef, cambiosClub);
 
       // El histórico más cada canal, sin duplicar el chat si el
       // `general` migrado ya lo apunta. Primero TODOS los gets
@@ -903,60 +868,18 @@ export function subscribeSolicitudesClub(
 /**
  * Acepta una solicitud de acceso.
  *
- * Al aceptar, la persona pasa a ser miembro del club Y de sus
- * chats de canal públicos. Las dos cosas tienen que pasar
- * juntas, porque si se quedara solo en la ficha del club no
- * podría leer los mensajes.
+ * La hace la Cloud Function `responderSolicitudClub`: comprueba que
+ * quien responde es del equipo, que la solicitud sigue pendiente y
+ * que la persona no está baneada ni sancionada, y añade al miembro
+ * al club y a todos sus chats públicos en una transacción.
  */
 export async function aceptarSolicitud(
   clubId: string,
   request: ClubRequest,
 ): Promise<ClubResult> {
   try {
-    const snap = await getDoc(doc(db, CLUBS, clubId));
-    if (!snap.exists()) return { ok: false, error: 'El club ya no existe.' };
-
-    const data = snap.data();
-    const miembros = { ...((data.members ?? {}) as Record<string, ClubMember>) };
-    const chatId = data.chatId as string;
-
-    miembros[request.fromId] = {
-      uid: request.fromId,
-      role: 'member',
-      joinedAt: new Date().toISOString(),
-    };
-
-    const uids = Object.keys(miembros);
-
-    await updateDoc(doc(db, CLUBS, clubId), {
-      members: miembros,
-      memberIds: uids,
-      memberCount: uids.length,
-      updatedAt: serverTimestamp(),
-    });
-
-    // Histórico más canales públicos. A los restringidos no
-    // entra: es un miembro normal, no del equipo.
-    const abiertos = (await listarCanales(clubId)).filter((c) => c.visibility === 'all');
-    const chats = [chatId, ...abiertos.map((c) => c.chatId)].filter(
-      (id, i, arr) => typeof id === 'string' && id.length > 0 && arr.indexOf(id) === i,
-    );
-
-    for (const id of chats) {
-      // Al entrar al chat se le quita de `hiddenFor` por si
-      // había salido antes: si no, el club no le aparecería en
-      // su lista de conversaciones.
-      await updateDoc(doc(db, 'chats', id), {
-        memberIds: arrayUnion(request.fromId),
-        hiddenFor: arrayRemove(request.fromId),
-      });
-    }
-
-    await updateDoc(doc(db, CLUBS, clubId, 'requests', request.id), {
-      status: 'accepted',
-      respondedAt: serverTimestamp(),
-    });
-
+    const llamar = httpsCallable(functions, 'responderSolicitudClub');
+    await llamar({ clubId, requestId: request.id, accion: 'aceptar' });
     return { ok: true };
   } catch (e: unknown) {
     return { ok: false, error: messageOf(e, 'No se pudo aceptar la solicitud.') };
@@ -969,10 +892,8 @@ export async function rechazarSolicitud(
   requestId: string,
 ): Promise<ClubResult> {
   try {
-    await updateDoc(doc(db, CLUBS, clubId, 'requests', requestId), {
-      status: 'rejected',
-      respondedAt: serverTimestamp(),
-    });
+    const llamar = httpsCallable(functions, 'responderSolicitudClub');
+    await llamar({ clubId, requestId, accion: 'rechazar' });
     return { ok: true };
   } catch (e: unknown) {
     return { ok: false, error: messageOf(e, 'No se pudo rechazar la solicitud.') };
@@ -1154,8 +1075,17 @@ export async function eliminarClub(clubId: string): Promise<ClubResult> {
 
 function messageOf(e: unknown, fallback: string): string {
   const code = (e as { code?: string } | null)?.code ?? '';
-  if (code === 'permission-denied') {
+  if (code.includes('permission-denied')) {
     return 'No tienes permiso para esta acción.';
+  }
+  if (code.includes('unavailable') || code.includes('deadline-exceeded')) {
+    return 'No hay conexión con el servidor. Inténtalo de nuevo.';
+  }
+  if (code.includes('not-found')) {
+    return 'Eso ya no existe.';
+  }
+  if (code.includes('failed-precondition') || code.includes('unauthenticated')) {
+    return 'No se ha podido completar la operación.';
   }
   if (e instanceof Error && e.message) return e.message;
   return fallback;

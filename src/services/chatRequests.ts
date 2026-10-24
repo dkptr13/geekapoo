@@ -1,6 +1,4 @@
 import {
-  arrayRemove,
-  arrayUnion,
   collection,
   doc,
   onSnapshot,
@@ -12,10 +10,10 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
-import { db } from '../lib/firebase';
+import { db, functions } from '../lib/firebase';
 import { toIsoString } from './firestoreUtils';
-import { CHATS } from './chats';
 import type { ChatRequest, ChatRequestStatus, ChatRequestType, User } from '../types';
 
 // ======================================================
@@ -206,85 +204,90 @@ export async function requestGroupJoin(
   }
 }
 
+/**
+ * Invita a alguien a un grupo.
+ *
+ * Es el camino que sustituye a "añadir al grupo": el dueño manda la
+ * invitación y la persona entra cuando la acepta. Así nadie aparece
+ * en una conversación ajena sin haber dicho que sí.
+ */
+export async function inviteToGroup(
+  from: Speaker,
+  to: Speaker,
+  group: { id: string; name: string },
+  existing: ChatRequest[] = [],
+): Promise<RequestResult> {
+  if (from.uid === to.uid) {
+    return { ok: false, error: 'Ya estás en el grupo.' };
+  }
+
+  if (alreadyPending(existing, from.uid, to.uid, 'invite', group.id)) {
+    return { ok: false, error: `Ya has invitado a ${nameOf(to)} a este grupo.` };
+  }
+
+  try {
+    await setDoc(doc(collection(db, CHAT_REQUESTS)), {
+      type: 'invite',
+      fromId: from.uid,
+      fromName: nameOf(from),
+      fromAvatar: from.avatarUrl,
+      toId: to.uid,
+      toName: nameOf(to),
+      toAvatar: to.avatarUrl,
+      groupId: group.id,
+      groupName: group.name,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+    });
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: messageOf(e, 'No se pudo enviar la invitación.') };
+  }
+}
+
 // ────────────────────────────────────────────────────────
 // RESPONDER
 // ────────────────────────────────────────────────────────
 
 /**
- * Acepta o rechaza una solicitud.
+ * Acepta, rechaza o cancela una solicitud.
  *
- * Al ACEPTAR una solicitud directa se crea la conversación en
- * ese momento, y siempre como un documento NUEVO. Si alguien
- * había borrado antes esa conversación, así el historial viejo
- * no reaparece: empieza de cero, que es justo lo que se pidió.
+ * El cliente NO escribe el estado final: llama a la Cloud Function
+ * `responderSolicitudChat`, que comprueba quién responde, lee el
+ * estado real de la solicitud y, si toca aceptar, crea el chat
+ * directo o añade al miembro en una transacción. Antes bastaba con
+ * escribir `status: 'accepted'` desde la consola para aceptarse la
+ * solicitud a uno mismo.
+ *
+ * Al ACEPTAR una solicitud directa se crea la conversación en ese
+ * momento, y siempre como un documento NUEVO. Si alguien había
+ * borrado antes esa conversación, así el historial viejo no
+ * reaparece: empieza de cero, que es justo lo que se pidió.
  */
 export async function respondToRequest(
   request: ChatRequest,
   status: Extract<ChatRequestStatus, 'accepted' | 'rejected' | 'cancelled'>,
-  currentUser: Speaker,
-  otherUser?: Speaker,
 ): Promise<RequestResult> {
   if (request.status !== 'pending') {
     return { ok: false, error: 'Esa solicitud ya no está pendiente.' };
   }
 
+  const accion =
+    status === 'accepted'
+      ? 'aceptar'
+      : status === 'rejected'
+        ? 'rechazar'
+        : 'cancelar';
+
   try {
-    if (status === 'accepted' && request.type === 'direct' && otherUser) {
-      const ref = doc(collection(db, CHATS));
+    const llamar = httpsCallable(functions, 'responderSolicitudChat');
+    const respuesta = await llamar({ requestId: request.id, accion });
+    const datos = respuesta.data as { ok?: boolean; chatId?: string | null };
 
-      await setDoc(ref, {
-        type: 'direct',
-        name: nameOf(otherUser),
-        avatar: otherUser.avatarUrl,
-        ownerId: currentUser.uid,
-        memberIds: [currentUser.uid, otherUser.uid],
-        hiddenFor: [],
-        lastMessage: 'Conversación iniciada',
-        lastMessageAt: serverTimestamp(),
-        lastMessageSenderId: currentUser.uid,
-        readAt: { [currentUser.uid]: serverTimestamp() },
-        createdAt: serverTimestamp(),
-      });
-
-      await updateDoc(doc(db, CHAT_REQUESTS, request.id), {
-        status,
-        respondedAt: serverTimestamp(),
-        resultingChatId: ref.id,
-      });
-
-      return { ok: true, chatId: ref.id };
-    }
-
-    if (status === 'accepted' && request.type === 'group' && request.groupId) {
-      // Quien acepta es el dueño: por eso puede tocar memberIds.
-      // Al añadir a la persona se le quita de "hiddenFor" para que
-      // el grupo le aparezca en su lista.
-      const chatRef = doc(db, CHATS, request.groupId);
-
-      await setDoc(
-        chatRef,
-        {
-          memberIds: arrayUnion(request.fromId),
-          hiddenFor: arrayRemove(request.fromId),
-        },
-        { merge: true },
-      );
-
-      await updateDoc(doc(db, CHAT_REQUESTS, request.id), {
-        status,
-        respondedAt: serverTimestamp(),
-        resultingChatId: request.groupId,
-      });
-
-      return { ok: true, chatId: request.groupId };
-    }
-
-    await updateDoc(doc(db, CHAT_REQUESTS, request.id), {
-      status,
-      respondedAt: serverTimestamp(),
-    });
-
-    return { ok: true };
+    return {
+      ok: true,
+      chatId: typeof datos?.chatId === 'string' ? datos.chatId : undefined,
+    };
   } catch (e: unknown) {
     return { ok: false, error: messageOf(e, 'No se pudo responder a la solicitud.') };
   }
@@ -326,17 +329,23 @@ export async function withdrawRequest(
 function messageOf(e: unknown, fallback: string): string {
   const code = (e as { code?: string } | null)?.code ?? '';
 
-  if (code === 'permission-denied') {
+  // Las callables devuelven códigos con prefijo `functions/`
+  // (`functions/permission-denied`), así que no vale comparar la
+  // cadena exacta.
+  if (code.includes('permission-denied')) {
     return 'No tienes permiso para esta acción.';
   }
-  if (code === 'unavailable' || code === 'deadline-exceeded') {
+  if (code.includes('unavailable') || code.includes('deadline-exceeded')) {
     return 'No hay conexión con el servidor. Inténtalo de nuevo.';
   }
-  if (code === 'not-found') {
+  if (code.includes('not-found')) {
     return 'Ya no existe. Puede que se haya borrado.';
   }
-  if (code === 'failed-precondition' || code === 'unauthenticated') {
+  if (code.includes('failed-precondition') || code.includes('unauthenticated')) {
     return 'No se ha podido completar la operación.';
+  }
+  if (code.includes('resource-exhausted')) {
+    return 'El grupo ya tiene el máximo de miembros.';
   }
 
   if (e instanceof Error && e.message) return e.message;

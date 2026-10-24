@@ -17,8 +17,9 @@
  * Lo que se comprueba:
  *
  *   - Que CUALQUIER cuenta con sesion (no solo el equipo) pueda enviar
- *     una solicitud de conversacion, crear un grupo y aceptar una
- *     solicitud que le llega.
+ *     una solicitud de conversacion y crear un grupo con ella dentro.
+ *     Aceptar una solicitud, entrar a un grupo o abrir el chat directo
+ *     son cosas del servidor (Cloud Functions), no del cliente.
  *   - Que lo mismo siga SIN dar permisos a un usuario baneado.
  *   - Que la lista de conversaciones se pueda leer con la forma de
  *     consulta que usa el cliente (`array-contains`), porque si el
@@ -104,6 +105,24 @@ function nuevaSolicitud(from, to, extra = {}) {
     toId: to,
     toName: to,
     toAvatar: '',
+    status: 'pending',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ...extra,
+  };
+}
+
+/** Una invitacion a un grupo, tal cual la escribe `inviteToGroup`. */
+function nuevaInvitacion(from, to, groupId, extra = {}) {
+  return {
+    type: 'invite',
+    fromId: from,
+    fromName: from,
+    fromAvatar: '',
+    toId: to,
+    toName: to,
+    toAvatar: '',
+    groupId,
+    groupName: 'Grupo de prueba',
     status: 'pending',
     createdAt: '2026-01-01T00:00:00.000Z',
     ...extra,
@@ -217,18 +236,61 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
     );
   });
 
-  it('el destinatario puede aceptar, y eso crea la conversacion', async () => {
+  it('el destinatario NO puede aceptar desde el cliente: lo hace el servidor', async () => {
     await sembrar(async (f) => {
       await setDoc(doc(f, 'chatRequests', 's1'), nuevaSolicitud(ALICE, BOB));
     });
 
-    await assertSucceeds(
+    // Aceptar es cosa de `responderSolicitudChat`: si el cliente
+    // pudiera escribir `accepted`, se aceptaria su propia solicitud.
+    await assertFails(
       updateDoc(doc(db(BOB), 'chatRequests', 's1'), { status: 'accepted' }),
     );
 
-    // Y ahora el chat nuevo, que es el paso siguiente del flujo.
-    await assertSucceeds(
+    // Y tampoco puede crear el chat directo por su cuenta: el
+    // documento solo lo crea la Cloud Function al aceptar.
+    await assertFails(
       setDoc(doc(collection(db(BOB), 'chats')), nuevoChat(BOB, [ALICE, BOB], { type: 'direct' })),
+    );
+  });
+
+  it('el destinatario SI puede rechazar, y quien la envio cancelarla', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', 's1'), nuevaSolicitud(ALICE, BOB));
+      await setDoc(doc(f, 'chatRequests', 's2'), nuevaSolicitud(ALICE, BOB));
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(BOB), 'chatRequests', 's1'), {
+        status: 'rejected',
+        respondedAt: serverTimestamp(),
+        respondedBy: BOB,
+      }),
+    );
+
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'chatRequests', 's2'), {
+        status: 'cancelled',
+        respondedAt: serverTimestamp(),
+        respondedBy: ALICE,
+      }),
+    );
+  });
+
+  it('nadie puede aceptar una solicitud de otro ni cambiar el destinatario', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', 's1'), nuevaSolicitud(ALICE, BOB));
+    });
+
+    await assertFails(
+      updateDoc(doc(db(CARA), 'chatRequests', 's1'), { status: 'accepted' }),
+    );
+
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chatRequests', 's1'), {
+        status: 'accepted',
+        toId: CARA,
+      }),
     );
   });
 });
@@ -262,33 +324,99 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
     assert.strictEqual(lista.size, 1, 'el dueno ve su grupo recien creado');
   });
 
-  it('el dueno puede anadir gente al grupo', async () => {
+  it('el dueno NO puede anadir a nadie directamente: manda una invitacion', async () => {
     await sembrar(async (f) => {
       await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE]));
     });
 
-    await assertSucceeds(
+    // El ataque que se quiere cerrar: el dueño (o quien se haga
+    // pasar por él) escribe el uid de un tercero en `memberIds`.
+    await assertFails(
       updateDoc(doc(db(ALICE), 'chats', 'g1'), {
         memberIds: arrayUnion(BOB),
         hiddenFor: arrayRemove(BOB),
       }),
     );
 
-    // Y el nuevo miembro lo ve ya en su lista.
-    const lista = await assertSucceeds(
-      getDocs(query(collection(db(BOB), 'chats'), where('memberIds', 'array-contains', BOB))),
+    // La via legitima: el dueño crea una invitacion y BOB entra
+    // cuando la acepta (la entrada real la hace el servidor).
+    const invitacion = doc(collection(db(ALICE), 'chatRequests'));
+    await assertSucceeds(
+      setDoc(invitacion, nuevaInvitacion(ALICE, BOB, 'g1')),
     );
 
-    assert.strictEqual(lista.size, 1, 'al que le anaden ve el grupo');
+    // Y el invitado tampoco puede aceptarla desde el cliente.
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chatRequests', invitacion.id), {
+        status: 'accepted',
+      }),
+    );
   });
 
-  it('un miembro que no es dueno NO puede anadir gente', async () => {
+  it('un miembro que no es dueno NO puede invitar ni anadir gente', async () => {
     await sembrar(async (f) => {
       await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
     });
 
     await assertFails(
       updateDoc(doc(db(BOB), 'chats', 'g1'), { memberIds: arrayUnion(CARA) }),
+    );
+
+    await assertFails(
+      setDoc(
+        doc(collection(db(BOB), 'chatRequests')),
+        nuevaInvitacion(BOB, CARA, 'g1'),
+      ),
+    );
+  });
+
+  it('el dueno tampoco puede invitar a quien ya esta dentro', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaInvitacion(ALICE, BOB, 'g1'),
+      ),
+    );
+  });
+
+  it('nadie puede cambiar el tipo, el codigo de canal ni el dueno a mano', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chats', 'g1'), { type: 'direct' }),
+    );
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chats', 'g1'), { slug: 'club-ajeno' }),
+    );
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chats', 'g1'), { channelId: 'general' }),
+    );
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chats', 'g1'), { ownerId: BOB }),
+    );
+  });
+
+  it('el dueno SI puede transferir el grupo a otro miembro, no a un ajeno', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'chats', 'g1'), { ownerId: BOB }),
+    );
+
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'chats', 'g1'), { ownerId: ALICE });
+    });
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chats', 'g1'), { ownerId: CARA }),
     );
   });
 
@@ -305,15 +433,37 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
     // exactamente igual de grande al que acabamos de encontrar en las
     // solicitudes.
     const codigo = 'GRP-A1B2-C3D4';
+    const chatRef = doc(collection(db(CARA), 'chats'));
 
     await assertSucceeds(
-      setDoc(doc(collection(db(CARA), 'chats')), nuevoChat(CARA, [CARA], { code: codigo })),
+      setDoc(chatRef, nuevoChat(CARA, [CARA], { code: codigo })),
     );
 
     await assertSucceeds(
       setDoc(doc(db(CARA), 'groupCodes', codigo), {
         code: codigo,
-        groupId: 'g1',
+        // El indice tiene que apuntar al grupo REAL que se acaba
+        // de crear, no a un id inventado.
+        groupId: chatRef.id,
+        name: 'Grupo de prueba',
+        ownerId: CARA,
+        ownerName: CARA,
+        memberCount: 1,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }),
+    );
+  });
+
+  it('no se puede crear un indice que apunte al grupo de otra persona', async () => {
+    const codigo = 'GRP-A1B2-C3D4';
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g-ajeno'), nuevoChat(ALICE, [ALICE]));
+    });
+
+    await assertFails(
+      setDoc(doc(db(CARA), 'groupCodes', codigo), {
+        code: codigo,
+        groupId: 'g-ajeno',
         name: 'Grupo de prueba',
         ownerId: CARA,
         ownerName: CARA,
@@ -409,6 +559,89 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
       updateDoc(doc(db(BOB), 'chats', 'g1'), { code: 'GRP-X9Y9-Z9Z9' }),
     );
   });
+
+  it('al traspasar el grupo, el indice del codigo sigue al nuevo dueno', async () => {
+    const codigo = 'GRP-A1B2-C3D4';
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB], { code: codigo }));
+      await setDoc(doc(f, 'groupCodes', codigo), {
+        code: codigo,
+        groupId: 'g1',
+        name: 'Grupo de prueba',
+        ownerId: ALICE,
+        ownerName: ALICE,
+        memberCount: 2,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    // 1. El dueño viejo traspasa el chat.
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'chats', 'g1'), { ownerId: BOB }),
+    );
+
+    // 2. Y actualiza el índice (lo hace `transferGroupOwnership`).
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'groupCodes', codigo), {
+        ownerId: BOB,
+        ownerName: BOB,
+      }),
+    );
+
+    // 3. Quien entra con el código ya puede pedirle entrar al
+    //    dueño NUEVO; si el índice siguiera con ALICE, la regla
+    //    de `chatRequests` lo rechazaría.
+    await assertSucceeds(
+      setDoc(
+        doc(collection(db(CARA), 'chatRequests')),
+        nuevaSolicitud(CARA, BOB, { type: 'group', groupId: 'g1' }),
+      ),
+    );
+
+    // 4. Ni el dueño nuevo puede regalar el índice a un tercero.
+    await assertFails(
+      updateDoc(doc(db(BOB), 'groupCodes', codigo), {
+        ownerId: CARA,
+        ownerName: CARA,
+      }),
+    );
+
+    // 5. Ni cambiar a qué grupo apunta.
+    await assertFails(
+      updateDoc(doc(db(BOB), 'groupCodes', codigo), { groupId: 'g2' }),
+    );
+  });
+
+  it('el dueno actual puede reclamar un indice que se quedo con el anterior', async () => {
+    const codigo = 'GRP-A1B2-C3D4';
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(BOB, [ALICE, BOB], { code: codigo }));
+      await setDoc(doc(f, 'groupCodes', codigo), {
+        code: codigo,
+        groupId: 'g1',
+        name: 'Grupo de prueba',
+        ownerId: ALICE,
+        ownerName: ALICE,
+        memberCount: 2,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(BOB), 'groupCodes', codigo), {
+        ownerId: BOB,
+        ownerName: BOB,
+      }),
+    );
+
+    // El dueño anterior ya no puede recuperarlo.
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'groupCodes', codigo), {
+        ownerId: ALICE,
+        ownerName: ALICE,
+      }),
+    );
+  });
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -457,6 +690,141 @@ describe('Mensajes', () => {
         type: 'text',
         createdAt: '2026-01-01T00:00:00.000Z',
       }),
+    );
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// ATAQUES DE PERTENENCIA
+// ═══════════════════════════════════════════════════════════
+//
+// Estos son los cuatro ataques que motivaron el cambio:
+//
+//   1. Meter a un tercero en un chat privado.
+//   2. Meter a alguien de fuera en un grupo y leer lo viejo.
+//   3. Hacerse pasar por el dueño para aceptar una entrada.
+//   4. Colarse en un club público (o en su chat) sin unirse.
+
+describe('Ataques de pertenencia', () => {
+  it('a un chat privado no se le puede meter a un tercero', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'd1'), nuevoChat(ALICE, [ALICE, BOB], {
+        type: 'direct',
+      }));
+      await setDoc(doc(f, 'chats', 'd1', 'messages', 'viejo'), {
+        chatId: 'd1',
+        senderId: ALICE,
+        senderName: 'alice',
+        senderAvatar: '',
+        body: 'Esto es privado',
+        type: 'text',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chats', 'd1'), {
+        memberIds: arrayUnion(CARA),
+        hiddenFor: arrayRemove(CARA),
+      }),
+    );
+
+    // Y CARA sigue sin poder leer el historial.
+    await assertFails(getDoc(doc(db(CARA), 'chats', 'd1', 'messages', 'viejo')));
+  });
+
+  it('un ajeno no puede colarse en un grupo y leer el historial viejo', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+      await setDoc(doc(f, 'chats', 'g1', 'messages', 'viejo'), {
+        chatId: 'g1',
+        senderId: ALICE,
+        senderName: 'alice',
+        senderAvatar: '',
+        body: 'Lo que se hablo antes',
+        type: 'text',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    await assertFails(
+      updateDoc(doc(db(CARA), 'chats', 'g1'), {
+        memberIds: arrayUnion(CARA),
+        hiddenFor: arrayRemove(CARA),
+      }),
+    );
+
+    await assertFails(getDoc(doc(db(CARA), 'chats', 'g1', 'messages', 'viejo')));
+  });
+
+  it('un ajeno no puede colarse en el chat de un club publico', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'clubs', 'club-publico'), {
+        slug: 'club-publico',
+        name: 'Club publico',
+        accessType: 'public',
+        ownerId: ALICE,
+        moderatorIds: [],
+        memberIds: [ALICE],
+        members: {
+          [ALICE]: { uid: ALICE, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+        },
+        memberCount: 1,
+        chatId: 'c1',
+      });
+      await setDoc(doc(f, 'chats', 'c1'), nuevoChat(ALICE, [ALICE], {
+        type: 'club',
+        slug: 'club-publico',
+        ownerId: ALICE,
+      }));
+      await setDoc(doc(f, 'chats', 'c1', 'messages', 'viejo'), {
+        chatId: 'c1',
+        senderId: ALICE,
+        senderName: 'alice',
+        senderAvatar: '',
+        body: 'Solo para el club',
+        type: 'text',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    // CARA no esta en `club.memberIds`: la rama de auto-join del
+    // club publico exige ser miembro ANTES de tocar el chat.
+    await assertFails(
+      updateDoc(doc(db(CARA), 'chats', 'c1'), {
+        memberIds: arrayUnion(CARA),
+        hiddenFor: arrayRemove(CARA),
+      }),
+    );
+
+    await assertFails(getDoc(doc(db(CARA), 'chats', 'c1', 'messages', 'viejo')));
+  });
+
+  it('un miembro no puede aceptar una entrada en nombre del dueno', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+      await setDoc(doc(f, 'chatRequests', 's1'), nuevaSolicitud(CARA, ALICE, {
+        type: 'group',
+        groupId: 'g1',
+      }));
+    });
+
+    // BOB es miembro, pero no el destinatario (ALICE) ni el dueño.
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chatRequests', 's1'), { status: 'accepted' }),
+    );
+
+    // CARA es quien la envio: tampoco puede aceptarla.
+    await assertFails(
+      updateDoc(doc(db(CARA), 'chatRequests', 's1'), { status: 'accepted' }),
+    );
+
+    // Y no puede fabricar una solicitud dirigida a un falso dueño.
+    await assertFails(
+      setDoc(
+        doc(collection(db(CARA), 'chatRequests')),
+        nuevaSolicitud(CARA, BOB, { type: 'group', groupId: 'g1' }),
+      ),
     );
   });
 });

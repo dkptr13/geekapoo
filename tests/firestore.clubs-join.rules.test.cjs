@@ -21,6 +21,7 @@ const {
   doc,
   setDoc,
   updateDoc,
+  getDoc,
   arrayUnion,
   arrayRemove,
   serverTimestamp,
@@ -132,11 +133,15 @@ beforeEach(async () => {
 });
 
 describe('Unirse a un club público', () => {
-  // La escritura exacta de `anadirMiembro`: una transacción que
-  // toca la ficha del club Y el chat grupal a la vez.
-  it('la transacción completa (club + chat) pasa', async () => {
+  // La escritura exacta de `anadirMiembro` ANTES: una transacción
+  // que tocaba la ficha del club Y el chat grupal a la vez. Ahora
+  // ya no pasa: las reglas de cada escritura se evalúan contra el
+  // estado ANTERIOR, así que el chat no puede comprobar que la
+  // persona ya es miembro del club. La entrada real la hace la
+  // Cloud Function `unirseClubPublico` con el Admin SDK.
+  it('la transacción completa (club + chat) ya NO pasa desde el cliente', async () => {
     const adb = db(ALICE);
-    await assertSucceeds(
+    await assertFails(
       runTransaction(adb, async (tx) => {
         const clubRef = doc(adb, 'clubs', 'club-test');
         const snap = await tx.get(clubRef);
@@ -165,6 +170,55 @@ describe('Unirse a un club público', () => {
           hiddenFor: arrayRemove(ALICE),
         });
       }),
+    );
+  });
+
+  it('un miembro del club SI puede entrar en su chat', async () => {
+    // Ya está en `club.memberIds` (la Cloud Function lo puso ahí
+    // antes de tocar el chat). La rama de auto-join sí le deja.
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'clubs', 'club-test'), {
+        memberIds: [DUENO, ALICE],
+        members: {
+          [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+          [ALICE]: { uid: ALICE, role: 'member', joinedAt: '2026-01-02T00:00:00.000Z' },
+        },
+        memberCount: 2,
+      });
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'chats', 'chat-test-1'), {
+        memberIds: arrayUnion(ALICE),
+        hiddenFor: arrayRemove(ALICE),
+      }),
+    );
+  });
+
+  it('quien no es miembro no puede colarse ni leer el historial', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'chat-test-1', 'messages', 'viejo'), {
+        chatId: 'chat-test-1',
+        senderId: DUENO,
+        senderName: 'dueno',
+        senderAvatar: '',
+        body: 'Mensaje anterior del club',
+        type: 'text',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    // ALICE no está en `club.memberIds`: la regla del chat la
+    // rechaza aunque el club sea público.
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chats', 'chat-test-1'), {
+        memberIds: arrayUnion(ALICE),
+        hiddenFor: arrayRemove(ALICE),
+      }),
+    );
+
+    await assertFails(
+      getDoc(doc(db(ALICE), 'chats', 'chat-test-1', 'messages', 'viejo')),
     );
   });
 

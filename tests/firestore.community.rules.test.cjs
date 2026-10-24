@@ -187,12 +187,12 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
       }));
     });
 
-    // Un chat con dos miembros (Alice y Bob) y un mensaje de
-    // Alice. CARA existe como cuenta pero no está dentro, que es
+    // Un chat de GRUPO con dos miembros (Alice y Bob) y un mensaje
+    // de Alice. CARA existe como cuenta pero no está dentro, que es
     // justo lo que se necesita para probar que el chat se cierra.
     await sembrar(async (f) => {
       await setDoc(doc(f, 'chats', 'chat1'), {
-        type: 'direct',
+        type: 'group',
         name: 'Alice y Bob',
         ownerId: ALICE,
         memberIds: [ALICE, BOB],

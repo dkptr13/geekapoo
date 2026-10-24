@@ -1780,12 +1780,49 @@ export const onChatMessageCreated = onDocumentCreated(
 // el documento ya no se muestra ni se descubre desde el chat.
 const VENTANA_BORRADO_MS = 2 * 60 * 60 * 1000;
 
-export const eliminarMensajeParaTodos = onCall(async (request) => {
-  const uid = request.auth?.uid;
-
+/**
+ * Exige sesión, perfil y que la cuenta no esté baneada.
+ *
+ * Es el equivalente en servidor de `isActive()` en las reglas.
+ * Se usa en las callables de chat para que un baneado no pueda
+ * seguir editando, borrando o aceptando solicitudes aunque su
+ * documento siga estando en `memberIds`.
+ */
+async function exigirActivo(auth: unknown): Promise<string> {
+  const uid = (auth as { uid?: string } | undefined)?.uid;
   if (!uid) {
     throw new HttpsError('unauthenticated', 'Tienes que iniciar sesión.');
   }
+
+  const [perfil, restriccion] = await Promise.all([
+    db.doc(`${USERS}/${uid}`).get(),
+    db.doc(`${ACCOUNT_RESTRICTIONS}/${uid}`).get(),
+  ]);
+
+  if (!perfil.exists) {
+    throw new HttpsError(
+      'permission-denied',
+      'Tu cuenta no tiene perfil de usuario.',
+    );
+  }
+
+  const baneoDuradero =
+    restriccion.exists &&
+    restriccion.data()?.activo === true &&
+    restriccion.data()?.tipo === 'ban';
+
+  if (baneoDuradero || perfil.data()?.isBanned === true) {
+    throw new HttpsError(
+      'permission-denied',
+      'Tu cuenta está baneada y no puede hacer esto.',
+    );
+  }
+
+  return uid;
+}
+
+export const eliminarMensajeParaTodos = onCall(async (request) => {
+  const uid = await exigirActivo(request.auth);
 
   const chatId = typeof request.data?.chatId === 'string' ? request.data.chatId : '';
   const messageId =
@@ -1907,11 +1944,7 @@ export const eliminarMensajeParaTodos = onCall(async (request) => {
 // plazo de borrado sigue contando desde el envío. Se guarda
 // `editedAt` para pintar el "editado".
 export const editarMensajeChat = onCall(async (request) => {
-  const uid = request.auth?.uid;
-
-  if (!uid) {
-    throw new HttpsError('unauthenticated', 'Tienes que iniciar sesión.');
-  }
+  const uid = await exigirActivo(request.auth);
 
   const chatId = typeof request.data?.chatId === 'string' ? request.data.chatId : '';
   const messageId =
@@ -1988,6 +2021,820 @@ export const editarMensajeChat = onCall(async (request) => {
 
   return { ok: true };
 });
+
+
+// ======================================================
+// SOLICITUDES DE CHAT Y MIEMBROS
+// ======================================================
+//
+// Aceptar una solicitud NO puede hacerlo el cliente. Si pudiera
+// escribir `status: 'accepted'`, se aceptaría su propia solicitud
+// y el estado que lee la interfaz dejaría de significar algo.
+//
+// Aquí se hacen las tres cosas que necesitan confianza:
+//
+//   · responderSolicitudChat: acepta/rechaza/cancela una solicitud
+//     de chat privado, de entrada a un grupo o de invitación.
+//   · responderSolicitudClub: acepta/rechaza una solicitud de
+//     acceso a un club y mete al miembro en todos sus chats
+//     públicos en la MISMA transacción.
+//   · unirseClubPublico: entrada directa a un club público, también
+//     con el club y los chats en una sola transacción.
+//
+// El Admin SDK ignora las reglas, pero no las comprobaciones de
+// este archivo: cada callable vuelve a mirar quién llama, el estado
+// real de la solicitud y el estado de la cuenta.
+
+/** Texto recortado y acotado, para no guardar lo que mande el cliente. */
+function texto(valor: unknown, max = 500): string {
+  return typeof valor === 'string' ? valor.trim().slice(0, max) : '';
+}
+
+function nombreDePerfil(datos: Record<string, unknown> | undefined): string {
+  const nombre = typeof datos?.displayName === 'string' ? datos.displayName.trim() : '';
+  const usuario = typeof datos?.username === 'string' ? datos.username.trim() : '';
+  return (nombre || usuario || 'Usuario').slice(0, 80);
+}
+
+function avatarDePerfil(datos: Record<string, unknown> | undefined): string {
+  const avatar =
+    (typeof datos?.avatarUrl === 'string' && datos.avatarUrl) ||
+    (typeof datos?.photoURL === 'string' && datos.photoURL) ||
+    (typeof datos?.photoUrl === 'string' && datos.photoUrl) ||
+    '';
+  return avatar.slice(0, 500);
+}
+
+function restriccionEsBaneo(datos: Record<string, unknown> | undefined): boolean {
+  return !!datos && datos.activo === true && datos.tipo === 'ban';
+}
+
+function cuentaBaneada(
+  perfil: Record<string, unknown> | undefined,
+  restriccion: Record<string, unknown> | undefined,
+): boolean {
+  return restriccionEsBaneo(restriccion) || perfil?.isBanned === true;
+}
+
+/** Una sanción de club sigue viva si no tiene fecha o si expira en el futuro. */
+function sancionDeClubActiva(
+  datos: Record<string, unknown> | undefined,
+  ahora: number,
+): boolean {
+  if (!datos) return false;
+  const expira = datos.expira;
+  if (!expira) return true;
+
+  const conToMillis = expira as { toMillis?: () => number };
+  if (typeof conToMillis.toMillis === 'function') {
+    return conToMillis.toMillis() > ahora;
+  }
+  if (typeof expira === 'number') return expira > ahora;
+
+  const ms = Date.parse(String(expira));
+  return Number.isNaN(ms) ? true : ms > ahora;
+}
+
+function listaDeUids(valor: unknown): string[] {
+  if (!Array.isArray(valor)) return [];
+  return valor.filter((v): v is string => typeof v === 'string' && v.length > 0);
+}
+
+function unicos(valores: string[]): string[] {
+  return valores.filter((v, i, arr) => arr.indexOf(v) === i);
+}
+
+/**
+ * Acepta, rechaza o cancela una solicitud de chat.
+ *
+ * `accion`:
+ *   · aceptar  → solo el destinatario (`toId`). Crea el chat directo
+ *                o mete al solicitante en el grupo.
+ *   · rechazar → solo el destinatario. No toca miembros.
+ *   · cancelar → solo quien la envió. No toca miembros.
+ *
+ * Para un grupo, aceptar una solicitud `group` la hace el dueño y
+ * añade al solicitante; aceptar una `invite` la hace el invitado y
+ * lo añade a él. En los dos casos el chat y la solicitud se
+ * actualizan en la misma transacción.
+ */
+export const responderSolicitudChat = onCall(async (request) => {
+  const uid = await exigirActivo(request.auth);
+  const requestId = texto(request.data?.requestId, 200);
+  const accion = texto(request.data?.accion, 20);
+
+  if (!requestId || !['aceptar', 'rechazar', 'cancelar'].includes(accion)) {
+    throw new HttpsError('invalid-argument', 'Falta la solicitud o la acción.');
+  }
+
+  const solicitudRef = db.doc(`chatRequests/${requestId}`);
+
+  const resultado = await db.runTransaction(async (tx) => {
+    const solicitudSnap = await tx.get(solicitudRef);
+    if (!solicitudSnap.exists) {
+      throw new HttpsError('not-found', 'Esa solicitud ya no existe.');
+    }
+
+    const solicitud = solicitudSnap.data() ?? {};
+    const tipo = solicitud.type;
+    const fromId = solicitud.fromId;
+    const toId = solicitud.toId;
+
+    if (typeof fromId !== 'string' || typeof toId !== 'string') {
+      throw new HttpsError('failed-precondition', 'La solicitud está incompleta.');
+    }
+
+    if (solicitud.status !== 'pending') {
+      // Reintento de una aceptación ya hecha: devolver el chat es
+      // mejor que un error, porque la interfaz puede haber perdido
+      // la respuesta de la primera llamada.
+      if (
+        solicitud.status === 'accepted' &&
+        toId === uid &&
+        typeof solicitud.resultingChatId === 'string'
+      ) {
+        return { chatId: solicitud.resultingChatId };
+      }
+      throw new HttpsError(
+        'failed-precondition',
+        'Esa solicitud ya no está pendiente.',
+      );
+    }
+
+    if (accion === 'cancelar') {
+      if (fromId !== uid) {
+        throw new HttpsError(
+          'permission-denied',
+          'Solo quien envió la solicitud puede cancelarla.',
+        );
+      }
+
+      tx.update(solicitudRef, {
+        status: 'cancelled',
+        respondedAt: FieldValue.serverTimestamp(),
+        respondedBy: uid,
+      });
+      return {};
+    }
+
+    if (toId !== uid) {
+      throw new HttpsError(
+        'permission-denied',
+        'Solo la persona que recibió la solicitud puede responderla.',
+      );
+    }
+
+    if (accion === 'rechazar') {
+      tx.update(solicitudRef, {
+        status: 'rejected',
+        respondedAt: FieldValue.serverTimestamp(),
+        respondedBy: uid,
+      });
+      return {};
+    }
+
+    // ── Aceptar ────────────────────────────────────────
+    if (tipo === 'direct') {
+      if (fromId === uid) {
+        throw new HttpsError(
+          'permission-denied',
+          'No puedes aceptar tu propia solicitud.',
+        );
+      }
+
+      const perfilSnap = await tx.get(db.doc(`${USERS}/${fromId}`));
+      const restriccionSnap = await tx.get(
+        db.doc(`${ACCOUNT_RESTRICTIONS}/${fromId}`),
+      );
+
+      if (!perfilSnap.exists) {
+        throw new HttpsError(
+          'failed-precondition',
+          'La otra persona ya no tiene perfil.',
+        );
+      }
+
+      const perfil = perfilSnap.data() ?? {};
+      if (cuentaBaneada(perfil, restriccionSnap.data())) {
+        throw new HttpsError(
+          'permission-denied',
+          'La otra persona está baneada.',
+        );
+      }
+
+      const chatRef = db.collection(CHATS).doc();
+      tx.set(chatRef, {
+        type: 'direct',
+        name: nombreDePerfil(perfil),
+        avatar: avatarDePerfil(perfil),
+        ownerId: uid,
+        memberIds: [uid, fromId],
+        hiddenFor: [],
+        lastMessage: '',
+        lastMessageAt: FieldValue.serverTimestamp(),
+        lastMessageSenderId: fromId,
+        readAt: { [uid]: FieldValue.serverTimestamp() },
+        createdAt: FieldValue.serverTimestamp(),
+      });
+
+      tx.update(solicitudRef, {
+        status: 'accepted',
+        respondedAt: FieldValue.serverTimestamp(),
+        respondedBy: uid,
+        resultingChatId: chatRef.id,
+      });
+
+      return { chatId: chatRef.id };
+    }
+
+    if (tipo !== 'group' && tipo !== 'invite') {
+      throw new HttpsError('failed-precondition', 'Tipo de solicitud desconocido.');
+    }
+
+    const groupId = typeof solicitud.groupId === 'string' ? solicitud.groupId : '';
+    if (!groupId) {
+      throw new HttpsError('failed-precondition', 'La solicitud no trae grupo.');
+    }
+
+    const chatRef = db.doc(`${CHATS}/${groupId}`);
+    const chatSnap = await tx.get(chatRef);
+
+    if (!chatSnap.exists) {
+      throw new HttpsError('not-found', 'Ese grupo ya no existe.');
+    }
+
+    const chat = chatSnap.data() ?? {};
+    if (chat.type !== 'group') {
+      throw new HttpsError('failed-precondition', 'Ese chat no es un grupo.');
+    }
+
+    // En una entrada, quien acepta es el dueño y el nuevo miembro es
+    // quien la pidió. En una invitación, quien acepta es el invitado
+    // y el dueño es quien la mandó. Las dos comprobaciones se hacen
+    // contra el documento real, no contra lo que diga la solicitud.
+    if (tipo === 'group' && chat.ownerId !== uid) {
+      throw new HttpsError(
+        'permission-denied',
+        'Solo el dueño del grupo puede aceptar esta solicitud.',
+      );
+    }
+    if (tipo === 'invite' && chat.ownerId !== fromId) {
+      throw new HttpsError(
+        'permission-denied',
+        'La invitación no la envió el dueño actual del grupo.',
+      );
+    }
+
+    const nuevoMiembro = tipo === 'group' ? fromId : uid;
+    if (nuevoMiembro === chat.ownerId) {
+      throw new HttpsError('failed-precondition', 'Esa persona ya es del grupo.');
+    }
+
+    const perfilSnap = await tx.get(db.doc(`${USERS}/${nuevoMiembro}`));
+    const restriccionSnap = await tx.get(
+      db.doc(`${ACCOUNT_RESTRICTIONS}/${nuevoMiembro}`),
+    );
+
+    if (!perfilSnap.exists) {
+      throw new HttpsError(
+        'failed-precondition',
+        'La persona que entra ya no tiene perfil.',
+      );
+    }
+
+    if (cuentaBaneada(perfilSnap.data(), restriccionSnap.data())) {
+      throw new HttpsError(
+        'permission-denied',
+        'La persona que entra está baneada.',
+      );
+    }
+
+    const miembros = listaDeUids(chat.memberIds);
+    const yaEstaba = miembros.includes(nuevoMiembro);
+    const nuevos = yaEstaba ? miembros : [...miembros, nuevoMiembro];
+
+    if (!yaEstaba && nuevos.length > 50) {
+      throw new HttpsError(
+        'resource-exhausted',
+        'El grupo ya tiene el máximo de miembros.',
+      );
+    }
+
+    // El contador del índice de invitación se lee ANTES de escribir.
+    // Si no existe o apunta a otro grupo, no se toca.
+    const codigo = typeof chat.code === 'string' ? chat.code : '';
+    const codigoRef = codigo ? db.doc(`groupCodes/${codigo}`) : null;
+    const codigoSnap = codigoRef ? await tx.get(codigoRef) : null;
+
+    if (!yaEstaba) {
+      tx.update(chatRef, {
+        memberIds: nuevos,
+        hiddenFor: FieldValue.arrayRemove(nuevoMiembro),
+      });
+    }
+
+    if (
+      codigoRef &&
+      codigoSnap?.exists &&
+      codigoSnap.data()?.groupId === groupId
+    ) {
+      tx.update(codigoRef, { memberCount: nuevos.length });
+    }
+
+    tx.update(solicitudRef, {
+      status: 'accepted',
+      respondedAt: FieldValue.serverTimestamp(),
+      respondedBy: uid,
+      resultingChatId: groupId,
+    });
+
+    return { chatId: groupId };
+  });
+
+  return { ok: true, chatId: resultado.chatId ?? null };
+});
+
+/**
+ * Acepta o rechaza una solicitud de acceso a un club.
+ *
+ * Solo el equipo del club (propietario, admins o moderadores) puede
+ * responder. Al aceptar se añade a la persona al club y a TODOS los
+ * chats públicos (el histórico y los canales visibles) en la misma
+ * transacción. Los canales `mods` no se tocan: la persona entra como
+ * miembro normal.
+ */
+export const responderSolicitudClub = onCall(async (request) => {
+  const uid = await exigirActivo(request.auth);
+  const clubId = texto(request.data?.clubId, 100);
+  const requestId = texto(request.data?.requestId, 200);
+  const accion = texto(request.data?.accion, 20);
+
+  if (!clubId || !requestId || !['aceptar', 'rechazar'].includes(accion)) {
+    throw new HttpsError('invalid-argument', 'Falta el club, la solicitud o la acción.');
+  }
+
+  const clubRef = db.doc(`${CLUBS}/${clubId}`);
+  const solicitudRef = db.doc(`${CLUBS}/${clubId}/requests/${requestId}`);
+
+  // Los canales se leen fuera de la transacción (las transacciones
+  // de Admin SDK no aceptan consultas). Después se relee cada chat
+  // dentro, que es lo que de verdad importa.
+  const canalesSnap = await db.collection(`${CLUBS}/${clubId}/${CHANNELS}`).get();
+  const canales = canalesSnap.docs.map((d) => {
+    const datos = d.data() as Record<string, unknown>;
+    return { id: d.id, visibility: datos.visibility, chatId: datos.chatId };
+  });
+
+  await db.runTransaction(async (tx) => {
+    const clubSnap = await tx.get(clubRef);
+    const solicitudSnap = await tx.get(solicitudRef);
+
+    if (!clubSnap.exists) {
+      throw new HttpsError('not-found', 'Ese club ya no existe.');
+    }
+    if (!solicitudSnap.exists) {
+      throw new HttpsError('not-found', 'Esa solicitud ya no existe.');
+    }
+
+    const club = clubSnap.data() ?? {};
+    const solicitud = solicitudSnap.data() ?? {};
+
+    const miembrosClub = listaDeUids(club.memberIds);
+    const esMiembro = miembrosClub.includes(uid);
+    const esEquipo =
+      club.ownerId === uid ||
+      (Array.isArray(club.moderatorIds) && club.moderatorIds.includes(uid)) ||
+      (Array.isArray(club.adminIds) && club.adminIds.includes(uid));
+
+    if (!esMiembro || !esEquipo) {
+      throw new HttpsError(
+        'permission-denied',
+        'Solo el equipo del club puede responder solicitudes.',
+      );
+    }
+
+    if (solicitud.clubId && solicitud.clubId !== clubId) {
+      throw new HttpsError('failed-precondition', 'La solicitud no es de este club.');
+    }
+
+    const fromId = typeof solicitud.fromId === 'string' ? solicitud.fromId : '';
+    if (!fromId) {
+      throw new HttpsError('failed-precondition', 'La solicitud no trae usuario.');
+    }
+
+    if (solicitud.status !== 'pending') {
+      const yaDentro = miembrosClub.includes(fromId);
+      if (solicitud.status === 'accepted' && yaDentro) return;
+      if (solicitud.status === 'rejected' && accion === 'rechazar') return;
+      throw new HttpsError(
+        'failed-precondition',
+        'Esa solicitud ya no está pendiente.',
+      );
+    }
+
+    if (accion === 'rechazar') {
+      tx.update(solicitudRef, {
+        status: 'rejected',
+        respondedAt: FieldValue.serverTimestamp(),
+        respondedBy: uid,
+      });
+      return;
+    }
+
+    // ── Aceptar: perfil, baneo y sanción del club ──────
+    const perfilSnap = await tx.get(db.doc(`${USERS}/${fromId}`));
+    const restriccionSnap = await tx.get(
+      db.doc(`${ACCOUNT_RESTRICTIONS}/${fromId}`),
+    );
+    const sancionSnap = await tx.get(
+      db.doc(`${CLUBS}/${clubId}/sancion/${fromId}`),
+    );
+
+    if (!perfilSnap.exists) {
+      throw new HttpsError(
+        'failed-precondition',
+        'La persona que quiere entrar ya no tiene perfil.',
+      );
+    }
+
+    if (cuentaBaneada(perfilSnap.data(), restriccionSnap.data())) {
+      throw new HttpsError(
+        'permission-denied',
+        'La persona que quiere entrar está baneada.',
+      );
+    }
+
+    if (sancionDeClubActiva(sancionSnap.data(), Date.now())) {
+      throw new HttpsError(
+        'permission-denied',
+        'La persona tiene una sanción vigente en este club.',
+      );
+    }
+
+    const members = { ...((club.members ?? {}) as Record<string, unknown>) };
+    const yaEstaba = !!members[fromId] || miembrosClub.includes(fromId);
+    const nuevosMiembros = yaEstaba
+      ? unicos([...miembrosClub, fromId])
+      : [...miembrosClub, fromId];
+
+    if (!yaEstaba) {
+      members[fromId] = {
+        uid: fromId,
+        role: 'member',
+        joinedAt: new Date().toISOString(),
+      };
+    }
+
+    // Chats que tienen que recibir a la persona: el histórico y los
+    // canales públicos. Los `mods` se quedan como están.
+    const chats = unicos([
+      typeof club.chatId === 'string' ? club.chatId : '',
+      ...canales
+        .filter((c) => c.visibility === 'all' && typeof c.chatId === 'string')
+        .map((c) => c.chatId as string),
+    ]).filter((id) => id.length > 0);
+
+    const chatsSnap = await Promise.all(
+      chats.map((id) => tx.get(db.doc(`${CHATS}/${id}`))),
+    );
+
+    if (!yaEstaba) {
+      tx.update(clubRef, {
+        members,
+        memberIds: nuevosMiembros,
+        memberCount: nuevosMiembros.length,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    chatsSnap.forEach((chatSnap) => {
+      if (!chatSnap.exists) return;
+      tx.update(chatSnap.ref, {
+        memberIds: FieldValue.arrayUnion(fromId),
+        hiddenFor: FieldValue.arrayRemove(fromId),
+      });
+    });
+
+    tx.update(solicitudRef, {
+      status: 'accepted',
+      respondedAt: FieldValue.serverTimestamp(),
+      respondedBy: uid,
+    });
+  });
+
+  return { ok: true };
+});
+
+/**
+ * Entrada directa a un club público.
+ *
+ * El club y sus chats públicos se actualizan en una transacción.
+ * Antes lo hacía el cliente en dos escrituras separadas y las
+ * reglas no podían comprobar que la persona ya era miembro del
+ * club en el momento de tocar el chat (cada escritura de un lote
+ * se evalúa contra el estado ANTERIOR): quedaba un hueco para
+ * meterse en el chat de un club público sin unirse.
+ */
+export const unirseClubPublico = onCall(async (request) => {
+  const uid = await exigirActivo(request.auth);
+  const clubId = texto(request.data?.clubId, 100);
+  if (!clubId) {
+    throw new HttpsError('invalid-argument', 'Falta el club.');
+  }
+
+  const clubRef = db.doc(`${CLUBS}/${clubId}`);
+  const canalesSnap = await db.collection(`${CLUBS}/${clubId}/${CHANNELS}`).get();
+  const canales = canalesSnap.docs.map((d) => {
+    const datos = d.data() as Record<string, unknown>;
+    return { id: d.id, visibility: datos.visibility, chatId: datos.chatId };
+  });
+
+  await db.runTransaction(async (tx) => {
+    const clubSnap = await tx.get(clubRef);
+    if (!clubSnap.exists) {
+      throw new HttpsError('not-found', 'Ese club ya no existe.');
+    }
+
+    const club = clubSnap.data() ?? {};
+    if (club.accessType !== 'public') {
+      throw new HttpsError(
+        'permission-denied',
+        'Este club no es público: hay que pedir acceso.',
+      );
+    }
+
+    const sancionSnap = await tx.get(
+      db.doc(`${CLUBS}/${clubId}/sancion/${uid}`),
+    );
+    if (sancionDeClubActiva(sancionSnap.data(), Date.now())) {
+      throw new HttpsError(
+        'permission-denied',
+        'Tienes una sanción vigente en este club.',
+      );
+    }
+
+    const members = { ...((club.members ?? {}) as Record<string, unknown>) };
+    const miembrosClub = listaDeUids(club.memberIds);
+    const yaEstaba = !!members[uid] || miembrosClub.includes(uid);
+    const nuevosMiembros = yaEstaba ? unicos([...miembrosClub, uid]) : [...miembrosClub, uid];
+
+    if (!yaEstaba) {
+      members[uid] = {
+        uid,
+        role: 'member',
+        joinedAt: new Date().toISOString(),
+      };
+    }
+
+    const chats = unicos([
+      typeof club.chatId === 'string' ? club.chatId : '',
+      ...canales
+        .filter((c) => c.visibility === 'all' && typeof c.chatId === 'string')
+        .map((c) => c.chatId as string),
+    ]).filter((id) => id.length > 0);
+
+    const chatsSnap = await Promise.all(
+      chats.map((id) => tx.get(db.doc(`${CHATS}/${id}`))),
+    );
+
+    if (!yaEstaba) {
+      tx.update(clubRef, {
+        members,
+        memberIds: nuevosMiembros,
+        memberCount: nuevosMiembros.length,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    chatsSnap.forEach((chatSnap) => {
+      if (!chatSnap.exists) return;
+      tx.update(chatSnap.ref, {
+        memberIds: FieldValue.arrayUnion(uid),
+        hiddenFor: FieldValue.arrayRemove(uid),
+      });
+    });
+  });
+
+  return { ok: true };
+});
+
+/**
+ * Abre un chat privado desde el servidor.
+ *
+ * Es una herramienta de administración/migración: el flujo normal es
+ * solicitud → aceptación, que ya crea el chat. Se mantiene la función
+ * que usaba el cliente, pero solo la puede llamar el equipo. Un
+ * usuario normal no puede abrirle una conversación a nadie.
+ */
+export const abrirChatDirecto = onCall(async (request) => {
+  const uid = await exigirAdmin(request.auth);
+  const targetUid = texto(request.data?.targetUid, 200);
+
+  if (!targetUid) {
+    throw new HttpsError('invalid-argument', 'Falta la otra persona.');
+  }
+  if (targetUid === uid) {
+    throw new HttpsError('invalid-argument', 'No puedes abrir un chat contigo.');
+  }
+
+  const [perfilSnap, restriccionSnap] = await Promise.all([
+    db.doc(`${USERS}/${targetUid}`).get(),
+    db.doc(`${ACCOUNT_RESTRICTIONS}/${targetUid}`).get(),
+  ]);
+
+  if (!perfilSnap.exists) {
+    throw new HttpsError('not-found', 'Ese usuario no existe.');
+  }
+
+  const perfil = perfilSnap.data() ?? {};
+  if (cuentaBaneada(perfil, restriccionSnap.data())) {
+    throw new HttpsError('permission-denied', 'Ese usuario está baneado.');
+  }
+
+  const chatRef = db.collection(CHATS).doc();
+  await chatRef.set({
+    type: 'direct',
+    name: nombreDePerfil(perfil),
+    avatar: avatarDePerfil(perfil),
+    ownerId: uid,
+    memberIds: [uid, targetUid],
+    hiddenFor: [],
+    lastMessage: '',
+    lastMessageAt: FieldValue.serverTimestamp(),
+    lastMessageSenderId: uid,
+    readAt: { [uid]: FieldValue.serverTimestamp() },
+    createdAt: FieldValue.serverTimestamp(),
+  });
+
+  return { ok: true, chatId: chatRef.id };
+});
+
+/**
+ * Cambia la visibilidad de un canal y sincroniza su chat.
+ *
+ * Las reglas ya no dejan cambiar `visibility` desde el cliente: si
+ * un canal pasa de `all` a `mods`, hay que quitar del chat a todos
+ * los que no son del equipo, y si pasa de `mods` a `all`, hay que
+ * meterlos. Hacerlo en dos escrituras dejaba una ventana en la que
+ * el canal era restringido pero su historial seguía abierto.
+ */
+export const cambiarVisibilidadCanal = onCall(async (request) => {
+  const uid = await exigirActivo(request.auth);
+  const clubId = texto(request.data?.clubId, 100);
+  const channelId = texto(request.data?.channelId, 50);
+  const visibility = texto(request.data?.visibility, 10);
+
+  if (!clubId || !channelId || !['all', 'mods'].includes(visibility)) {
+    throw new HttpsError('invalid-argument', 'Faltan el canal o la visibilidad.');
+  }
+  if (channelId === 'general' && visibility !== 'all') {
+    throw new HttpsError(
+      'invalid-argument',
+      'El canal general no puede ser restringido.',
+    );
+  }
+
+  const clubRef = db.doc(`${CLUBS}/${clubId}`);
+  const canalRef = db.doc(`${CLUBS}/${clubId}/${CHANNELS}/${channelId}`);
+
+  const resultado = await db.runTransaction(async (tx) => {
+    const [clubSnap, canalSnap, perfilSnap] = await Promise.all([
+      tx.get(clubRef),
+      tx.get(canalRef),
+      tx.get(db.doc(`${USERS}/${uid}`)),
+    ]);
+
+    if (!clubSnap.exists) {
+      throw new HttpsError('not-found', 'Ese club ya no existe.');
+    }
+    if (!canalSnap.exists) {
+      throw new HttpsError('not-found', 'Ese canal ya no existe.');
+    }
+
+    const club = clubSnap.data() ?? {};
+    const canal = canalSnap.data() ?? {};
+    const perfil = perfilSnap.data() ?? {};
+
+    const esAdminGlobal = perfil.role === 'admin';
+    const esMiembro = listaDeUids(club.memberIds).includes(uid);
+    const rango =
+      club.ownerId === uid
+        ? 3
+        : Array.isArray(club.adminIds) && club.adminIds.includes(uid)
+          ? 2
+          : Array.isArray(club.moderatorIds) && club.moderatorIds.includes(uid)
+            ? 1
+            : 0;
+    const permisos = (club.permisos ?? {}) as Record<string, unknown>;
+    const puedeGestionar =
+      esAdminGlobal ||
+      (esMiembro &&
+        (rango === 3 ||
+          (rango === 2 && permisos.adminGestionaCanales === true) ||
+          (rango === 1 && permisos.moderadorGestionaCanales === true)));
+
+    if (!puedeGestionar) {
+      throw new HttpsError(
+        'permission-denied',
+        'No tienes permiso para gestionar los canales de este club.',
+      );
+    }
+
+    if (canal.clubId && canal.clubId !== clubId) {
+      throw new HttpsError('failed-precondition', 'El canal no es de este club.');
+    }
+
+    const chatId = typeof canal.chatId === 'string' ? canal.chatId : '';
+    if (!chatId) {
+      throw new HttpsError('failed-precondition', 'El canal no tiene chat.');
+    }
+
+    const chatSnap = await tx.get(db.doc(`${CHATS}/${chatId}`));
+    if (!chatSnap.exists) {
+      throw new HttpsError('failed-precondition', 'El chat del canal no existe.');
+    }
+
+    const chat = chatSnap.data() ?? {};
+    if (
+      chat.type !== 'club' ||
+      chat.slug !== clubId ||
+      chat.channelId !== channelId
+    ) {
+      throw new HttpsError(
+        'failed-precondition',
+        'El chat del canal no es el que le corresponde.',
+      );
+    }
+
+    const todos = unicos([
+      ...listaDeUids(club.memberIds),
+      ...(typeof club.ownerId === 'string' ? [club.ownerId] : []),
+    ]);
+    const equipo = unicos([
+      ...(typeof club.ownerId === 'string' ? [club.ownerId] : []),
+      ...(Array.isArray(club.moderatorIds)
+        ? club.moderatorIds.filter((m): m is string => typeof m === 'string')
+        : []),
+    ]).filter((m) => todos.includes(m));
+
+    const nuevos = visibility === 'mods' ? equipo : todos;
+
+    tx.update(canalRef, {
+      visibility,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    const cambioChat: Record<string, unknown> = { memberIds: nuevos };
+    if (nuevos.length > 0) {
+      cambioChat.hiddenFor = FieldValue.arrayRemove(...nuevos);
+    }
+    tx.update(chatSnap.ref, cambioChat);
+
+    return { miembros: nuevos.length };
+  });
+
+  return { ok: true, ...resultado };
+});
+
+/**
+ * Mantiene el contador del índice de invitación de los grupos.
+ *
+ * Antes lo actualizaba el cliente, y solo el dueño podía: cuando
+ * alguien salía por su cuenta, el contador se quedaba viejo. Ahora
+ * cualquier cambio de `memberIds` (aceptación, salida, expulsión)
+ * lo pone al día el servidor.
+ */
+export const onChatMembersChanged = onDocumentUpdated(
+  `${CHATS}/{chatId}`,
+  async (event) => {
+    try {
+      const antes = event.data?.before.data();
+      const despues = event.data?.after.data();
+      if (!despues || despues.type !== 'group') return;
+
+      const miembrosAntes = listaDeUids(antes?.memberIds);
+      const miembrosDespues = listaDeUids(despues.memberIds);
+      const mismos =
+        miembrosAntes.length === miembrosDespues.length &&
+        miembrosAntes.every((id) => miembrosDespues.includes(id));
+      if (mismos) return;
+
+      const codigo = typeof despues.code === 'string' ? despues.code : '';
+      if (!codigo) return;
+
+      const ref = db.doc(`groupCodes/${codigo}`);
+      const snap = await ref.get();
+      if (!snap.exists || snap.data()?.groupId !== event.params.chatId) return;
+
+      await ref.update({ memberCount: miembrosDespues.length });
+    } catch (e) {
+      logger.error('No se pudo actualizar el contador del grupo', {
+        chatId: event.params.chatId,
+        error: e,
+      });
+    }
+  },
+);
 
 
 // ======================================================

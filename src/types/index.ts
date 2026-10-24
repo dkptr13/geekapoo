@@ -1006,7 +1006,7 @@ export interface ChatRoom {
 // documento de conversación solo está entre personas que ya se
 // han aceptado, y no hay conversaciones a medio hacer.
 
-export type ChatRequestType = 'direct' | 'group';
+export type ChatRequestType = 'direct' | 'group' | 'invite';
 export type ChatRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
 
 export interface ChatRequest {

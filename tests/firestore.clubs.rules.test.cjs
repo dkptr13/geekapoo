@@ -932,7 +932,11 @@ describe('Solicitudes de acceso a un club', () => {
     );
   });
 
-  it('un moderador puede aceptar la solicitud', async () => {
+  it('ni el dueno puede aceptar la solicitud desde el cliente', async () => {
+    // Aceptar la hace `responderSolicitudClub`, que ademas mete a
+    // la persona en todos los chats publicos en la misma
+    // transaccion. Si el cliente pudiera escribir `accepted`, se
+    // quedaria a medias: miembro del club pero no de sus chats.
     await sembrar(async (f) => {
       await setDoc(
         doc(f, 'clubs', slug, 'requests', `${slug}_${ALICE}`),
@@ -940,7 +944,7 @@ describe('Solicitudes de acceso a un club', () => {
       );
     });
 
-    await assertSucceeds(
+    await assertFails(
       updateDoc(
         doc(db(DUENO), 'clubs', slug, 'requests', `${slug}_${ALICE}`),
         { status: 'accepted', respondedAt: serverTimestamp(), respondedBy: DUENO },

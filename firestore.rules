@@ -118,6 +118,10 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/chats/$(chatId)).data;
     }
 
+    function chatExiste(chatId) {
+      return exists(/databases/$(database)/documents/chats/$(chatId));
+    }
+
     function isChatMember(chatId) {
       return isSignedIn() && request.auth.uid in chatData(chatId).memberIds;
     }
@@ -1429,28 +1433,88 @@ service cloud.firestore {
                   && (resource.data.fromId == request.auth.uid
                       || resource.data.toId == request.auth.uid);
 
+      // Crear una solicitud. Hay tres formas legítimas:
+      //
+      //   · direct  → quiero hablar contigo.
+      //   · group   → quiero entrar en tu grupo (lo pide el
+      //               interesado y lo acepta el dueño).
+      //   · invite  → el dueño te invita a su grupo. Es el
+      //               camino que sustituye a "añadir a alguien
+      //               al grupo": la persona tiene que aceptar.
+      //
+      // En los tres casos el estado inicial es `pending` y el
+      // `fromId` es SIEMPRE quien escribe. Aceptar no se hace
+      // aquí: lo hace una Cloud Function con el Admin SDK, que
+      // es la única que puede tocar `status: 'accepted'` y
+      // `resultingChatId`.
       allow create: if isActive()
                     && request.resource.data.fromId == request.auth.uid
-                    && request.resource.data.toId != request.auth.uid
                     && request.resource.data.toId is string
+                    && request.resource.data.toId != request.auth.uid
                     && request.resource.data.status == 'pending'
-                    && request.resource.data.type in ['direct', 'group']
+                    && request.resource.data.type in ['direct', 'group', 'invite']
+                    && request.resource.data.fromName is string
+                    && request.resource.data.fromName.size() <= 60
+                    && request.resource.data.fromAvatar is string
+                    && request.resource.data.fromAvatar.size() <= 500
+                    && request.resource.data.keys().hasOnly(
+                         ['type', 'fromId', 'fromName', 'fromAvatar',
+                          'toId', 'toName', 'toAvatar',
+                          'groupId', 'groupName', 'status', 'createdAt'])
                     // El destinatario puede tener la privacidad en
                     // "privado" o con las solicitudes apagadas. Se
                     // comprueba contra SU documento, no contra el
                     // nuestro, para que no se pueda esquivar.
-                    && acceptsChatRequests(request.resource.data.toId);
+                    && acceptsChatRequests(request.resource.data.toId)
+                    && (
+                      // Chat privado: no lleva grupo.
+                      (request.resource.data.type == 'direct'
+                        && !('groupId' in request.resource.data))
+                      // Pedir entrar en un grupo: el destinatario
+                      // tiene que ser su dueño, y quien pide no
+                      // puede ser ya miembro.
+                      || (request.resource.data.type == 'group'
+                        && request.resource.data.groupId is string
+                        && chatExiste(request.resource.data.groupId)
+                        && chatData(request.resource.data.groupId).type == 'group'
+                        && request.resource.data.toId
+                             == chatData(request.resource.data.groupId).ownerId
+                        && !(request.auth.uid
+                             in chatData(request.resource.data.groupId).memberIds))
+                      // Invitación: solo la manda el dueño, y el
+                      // invitado no puede ser ya miembro.
+                      || (request.resource.data.type == 'invite'
+                        && request.resource.data.groupId is string
+                        && chatExiste(request.resource.data.groupId)
+                        && chatData(request.resource.data.groupId).type == 'group'
+                        && chatData(request.resource.data.groupId).ownerId
+                             == request.auth.uid
+                        && !(request.resource.data.toId
+                             in chatData(request.resource.data.groupId).memberIds))
+                    );
 
-      // Aceptar o rechazar. También puede cancelar quien la
-      // envió (mientras siga pendiente).
-      allow update: if isSignedIn()
+      // El cliente solo puede CANCELAR (quien la envió) o
+      // RECHAZAR (quien la recibió). Aceptar es cosa de la Cloud
+      // Function: si el emisor pudiera escribir `accepted`, se
+      // estaría aceptando su propia solicitud y el estado que
+      // lee la interfaz dejaría de ser fiable.
+      //
+      // También exige `isActive()`: una cuenta baneada no puede
+      // seguir cambiando el estado de solicitudes ni borrarlas.
+      // No es contenido, pero sí estado compartido del chat.
+      allow update: if isActive()
                     && resource.data.status == 'pending'
-                    && (resource.data.toId == request.auth.uid
-                        || resource.data.fromId == request.auth.uid)
-                    && request.resource.data.status in
-                       ['accepted', 'rejected', 'cancelled'];
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(
+                           ['status', 'respondedAt', 'respondedBy'])
+                    && (
+                      (resource.data.fromId == request.auth.uid
+                        && request.resource.data.status == 'cancelled')
+                      || (resource.data.toId == request.auth.uid
+                        && request.resource.data.status == 'rejected')
+                    );
 
-      allow delete: if isSignedIn()
+      allow delete: if isActive()
                     && (resource.data.fromId == request.auth.uid
                         || resource.data.toId == request.auth.uid);
     }
@@ -1474,10 +1538,72 @@ service cloud.firestore {
     // reglas.
     match /groupCodes/{code} {
       allow read: if true;
+      // El índice tiene que apuntar a un grupo REAL y del que
+      // quien lo crea es dueño. Antes bastaba con escribir
+      // cualquier `groupId`: se podía anunciar el grupo de otra
+      // persona con un código propio, o crear un índice que no
+      // llevaba a ninguna parte.
       allow create: if isActive()
-                    && request.resource.data.code == code;
-      // Solo quien creó el grupo, o un admin, puede alterarlo.
-      allow update, delete: if isAdmin() || isSelf(resource.data.ownerId);
+                    && request.resource.data.code == code
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.groupId is string
+                    && chatExiste(request.resource.data.groupId)
+                    && chatData(request.resource.data.groupId).type == 'group'
+                    && chatData(request.resource.data.groupId).ownerId
+                         == request.auth.uid
+                    && request.resource.data.memberCount is number
+                    && request.resource.data.memberCount >= 1
+                    && request.resource.data.keys().hasOnly(
+                         ['code', 'groupId', 'name', 'ownerId',
+                          'ownerName', 'memberCount', 'createdAt']);
+      // Se actualiza el contador y, al traspasar el grupo, el
+      // dueño del índice. `groupId` NO se puede tocar nunca:
+      // convertiría el índice en un puntero a otro grupo.
+      //
+      // El traspaso lo puede hacer el dueño viejo (que sigue
+      // siendo `resource.data.ownerId`) o el dueño NUEVO del
+      // chat (para reparar índices antiguos), pero en ambos
+      // casos el `ownerId` resultante tiene que ser el dueño
+      // REAL del grupo. Así nadie puede regalar el índice a un
+      // tercero.
+      allow update: if isActive()
+                    && (
+                      (
+                        (isAdmin() || isSelf(resource.data.ownerId))
+                        && (
+                          (request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['memberCount'])
+                           && request.resource.data.memberCount is number
+                           && request.resource.data.memberCount >= 0)
+                          || (request.resource.data.diff(resource.data)
+                                .affectedKeys().hasOnly(['ownerId', 'ownerName'])
+                              && request.resource.data.ownerId is string
+                              && request.resource.data.ownerId.size() > 0
+                              && request.resource.data.ownerId
+                                   != resource.data.ownerId
+                              && chatExiste(resource.data.groupId)
+                              && chatData(resource.data.groupId).ownerId
+                                   == request.resource.data.ownerId
+                              && request.resource.data.ownerName is string
+                              && request.resource.data.ownerName.size() <= 60)
+                        )
+                      )
+                      || (
+                        // Reparación: el dueño actual del grupo
+                        // puede reclamar un índice que se quedó
+                        // apuntando al dueño anterior.
+                        chatExiste(resource.data.groupId)
+                        && chatData(resource.data.groupId).ownerId
+                             == request.auth.uid
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys().hasOnly(['ownerId', 'ownerName'])
+                        && request.resource.data.ownerId == request.auth.uid
+                        && request.resource.data.ownerName is string
+                        && request.resource.data.ownerName.size() <= 60
+                      )
+                    );
+      allow delete: if isActive()
+                    && (isAdmin() || isSelf(resource.data.ownerId));
     }
 
     // ======================================================
@@ -2203,6 +2329,19 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/clubs/$(clubId)).data;
     }
 
+    /**
+     * Equipo del club: propietario + moderadores.
+     *
+     * Se usa para comprobar los canales restringidos (`mods`): el
+     * chat de uno de esos canales solo puede tener exactamente a
+     * esta gente. `concat` está disponible en el lenguaje de
+     * reglas y evita tener que comparar el mapa `members`.
+     */
+    function equipoDeClub(c) {
+      let moderadores = c.moderatorIds is list ? c.moderatorIds : [];
+      return moderadores.concat([c.ownerId]);
+    }
+
     function clubExiste(clubId) {
       return exists(/databases/$(database)/documents/clubs/$(clubId));
     }
@@ -2887,10 +3026,13 @@ service cloud.firestore {
                                   == resource.data.memberIds.size()
                               && request.resource.data.memberIds.hasAll(resource.data.memberIds)
                               && resource.data.memberIds.hasAll(request.resource.data.memberIds))
-                            // AÑADIR a alguien (aceptar una solicitud) sí lo
-                            // puede el equipo: es parte de su trabajo.
-                            || request.resource.data.memberIds.size()
-                                 == resource.data.memberIds.size() + 1
+                            // AÑADIR a alguien ya NO se hace desde el
+                            // cliente: aceptar una solicitud es cosa de
+                            // `responderSolicitudClub`, que añade a la
+                            // persona al club y a todos sus chats en una
+                            // transacción. Si el equipo pudiera tocar
+                            // `memberIds` desde aquí, se podría aceptar
+                            // sin solicitud y sin pasar por los chats.
                             // EXPULSAR a alguien (quitándolo) es otra
                             // cosa: solo un admin con el permiso. El
                             // dueño tiene su propia rama más arriba.
@@ -2997,15 +3139,24 @@ service cloud.firestore {
         // documento es el mismo (id determinista) y solo cambia
         // la fecha. Sin esta segunda rama, un segundo clic daba
         // permission-denied y parecía un fallo de la web.
-        allow update: if (esModeradorClub(clubId)
+        //
+        // ACEPTAR o RECHAZAR ya no se hace desde el cliente: lo
+        // hace la Cloud Function `responderSolicitudClub`, que
+        // comprueba el rango del que responde y añade al miembro
+        // a TODOS los chats del club en la misma transacción. Si
+        // el cliente pudiera escribir `accepted`, se estaría
+        // aceptando su propia solicitud y el estado dejaría de
+        // ser fiable.
+        allow update: if resource.data.fromId == request.auth.uid
+                      && (
+                        (request.resource.data.status == 'cancelled'
                           && request.resource.data.diff(resource.data)
-                               .affectedKeys().hasOnly(['status', 'respondedAt', 'respondedBy']))
-                      || (resource.data.fromId == request.auth.uid
-                          && request.resource.data.status == 'cancelled')
-                      || (resource.data.fromId == request.auth.uid
-                          && request.resource.data.status == 'pending'
+                               .affectedKeys().hasOnly(
+                                 ['status', 'respondedAt', 'respondedBy']))
+                        || (request.resource.data.status == 'pending'
                           && request.resource.data.diff(resource.data)
-                               .affectedKeys().hasOnly(['createdAt']));
+                               .affectedKeys().hasOnly(['createdAt']))
+                      );
 
         allow delete: if isAdmin() || esModeradorClub(clubId);
       }
@@ -3113,6 +3264,37 @@ service cloud.firestore {
                       && request.resource.data.spoiler is bool
                       && request.resource.data.order is number
                       && request.resource.data.createdBy == request.auth.uid
+                      // El chat al que apunta el canal tiene que ser
+                      // EXACTAMENTE el suyo: del mismo club, con el
+                      // mismo `channelId` y con la lista de miembros
+                      // que corresponde a su visibilidad. Sin esto,
+                      // el equipo podía enlazar un chat cualquiera
+                      // (por ejemplo uno privado con gente de fuera)
+                      // y convertirlo en canal del club.
+                      && chatExiste(request.resource.data.chatId)
+                      && chatData(request.resource.data.chatId).type == 'club'
+                      && chatData(request.resource.data.chatId).slug == clubId
+                      && chatData(request.resource.data.chatId).channelId == channelId
+                      && chatData(request.resource.data.chatId).memberIds is list
+                      && clubData(clubId).memberIds is list
+                      && (
+                        (request.resource.data.visibility == 'all'
+                          && chatData(request.resource.data.chatId).memberIds.hasAll(
+                               clubData(clubId).memberIds)
+                          && chatData(request.resource.data.chatId).memberIds.hasOnly(
+                               clubData(clubId).memberIds))
+                        // `mods`: solo el equipo, sin outsiders.
+                        // No se exige `hasAll` porque puede haber
+                        // moderadores antiguos en `moderatorIds` que
+                        // ya no son miembros; el chat del canal se
+                        // crea con los activos. El dueño sí tiene
+                        // que estar.
+                        || (request.resource.data.visibility == 'mods'
+                          && chatData(request.resource.data.chatId).memberIds.hasOnly(
+                               equipoDeClub(clubData(clubId)))
+                          && clubData(clubId).ownerId
+                               in chatData(request.resource.data.chatId).memberIds)
+                      )
                       && (!('chatFondo' in request.resource.data)
                           || request.resource.data.chatFondo == null
                           || (request.resource.data.chatFondo is map
@@ -3219,7 +3401,7 @@ service cloud.firestore {
         allow update: if (puedeGestionarCanales(clubId) || isAdmin())
                       && request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(
-                             ['name', 'description', 'visibility',
+                             ['name', 'description',
                               'spoiler', 'order', 'chatFondo', 'chatApariencia', 'updatedAt'])
                       && request.resource.data.name is string
                       && request.resource.data.name.size() >= 1
@@ -3313,6 +3495,182 @@ service cloud.firestore {
     }
 
     // ======================================================
+    // RAMAS DE ACTUALIZACIÓN DE UN CHAT
+    // ======================================================
+    //
+    // Las capacidades de `chats/{chatId}` se reparten en varias
+    // reglas `allow update` y funciones auxiliares. Cada regla pasa
+    // por `isActive()` y evalúa solo su tipo de chat: antes todas
+    // las ramas compartían una única expresión y las operaciones
+    // legítimas agotaban el límite de 1.000 expresiones de Firestore.
+    //
+    // El comentario de cada rama explica su capacidad.
+    //
+    // La semántica es la misma que la de las ramas anteriores:
+    //   · admin → todo;
+    //   · miembro → vista previa, recibos, ocultar y vaciar SU copia;
+    //   · equipo del club → expulsar a uno o meter a un miembro del
+    //     equipo en un canal restringido;
+    //   · propietario del club → vaciar cualquier chat de su club;
+    //   · quien gestiona canales → vaciar un canal temático;
+    //   · dueño de grupo → metadatos, expulsar a uno y transferir;
+    //   · miembro → salir;
+    //   · miembro del club → entrar en un club público.
+    //
+    // Actualizaciones de un chat de GRUPO. Se sacan a su propia
+    // función para que una operación de grupo no evalúe las ramas
+    // de club (y no agote el límite de expresiones de Firestore).
+    function actualizacionDeChatGrupoPermitida(chatId) {
+      let d = request.resource.data;
+      let r = resource.data;
+      let cambios = d.diff(r).affectedKeys();
+      let mismoTipo = d.type == r.type;
+      let mismoDueno = d.ownerId == r.ownerId;
+      let mismosMiembros = d.memberIds == r.memberIds;
+      let esDueno = isChatOwner(chatId);
+
+      // Metadatos del grupo: solo el dueño.
+      return (esDueno
+              && mismoTipo
+              && mismoDueno
+              && mismosMiembros
+              && cambios.hasOnly(
+                   ['name', 'avatar', 'coverUrl', 'category', 'code',
+                    'hiddenFor', 'lastMessage', 'lastMessageAt',
+                    'lastMessageSenderId', 'readAt', 'clearedAt']))
+
+          // Expulsar a UN miembro del grupo (el dueño no puede
+          // expulsarse a sí mismo: para irse, primero transfiere).
+          || (esDueno
+              && mismoTipo
+              && mismoDueno
+              && d.memberIds is list
+              && d.memberIds.size() == r.memberIds.size() - 1
+              && d.memberIds.hasOnly(r.memberIds)
+              // El dueño sigue dentro (y el actor es el dueño), así
+              // que no puede expulsarse a sí mismo. No hace falta
+              // una comprobación negada, que disparaba el límite de
+              // expresiones de Firestore.
+              && r.ownerId in d.memberIds
+              && cambios.hasOnly(['memberIds', 'hiddenFor']))
+
+          // Transferir la propiedad del grupo a otro miembro.
+          || (esDueno
+              && mismoTipo
+              && d.ownerId != r.ownerId
+              && d.ownerId in r.memberIds
+              && mismosMiembros
+              && cambios.hasOnly(['ownerId']))
+
+          // Salir de un grupo: exactamente una persona menos, y soy
+          // yo. El dueño no puede usar esta vía (dejaría el grupo
+          // sin administrador); primero transfiere.
+          || (isChatMember(chatId)
+              && r.ownerId != request.auth.uid
+              && mismoTipo
+              && mismoDueno
+              && d.memberIds is list
+              && !(request.auth.uid in d.memberIds)
+              && d.memberIds.size() == r.memberIds.size() - 1
+              && d.memberIds.hasOnly(r.memberIds)
+              && cambios.hasOnly(['memberIds', 'hiddenFor']));
+    }
+
+    // Actualizaciones de un chat de CLUB. Cada capacidad tiene su
+    // propia función para no sumar todas las ramas al límite de
+    // expresiones.
+    //
+    // Altas en un chat de club: meter a un miembro del EQUIPO en un
+    // canal restringido, o entrar uno mismo en el chat de un club
+    // público. La comprobación de campos modificados va al final para
+    // que una operación que no sea de alta no pague su coste.
+    function actualizacionDeChatClubAltasPermitida(chatId) {
+      let d = request.resource.data;
+      let r = resource.data;
+
+      return r.type == 'club'
+             && d.type == r.type
+             && d.ownerId == r.ownerId
+             && d.memberIds is list
+             && d.memberIds.size() == r.memberIds.size() + 1
+             && (
+               // Meter a un miembro del EQUIPO en un canal restringido
+               // (`mods`). La lista resultante solo puede contener al
+               // propietario y a los moderadores: ni un miembro normal
+               // puede colarse, ni el equipo puede meter a un tercero.
+               (esModeradorClubDeChat(chatId)
+                && r.slug is string
+                && clubExiste(r.slug)
+                && clubData(r.slug).memberIds is list
+                && r.memberIds.hasOnly(d.memberIds)
+                && d.memberIds.hasOnly(equipoDeClub(clubData(r.slug)))
+                && canalRestringido(r.slug, r.channelId))
+
+               // Entrar en el chat de un CLUB PÚBLICO: añadirse a sí
+               // mismo. La condición clave es que YA sea miembro del
+               // club: antes bastaba con ser un usuario con sesión para
+               // meterse en el chat de cualquier club público y leer su
+               // historial sin haberse unido.
+               //
+               // NUNCA en un canal restringido (`mods`), y el canal
+               // tiene que existir de verdad. Los chats sin `channelId`
+               // son el general histórico, siempre público.
+               || (r.slug is string
+                   && clubExiste(r.slug)
+                   && request.auth.uid in clubData(r.slug).memberIds
+                   && clubData(r.slug).accessType == 'public'
+                   && (!('channelId' in r)
+                       || (r.channelId is string
+                           && clubChannelExiste(r.slug, r.channelId)
+                           && !canalRestringido(r.slug, r.channelId)))
+                   && !(request.auth.uid in r.memberIds)
+                   && request.auth.uid in d.memberIds
+                   && r.memberIds.hasOnly(d.memberIds))
+             )
+             && d.diff(r).affectedKeys().hasOnly(['memberIds', 'hiddenFor']);
+    }
+
+    // Expulsar a UN miembro de un chat de club. Solo el equipo del
+    // club puede hacerlo y el propietario del club no se puede tocar.
+    // El tamaño se comprueba antes que el rol y el diff para no gastar
+    // expresiones en operaciones que claramente no son una expulsión.
+    function actualizacionDeChatClubExpulsionPermitida(chatId) {
+      let d = request.resource.data;
+      let r = resource.data;
+
+      return r.type == 'club'
+             && d.type == r.type
+             && d.ownerId == r.ownerId
+             && d.memberIds is list
+             && d.memberIds.size() == r.memberIds.size() - 1
+             && esModeradorClubDeChat(chatId)
+             && r.slug is string
+             && d.memberIds.hasOnly(r.memberIds)
+             && clubData(r.slug).ownerId in d.memberIds
+             && d.diff(r).affectedKeys().hasOnly(['memberIds', 'hiddenFor']);
+    }
+
+    // Vaciar un chat de club: el propietario al eliminar el club, o
+    // quien gestiona canales al eliminar un canal temático.
+    function actualizacionDeChatClubVaciadoPermitida(chatId) {
+      let d = request.resource.data;
+      let r = resource.data;
+
+      return r.type == 'club'
+             && d.type == r.type
+             && d.ownerId == r.ownerId
+             && d.memberIds is list
+             && d.memberIds.size() == 0
+             && (
+               (r.slug is string && esPropietarioClub(r.slug))
+               || (r.slug is string
+                   && r.channelId is string
+                   && puedeGestionarCanales(r.slug))
+             )
+             && d.diff(r).affectedKeys().hasOnly(['memberIds', 'hiddenFor']);
+    }
+
+    // ======================================================
     // CHATS PRIVADOS Y GRUPALES
     // ======================================================
     match /chats/{chatId} {
@@ -3333,116 +3691,170 @@ service cloud.firestore {
       // datos privados en juego.
       allow read: if isSignedIn() && request.auth.uid in resource.data.memberIds;
 
+      // ── Crear un chat ────────────────────────────────
+      //
+      // Solo hay dos formas legítimas de crear un chat desde
+      // el cliente:
+      //
+      //   · group: nace con UNA sola persona (su creador). Los
+      //     demás entran por solicitud o invitación aceptada,
+      //     que es lo que hace la Cloud Function.
+      //   · club: o se está creando el club (el chat va antes
+      //     que la ficha y el club todavía no existe), o es un
+      //     canal de un club existente y lo crea el equipo con
+      //     permiso de canales.
+      //
+      // Un chat `direct` NO se crea desde el cliente: lo crea
+      // la Cloud Function al aceptar una solicitud. Antes
+      // bastaba con escribir el uid de otra persona en
+      // `memberIds` para abrirle una conversación sin permiso.
       allow create: if isActive()
                     && request.resource.data.ownerId == request.auth.uid
                     && request.resource.data.memberIds is list
                     && request.auth.uid in request.resource.data.memberIds
-                    // Un grupo se crea con una sola persona (su
-                    // creador) y el resto se une por solicitud. Por
-                    // eso el mínimo es 1, no 2.
-                    && request.resource.data.memberIds.size() >= 1;
+                    && request.resource.data.type in ['group', 'club']
+                    && (
+                      // Grupo normal: solo su creador.
+                      (request.resource.data.type == 'group'
+                        && request.resource.data.memberIds.size() == 1
+                        && !('slug' in request.resource.data)
+                        && !('channelId' in request.resource.data))
+                      // Chat de club.
+                      || (request.resource.data.type == 'club'
+                        && request.resource.data.slug is string
+                        && request.resource.data.slug.size() >= 3
+                        && request.resource.data.slug.size() <= 40
+                        && request.resource.data.slug.matches('^[a-z0-9-]+$')
+                        && (
+                          // Club nuevo: el chat se crea antes que la
+                          // ficha, así que el club aún no existe. Solo
+                          // puede llevar a su creador.
+                          (!clubExiste(request.resource.data.slug)
+                            && request.resource.data.memberIds.size() == 1
+                            && !('channelId' in request.resource.data))
+                          // Canal de un club existente: lo crea el
+                          // equipo con permiso de canales. Los
+                          // miembros iniciales tienen que ser O todos
+                          // los del club (canal público) O exactamente
+                          // el equipo (canal `mods`). Nunca una lista
+                          // inventada con gente de fuera.
+                          || (clubExiste(request.resource.data.slug)
+                            && request.resource.data.channelId is string
+                            && request.resource.data.channelId.size() >= 1
+                            && request.resource.data.channelId.size() <= 30
+                            && request.resource.data.channelId.matches('^[a-z0-9-]+$')
+                            && puedeGestionarCanales(request.resource.data.slug)
+                            && clubData(request.resource.data.slug).memberIds is list
+                            && (
+                              (request.resource.data.memberIds.hasAll(
+                                 clubData(request.resource.data.slug).memberIds)
+                               && request.resource.data.memberIds.hasOnly(
+                                 clubData(request.resource.data.slug).memberIds))
+                              // `mods`: solo el equipo. No se exige
+                              // `hasAll` porque `moderatorIds` puede
+                              // conservar moderadores antiguos que ya
+                              // no están en `memberIds`; el cliente
+                              // filtra a los activos. `hasOnly` sigue
+                              // impidiendo meter a cualquier miembro
+                              // normal o a un tercero, y el dueño
+                              // tiene que estar dentro.
+                              || (request.resource.data.memberIds.hasOnly(
+                                    equipoDeClub(clubData(request.resource.data.slug)))
+                                  && clubData(request.resource.data.slug).ownerId
+                                       in request.resource.data.memberIds)
+                            ))
+                        ))
+                    );
+
       // ── Actualizar el chat ──────────────────────────
-      // Reparto de permisos:
-      //   - admin           → todo
-      //   - dueño del grupo → datos del grupo Y lista de miembros
-      //     (incluido `code`: los grupos antiguos no tienen
-      //     código de invitación y el dueño tiene que poder
-      //     generarlo después; sin `code` en esta lista ese
-      //     grupo se quedaba sin código para siempre)
-      //   - cualquier miembro → vista previa, recibos y ocultar
-      //   - cualquier miembro → puede quitarse a SÍ MISMO de un
-      //     grupo (salir). Se comprueba que el tamaño baja en
-      //     exactamente uno y que su uid ya no está: así solo
-      //     puede expulsarse a sí mismo, no a los demás.
+      // Cada capacidad tiene su propia regla: así Firestore no suma
+      // todas las ramas en un único límite de 1.000 expresiones.
+      // TODAS pasan por `isActive()`: un baneado global no puede
+      // tocar metadatos, miembros, vista previa, prefs ni salir.
       //
-      // Con "isChatMember" a secas, cualquiera del grupo podía
-      // renombrarlo o expulsar a la gente.
-      allow update: if isAdmin()
-                    || (isChatOwner(chatId)
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(
-                               ['name', 'avatar', 'memberIds', 'type',
-                                'hiddenFor', 'ownerId', 'slug', 'category',
-                                'coverUrl', 'code',
-                                'lastMessage', 'lastMessageAt',
-                                'lastMessageSenderId', 'readAt']))
-                    // Moderador de un CLUB cuyo chat es este.
-                    //
-                    // Puede añadir y quitar miembros, que es lo
-                    // que hace al aceptar una solicitud o al
-                    // expulsar a alguien. NADA más: ni renombrar
-                    // el club, ni cambiar la portada, ni tocar los
-                    // mensajes.
-                    //
-                    // Se busca el club por el `slug` que guarda
-                    // el chat, no por el id: así un chat privado
-                    // o un grupo normal nunca pasa por aquí.
-                    || (esModeradorClubDeChat(chatId)
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['memberIds', 'hiddenFor']))
-                    // Cualquier miembro puede ocultar la conversación
-                    // para SÍ MISMO, y vaciarla (los mensajes anteriores
-                    // dejan de aparecerle, pero los demás los conservan).
-                    //
-                    // Sin estas ramas, esas acciones solo funcionaban
-                    // en los chats que habías creado tú: en un chat
-                    // privado, ownerId es del que lo abrió primero, así
-                    // que el receptor recibía permission-denied.
-                    //
-                    // Se aceptan tanto el campo de primer nivel como
-                    // su ruta completa, porque affectedKeys() puede
-                    // informar "hiddenFor" o "hiddenFor.<uid>" según
-                    // cómo se haya escrito.
-                    || (isChatMember(chatId)
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(
-                               ['lastMessage', 'lastMessageAt',
-                                'lastMessageSenderId', 'readAt',
-                                'hiddenFor', 'clearedAt',
-                                'hiddenFor.' + request.auth.uid,
-                                'readAt.' + request.auth.uid,
-                                'clearedAt.' + request.auth.uid]))
-                    // Salir del grupo: cambiar memberIds y ocultarse.
-                    // Exactamente una persona menos, y soy yo.
-                    || (isChatMember(chatId)
-                        && request.resource.data.memberIds is list
-                        && !(request.auth.uid in request.resource.data.memberIds)
-                        && request.resource.data.memberIds.size()
-                             == resource.data.memberIds.size() - 1
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['memberIds', 'hiddenFor']))
+      // Un moderador/administrador de club silenciado sigue
+      // pasando: `isActive()` es la puerta GLOBAL, no la sanción
+      // del club.
+      //
+      // 1) Admin global: cualquier chat.
+      allow update: if isActive() && isAdmin();
 
-                    // Entrar en el chat de un CLUB PÚBLICO: añadirse a sí
-                    // mismo. Exactamente una persona más, y me quito de
-                    // hiddenFor si estaba (p.ej. salí antes y vuelvo).
-                    //
-                    // NUNCA en un canal restringido (`mods`): sin esta
-                    // condición, cualquier miembro podría auto-añadirse
-                    // al chat de coordinación de moderadores con solo
-                    // saber su id. Los chats sin `channelId` son el
-                    // general histórico, siempre público.
-                    || (isActive()
-                        && resource.data.type == 'club'
-                        && resource.data.slug is string
-                        && clubExiste(resource.data.slug)
-                        && clubData(resource.data.slug).accessType == 'public'
-                        && (!('channelId' in resource.data)
-                            || !(resource.data.channelId is string)
-                            || !canalRestringido(resource.data.slug, resource.data.channelId))
-                        && !(request.auth.uid in resource.data.memberIds)
-                        && request.auth.uid in request.resource.data.memberIds
-                        && request.resource.data.memberIds.size()
-                             == resource.data.memberIds.size() + 1
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['memberIds', 'hiddenFor']));
+      // 1b) Salir de un chat de club: el miembro se quita a sí mismo.
+      // Va antes de la regla de miembro para no gastar el presupuesto
+      // de expresiones en su `diff` de campos personales y en las
+      // ramas de equipo. El `diff` de aquí ya impide tocar type,
+      // ownerId o cualquier otro campo.
+      allow update: if isActive()
+                    && resource.data.type == 'club'
+                    && request.resource.data.memberIds is list
+                    && resource.data.memberIds.hasAll([request.auth.uid])
+                    && !(request.auth.uid in request.resource.data.memberIds)
+                    && request.resource.data.memberIds.size()
+                         == resource.data.memberIds.size() - 1
+                    && request.resource.data.memberIds.hasOnly(resource.data.memberIds)
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(['memberIds', 'hiddenFor']);
 
-      // El dueño (o un admin) puede destruir el grupo entero.
-      allow delete: if isChatOwner(chatId) || isAdmin();
+      // 1c) Altas en un chat de club: el equipo mete a un miembro del
+      // equipo en un canal restringido, o un miembro del club entra en
+      // el chat público. Va antes de la regla de miembro y de las
+      // ramas de expulsión/vaciado.
+      allow update: if isActive()
+                    && resource.data.type == 'club'
+                    && actualizacionDeChatClubAltasPermitida(chatId);
 
+      // 1d) Expulsar a UN miembro de un chat de club.
+      allow update: if isActive()
+                    && resource.data.type == 'club'
+                    && actualizacionDeChatClubExpulsionPermitida(chatId);
+
+      // 1e) Vaciar un chat de club (propietario o gestor de canales).
+      allow update: if isActive()
+                    && resource.data.type == 'club'
+                    && actualizacionDeChatClubVaciadoPermitida(chatId);
+
+      // 2) Miembro: vista previa, recibos, ocultar y vaciar SU copia.
+      // No mueve ni un miembro. El `diff` ya garantiza que type,
+      // ownerId y memberIds no cambian: repetir esas igualdades solo
+      // acercaba la regla al límite de expresiones.
+      allow update: if isActive()
+                    && resource.data.memberIds.hasAll([request.auth.uid])
+                    && request.resource.data.memberIds.size()
+                         == resource.data.memberIds.size()
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(
+                           ['lastMessage', 'lastMessageAt',
+                            'lastMessageSenderId', 'readAt',
+                            'hiddenFor', 'clearedAt',
+                            'hiddenFor.' + request.auth.uid,
+                            'readAt.' + request.auth.uid,
+                            'clearedAt.' + request.auth.uid]);
+
+      // 3) Dueño de grupo: metadatos, expulsar a uno y transferir.
+      // Miembro: salir.
+      allow update: if isActive()
+                    && resource.data.type == 'group'
+                    && actualizacionDeChatGrupoPermitida(chatId);
+
+      // Borrar el documento del chat. Un grupo lo puede borrar su
+      // dueño (es lo que hace el borrado de cuenta). Un privado,
+      // NO: borrarlo le quitaría el historial a la otra persona;
+      // para eso está `hiddenFor`. Los chats de club los borra
+      // solo el propietario del club.
+      allow delete: if isActive()
+                    && (isAdmin()
+                        || (resource.data.type == 'group' && isChatOwner(chatId))
+                        || (resource.data.type == 'club'
+                            && resource.data.slug is string
+                            && esPropietarioClub(resource.data.slug)));
+
+      // La subcolección `members` es histórica y no la usa el
+      // cliente actual. Se deja solo para el personal: antes
+      // cualquier usuario con sesión podía leer la lista de
+      // miembros de CUALQUIER chat conociendo su id.
       match /members/{uid} {
-        allow read: if isSignedIn();
-        allow create, delete: if isChatOwner(chatId) || isSelf(uid);
-        allow update: if isAdmin();
+        allow read: if isChatMember(chatId) || isAdmin();
+        allow create, update, delete: if isActive() && isAdmin();
       }
 
       // ── Preferencias personales por conversación ─────
@@ -3458,16 +3870,19 @@ service cloud.firestore {
       match /prefs/{uid} {
         allow read: if isSignedIn() && isSelf(uid);
         // En create, resource.data es null: no se puede diff().
-        allow create: if isSelf(uid) && chatPrefsValida(request.resource.data);
+        allow create: if isActive()
+                      && isSelf(uid)
+                      && chatPrefsValida(request.resource.data);
         // En update, resource.data existe: diff() indica qué campos
         // cambiaron. hasAny permite tocar solo los de prefs.
-        allow update: if isSelf(uid)
+        allow update: if isActive()
+                      && isSelf(uid)
                       && request.resource.data.diff(resource.data)
                            .affectedKeys()
                            .hasAny(['color', 'nickname', 'notify', 'muteUntil', 'favorite',
                                        'fondo'])
                       && chatPrefsValida(request.resource.data);
-        allow delete: if isSelf(uid);
+        allow delete: if isActive() && isSelf(uid);
       }
 
       // ── Mensajes fijados ──────────────────────────────
@@ -3484,6 +3899,7 @@ service cloud.firestore {
         allow read: if isChatMember(chatId);
 
         allow create: if isChatMember(chatId)
+                      && isActive()
                       && puedeFijarEnChat(chatId)
                       && request.resource.data.chatId == chatId
                       && request.resource.data.messageId == messageId
@@ -3503,7 +3919,7 @@ service cloud.firestore {
         // Quitar es borrar el documento: el historial de lo
         // que se fijó no hace falta conservarlo, y así no
         // hay forma de reescribir un fijado.
-        allow delete: if puedeDesfijar(chatId, messageId);
+        allow delete: if isActive() && puedeDesfijar(chatId, messageId);
 
         // No se edita: para cambiar un fijado se quita y se
         // vuelve a fijar.
@@ -3528,6 +3944,7 @@ service cloud.firestore {
         // ramas y el motivo de cada una ya está commented en la
         // definición.
         allow create: if isChatMember(chatId)
+                      && isActive()
                       && puedeEscribirEnChat(chatId)
                       && request.resource.data.senderId == request.auth.uid
                       && request.resource.data.body is string
@@ -3582,16 +3999,17 @@ service cloud.firestore {
         // Sin esta rama, el botón de "eliminar mensaje" del
         // moderador daría permission-denied y el club no podría
         // mantener el orden del grupo.
-        allow update, delete: if isAdmin()
-                             || (puedeRetirarMensajesDeChat(chatId)
-                                 && request.resource.data.body == ''
-                                 && request.resource.data.deletedForEveryone == true
-                                 && request.resource.data.createdAt == resource.data.createdAt
-                                 && request.resource.data.senderId == resource.data.senderId
-                                 && request.resource.data.diff(resource.data)
-                                      .affectedKeys().hasOnly(
-                                        ['body', 'deletedForEveryone', 'deletedAt',
-                                         'deletedBy', 'deletedByMod']));
+        allow update, delete: if isActive()
+                             && (isAdmin()
+                                 || (puedeRetirarMensajesDeChat(chatId)
+                                     && request.resource.data.body == ''
+                                     && request.resource.data.deletedForEveryone == true
+                                     && request.resource.data.createdAt == resource.data.createdAt
+                                     && request.resource.data.senderId == resource.data.senderId
+                                     && request.resource.data.diff(resource.data)
+                                          .affectedKeys().hasOnly(
+                                            ['body', 'deletedForEveryone', 'deletedAt',
+                                             'deletedBy', 'deletedByMod'])));
 
         // Cerrar (o reabrir) la encuesta del mensaje.
         //
@@ -3603,7 +4021,9 @@ service cloud.firestore {
         //
         // Se acepta tanto "poll.isClosed" como "poll" entero
         // porque `affectedKeys()` no informa siempre igual.
-        allow update: if (isChatMember(chatId)
+        allow update: if isActive()
+                      && (
+                        (isChatMember(chatId)
                            && resource.data.senderId == request.auth.uid
                            && request.resource.data.diff(resource.data)
                                 .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
@@ -3611,7 +4031,8 @@ service cloud.firestore {
                         || (esModeradorClubDeChat(chatId)
                             && request.resource.data.diff(resource.data)
                                  .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
-                            && pollMensajeSoloCambiaIsClosed(chatId, messageId));
+                            && pollMensajeSoloCambiaIsClosed(chatId, messageId))
+                      );
 
         // ── VOTOS DE LA ENCUESTA ────────────────────────
         //
@@ -3623,6 +4044,7 @@ service cloud.firestore {
           allow read: if isChatMember(chatId);
 
           allow create: if isChatMember(chatId)
+                        && isActive()
                         && request.auth.uid == uid
                         && pollMensajeAbierto(chatId, messageId)
                         && request.resource.data.userId == request.auth.uid
@@ -3636,6 +4058,7 @@ service cloud.firestore {
           // campos de identification (userId, createdAt) son
           // intocables.
           allow update: if isChatMember(chatId)
+                        && isActive()
                         && request.auth.uid == uid
                         && pollMensajeAbierto(chatId, messageId)
                         && pollMensajeCambiaVotos(chatId, messageId)
@@ -3646,8 +4069,10 @@ service cloud.firestore {
 
           // Desvotar no existe, igual que en los hilos. Borrar un
           // voto es moderación: el admin global o un moderador
-          // del club.
-          allow delete: if isAdmin() || esModeradorClubDeChat(chatId);
+          // del club. Un moderador silenciado en el club sigue
+          // pudiendo moderar; un baneado global, no.
+          allow delete: if isActive()
+                        && (isAdmin() || esModeradorClubDeChat(chatId));
         }
       }
 

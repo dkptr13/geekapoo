@@ -191,6 +191,16 @@ beforeEach(async () => {
 
 describe('Crear canales', () => {
   it('el propietario puede crear un canal', async () => {
+    await sembrar(async (f) => {
+      // El chat del canal se crea ANTES que la ficha (lo hace
+      // `crearCanal`), así que aquí ya tiene que existir y llevar
+      // exactamente a los miembros del club.
+      await setDoc(
+        doc(f, 'chats', 'chat-teorias'),
+        nuevoChatCanal('chat-teorias', [DUENO, MOD, BOB], { channelId: 'teorias' }),
+      );
+    });
+
     await assertSucceeds(
       setDoc(doc(db(DUENO), 'clubs', 'club-de-frieren', 'channels', 'teorias'), nuevoCanal('teorias')),
     );
@@ -203,11 +213,109 @@ describe('Crear canales', () => {
       await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
         permisos: { moderadorGestionaCanales: true },
       });
+      await setDoc(
+        doc(f, 'chats', 'chat-fanart'),
+        nuevoChatCanal('chat-fanart', [DUENO, MOD, BOB], { channelId: 'fanart' }),
+      );
     });
     await assertSucceeds(
       setDoc(
         doc(db(MOD), 'clubs', 'club-de-frieren', 'channels', 'fanart'),
         nuevoCanal('fanart', { chatId: 'chat-fanart', createdBy: MOD }),
+      ),
+    );
+  });
+
+  it('un canal `mods` sigue funcionando con moderadores antiguos en moderatorIds', async () => {
+    // `moderatorIds` puede conservar a alguien que ya no está en
+    // `memberIds` (datos de antes de limpiar al expulsar). El chat
+    // se crea solo con el equipo ACTIVO; la regla no puede exigir
+    // que estén todos los moderatorIds, pero sí que no haya nadie
+    // de fuera y que el dueño esté dentro.
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        moderatorIds: [MOD, 'moderador-viejo'],
+      });
+    });
+
+    const chatRef = doc(collection(db(DUENO), 'chats'));
+    await assertSucceeds(
+      setDoc(
+        chatRef,
+        nuevoChatCanal(chatRef.id, [DUENO, MOD], { channelId: 'mods' }),
+      ),
+    );
+
+    await assertSucceeds(
+      setDoc(
+        doc(db(DUENO), 'clubs', 'club-de-frieren', 'channels', 'mods'),
+        nuevoCanal('mods', { visibility: 'mods', chatId: chatRef.id }),
+      ),
+    );
+  });
+
+  it('un canal `mods` no puede enlazar un chat con un miembro normal', async () => {
+    await sembrar(async (f) => {
+      await setDoc(
+        doc(f, 'chats', 'chat-mods'),
+        nuevoChatCanal('chat-mods', [DUENO, MOD, BOB], { channelId: 'mods' }),
+      );
+    });
+
+    await assertFails(
+      setDoc(
+        doc(db(DUENO), 'clubs', 'club-de-frieren', 'channels', 'mods'),
+        nuevoCanal('mods', { visibility: 'mods', chatId: 'chat-mods' }),
+      ),
+    );
+  });
+
+  it('no se puede crear el chat de un canal con alguien de fuera del club', async () => {
+    // Ojo: al crear el chat todavía no existe el canal, así que
+    // "todos los miembros" es indistinguible de un canal público.
+    // Lo que sí se puede comprobar aquí es que no entre un tercero;
+    // que un canal `mods` no lleve miembros normales lo comprueba
+    // la regla de creación del CANAL (test de arriba).
+    await assertFails(
+      setDoc(
+        doc(collection(db(DUENO), 'chats')),
+        nuevoChatCanal('chat-mods', [DUENO, MOD, CARA], { channelId: 'mods' }),
+      ),
+    );
+  });
+
+  it('no se puede enlazar un chat con gente de fuera del club', async () => {
+    await sembrar(async (f) => {
+      await setDoc(
+        doc(f, 'chats', 'chat-teorias'),
+        nuevoChatCanal('chat-teorias', [DUENO, MOD, BOB, CARA], {
+          channelId: 'teorias',
+        }),
+      );
+    });
+
+    await assertFails(
+      setDoc(
+        doc(db(DUENO), 'clubs', 'club-de-frieren', 'channels', 'teorias'),
+        nuevoCanal('teorias'),
+      ),
+    );
+  });
+
+  it('no se puede enlazar un chat que no es de ese canal', async () => {
+    await sembrar(async (f) => {
+      await setDoc(
+        doc(f, 'chats', 'chat-teorias'),
+        nuevoChatCanal('chat-teorias', [DUENO, MOD, BOB], {
+          channelId: 'otro-canal',
+        }),
+      );
+    });
+
+    await assertFails(
+      setDoc(
+        doc(db(DUENO), 'clubs', 'club-de-frieren', 'channels', 'teorias'),
+        nuevoCanal('teorias'),
       ),
     );
   });
@@ -524,6 +632,43 @@ describe('Mensajes en canales restringidos', () => {
       updateDoc(doc(db(BOB), 'chats', 'chat-coordinacion'), {
         memberIds: [DUENO, MOD, BOB],
         hiddenFor: [],
+      }),
+    );
+  });
+
+  it('al ascender a moderador, entra en el chat restringido', async () => {
+    // Es el segundo paso de `cambiarRol`: el club ya lo tiene en
+    // `moderatorIds`, y ahora se le mete en los chats `mods`.
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        moderatorIds: [MOD, BOB],
+      });
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(BOB), 'chats', 'chat-coordinacion'), {
+        memberIds: [DUENO, MOD, BOB],
+        hiddenFor: [],
+      }),
+    );
+  });
+
+  it('al degradarlo, el dueño lo saca del chat restringido', async () => {
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        moderatorIds: [MOD, BOB],
+      });
+      await updateDoc(doc(f, 'chats', 'chat-coordinacion'), {
+        memberIds: [DUENO, MOD, BOB],
+      });
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        moderatorIds: [MOD],
+      });
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(DUENO), 'chats', 'chat-coordinacion'), {
+        memberIds: [DUENO, MOD],
       }),
     );
   });
