@@ -3774,7 +3774,7 @@ service cloud.firestore {
 
     // Vaciar un chat de club: el propietario al eliminar el club, o
     // quien gestiona canales al eliminar un canal temático.
-    function actualizacionDeChatClubVaciadoPermitida(chatId) {
+    function actualizacionDeChatClubVaciadoPermitida() {
       let d = request.resource.data;
       let r = resource.data;
 
@@ -3933,7 +3933,7 @@ service cloud.firestore {
       // 1e) Vaciar un chat de club (propietario o gestor de canales).
       allow update: if isActive()
                     && resource.data.type == 'club'
-                    && actualizacionDeChatClubVaciadoPermitida(chatId);
+                    && actualizacionDeChatClubVaciadoPermitida();
 
       // 2) Miembro: vista previa, recibos, ocultar y vaciar SU copia.
       // No mueve ni un miembro. El `diff` ya garantiza que type,
