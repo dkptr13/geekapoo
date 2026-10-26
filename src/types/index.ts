@@ -988,8 +988,8 @@ export interface ChatRoom {
   readAt?: Record<string, string>;
   /** uids que han eliminado el chat de su lista. */
   hiddenFor?: string[];
-  /** Solo en grupos: código único (GRP-A1B2-C3D4) con el que se
-   *  pide entrar. El nombre se puede repetir; el código no. */
+  /** Solo en grupos: código único (GRP-1A2B-3C4D-5E6F) con el que
+   *  se pide entrar. El nombre se puede repetir; el código no. */
   code?: string;
   /** uid → fecha ISO. Al "vaciar" la conversación, los mensajes
    *  anteriores a esta fecha dejan de aparecerle a esa persona.

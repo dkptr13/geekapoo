@@ -432,7 +432,7 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
     // presenting el codigo. Comprobar solo el chat deja un hueco
     // exactamente igual de grande al que acabamos de encontrar en las
     // solicitudes.
-    const codigo = 'GRP-A1B2-C3D4';
+    const codigo = 'GRP-1A2B-3C4D-5E6F';
     const chatRef = doc(collection(db(CARA), 'chats'));
 
     await assertSucceeds(
@@ -449,13 +449,13 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
         ownerId: CARA,
         ownerName: CARA,
         memberCount: 1,
-        createdAt: '2026-01-01T00:00:00.000Z',
+        createdAt: serverTimestamp(),
       }),
     );
   });
 
   it('no se puede crear un indice que apunte al grupo de otra persona', async () => {
-    const codigo = 'GRP-A1B2-C3D4';
+    const codigo = 'GRP-1A2B-3C4D-5E6F';
     await sembrar(async (f) => {
       await setDoc(doc(f, 'chats', 'g-ajeno'), nuevoChat(ALICE, [ALICE]));
     });
@@ -473,10 +473,11 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
     );
   });
 
-  it('el indice de codigos es publico, para poder entrar sin ser miembro', async () => {
+  it('el indice se consulta con el codigo exacto, pero no se enumera', async () => {
+    const codigo = 'GRP-1A2B-3C4D-5E6F';
     await sembrar(async (f) => {
-      await setDoc(doc(f, 'groupCodes', 'GRP-A1B2-C3D4'), {
-        code: 'GRP-A1B2-C3D4',
+      await setDoc(doc(f, 'groupCodes', codigo), {
+        code: codigo,
         groupId: 'g1',
         name: 'Grupo de prueba',
         ownerId: ALICE,
@@ -486,9 +487,15 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
       });
     });
 
-    const visto = await assertSucceeds(getDocs(collection(anon(), 'groupCodes')));
+    // CARA no es miembro, pero tiene una cuenta activa y conoce el
+    // código: puede ver a qué grupo pertenece para pedir entrar.
+    const visto = await assertSucceeds(getDoc(doc(db(CARA), 'groupCodes', codigo)));
+    assert.strictEqual(visto.exists(), true);
 
-    assert.strictEqual(visto.size, 1, 'cualquiera puede mirar el indice');
+    // Lo que NO puede es listar la colección y llevarse todos los
+    // códigos de una vez.
+    await assertFails(getDocs(collection(db(CARA), 'groupCodes')));
+    await assertFails(getDocs(collection(anon(), 'groupCodes')));
   });
 
   it('un baneado no puede crear grupos', async () => {
@@ -534,18 +541,18 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
     });
 
     await assertSucceeds(
-      updateDoc(doc(db(ALICE), 'chats', 'g1'), { code: 'GRP-A1B2-C3D4' }),
+      updateDoc(doc(db(ALICE), 'chats', 'g1'), { code: 'GRP-1A2B-3C4D-5E6F' }),
     );
 
     await assertSucceeds(
-      setDoc(doc(db(ALICE), 'groupCodes', 'GRP-A1B2-C3D4'), {
-        code: 'GRP-A1B2-C3D4',
+      setDoc(doc(db(ALICE), 'groupCodes', 'GRP-1A2B-3C4D-5E6F'), {
+        code: 'GRP-1A2B-3C4D-5E6F',
         groupId: 'g1',
         name: 'Grupo de prueba',
         ownerId: ALICE,
         ownerName: ALICE,
         memberCount: 2,
-        createdAt: '2026-01-01T00:00:00.000Z',
+        createdAt: serverTimestamp(),
       }),
     );
   });
@@ -556,12 +563,12 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
     });
 
     await assertFails(
-      updateDoc(doc(db(BOB), 'chats', 'g1'), { code: 'GRP-X9Y9-Z9Z9' }),
+      updateDoc(doc(db(BOB), 'chats', 'g1'), { code: 'GRP-1111-2222-3333' }),
     );
   });
 
   it('al traspasar el grupo, el indice del codigo sigue al nuevo dueno', async () => {
-    const codigo = 'GRP-A1B2-C3D4';
+    const codigo = 'GRP-1A2B-3C4D-5E6F';
     await sembrar(async (f) => {
       await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB], { code: codigo }));
       await setDoc(doc(f, 'groupCodes', codigo), {
@@ -613,7 +620,7 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
   });
 
   it('el dueno actual puede reclamar un indice que se quedo con el anterior', async () => {
-    const codigo = 'GRP-A1B2-C3D4';
+    const codigo = 'GRP-1A2B-3C4D-5E6F';
     await sembrar(async (f) => {
       await setDoc(doc(f, 'chats', 'g1'), nuevoChat(BOB, [ALICE, BOB], { code: codigo }));
       await setDoc(doc(f, 'groupCodes', codigo), {

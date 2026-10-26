@@ -74,6 +74,14 @@ const MAX_MEMBERS = 50;
 const DEFAULT_GROUP_AVATAR =
   'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=200&q=80';
 
+/**
+ * Códigos que se pueden CONSULTAR: los nuevos de tres bloques y los
+ * antiguos de dos. La creación solo acepta los nuevos; los antiguos
+ * siguen existiendo y hay que poder entrar con ellos.
+ */
+const GROUP_CODE_PATTERN =
+  /^GRP-[A-F0-9]{4}-[A-F0-9]{4}(?:-[A-F0-9]{4})?$/;
+
 type Speaker = Pick<User, 'uid' | 'displayName' | 'username' | 'avatarUrl'>;
 
 const nameOf = (u: Speaker): string => u.displayName || u.username;
@@ -261,7 +269,7 @@ export async function createGroupChat(
       groupId: ref.id,
       name: cleanName,
       ownerId: owner.uid,
-      ownerName: nameOf(owner),
+      ownerName: nameOf(owner).slice(0, 60),
       memberCount: 1,
       createdAt: serverTimestamp(),
     });
@@ -272,22 +280,34 @@ export async function createGroupChat(
   }
 }
 
-/** Código aleatorio del tipo GRP-A1B2-C3D4. */
+/**
+ * Código aleatorio del tipo GRP-1A2B-3C4D-5E6F.
+ *
+ * 48 bits sacados de `crypto.getRandomValues`, no de `Math.random`:
+ * un código de invitación es una capacidad y no puede depender de un
+ * generador pensado para animaciones. Las reglas comprueban el
+ * formato; la entropía la pone esto.
+ */
 function generateGroupCode(): string {
-  const block = () =>
-    Math.floor(Math.random() * 0x10000)
-      .toString(16)
-      .toUpperCase()
-      .padStart(4, '0');
-  return `GRP-${block()}-${block()}`;
+  const bytes = new Uint8Array(6);
+  globalThis.crypto.getRandomValues(bytes);
+
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
+
+  return `GRP-${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}`;
 }
 
-/** Busca un grupo por su código. Devuelve null si no existe. */
+/**
+ * Busca un grupo por su código. Devuelve null si no existe, si el
+ * código no tiene forma de invitación o si la cuenta no puede leerlo.
+ */
 export async function findGroupByCode(
   code: string,
 ): Promise<GroupListing | null> {
   const clean = code.trim().toUpperCase();
-  if (!clean) return null;
+  if (!GROUP_CODE_PATTERN.test(clean)) return null;
 
   try {
     const snap = await getDoc(doc(db, 'groupCodes', clean));
@@ -337,8 +357,8 @@ export async function syncGroupMemberCount(
  * `code` a él (y al admin). Hace las DOS escrituras que
  * necesita un código para funcionar:
  *
- *   1. `groupCodes/{code}` → índice público para entrar con
- *      el código sin ser miembro.
+ *   1. `groupCodes/{code}` → índice de invitación para entrar
+ *      con el código sin ser miembro.
  *   2. `chats/{id}.code`  → lo que enseña la barra del chat.
  *
  * Si el chat ya trae un código con su índice en regla, no
@@ -658,7 +678,7 @@ export async function transferGroupOwnership(
   const chatRef = doc(db, CHATS, chatId);
   await updateDoc(chatRef, { ownerId: newOwnerId });
 
-  // El índice público del código también guarda quién es el
+  // El índice de invitación del código también guarda quién es el
   // dueño. Si no lo actualizáramos, quien entrara con el código
   // mandaría la solicitud al dueño ANTIGUO y las reglas la
   // rechazarían (el dueño real ya es otro). Es best-effort: el

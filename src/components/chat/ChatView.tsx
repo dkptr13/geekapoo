@@ -3249,7 +3249,7 @@ export const ChatView: React.FC = () => {
                     )}
                   </button>
                   <span className="text-[10px] text-zinc-600">
-                    Compártelo para que otras personas puedan pedir entrar
+                    Compártelo solo con quien quieras invitar
                   </span>
                 </div>
               )}
@@ -4969,7 +4969,7 @@ export const ChatView: React.FC = () => {
                 type="text"
                 value={groupCodeInput}
                 onChange={(e) => setGroupCodeInput(e.target.value.toUpperCase())}
-                placeholder="GRP-A1B2-C3D4"
+                placeholder="GRP-1A2B-3C4D-5E6F"
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-sm font-mono text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
               />
 
@@ -4986,8 +4986,9 @@ export const ChatView: React.FC = () => {
               <Hash size={13} className="mt-0.5 flex-shrink-0" />
               <span>
                 El código se lo enseña quien creó el grupo, en la cabecera de la conversación.
-                Se usa el código y no el nombre porque puede haber varios grupos con el mismo
-                nombre.
+                Es una invitación secreta: no se puede buscar ni listar, hace falta el código
+                exacto. Se usa el código y no el nombre porque puede haber varios grupos con el
+                mismo nombre.
               </span>
             </p>
           </div>

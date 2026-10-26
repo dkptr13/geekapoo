@@ -106,6 +106,18 @@ service cloud.firestore {
       return isSignedIn() && hasProfile() && !isBanned();
     }
 
+    // Código NUEVO de invitación a un grupo.
+    //
+    // El formato lo garantiza la regla; la aleatoriedad, el cliente,
+    // que lo genera con `crypto.getRandomValues` (48 bits). Un código
+    // antiguo de dos bloques (`GRP-XXXX-XXXX`) se sigue pudiendo
+    // consultar, pero no se acepta al crear: así no se pueden colar
+    // códigos cortos o fáciles de adivinar.
+    function codigoDeGrupoNuevoValido(c) {
+      return c is string
+             && c.matches('^GRP-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$');
+    }
+
     // Datos del chat PADRE.
     //
     // Imprescindible para las subcolecciones: dentro de
@@ -1522,43 +1534,66 @@ service cloud.firestore {
     // ======================================================
     // ÍNDICE DE GRUPOS POR CÓDIGO
     // ======================================================
-    // Un grupo se entra presentando su código (GRP-A1B2-C3D4),
+    // Un grupo se entra presentando su código (GRP-XXXX-XXXX-XXXX),
     // no su nombre, porque los nombres se repiten.
     //
-    // Aquí solo hay un código -> grupo. NO es un listado: hay
-    // que saber el código exacto para encontrar el documento, y
-    // los códigos son aleatorios, así que no se pueden ir
-    // adivinando.
+    // El código es una INVITACIÓN SECRETA, no un identificador
+    // público. Quien lo conoce puede localizar el grupo y PEDIR
+    // entrada; no entra por su cuenta. Por eso:
+    //
+    //   · `get` exige el código exacto y una cuenta activa;
+    //   · `list` está prohibido. Sin esto, cualquiera podía
+    //     enumerar la colección y llevarse TODOS los códigos, que
+    //     es justo lo que convierte una invitación en un listado.
     //
     // Hace falta porque alguien que NO es miembro no puede leer
     // chats/ (allí solo se lee lo propio), y sin este índice no
     // podría ni averiguar a quién pertenece el grupo para pedir
     // entrar. Los datos son mínimos: código, nombre y dueño. El
-    // contenido de la conversación sigue en chats/, con sus
-    // reglas.
+    // contenido de la conversación sigue en chats/, con sus reglas.
     match /groupCodes/{code} {
-      allow read: if true;
+      allow get: if isActive();
+      allow list: if false;
+
       // El índice tiene que apuntar a un grupo REAL y del que
       // quien lo crea es dueño. Antes bastaba con escribir
       // cualquier `groupId`: se podía anunciar el grupo de otra
       // persona con un código propio, o crear un índice que no
       // llevaba a ninguna parte.
+      //
+      // El código se genera en el cliente con Web Crypto (48 bits)
+      // y aquí se comprueba el formato. `createdAt` tiene que ser
+      // la hora del servidor y el contador, el real del chat: no
+      // se puede anunciar un grupo más grande de lo que es.
       allow create: if isActive()
                     && request.resource.data.code == code
+                    && codigoDeGrupoNuevoValido(request.resource.data.code)
                     && request.resource.data.ownerId == request.auth.uid
                     && request.resource.data.groupId is string
                     && chatExiste(request.resource.data.groupId)
                     && chatData(request.resource.data.groupId).type == 'group'
                     && chatData(request.resource.data.groupId).ownerId
                          == request.auth.uid
-                    && request.resource.data.memberCount is number
+                    && chatData(request.resource.data.groupId).memberIds is list
+                    && request.resource.data.memberCount is int
+                    && request.resource.data.memberCount
+                         == chatData(request.resource.data.groupId).memberIds.size()
                     && request.resource.data.memberCount >= 1
+                    && request.resource.data.memberCount <= 50
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 60
+                    && request.resource.data.ownerName is string
+                    && request.resource.data.ownerName.size() <= 60
+                    && request.resource.data.createdAt == request.time
                     && request.resource.data.keys().hasOnly(
                          ['code', 'groupId', 'name', 'ownerId',
                           'ownerName', 'memberCount', 'createdAt']);
+
       // Se actualiza el contador y, al traspasar el grupo, el
-      // dueño del índice. `groupId` NO se puede tocar nunca:
-      // convertiría el índice en un puntero a otro grupo.
+      // dueño del índice. El código y `groupId` NO se pueden
+      // tocar nunca: el primero es la invitación y el segundo,
+      // el puntero al grupo.
       //
       // El traspaso lo puede hacer el dueño viejo (que sigue
       // siendo `resource.data.ownerId`) o el dueño NUEVO del
@@ -1573,8 +1608,9 @@ service cloud.firestore {
                         && (
                           (request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(['memberCount'])
-                           && request.resource.data.memberCount is number
-                           && request.resource.data.memberCount >= 0)
+                           && request.resource.data.memberCount is int
+                           && request.resource.data.memberCount >= 0
+                           && request.resource.data.memberCount <= 50)
                           || (request.resource.data.diff(resource.data)
                                 .affectedKeys().hasOnly(['ownerId', 'ownerName'])
                               && request.resource.data.ownerId is string
@@ -1602,6 +1638,9 @@ service cloud.firestore {
                         && request.resource.data.ownerName.size() <= 60
                       )
                     );
+
+      // Borrar un código es cosa de su dueño. El admin puede
+      // hacerlo como parte de la moderación, pero un tercero no.
       allow delete: if isActive()
                     && (isAdmin() || isSelf(resource.data.ownerId));
     }

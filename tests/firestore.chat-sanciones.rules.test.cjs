@@ -710,14 +710,14 @@ describe('crear chats, solicitudes e índice', () => {
 
   it('un baneado no puede crear ni borrar el índice de su grupo', async () => {
     await assertFails(
-      setDoc(doc(db(BAN_FLAG), 'groupCodes', 'GRP-NUEVO-BAN'), {
-        code: 'GRP-NUEVO-BAN',
+      setDoc(doc(db(BAN_FLAG), 'groupCodes', 'GRP-BBBB-CCCC-DDDD'), {
+        code: 'GRP-BBBB-CCCC-DDDD',
         groupId: 'g-ban',
-        name: 'Grupo baneado',
+        name: 'Grupo de prueba',
         ownerId: BAN_FLAG,
         ownerName: BAN_FLAG,
         memberCount: 2,
-        createdAt: '2026-01-01T00:00:00.000Z',
+        createdAt: serverTimestamp(),
       }),
     );
     await assertFails(
