@@ -45,6 +45,10 @@ export const ANIME = {
 
 export const ANIME_ID = 'love-chunibyo-and-other-delusions';
 
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
+
 // ── TITULOS ALTERNATIVOS ──────────────────────────────────────
 //
 // Lo que la gente escribe para encontrar esta obra en el buscador:
@@ -92,7 +96,6 @@ export const EPISODIOS_TOTAL = 27;
  * Crunchyroll la tiene en otros países, pero no se pone lo que no está
  * disponible aquí.
  */
-export const STREAMING = [];
 
 export const TEMPORADAS = [
   {

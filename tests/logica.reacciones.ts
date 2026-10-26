@@ -29,6 +29,7 @@ import {
   MAX_PASTILLAS,
   REACCIONES_VACIAS,
   clavesParaAgrupar,
+  consultasDeReacciones,
   idsParaConsulta,
   reactionKey,
   sumar,
@@ -163,6 +164,42 @@ assert.equal(
 // La regresión exacta: si la consulta usara las claves, no
 // llegaría nada y esto se quedaría a cero.
 assert.notDeepEqual(agrupado, {}, 'con las claves en la consulta esto estaría vacío');
+
+// ──────────────────────────────────────────────────────────
+// 1b. La consulta de chat lleva chatId; la pública, targetType
+// ──────────────────────────────────────────────────────────
+//
+// Las reglas nuevas no son un filtro: una consulta que pueda
+// devolver una reacción de un chat ajeno se deniega entera. Por eso
+// los objetivos se reparten por tipo y, en mensajes, por chat. Un
+// mensaje sin chatId no se consulta: no hay forma segura de saber a
+// qué conversación pertenece.
+
+const consultas = consultasDeReacciones([
+  { targetType: 'thread', targetId: 'hilo-a' },
+  { targetType: 'thread', targetId: 'hilo-b' },
+  { targetType: 'comment', targetId: 'hilo-a' },
+  { targetType: 'chat_message', targetId: 'm1', chatId: 'chat-1' },
+  { targetType: 'chat_message', targetId: 'm2', chatId: 'chat-1' },
+  { targetType: 'chat_message', targetId: 'm1', chatId: 'chat-2' },
+  // Sin chatId se omite, aunque el mensaje exista.
+  { targetType: 'chat_message', targetId: 'm3' },
+]);
+
+assert.deepEqual(
+  consultas,
+  [
+    { targetType: 'chat_message', chatId: 'chat-1', ids: ['m1', 'm2'] },
+    { targetType: 'chat_message', chatId: 'chat-2', ids: ['m1'] },
+    { targetType: 'comment', ids: ['hilo-a'] },
+    { targetType: 'thread', ids: ['hilo-a', 'hilo-b'] },
+  ],
+  'cada consulta lleva el tipo y, si es chat, el chatId; los ids van únicos y ordenados',
+);
+assert.ok(
+  !consultas.some((c) => c.targetType === 'chat_message' && !c.chatId),
+  'nunca se consulta un mensaje sin chatId',
+);
 
 // ──────────────────────────────────────────────────────────
 // 2. Solo se pintan las tres más puestas

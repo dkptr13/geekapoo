@@ -40,6 +40,10 @@ export const ANIME = {
 
 export const ANIME_ID = 'charlotte';
 
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
+
 // ── TITULOS ALTERNATIVOS ──────────────────────────────────────
 //
 // Lo que la gente escribe para encontrar esta obra en el buscador:
@@ -80,7 +84,6 @@ export const EPISODIOS_TOTAL = 14;
  * (en otros países está en Crunchyroll). No se pone lo que no está,
  * como con la retirada de Zom 100.
  */
-export const STREAMING = [];
 
 export const TEMPORADAS = [
   {

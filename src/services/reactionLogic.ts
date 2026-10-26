@@ -24,11 +24,11 @@ import type {
 /**
  * Clave de un objetivo dentro de los mapas de la interfaz.
  *
- * Se usa en DOS sitios que tienen que decir exactamente lo mismo:
- * la "firma" que el hook arma para saber qué está en pantalla, y
- * el filtro que agrupa los documentos que llegan. Si divergen, no
- * se ven contadores y no hay error que lo delate. Por eso está
- * aquí, sola, y en un solo archivo.
+ * Se usa para indexar los mapas de la interfaz y para filtrar los
+ * documentos que llegan de Firestore. La "firma" del hook es otra
+ * cosa: incluye tipo, chat e id para decidir cuándo reiniciar las
+ * escuchas. Si la clave y el filtro divergen, no se ven contadores
+ * y no hay error que lo delate; por eso está aquí, sola.
  */
 export function reactionKey(
   targetType: ReactionTargetType,
@@ -41,6 +41,74 @@ export function reactionKey(
 export interface ObjetivoReaccion {
   targetType: ReactionTargetType;
   targetId: string;
+  /**
+   * Solo para `chat_message`: chat al que pertenece el mensaje.
+   *
+   * Sin este dato no se puede consultar ni leer la reacción con las
+   * reglas nuevas: la consulta tiene que filtrar por `chatId` y la
+   * regla comprueba que quien lee sea miembro.
+   */
+  chatId?: string;
+}
+
+/**
+ * Una consulta de reacciones ya delimitada por lo que las reglas
+ * pueden autorizar.
+ *
+ * No se pueden mezclar hilos, comentarios y mensajes en una sola
+ * consulta: la regla de un mensaje depende de `chatId` y de la
+ * pertenencia al chat, y Firestore no aplica reglas como filtro.
+ * Cada grupo se consulta con sus igualdades correspondientes.
+ */
+export interface ConsultaReacciones {
+  targetType: ReactionTargetType;
+  /** Solo en `chat_message`. */
+  chatId?: string;
+  /** Ids de objetivo que van en el `in` de esa consulta. */
+  ids: string[];
+}
+
+/**
+ * Agrupa los objetivos de la pantalla en consultas que las reglas
+ * pueden aceptar:
+ *
+ *   · hilo / comentario → `targetType` + `targetId in [...]`;
+ *   · mensaje → `targetType` + `chatId` + `targetId in [...]`.
+ *
+ * Los mensajes sin `chatId` se omiten: consultarlos sin ese campo
+ * devolvería un listado que las reglas tienen que denegar (y, si no
+ * lo hicieran, estaría enseñando reacciones de un chat privado).
+ */
+export function consultasDeReacciones(
+  objetivos: ObjetivoReaccion[],
+): ConsultaReacciones[] {
+  const grupos = new Map<
+    string,
+    { targetType: ReactionTargetType; chatId?: string; ids: Set<string> }
+  >();
+
+  objetivos.forEach((o) => {
+    if (!o.targetId) return;
+    if (o.targetType === 'chat_message' && !o.chatId) return;
+
+    const chatId = o.targetType === 'chat_message' ? o.chatId : undefined;
+    const clave = `${o.targetType}\u0000${chatId ?? ''}`;
+    const grupo = grupos.get(clave) ?? {
+      targetType: o.targetType,
+      ...(chatId ? { chatId } : {}),
+      ids: new Set<string>(),
+    };
+    grupo.ids.add(o.targetId);
+    grupos.set(clave, grupo);
+  });
+
+  return [...grupos.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, g]) => ({
+      targetType: g.targetType,
+      ...(g.chatId ? { chatId: g.chatId } : {}),
+      ids: [...g.ids].sort(),
+    }));
 }
 
 /**
@@ -56,9 +124,9 @@ export interface ObjetivoReaccion {
  *
  * Son dos cosas distintas, y confundirlas hace que la consulta
  * devuelva SIEMPRE CERO documentos: se buscarían reacciones cuyo
- * `targetId` fuera literally "thread_demo-thread-kaguya", que no
- * existe. No hay error, no hay aviso y no sale un solo contador;
- * solo se ve la reacción propia, que viene de otra escucha.
+ * `targetId` fuera literalmente "thread_demo-thread-kaguya", que
+ * no existe. No hay error, no hay aviso y no sale un solo
+ * contador.
  *
  * Por eso están en dos funciones separadas y no en una.
  */
@@ -71,10 +139,10 @@ export function idsParaConsulta(objetivos: ObjetivoReaccion[]): string[] {
  * y con el tipo dentro.
  *
  * Sirve para FILTRAR en el cliente lo que llega de la consulta:
- * la consulta pide solo por `targetId`, así que también puede
- * devolver reacciones de un comentario cuando lo que se está
- * mirando es un hilo con ese mismo id. Con este filtro, cada
- * tarjeta enseña lo suyo y solo lo suyo.
+ * aunque la consulta ya va separada por tipo y chat, el mapa de la
+ * interfaz necesita el tipo dentro para que un hilo y un comentario
+ * con el mismo id no se pisen. Con este filtro, cada tarjeta enseña
+ * lo suyo y solo lo suyo.
  */
 export function clavesParaAgrupar(objetivos: ObjetivoReaccion[]): Set<string> {
   return new Set(
@@ -102,6 +170,18 @@ export function reactionDocId(
 
 /** Cuántos ids caben en un `in` de Firestore (el límite son 30). */
 export const MAX_POR_CONSULTA = 25;
+
+/**
+ * Tope de mensajes por consulta de reacciones de chat.
+ *
+ * La regla de lectura de un mensaje comprueba la pertenencia al chat
+ * y que el mensaje exista. Firestore limita las lecturas que puede
+ * hacer una regla por petición (10), y cada mensaje del `in` gasta
+ * una. Con 8 mensajes más la lectura del chat quedamos por debajo;
+ * si se subiera al mismo 25 que las reacciones públicas, una lista
+ * con muchas reacciones podría fallar entera por presupuesto.
+ */
+export const MAX_POR_CONSULTA_CHAT = 8;
 
 /** Una reacción tal y como viene de Firestore. */
 export interface ReactionRow {

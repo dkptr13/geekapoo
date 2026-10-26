@@ -65,8 +65,14 @@ export interface UserReaction {
   userName?: string;
   /**
    * Solo para `targetType: 'chat_message'`: en qué chat está el
-   * mensaje. Sin esto, las reglas no pueden comprobar que quien
-   * reacciona sea miembro de ese chat ni que el mensaje exista.
+   * mensaje. Es OBLIGATORIO en las escrituras nuevas. Sin esto, las
+   * reglas no pueden comprobar que quien lee o reacciona sea miembro
+   * de ese chat ni que el mensaje exista.
+   *
+   * Queda opcional en el tipo porque puede haber documentos antiguos
+   * sin el campo; esos documentos no se leen hasta pasar por
+   * `scripts/migrar-reacciones-chat.mjs`. No se borran: se completan
+   * con el chat que se pueda demostrar por la ruta del mensaje.
    */
   chatId?: string;
   /** Texto ISO: `withId` convierte los Timestamp de la interfaz. */
@@ -504,6 +510,7 @@ export interface StreamingService {
   name: string;
   url: string;
   badgeColor?: string;
+  regions?: string[];
 }
 
 export interface Episode {

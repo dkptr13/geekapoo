@@ -74,7 +74,7 @@ export const EPISODIOS_TOTAL = 13;
  *   · Crunchyroll -> la serie, con subtítulos en castellano.
  */
 export const STREAMING = [
-  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521', regions: ['ES', 'LATAM', 'JP'] },
 ];
 
 export const TEMPORADAS = [

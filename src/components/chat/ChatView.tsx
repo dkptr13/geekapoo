@@ -1360,8 +1360,17 @@ export const ChatView: React.FC = () => {
   const { toggleReaction } = useCommunity();
 
   const objetivosMensajes = useMemo(() => {
-    const vista = activeRoomId ? (messages[activeRoomId] ?? []) : [];
-    return vista.slice(-60).map((m) => ({ targetType: 'chat_message' as const, targetId: m.id }));
+    if (!activeRoomId) return [];
+    const vista = messages[activeRoomId] ?? [];
+    // `chatId` es obligatorio para poder consultar las reacciones con
+    // las reglas: la escucha se filtra por chat y la regla comprueba
+    // que quien lee sea miembro. Se usa el chat abierto y no el campo
+    // del mensaje para que la consulta y la ruta del mensaje coincidan.
+    return vista.slice(-60).map((m) => ({
+      targetType: 'chat_message' as const,
+      targetId: m.id,
+      chatId: activeRoomId,
+    }));
   }, [messages, activeRoomId]);
 
   const { de: reaccionesMensaje, mias: misReaccionesMensaje } =
@@ -3656,7 +3665,10 @@ export const ChatView: React.FC = () => {
                                 msg.id,
                                 tipo,
                                 misReaccionesMensaje[reactionKey('chat_message', msg.id)],
-                                msg.chatId,
+                                // La ruta real del mensaje es la conversación
+                                // abierta; `msg.chatId` puede faltar en datos
+                                // antiguos y no debe decidir dónde se escribe.
+                                activeRoomId ?? msg.chatId,
                               )
                             }
                           />

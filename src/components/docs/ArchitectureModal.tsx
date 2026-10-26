@@ -271,9 +271,14 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
 // haber dos a la vez. Los contadores que ve el usuario se
 // cuentan a partir de estos documentos, que son la verdad;
 // "reactionCounts" del hilo o del comentario es la caché.
+//
+// Hilos y comentarios se leen sin sesión. Las reacciones a un
+// mensaje de chat NO: solo las lee un miembro del chat, y por eso
+// llevan "chatId" obligatorio.
 {
-  "targetType": "thread" | "comment",
+  "targetType": "thread" | "comment" | "chat_message",
   "targetId": "abc123",
+  "chatId": "chat1",          // SOLO si targetType == "chat_message"
   "userId": "uid",
   "type": "fire" | "shocked" | "laugh" | "cry" | "trophy",
   "userName": "Otaku2005",   // para listar quién reaccionar con qué
@@ -579,11 +584,16 @@ service cloud.firestore {
     // El id del documento tiene que ser exactamente el que
     // compone el servicio, y por eso no puede haber dos
     // reacciones de la misma persona sobre lo mismo.
+    //
+    // Hilos/comentarios: lectura pública. Mensajes: solo un
+    // miembro del chat, con chatId y mensaje existente.
       match /reactions/{reactionId} {
-        allow read: if true;
+        allow get, list: if reaccionPublica(resource.data)
+                           || reaccionDeChatAutorizada(resource.data);
         allow create: if isActive()
                     && request.resource.data.userId == request.auth.uid
                     && request.resource.data.type.matches('^[a-z0-9_]{1,24}$')
+                    && reaccionTieneChatIdCoherente(request.resource.data)
                     && reactionId ==
                        'reac_' + request.resource.data.targetType + '_'
                        + request.resource.data.targetId + '_' + request.auth.uid
@@ -592,8 +602,13 @@ service cloud.firestore {
         allow update: if isActive()      // solo cambia el tipo
                     && resource.data.userId == request.auth.uid
                     && request.resource.data.diff(resource.data)
-                         .affectedKeys().hasOnly(['type','userName','createdAt']);
-        allow delete: if isActive() && resource.data.userId == request.auth.uid;
+                         .affectedKeys().hasOnly(['type','userName','createdAt'])
+                    && (reaccionPublica(resource.data)
+                        || reaccionDeChatAutorizada(resource.data));
+        allow delete: if isActive()
+                    && resource.data.userId == request.auth.uid
+                    && (reaccionPublica(resource.data)
+                        || reaccionDeChatAutorizada(resource.data));
       }
 
     // Caché de los votos: pública de lectura, imposible de

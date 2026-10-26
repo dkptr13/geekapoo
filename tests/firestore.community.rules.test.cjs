@@ -470,9 +470,13 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
   // crudos, que es como lo hace el hook, y comprueban que la
   // lectura llega y se agrupa bien.
   describe('lectura de reacciones (lo que ve la barra)', () => {
-    const consultaDeLaBarra = (targetIds) =>
+    const consultaDeLaBarra = (targetIds, targetType = 'thread') =>
       query(
         collection(anon(), 'reactions'),
+        // Las reglas nuevas ya no permiten leer una mezcla de
+        // hilos/comentarios y mensajes sin delimitar el tipo. La
+        // barra pública consulta cada tipo por separado.
+        where('targetType', '==', targetType),
         where('targetId', 'in', targetIds),
         limit(700),
       );
@@ -525,8 +529,11 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
     it('sin iniciar sesión se ven las reacciones de los demás', async () => {
       // Lo más importante: los contadores son públicos. Si esto
       // fallara, un visitante anónimo vería la barra vacía.
-      const snap = await getDocs(consultaDeLaBarra(['hilo1', 'com1']));
-      assert(snap.size >= 4, `llegan 4 reacciones, llegaron ${snap.size}`);
+      const snapHilo = await getDocs(consultaDeLaBarra(['hilo1']));
+      const snapComentario = await getDocs(consultaDeLaBarra(['com1'], 'comment'));
+      const total = snapHilo.size + snapComentario.size;
+
+      assert(total >= 4, `llegan 4 reacciones, llegaron ${total}`);
     });
 
     it('la barra cuenta las reacciones de los tres usuarios a la vez', async () => {
@@ -542,6 +549,7 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
       const snapCarla = await getDocs(
         query(
           collection(db(CARA), 'reactions'),
+          where('targetType', '==', 'thread'),
           where('targetId', 'in', ['hilo1']),
           limit(700),
         ),
@@ -555,7 +563,7 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
     });
 
     it('también se leen las de comentarios', async () => {
-      const snap = await getDocs(consultaDeLaBarra(['com1']));
+      const snap = await getDocs(consultaDeLaBarra(['com1'], 'comment'));
       const contadores = contarComoElHook(snap);
       assert.equal(contadores.comment_com1.cry, 1, 'una reacción en un comentario');
     });
@@ -566,7 +574,12 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
       const muchos = Array.from({ length: 60 }, (_, i) => `hilo${i}`);
       for (const trozo of [muchos.slice(0, 25), muchos.slice(25, 50), muchos.slice(50)]) {
         await assertSucceeds(getDocs(
-          query(collection(anon(), 'reactions'), where('targetId', 'in', trozo), limit(700)),
+          query(
+            collection(anon(), 'reactions'),
+            where('targetType', '==', 'thread'),
+            where('targetId', 'in', trozo),
+            limit(700),
+          ),
         ));
       }
     });

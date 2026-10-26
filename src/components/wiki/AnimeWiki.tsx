@@ -936,7 +936,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                         {svc.name}
                       </span>
                       <span className="block text-[11px] text-emerald-400 font-medium">
-                        Disponible
+                        Disponible{svc.regions && svc.regions.length > 0 ? ` (${svc.regions.join(', ')})` : ''}
                       </span>
                     </div>
                     <ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-colors" />

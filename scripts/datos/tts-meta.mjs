@@ -32,6 +32,10 @@ export const ANIME = {
 
 export const ANIME_ID = 'the-tunnel-to-summer-the-exit-of-goodbyes';
 
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
+
 // ── TITULOS ALTERNATIVOS ──────────────────────────────────────
 //
 // Lo que la gente escribe para encontrar esta obra en el buscador:
@@ -66,7 +70,6 @@ export const EPISODIOS_TOTAL = 1;
  * Hubo alquiler y compra digital, pero ahora mismo no esta en
  * streaming, asi que no se pone lo que no hay.
  */
-export const STREAMING = [];
 
 export const TEMPORADAS = [
   {

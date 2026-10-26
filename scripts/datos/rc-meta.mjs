@@ -36,6 +36,10 @@ export const ANIME = {
 
 export const ANIME_ID = 'ragna-crimson';
 
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
+
 /**
  * UNA SOLA TEMPORADA
  *
@@ -81,4 +85,3 @@ export const EPISODIOS_TOTAL = 24;
 // hay ninguna (HIDIVE es de USA e Italia y otros 12 paises, pero no
 // Espana). Igual que con Plastic Memories: no inventar es mejor que
 // poner una, asi que se queda vacio.
-export const STREAMING = [];

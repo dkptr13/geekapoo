@@ -569,6 +569,65 @@ service cloud.firestore {
     }
 
     /**
+     * ¿Es una reacción a contenido público?
+     *
+     * Hilos y comentarios se leen sin sesión, igual que el contenido
+     * al que reaccionan. Los mensajes de chat NO: una reacción a un
+     * mensaje privado también revela que existe una conversación y
+     * quién participa en ella.
+     */
+    function reaccionPublica(d) {
+      return 'targetType' in d
+             && (d.targetType == 'thread' || d.targetType == 'comment');
+    }
+
+    /**
+     * Una reacción a un mensaje SOLO la lee quien puede leer el chat.
+     *
+     * `chatId` no es decorativo: sin él no se puede saber a qué
+     * conversación pertenece el mensaje. El `targetId` tiene que ser
+     * un mensaje que exista DENTRO de ese chat; así no vale cambiar
+     * el chat de una reacción para colarla en otro.
+     *
+     * No se pide `isActive()`: el chat también deja leer a un
+     * miembro baneado (puede seguir leyendo, pero no escribir). Lo
+     * que no se puede es leer desde fuera.
+     *
+     * Cada mensaje comprobado en un listado gasta una lectura de
+     * reglas. El cliente consulta como máximo 8 mensajes por vez
+     * (`MAX_POR_CONSULTA_CHAT`), que junto con la lectura del chat
+     * deja margen bajo el límite de 10 de Firestore.
+     */
+    function reaccionDeChatAutorizada(d) {
+      return 'targetType' in d
+             && d.targetType == 'chat_message'
+             && 'chatId' in d
+             && d.chatId is string
+             && d.chatId.size() > 0
+             && 'targetId' in d
+             && d.targetId is string
+             && d.targetId.size() > 0
+             && isChatMember(d.chatId)
+             && exists(/databases/$(database)/documents/chats/$(d.chatId)/messages/$(d.targetId));
+    }
+
+    /**
+     * Forma del `chatId` según el tipo de reacción.
+     *
+     * En hilos y comentarios NO debe existir: son públicos y no
+     * tienen por qué llevar pegado el id de una conversación
+     * privada. En mensajes es OBLIGATORIO.
+     */
+    function reaccionTieneChatIdCoherente(d) {
+      return (d.targetType == 'chat_message'
+              && 'chatId' in d
+              && d.chatId is string
+              && d.chatId.size() > 0)
+          || ((d.targetType == 'thread' || d.targetType == 'comment')
+              && !('chatId' in d));
+    }
+
+    /**
      * Formato de la clave de reacción.
      *
      * Son más de doscientos emojis (el catálogo está en
@@ -2155,10 +2214,21 @@ service cloud.firestore {
     // alcanzaría a una cosa de cada clase. El id determinista
     // (`reac_<tipo>_<id>_<uid>`) es lo que impide las reacciones
     // duplicadas.
+    //
+    // La lectura NO es toda pública: hilos y comentarios sí, pero
+    // las reacciones a mensajes privados exigen `chatId` y
+    // pertenencia al chat. La consulta del cliente tiene que filtrar
+    // por `targetType` y, en chats, por `chatId`; las reglas no son
+    // un filtro.
     match /reactions/{reactionId} {
-      // Los recuentos son públicos: se ven sin entrar, igual que
-      // los "me gusta".
-      allow read: if true;
+      // La barra de un hilo o de un comentario es pública, como el
+      // propio hilo. La de un mensaje de chat NO: solo la lee quien
+      // es miembro del chat, y para eso el documento tiene que decir
+      // a qué chat pertenece.
+      allow get: if reaccionPublica(resource.data)
+                    || reaccionDeChatAutorizada(resource.data);
+      allow list: if reaccionPublica(resource.data)
+                     || reaccionDeChatAutorizada(resource.data);
 
       allow create: if isActive()
                     && request.resource.data.userId == request.auth.uid
@@ -2167,6 +2237,10 @@ service cloud.firestore {
                     && request.resource.data.targetId is string
                     && request.resource.data.targetId.size() > 0
                     && request.resource.data.targetId.size() <= 150
+                    && reaccionTieneChatIdCoherente(request.resource.data)
+                    && request.resource.data.keys().hasOnly(
+                         ['userId', 'targetType', 'targetId', 'type',
+                          'userName', 'chatId', 'createdAt'])
                     && reactionDocDeUid(reactionId,
                                         request.auth.uid,
                                         request.resource.data.targetType,
@@ -2178,13 +2252,22 @@ service cloud.firestore {
       // Solo se puede cambiar el TIPO. Tocar `userId`,
       // `targetType`, `targetId` o `chatId` aquí sería quedarse
       // con las reacciones de otra persona o moverlas de sitio.
+      //
+      // En mensajes de chat también se exige seguir siendo miembro
+      // del chat y que el mensaje siga existiendo: una reacción no
+      // puede sobrevivir por la puerta de atrás a una expulsión.
       allow update: if isActive()
                     && resource.data.userId == request.auth.uid
                     && request.resource.data.diff(resource.data)
                          .affectedKeys().hasOnly(['type', 'userName', 'createdAt'])
-                    && reactionTypeValido(request.resource.data.type);
+                    && reactionTypeValido(request.resource.data.type)
+                    && (reaccionPublica(resource.data)
+                        || reaccionDeChatAutorizada(resource.data));
 
-      allow delete: if isActive() && resource.data.userId == request.auth.uid;
+      allow delete: if isActive()
+                    && resource.data.userId == request.auth.uid
+                    && (reaccionPublica(resource.data)
+                        || reaccionDeChatAutorizada(resource.data));
     }
 
     // ======================================================

@@ -66,6 +66,7 @@ const mapa = (p) => ({
       name: v.str(p.name),
       url: v.str(p.url),
       badgeColor: v.str(p.badgeColor ?? ''),
+      ...(p.regions ? { regions: v.arr(p.regions.map((r) => v.str(r))) } : {}),
     },
   },
 });

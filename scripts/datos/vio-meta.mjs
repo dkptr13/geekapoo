@@ -91,7 +91,7 @@ export const EPISODIOS_TOTAL = 13;
  *   · Netflix -> la serie completa, con subtítulos en castellano.
  */
 export const STREAMING = [
-  { name: 'Netflix', url: 'https://www.netflix.com/es', badgeColor: 'bg-red-500/20 text-red-300' },
+  { name: 'Netflix', url: 'https://www.netflix.com', badgeColor: '#e50914', regions: ['WW'] },
 ];
 
 export const TEMPORADAS = [

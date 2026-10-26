@@ -34,6 +34,10 @@ export const ANIME = {
 
 export const ANIME_ID = 'teasing-master-takagi-san';
 
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
+
 /**
  * LAS CUATRO TEMPORADAS
  *
@@ -125,4 +129,3 @@ export const EPISODIOS_TOTAL = 38;
 // hay ninguna (Crunchyroll la lleva en Suiza y otros 26 paises,
 // pero no Espana). Como con Plastic Memories y Ragna: no inventar
 // es mejor que poner una.
-export const STREAMING = [];

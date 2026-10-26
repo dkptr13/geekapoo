@@ -43,7 +43,14 @@ export * from './reactionLogic';
 // mensajes de chat. Los mensajes de chat no llevan contador
 // agregado en su documento (se cuentan desde aquí), pero sí
 // guardan su `chatId` para que las reglas puedan comprobar que
-// quien reacciona es miembro de ese chat.
+// quien lee o reacciona es miembro de ese chat. Es un campo
+// obligatorio: sin él, la reacción se rechaza.
+//
+// Lectura: las reacciones de hilos y comentarios son públicas,
+// como el contenido. Las de mensajes de chat solo las lee un
+// miembro del chat. Por eso el hook no puede pedir todos los
+// `targetId` en la misma consulta: separa por tipo y, en chats,
+// filtra por `chatId`.
 //
 // ── Por qué los contadores no se escriben desde aquí ───────
 //
@@ -196,6 +203,9 @@ export async function setReaction(
 ): Promise<void> {
   if (!esClaveDeReaccion(type)) {
     throw new Error('Esa reacción no existe.');
+  }
+  if (targetType === 'chat_message' && !chatId) {
+    throw new Error('Falta el chat del mensaje al que se reacciona.');
   }
 
   await setDoc(

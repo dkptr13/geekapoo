@@ -39,6 +39,10 @@ export const ANIME = {
 
 export const ANIME_ID = 'plastic-memories';
 
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
+
 /**
  * UNA SOLA TEMPORADA
  *
@@ -88,4 +92,3 @@ export const EPISODIOS_TOTAL = 13;
 // Argentina y otros 24 paises, pero no aqui. Inventarse una seria
 // peor que no poner ninguna, asi que se queda vacio y
 // `anadir-plataformas.mjs` no toca nada hasta que haya dato.
-export const STREAMING = [];

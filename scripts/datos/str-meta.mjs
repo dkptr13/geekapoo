@@ -76,7 +76,8 @@ export const EPISODIOS_TOTAL = 25;
  *   · Disney+ -> la serie, con subtítulos en castellano.
  */
 export const STREAMING = [
-  { name: 'Disney+', url: 'https://www.disneyplus.com', badgeColor: '#0063e5' },
+  { name: 'Disney+', url: 'https://www.disneyplus.com', badgeColor: '#0063e5', regions: ['ES', 'LATAM', 'UK', 'JP'] },
+  { name: 'Hulu', url: 'https://www.hulu.com', badgeColor: '#1ce783', regions: ['US'] },
 ];
 
 export const TEMPORADAS = [
