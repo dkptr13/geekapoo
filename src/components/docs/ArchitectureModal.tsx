@@ -49,7 +49,11 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
   // sin migrar nada.
   "profileVisibility": "public" | "private",
   "allowChatRequests": true,
-  "showActivity": true
+  "showActivity": true,
+
+  // Región de «Dónde verla». Opcional: ausente = España.
+  // Se guarda en el perfil para conservarla en otros dispositivos.
+  "regionPreferida": "ES"
 }
 // Y una subcolección con la lista de bloqueados:
 //   users/{uid}/blocked/{blockedUid} → { uid, blockedAt }
@@ -71,6 +75,9 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
   "category": "Romance & Comedia",  // coincide con CATEGORIES.name
   "categories": ["Romance & Comedia"],
   "genres": ["Romance", "Comedia"],
+  // Formato ANTIGUO. Se conserva por compatibilidad, pero no
+  // confirma disponibilidad en ningún país: la wiki lo enseña como
+  // «Sin verificar» hasta que haya una fila regional.
   "streaming": [{ "name": "Crunchyroll", "url": "https://..." }],
 
   // ── La BASE de la ficha, heredada por las temporadas ──
@@ -94,6 +101,43 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
   "likedBy": [],          // likesCount SIEMPRE es likedBy.length
   "commentsCount": 0
 }
+
+// 2b. DISPONIBILIDAD REGIONAL: streamingAvailability/{id}
+// El id es determinista: {animeId}__{platformId}__{region}.
+// Vive fuera del anime para que la wiki pida SOLO la obra y la
+// región seleccionadas, y para que una fila se pueda editar o
+// borrar sin tocar la ficha. Las series y las películas usan el
+// mismo campo "animeId".
+{
+  "animeId": "kaguya-sama-love-is-war",
+  "platformId": "crunchyroll",   // id de streamingPlatforms
+  "region": "ES",                // código ISO en mayúsculas
+  "status": "available" | "unavailable" | "unverified",
+  "accessType": "subscription" | "rental" | "purchase" |
+                "free_ads" | "unknown",
+  "url": "https://...",          // solo se muestra si está disponible
+  "verifiedAt": "2026-03-12",    // YYYY-MM-DD, opcional
+  "updatedAt": Timestamp
+}
+
+// anime.streaming (fichas antiguas) se conserva sin migrar. Si una
+// plataforma antigua no tiene fila regional, se pinta «Sin verificar»
+// y sin enlace; nunca se da por disponible en todos los países.
+
+// CATÁLOGO: streamingPlatforms/{platformId}
+// Se reutiliza entre todas las obras; la disponibilidad guarda el
+// id, no una copia. El panel puede añadir plataformas nuevas.
+{ "name": "Crunchyroll", "badgeColor": "#f47521",
+  "logoUrl": "https://...", "order": 20, "createdAt": Timestamp }
+
+// CATÁLOGO: streamingRegions/{code}
+// Los diez países iniciales viven también en el código; los nuevos
+// se añaden desde el panel sin rediseñar las fichas.
+{ "name": "España", "order": 10, "createdAt": Timestamp }
+
+// Lectura pública, escritura solo para admin/moderador. Consulta
+// de la wiki: where("animeId","==",id) + where("region","==",región).
+// Requiere desplegar las reglas y el índice compuesto animeId+region.
 
 // 3. SEASONS: seasons/{seasonId}
 // Colección PLANA, no subcolección de animes: la wiki consulta
@@ -492,6 +536,21 @@ service cloud.firestore {
     match /characters/{id}       { allow read: if true; allow write: if isAdmin(); }
     match /trivia_extras/{id}    { allow read: if true; allow write: if isAdmin(); }
     match /mascot_dialogues/{id}{ allow read: if true; allow write: if isAdmin(); }
+
+    // Disponibilidad regional: lectura pública; la disponibilidad
+    // solo la escribe el equipo. La forma de la fila se valida.
+    match /streamingAvailability/{id} {
+      allow read: if true;
+      allow create, update: if (isAdmin() || isModerator())
+                              && request.resource.data.animeId is string
+                              && request.resource.data.platformId is string
+                              && request.resource.data.region is string
+                              && request.resource.data.status in
+                                 ['available','unavailable','unverified'];
+      allow delete: if isAdmin() || isModerator();
+    }
+    match /streamingPlatforms/{id} { allow read: if true; allow write: if isModerator(); }
+    match /streamingRegions/{id}   { allow read: if true; allow write: if isModerator(); }
 
     // El contador de hilos lo ajusta el usuario al publicar,
     // pero SOLO ese campo: el resto es del admin.

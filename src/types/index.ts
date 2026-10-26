@@ -396,6 +396,18 @@ export interface User {
   allowChatRequests?: boolean;
   showActivity?: boolean;
 
+  /**
+   * Región preferida para «Dónde verla», como código ISO en
+   * mayúsculas (`ES`, `MX`, `AR`...). Es opcional a propósito:
+   * las cuentas anteriores a la disponibilidad regional no la
+   * tienen; en ese caso se usa la preferencia local o España.
+   *
+   * La escribe el propio usuario desde el selector de la wiki.
+   * No es un dato de seguridad: solo decide qué disponibilidad
+   * se muestra.
+   */
+  regionPreferida?: string;
+
   // ── Encuadre del avatar ──────────────────────────────
   //
   // Cómo se eligió el trozo de la foto que se ve. Lo escribe el
@@ -506,11 +518,83 @@ export interface User {
   chatApariencia?: AparienciaChat | null;
 }
 
+/**
+ * Plataforma antigua de la ficha (`animes/{id}.streaming`).
+ *
+ * Se conserva tal cual para no romper el catálogo anterior. NO se
+ * interpreta como disponibilidad confirmada: una entrada antigua
+ * no tiene país (o su `regions` es solo una pista) y en la wiki se
+ * muestra como «Sin verificar» hasta que exista una fila regional
+ * en `streamingAvailability`.
+ */
 export interface StreamingService {
   name: string;
   url: string;
   badgeColor?: string;
+  /** Pista antigua de región. No confirma disponibilidad. */
   regions?: string[];
+}
+
+/** Estado de una obra en una plataforma para una región concreta. */
+export type StreamingAvailabilityStatus = 'available' | 'unavailable' | 'unverified';
+
+/** Cómo se accede al contenido cuando se conoce. */
+export type StreamingAccessType =
+  | 'subscription'
+  | 'rental'
+  | 'purchase'
+  | 'free_ads'
+  | 'unknown';
+
+/**
+ * Catálogo de plataformas reutilizable.
+ *
+ * Vive en `streamingPlatforms/{platformId}`. La disponibilidad
+ * guarda solo el id, no una copia de la plataforma, para que
+ * renombrar o cambiar el color se refleje en todas las fichas.
+ */
+export interface StreamingPlatform {
+  id: string;
+  name: string;
+  badgeColor?: string;
+  /** Logotipo opcional. Si falta, la wiki usa la inicial y el color. */
+  logoUrl?: string;
+  order?: number;
+}
+
+/**
+ * País o región que se puede elegir en «Dónde verla».
+ *
+ * Los diez iniciales viven en el código; el panel puede añadir
+ * más a `streamingRegions/{code}` sin tocar las fichas.
+ */
+export interface StreamingRegion {
+  code: string;
+  name: string;
+  order?: number;
+}
+
+/**
+ * Una fila de disponibilidad regional.
+ *
+ * El id es determinista: `{animeId}__{platformId}__{region}`. Así
+ * no puede haber dos filas para la misma obra, plataforma y país.
+ * El campo `animeId` sirve para las series y las películas: las
+ * dos viven en la colección `animes`.
+ */
+export interface StreamingAvailability {
+  id: string;
+  animeId: string;
+  /** Id de `streamingPlatforms`; el nombre y el logo no se copian. */
+  platformId: string;
+  region: string;
+  status: StreamingAvailabilityStatus;
+  accessType?: StreamingAccessType;
+  /** Enlace regional verificado. Solo se pinta si el estado es «Disponible». */
+  url?: string;
+  /** Última fecha de verificación, en formato `YYYY-MM-DD`. */
+  verifiedAt?: string;
+  updatedAt?: string;
 }
 
 export interface Episode {

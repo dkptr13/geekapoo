@@ -51,6 +51,7 @@ import { TAG_DESTACADOS, normalizaTags } from '../../utils/tags';
 import { ImageUploader } from './ImageUploader';
 import { ImagePicker } from './ImagePicker';
 import { CollapsibleSection } from './CollapsibleSection';
+import { StreamingAvailabilityEditor } from './StreamingAvailabilityEditor';
 import {
   TextField,
   TextArea,
@@ -513,9 +514,11 @@ export const AnimeEditor: FC<AnimeEditorProps> = ({
             />
           </CollapsibleSection>
 
-          {/* Servicios de streaming */}
+          {/* Plataformas antiguas de la ficha. No se borran: la wiki
+              las usa como fallback «Sin verificar» hasta que exista
+              una fila regional en el apartado de abajo. */}
           <CollapsibleSection
-            title={`Servicios de streaming (${streaming.length})`}
+            title={`Plataformas antiguas / sin región (${streaming.length})`}
             actions={
               <button
                 type="button"
@@ -532,6 +535,12 @@ export const AnimeEditor: FC<AnimeEditorProps> = ({
               </button>
             }
           >
+            <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[10px] leading-relaxed text-zinc-500">
+              Son los datos que ya existían y no tienen país. No se borran ni se dan por
+              disponibles: en la wiki aparecen como «Sin verificar» hasta que registres su
+              disponibilidad regional en el apartado siguiente.
+            </p>
+
             {streamingError && (
               <p className="text-[11px] text-red-400">{streamingError}</p>
             )}
@@ -599,6 +608,9 @@ export const AnimeEditor: FC<AnimeEditorProps> = ({
               </ul>
             )}
           </CollapsibleSection>
+
+          {/* Disponibilidad por obra + plataforma + país. */}
+          <StreamingAvailabilityEditor animeId={anime.id} />
 
           {/* ==================================================
               TEMPORADAS

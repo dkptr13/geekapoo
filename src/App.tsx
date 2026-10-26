@@ -5,6 +5,9 @@ import {
   useAuth,
 } from './context/AuthContext';
 
+import { RegionPreferenceProvider } from './context/RegionPreferenceContext';
+import { StreamingCatalogProvider } from './context/StreamingCatalogContext';
+
 import {
   CommunityProvider,
 } from './context/CommunityContext';
@@ -771,22 +774,26 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <CommunityProvider>
-          <ChatProvider>
-            <ClubsProvider>
-              <ProgressionProvider>
-              <NotificationsProvider>
-                <SiteContentProvider>
-                  <FollowingUidProvider>
-                    <MainAppContent />
-                  </FollowingUidProvider>
-                </SiteContentProvider>
-              </NotificationsProvider>
-            </ProgressionProvider>
-          </ClubsProvider>
-        </ChatProvider>
-      </CommunityProvider>
-    </AuthProvider>
+        <RegionPreferenceProvider>
+          <StreamingCatalogProvider>
+            <CommunityProvider>
+              <ChatProvider>
+                <ClubsProvider>
+                  <ProgressionProvider>
+                    <NotificationsProvider>
+                      <SiteContentProvider>
+                        <FollowingUidProvider>
+                          <MainAppContent />
+                        </FollowingUidProvider>
+                      </SiteContentProvider>
+                    </NotificationsProvider>
+                  </ProgressionProvider>
+                </ClubsProvider>
+              </ChatProvider>
+            </CommunityProvider>
+          </StreamingCatalogProvider>
+        </RegionPreferenceProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

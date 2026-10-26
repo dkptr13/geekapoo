@@ -37,6 +37,33 @@ service cloud.firestore {
       return myRole() == 'admin' || myRole() == 'moderator';
     }
 
+    // Forma mínima de una fila de disponibilidad regional. El
+    // catálogo es público, pero solo el equipo puede escribir en
+    // él. La comprobación evita que una escritura accidental deje
+    // una fila sin obra, plataforma, región o estado.
+    function disponibilidadRegionalValida() {
+      return request.resource.data.animeId is string
+             && request.resource.data.animeId.size() > 0
+             && request.resource.data.platformId is string
+             && request.resource.data.platformId.size() > 0
+             && request.resource.data.region is string
+             && request.resource.data.region.size() >= 2
+             && request.resource.data.status in
+                ['available', 'unavailable', 'unverified'];
+    }
+
+    function plataformaStreamingValida() {
+      return request.resource.data.name is string
+             && request.resource.data.name.size() >= 2
+             && request.resource.data.name.size() <= 80;
+    }
+
+    function regionStreamingValida() {
+      return request.resource.data.name is string
+             && request.resource.data.name.size() >= 2
+             && request.resource.data.name.size() <= 80;
+    }
+
     // ── BANEOS: DOS FUENTES Y UNA SOLA VERDAD ──────────────
     //
     // El estado de sanción vive en DOS sitios, a propósito:
@@ -1710,6 +1737,36 @@ service cloud.firestore {
     match /animes/{animeId} {
       allow read: if true;
       allow write: if isAdmin() || isModerator();
+    }
+
+    // ======================================================
+    // DISPONIBILIDAD REGIONAL DE STREAMING
+    // ======================================================
+    // Los tres catálogos son públicos: la wiki se puede leer sin
+    // sesión. Solo el equipo (admin o moderador) los modifica.
+    //
+    // La disponibilidad va en su propia colección plana, no dentro
+    // del anime, para que la wiki consulte únicamente la obra y la
+    // región elegidas.
+    match /streamingAvailability/{availabilityId} {
+      allow read: if true;
+      allow create, update: if (isAdmin() || isModerator())
+                              && disponibilidadRegionalValida();
+      allow delete: if isAdmin() || isModerator();
+    }
+
+    match /streamingPlatforms/{platformId} {
+      allow read: if true;
+      allow create, update: if (isAdmin() || isModerator())
+                              && plataformaStreamingValida();
+      allow delete: if isAdmin() || isModerator();
+    }
+
+    match /streamingRegions/{regionCode} {
+      allow read: if true;
+      allow create, update: if (isAdmin() || isModerator())
+                              && regionStreamingValida();
+      allow delete: if isAdmin() || isModerator();
     }
 
     // TEMPORADAS

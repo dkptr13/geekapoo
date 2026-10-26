@@ -183,6 +183,8 @@ interface SelectFieldProps {
   options: { value: string; label: string }[];
   error?: string;
   hint?: string;
+  /** Un campo que no se puede cambiar al editar, pero sigue viéndose. */
+  disabled?: boolean;
 }
 
 export const SelectField: FC<SelectFieldProps> = ({
@@ -192,12 +194,14 @@ export const SelectField: FC<SelectFieldProps> = ({
   options,
   error,
   hint,
+  disabled = false,
 }) => (
   <FieldShell label={label} error={error} hint={hint}>
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`${baseInput} ${error ? invalid : idle}`}
+      disabled={disabled}
+      className={`${baseInput} ${error ? invalid : idle} disabled:cursor-not-allowed disabled:opacity-60`}
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>

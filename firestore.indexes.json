@@ -68,6 +68,15 @@
       ]
     },
     {
+      "_comment": "Dónde verla: la wiki pide solo la obra y la región seleccionadas.",
+      "collectionGroup": "streamingAvailability",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "animeId", "order": "ASCENDING" },
+        { "fieldPath": "region", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "chats",
       "queryScope": "COLLECTION",
       "fields": [

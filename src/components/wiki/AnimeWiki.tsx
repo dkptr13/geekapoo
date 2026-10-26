@@ -33,6 +33,7 @@ import CatalogBrowser from './CatalogBrowser';
 import CatalogSearch from './CatalogSearch';
 import MainTabs from './MainTabs';
 import { AdvancedFilters, ChipsFiltros } from './AdvancedFilters';
+import { WhereToWatch } from './WhereToWatch';
 import {
   FILTROS_VACIOS,
   esPelicula,
@@ -913,37 +914,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             </section>
 
             {/* Dónde verla / Streaming oficial */}
-            <section className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-6">
-              <h2 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                <Tv size={16} className="text-violet-400" />
-                <span>Servicios de Streaming / Dónde Verla</span>
-              </h2>
-              <p className="text-xs text-zinc-400 mb-4">
-                Plataformas legales y oficiales con disponibilidad de la serie:
-              </p>
-
-              <div className="grid sm:grid-cols-3 gap-3">
-                {currentAnime.streaming.map((svc) => (
-                  <a
-                    key={svc.name}
-                    href={svc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-950 p-4 hover:border-violet-500/60 hover:bg-zinc-800/40 transition-all"
-                  >
-                    <div>
-                      <span className="font-bold text-sm text-white group-hover:text-violet-300 transition-colors">
-                        {svc.name}
-                      </span>
-                      <span className="block text-[11px] text-emerald-400 font-medium">
-                        Disponible{svc.regions && svc.regions.length > 0 ? ` (${svc.regions.join(', ')})` : ''}
-                      </span>
-                    </div>
-                    <ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-colors" />
-                  </a>
-                ))}
-              </div>
-            </section>
+            <WhereToWatch anime={currentAnime} />
           </div>
 
           {/* Ficha técnica lateral. Con la rejilla de 12
