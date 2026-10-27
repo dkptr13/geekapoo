@@ -118,6 +118,14 @@ const asStreaming = (v: unknown): StreamingService[] =>
           name: asStr(s.name),
           url: asStr(s.url),
           badgeColor: asStr(s.badgeColor) || '#e11d48',
+          ...(Array.isArray(s.regions) && s.regions.length > 0
+            ? {
+                regions: s.regions
+                  .filter((r) => typeof r === 'string')
+                  .map((r) => (r as string).trim().toUpperCase())
+                  .filter((r) => r.length > 0),
+              }
+            : {}),
         }))
         .filter((s) => s.name !== '' || s.url !== '')
     : [];
@@ -350,7 +358,14 @@ export const AnimeEditor: FC<AnimeEditorProps> = ({
         category: categoriesList[0] ?? '',
         categories: categoriesList,
         streaming: streaming
-          .map((s) => ({ ...s, name: s.name.trim(), url: s.url.trim() }))
+          .map((s) => ({
+            ...s,
+            name: s.name.trim(),
+            url: s.url.trim(),
+            ...(Array.isArray(s.regions) && s.regions.length
+              ? { regions: s.regions.map((r) => r.trim().toUpperCase()).filter(Boolean) }
+              : {}),
+          }))
           .filter((s) => s.name),
         genres: genres
           .split(',')
@@ -536,9 +551,10 @@ export const AnimeEditor: FC<AnimeEditorProps> = ({
             }
           >
             <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[10px] leading-relaxed text-zinc-500">
-              Son los datos que ya existían y no tienen país. No se borran ni se dan por
-              disponibles: en la wiki aparecen como «Sin verificar» hasta que registres su
-              disponibilidad regional en el apartado siguiente.
+              Son los datos que ya existían y no tienen país. La lista de regiones es solo una
+              pista para organizarlas; no confirma disponibilidad: en la wiki aparecen como
+              «Sin verificar» hasta que registres la disponibilidad regional en el apartado
+              siguiente.
             </p>
 
             {streamingError && (
@@ -592,6 +608,31 @@ export const AnimeEditor: FC<AnimeEditorProps> = ({
                           )
                         }
                         options={SERVICE_COLORS.map((c) => ({ value: c.color, label: c.name }))}
+                      />
+                    </div>
+
+                    <div className="min-w-[140px] flex-1">
+                      <TextField
+                        label="Regiones (separadas por comas)"
+                        value={(svc.regions ?? []).join(', ')}
+                        onChange={(v) =>
+                          setStreaming((prev) =>
+                            prev.map((s, j) =>
+                              j === i
+                                ? {
+                                    ...s,
+                                    regions:
+                                      v
+                                        .split(',')
+                                        .map((r) => r.trim().toUpperCase())
+                                        .filter(Boolean),
+                                  }
+                                : s,
+                            ),
+                          )
+                        }
+                        placeholder="ES, US, JP"
+                        hint="Pista informativa: no cambia el estado en la wiki."
                       />
                     </div>
 

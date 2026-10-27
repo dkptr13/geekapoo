@@ -2144,11 +2144,22 @@ export const responderSolicitudChat = onCall(async (request) => {
       throw new HttpsError('failed-precondition', 'La solicitud está incompleta.');
     }
 
+    if (fromId === toId) {
+      throw new HttpsError(
+        'failed-precondition',
+        'Una solicitud no puede tener el mismo emisor y destinatario.',
+      );
+    }
+
     if (solicitud.status !== 'pending') {
-      // Reintento de una aceptación ya hecha: devolver el chat es
+      // Reintento de una ACEPTACIÓN ya hecha: devolver el chat es
       // mejor que un error, porque la interfaz puede haber perdido
-      // la respuesta de la primera llamada.
+      // la respuesta de la primera llamada. Solo vale para la misma
+      // acción y para el destinatario; un reintento de "rechazar"
+      // sobre una solicitud aceptada no debe devolver un chat como
+      // si la hubiera rechazado.
       if (
+        accion === 'aceptar' &&
         solicitud.status === 'accepted' &&
         toId === uid &&
         typeof solicitud.resultingChatId === 'string'

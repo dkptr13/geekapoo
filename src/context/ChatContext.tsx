@@ -618,6 +618,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async (request: ChatRequest, accept: boolean): Promise<ChatResult> => {
       if (!currentUser) return { ok: false, error: 'Debes iniciar sesión.' };
 
+      if (request.toId !== currentUser.uid) {
+        return {
+          ok: false,
+          error: 'Solo la persona que recibió la solicitud puede responderla.',
+        };
+      }
+
       // Un miembro del grupo, no el dueño, no puede aceptar una
       // entrada. Las invitaciones las acepta el invitado, así que
       // no pasan por esta comprobación.
@@ -631,6 +638,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await respondToRequest(
         request,
         accept ? 'accepted' : 'rejected',
+        currentUser.uid,
       );
 
       if (!result.ok) return { ok: false, error: result.error };
@@ -656,8 +664,16 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const cancelChatRequest = useCallback(
     async (request: ChatRequest): Promise<ChatResult> => {
       if (!currentUser) return { ok: false, error: 'Debes iniciar sesión.' };
+
+      if (request.fromId !== currentUser.uid) {
+        return {
+          ok: false,
+          error: 'Solo quien envió la solicitud puede cancelarla.',
+        };
+      }
+
       try {
-        await withdrawRequest(request.id, currentUser.uid);
+        await withdrawRequest(request, currentUser.uid);
         return { ok: true };
       } catch (e: unknown) {
         return { ok: false, error: messageOf(e, 'No se pudo cancelar la solicitud.') };

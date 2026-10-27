@@ -267,9 +267,24 @@ export async function inviteToGroup(
 export async function respondToRequest(
   request: ChatRequest,
   status: Extract<ChatRequestStatus, 'accepted' | 'rejected' | 'cancelled'>,
+  currentUserId: string,
 ): Promise<RequestResult> {
   if (request.status !== 'pending') {
     return { ok: false, error: 'Esa solicitud ya no está pendiente.' };
+  }
+
+  // Comprobación de interfaz; la definitiva la hace la Cloud
+  // Function contra el documento real. Aceptar o rechazar solo
+  // puede hacerlo el destinatario, y cancelar, quien la envió.
+  if (status === 'cancelled') {
+    if (request.fromId !== currentUserId) {
+      return { ok: false, error: 'Solo quien envió la solicitud puede cancelarla.' };
+    }
+  } else if (request.toId !== currentUserId) {
+    return {
+      ok: false,
+      error: 'Solo la persona que recibió la solicitud puede responderla.',
+    };
   }
 
   const accion =
@@ -293,16 +308,26 @@ export async function respondToRequest(
   }
 }
 
-/** Retira la solicitud de la lista del usuario (queda el registro con su estado). */
+/**
+ * Cancela una solicitud pendiente. Solo la puede retirar quien la
+ * envió; la regla de Firestore vuelve a comprobarlo y limita los
+ * campos escritos a `status`, `respondedAt` y `respondedBy`.
+ */
 export async function withdrawRequest(
-  requestId: string,
+  request: ChatRequest,
   currentUserId: string,
 ): Promise<void> {
-  await updateDoc(doc(db, CHAT_REQUESTS, requestId), {
+  if (request.status !== 'pending') {
+    throw new Error('Esa solicitud ya no está pendiente.');
+  }
+
+  if (request.fromId !== currentUserId) {
+    throw new Error('Solo quien envió la solicitud puede cancelarla.');
+  }
+
+  await updateDoc(doc(db, CHAT_REQUESTS, request.id), {
     status: 'cancelled',
     respondedAt: serverTimestamp(),
-    // updatedBy solo sirve como rastro; la regla ya comprueba
-    // que quien responde es el emisor o el destinatario.
     respondedBy: currentUserId,
   });
 }

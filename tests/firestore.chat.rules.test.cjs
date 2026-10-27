@@ -60,6 +60,10 @@ const ALICE = 'alice';
 const BOB = 'bob';
 const CARA = 'carla';
 const BANEADO = 'baneado';
+const RESTRINGIDO = 'restringido';
+const PRIVADO = 'privado';
+const SIN_SOLICITUDES = 'sin-solicitudes';
+const FANTASMA = 'fantasma';
 
 let testEnv;
 
@@ -216,6 +220,101 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
     );
   });
 
+  it('no se puede mandar una solicitud a un destinatario que no existe', async () => {
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaSolicitud(ALICE, FANTASMA),
+      ),
+    );
+  });
+
+  it('no se puede mandar una solicitud a una cuenta baneada', async () => {
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaSolicitud(ALICE, BANEADO),
+      ),
+    );
+  });
+
+  it('no se puede mandar una solicitud a una cuenta con baneo duradero', async () => {
+    await crearUsuario(RESTRINGIDO);
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'accountRestrictions', RESTRINGIDO), {
+        uid: RESTRINGIDO,
+        tipo: 'ban',
+        activo: true,
+        motivo: 'Prueba de baneo',
+        fechaFin: null,
+        creadoEn: '2026-01-01T00:00:00.000Z',
+        actualizadoEn: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaSolicitud(ALICE, RESTRINGIDO),
+      ),
+    );
+  });
+
+  it('no se puede mandar una solicitud a un perfil privado', async () => {
+    await crearUsuario(PRIVADO, { profileVisibility: 'private' });
+
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaSolicitud(ALICE, PRIVADO),
+      ),
+    );
+  });
+
+  it('no se puede mandar una solicitud a quien tiene los mensajes cerrados', async () => {
+    await crearUsuario(SIN_SOLICITUDES, { allowChatRequests: false });
+
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaSolicitud(ALICE, SIN_SOLICITUDES),
+      ),
+    );
+  });
+
+  it('rechaza un tipo de solicitud que no existe', async () => {
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaSolicitud(ALICE, BOB, { type: 'broadcast' }),
+      ),
+    );
+  });
+
+  it('una entrada a un grupo respeta la privacidad del dueno', async () => {
+    await crearUsuario(PRIVADO, { profileVisibility: 'private' });
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g-privado'), nuevoChat(PRIVADO, [PRIVADO]));
+      await setDoc(doc(f, 'chats', 'g-alice'), nuevoChat(ALICE, [ALICE]));
+    });
+
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaSolicitud(ALICE, PRIVADO, { type: 'group', groupId: 'g-privado' }),
+      ),
+    );
+
+    // La invitación también llega al mismo destinatario; tampoco debe
+    // poder saltarse su ajuste de privacidad.
+    await assertFails(
+      setDoc(
+        doc(collection(db(ALICE), 'chatRequests')),
+        nuevaInvitacion(ALICE, PRIVADO, 'g-alice'),
+      ),
+    );
+  });
+
   it('un baneado no puede enviar solicitudes', async () => {
     await assertFails(
       setDoc(
@@ -290,6 +389,115 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
       updateDoc(doc(db(BOB), 'chatRequests', 's1'), {
         status: 'accepted',
         toId: CARA,
+      }),
+    );
+  });
+
+  it('el emisor NO puede aceptar su propia solicitud', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', 's1'), nuevaSolicitud(ALICE, BOB));
+    });
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', 's1'), {
+        status: 'accepted',
+        respondedAt: serverTimestamp(),
+        respondedBy: ALICE,
+      }),
+    );
+  });
+
+  it('el destinatario NO puede cancelar la solicitud del emisor', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', 's1'), nuevaSolicitud(ALICE, BOB));
+    });
+
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chatRequests', 's1'), {
+        status: 'cancelled',
+        respondedAt: serverTimestamp(),
+        respondedBy: BOB,
+      }),
+    );
+  });
+
+  it('no se puede falsificar quien respondio ni la hora de respuesta', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', 's1'), nuevaSolicitud(ALICE, BOB));
+    });
+
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chatRequests', 's1'), {
+        status: 'rejected',
+        respondedAt: serverTimestamp(),
+        respondedBy: ALICE,
+      }),
+    );
+
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chatRequests', 's1'), {
+        status: 'rejected',
+        respondedAt: new Date(0),
+        respondedBy: BOB,
+      }),
+    );
+  });
+
+  it('mantiene inmutables los identificadores y la fecha de creacion', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', 's1'), nuevaSolicitud(ALICE, BOB));
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE]));
+      await setDoc(doc(f, 'chatRequests', 's2'), nuevaSolicitud(CARA, ALICE, {
+        type: 'group',
+        groupId: 'g1',
+      }));
+    });
+
+    const cancelar = () => ({
+      status: 'cancelled',
+      respondedAt: serverTimestamp(),
+      respondedBy: ALICE,
+    });
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', 's1'), {
+        ...cancelar(),
+        toId: CARA,
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', 's1'), {
+        ...cancelar(),
+        fromId: CARA,
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', 's1'), {
+        ...cancelar(),
+        type: 'group',
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', 's1'), {
+        ...cancelar(),
+        createdAt: '2026-02-01T00:00:00.000Z',
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', 's1'), {
+        ...cancelar(),
+        resultingChatId: 'chat-inventado',
+      }),
+    );
+
+    // En una solicitud de grupo, el identificador del grupo tampoco
+    // se puede cambiar al responder.
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', 's2'), {
+        status: 'rejected',
+        respondedAt: serverTimestamp(),
+        respondedBy: ALICE,
+        groupId: 'g2',
       }),
     );
   });

@@ -841,11 +841,29 @@ service cloud.firestore {
     // el emisor.
     function acceptsChatRequests(uid) {
       let ruta = /databases/$(database)/documents/users/$(uid);
+      let rutaRestriccion = /databases/$(database)/documents/accountRestrictions/$(uid);
 
-      let d = exists(ruta) ? get(ruta).data : {};
+      let existePerfil = exists(ruta);
+      let perfil = existePerfil ? get(ruta).data : {};
 
-      return !(('profileVisibility' in d) && d.profileVisibility == 'private')
-          && !(('allowChatRequests' in d) && d.allowChatRequests == false);
+      let existeRestriccion = exists(rutaRestriccion);
+      let restriccion = existeRestriccion ? get(rutaRestriccion).data : {};
+
+      // El destinatario tiene que existir y estar activo. Sin esto,
+      // se podían dejar solicitudes contra uids inventados o contra
+      // cuentas baneadas que nunca podrían aceptarlas. La privacidad
+      // se comprueba después, con los valores por defecto del cliente:
+      // perfil público y solicitudes abiertas cuando faltan los campos.
+      return existePerfil
+          && !(('isBanned' in perfil) && perfil.isBanned == true)
+          && !(('activo' in restriccion)
+               && restriccion.activo == true
+               && 'tipo' in restriccion
+               && restriccion.tipo == 'ban')
+          && !(('profileVisibility' in perfil)
+               && perfil.profileVisibility == 'private')
+          && !(('allowChatRequests' in perfil)
+               && perfil.allowChatRequests == false);
     }
 
     // ======================================================
@@ -1593,9 +1611,19 @@ service cloud.firestore {
 
       // El cliente solo puede CANCELAR (quien la envió) o
       // RECHAZAR (quien la recibió). Aceptar es cosa de la Cloud
-      // Function: si el emisor pudiera escribir `accepted`, se
-      // estaría aceptando su propia solicitud y el estado que
-      // lee la interfaz dejaría de ser fiable.
+      // Function: si se permitiera escribir `accepted` desde el
+      // cliente, el estado podría decir "aceptada" sin que exista
+      // el chat, o se podría aceptar una solicitud propia.
+      //
+      // `affectedKeys().hasOnly()` es la barrera que mantiene
+      // inmutables fromId, toId, type, groupId, createdAt y
+      // resultingChatId: el cliente solo puede tocar los tres
+      // campos que usa la interfaz al cancelar o rechazar.
+      //
+      // `respondedBy` y `respondedAt` no son libres: el primero
+      // tiene que ser quien hace la operación y el segundo, la
+      // hora del servidor. Así nadie puede falsificar la autoría
+      // ni la fecha de la respuesta.
       //
       // También exige `isActive()`: una cuenta baneada no puede
       // seguir cambiando el estado de solicitudes ni borrarlas.
@@ -1605,6 +1633,8 @@ service cloud.firestore {
                     && request.resource.data.diff(resource.data)
                          .affectedKeys().hasOnly(
                            ['status', 'respondedAt', 'respondedBy'])
+                    && request.resource.data.respondedBy == request.auth.uid
+                    && request.resource.data.respondedAt == request.time
                     && (
                       (resource.data.fromId == request.auth.uid
                         && request.resource.data.status == 'cancelled')
