@@ -54,7 +54,16 @@ service firebase.storage {
         && firestore.get(/databases/(default)/documents/accountRestrictions/$(request.auth.uid)).data.tipo == 'ban';
     }
 
+    function tieneRestriccion() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/accountRestrictions/$(request.auth.uid));
+    }
+
     // Si el usuario esta baneado.
+    //
+    // Si existe el registro duradero, manda el, aunque este levantado:
+    // la copia publica solo cubre cuentas que aun no se han migrado.
+    // Asi un desbaneo no queda pisado por una bandera vieja.
     //
     // El `.data.isBanned` lleva la comprobacion "el campo existe"
     // detras, y no es por estetica: si el documento del usuario no
@@ -71,10 +80,11 @@ service firebase.storage {
     // Con el `in` delante, un usuario sin el campo no esta baneado, que
     // es lo correcto.
     function isBanned() {
-      return restriccionActiva()
-        || (hasProfile()
-            && 'isBanned' in firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data
-            && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isBanned == true);
+      return tieneRestriccion()
+        ? restriccionActiva()
+        : (hasProfile()
+           && 'isBanned' in firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data
+           && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isBanned == true);
     }
 
     // ────────────────────────────────────────────────────────

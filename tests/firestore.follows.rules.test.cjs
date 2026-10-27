@@ -425,14 +425,12 @@ describe('seguimientos', () => {
       await assertFails(
         setDoc(doc(db(BOB), 'users', 'nuevo-con-seguidores'), {
           uid: 'nuevo-con-seguidores',
-          email: 'nuevo@test.com',
           username: 'nuevo',
           displayName: 'Nuevo',
           chatId: 'GK-nuevo',
           avatarUrl: '',
           role: 'user',
           createdAt: '2026-10-05T00:00:00.000Z',
-          isBanned: false,
           followersCount: 999999,
         }),
       );

@@ -13,10 +13,9 @@ import {
 
 import { useAuth } from '../../context/AuthContext';
 import {
-  TOPE_VOTOS_ESCUCHA,
   calcularPoll,
-  leerResumen,
-  listenPollVotes,
+  listenMyPollVote,
+  listenPollSummary,
   votos,
   type PollVoteRow,
 } from '../../services/polls';
@@ -30,11 +29,11 @@ import type { Poll, PollOption, PollSummary } from '../../types';
 // resto de la web (zinc oscuro, violeta, bordes redondeados) para
 // que parezca parte de la página y no una pieza pegada encima.
 //
-// Los resultados NO se escriben aquí: se CUENTAN a partir de los
-// documentos de voto, que se escuchan en tiempo real y son la
-// verdad. El resumen que guarda el servidor (`pollStats`) solo se
-// usa para estadísticas en el panel, nunca para pintar aquí: si
-// los dos no coincidieran un día, mandarían los votos.
+// Los resultados NO se escriben ni se cuentan aquí: vienen del
+// documento agregado `pollStats/{threadId}`, que mantiene la Cloud
+// Function. El cliente solo puede leer SU PROPIO voto; la
+// subcolección `pollVotes` ya no es legible para nadie más, así
+// que no se puede saber quién votó qué.
 //
 // Reglas de la interacción:
 //
@@ -46,7 +45,7 @@ import type { Poll, PollOption, PollSummary } from '../../types';
 //     quedan apagadas y se explica por qué, en vez de desaparecer
 //     sin más.
 //
-// Los votos se escuchan al montar la tarjeta, y no antes: abrir
+// Las escuchas se abren al montar la tarjeta, y no antes: abrir
 // la portada con veinte hilos NO abre veinte escuchas, solo una
 // por encuesta que se está viendo.
 
@@ -57,10 +56,6 @@ interface PollCardProps {
   /** Quién puede cerrar la encuesta (autor o equipo). Solo para pintar el botón. */
   puedeCerrar?: boolean;
   onCerrar?: (threadId: string, cerrado: boolean) => Promise<void>;
-  /** Votos ya leídos (los usa el panel de administración). */
-  votosIniciales?: PollVoteRow[];
-  /** `false` si ya hay una lectura hecha y no hace falta escuchar. */
-  escuchaVotos?: boolean;
 }
 
 export const PollCard: FC<PollCardProps> = ({
@@ -69,12 +64,11 @@ export const PollCard: FC<PollCardProps> = ({
   onVotar,
   puedeCerrar = false,
   onCerrar,
-  votosIniciales,
-  escuchaVotos = true,
 }) => {
   const { currentUser, requireAuth } = useAuth();
-  const [votes, setVotes] = useState<PollVoteRow[]>(votosIniciales ?? []);
-  const [cargando, setCargando] = useState(escuchaVotos && !votosIniciales);
+  const [miVoto, setMiVoto] = useState<PollVoteRow | null>(null);
+  const [resumen, setResumen] = useState<PollSummary | null>(null);
+  const [cargando, setCargando] = useState(true);
   const [votando, setVotando] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -89,48 +83,50 @@ export const PollCard: FC<PollCardProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!escuchaVotos) return;
-    return listenPollVotes(threadId, (rows) => {
-      setVotes(rows);
-      setCargando(false);
-    });
-  }, [threadId, escuchaVotos]);
+    setCargando(true);
+    const parar: (() => void)[] = [];
 
-  // Resumen del servidor, solo si los votos NO caben en la
-  // escucha. Con normalidad no se lee nunca: lo que se cuenta son
-  // los documentos de voto, que son la verdad.
-  const [resumen, setResumen] = useState<PollSummary | null>(null);
-  useEffect(() => {
-    if (!escuchaVotos) return;
+    parar.push(
+      listenPollSummary(threadId, (nuevo, error) => {
+        setResumen(nuevo);
+        if (error) {
+          setError('No se pudieron cargar los resultados.');
+        }
+        setCargando(false);
+      }),
+    );
 
-    if (votes.length < TOPE_VOTOS_ESCUCHA) {
-      setResumen(null);
-      return;
+    if (currentUser?.uid) {
+      parar.push(
+        listenMyPollVote(threadId, currentUser.uid, (voto, error) => {
+          setMiVoto(voto);
+          if (error) {
+            setError('No se pudo comprobar tu voto.');
+          }
+          setCargando(false);
+        }),
+      );
+    } else {
+      setMiVoto(null);
     }
 
-    let vivo = true;
-    void leerResumen(threadId)
-      .then((r) => {
-        if (vivo) setResumen(r);
-      })
-      .catch(() => {
-        // Sin resumen se sigue enseñando lo que haya traído la
-        // escucha: mejor un número acotado que una tarjeta vacía.
-        if (vivo) setResumen(null);
-      });
-
-    return () => {
-      vivo = false;
-    };
-  }, [threadId, escuchaVotos, votes.length]);
+    return () => parar.forEach((f) => f());
+  }, [threadId, currentUser?.uid]);
 
   // Con `Math.floor(.../1000)` solo se recalcula una vez por
   // segundo, que es justo cuando cambia algo: la cuenta atrás o el
   // cierre por caducidad.
   const resultado = useMemo(
-    () => calcularPoll(poll, votes, currentUser?.uid, ahora, resumen),
+    () =>
+      calcularPoll(
+        poll,
+        miVoto ? [miVoto] : [],
+        currentUser?.uid,
+        ahora,
+        resumen,
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [poll, votes, currentUser?.uid, Math.floor(ahora / 1000), resumen],
+    [poll, miVoto, currentUser?.uid, Math.floor(ahora / 1000), resumen],
   );
 
   const votar = async (opcion: PollOption) => {
@@ -302,7 +298,7 @@ export const PollCard: FC<PollCardProps> = ({
       {cargando && (
         <p className="flex items-center gap-1.5 px-4 pt-2 text-[10px] text-zinc-500">
           <Loader2 size={11} className="animate-spin" />
-          Contando los votos...
+          Cargando resultados...
         </p>
       )}
 

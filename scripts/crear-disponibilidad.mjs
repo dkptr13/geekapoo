@@ -44,7 +44,7 @@
 // NO toca ni borra nada de las fichas: solo añade filas en
 // `streamingAvailability` y, si hace falta, en `streamingPlatforms`.
 
-import { coleccion, cliente, s, momento } from './firestore-rest.mjs';
+import { coleccion, cliente, s, i, momento } from './firestore-rest.mjs';
 
 // ── POLÍTICA POR PLATAFORMA ─────────────────────────────
 //
@@ -77,7 +77,7 @@ const UN_PAIS = {
 
 // Pseudo-códigos que se usan en las pistas `regions` de las fichas:
 // se expanden a los códigos ISO que entiende el selector regional.
-const  = {
+const EXPANSIONES = {
   WW: REGIONES,
   LATAM: ['MX', 'AR', 'CO', 'CL'],
   UK: ['GB'],
@@ -85,7 +85,7 @@ const  = {
 
 // Nombre de plataforma → id, igual que `plataformaIdDeNombre` de
 // `src/data/streaming.ts` (no se puede importar desde aquí: es TS).
-const  = {
+const ALIAS_PLATAFORMA = {
   netflix: 'netflix',
   crunchyroll: 'crunchyroll',
   hulu: 'hulu',
@@ -138,18 +138,41 @@ function plataformaIdDeNombre(name) {
 }
 
 /** Colores por defecto para las plataformas que aún no están en el catálogo. */
-const  = {
+const COLORES = {
   hidive: '#0e86b4',
   'u-next': '#2f9e44',
-  animebox: '#e11d48',
+  animebox: '#e91e63',
 };
+
+/**
+ * Ids que ya viven en PLATAFORMAS_INICIALES (src/data/streaming.ts).
+ *
+ * No se crean en Firestore: el merge de `StreamingCatalogContext` da
+ * prioridad a lo que haya allí, y un documento con color y orden
+ * inventados pisaría el de la lista inicial.
+ */
+const INICIALES = new Set([
+  'netflix',
+  'crunchyroll',
+  'disney-plus',
+  'amazon-prime-video',
+  'max',
+  'hulu',
+  'apple-tv-plus',
+  'youtube',
+  'filmin',
+  'selecta-vision',
+  'movistar-plus',
+  'atresplayer',
+  'rtve-play',
+]);
 
 /** Fichas de las plataformas que hay que crear si no existen. */
 function plataformaDoc(id, name) {
   return {
     name: s(name),
     badgeColor: s(COLORES[id] ?? '#71717a'),
-    order: s('200'),
+    order: i(200),
     createdAt: momento(new Date().toISOString()),
   };
 }
@@ -157,7 +180,7 @@ function plataformaDoc(id, name) {
 /** Las regiones de una plataforma según la política + la pista de la obra. */
 function regionesDe(platformId, pistas) {
   if (pistas && pistas.length) {
-    const set = new Set<string>();
+    const set = new Set();
     for (const pista of pistas) {
       const clave = pista.trim().toUpperCase();
       const expandida = EXPANSIONES[clave] ?? [clave];
@@ -180,6 +203,10 @@ function regionesDe(platformId, pistas) {
 
 const { cabeceras, BASE } = await cliente();
 
+// El `name` de un documento en un commit va sin el prefijo del API:
+// "projects/.../documents/..." y no la URL entera.
+const DOCS = BASE.replace(/^https:\/\/firestore\.googleapis\.com\/v1\//, '');
+
 const animes = await coleccion('animes');
 console.log(`Obras leídas: ${animes.length}`);
 
@@ -188,10 +215,9 @@ const idsCatalogo = new Set(plataformasCatalogo.map((p) => p.id));
 
 // ── CONSTRUIR FILAS ─────────────────────────────────────
 
-const  = [];
-const  = {};
+const writes = [];
+const porPlataforma = {};
 const faltan = [];
-const idsNecesarios = new Set<string>();
 
 for (const doc of animes) {
   const animeId = doc.id;
@@ -214,15 +240,14 @@ for (const doc of animes) {
     const disponibles = regionesDe(platformId, pistas);
     const faltanEnDisponibles = REGIONES.filter((r) => !disponibles.includes(r));
 
-    if (!idsCatalogo.has(platformId)) {
-      idsNecesarios.add(platformId);
+    if (!idsCatalogo.has(platformId) && !INICIALES.has(platformId)) {
       faltan.push({ id: platformId, name: nombre });
     }
 
     for (const region of disponibles) {
       writes.push({
         update: {
-          name: `${BASE}/streamingAvailability/${animeId}__${platformId}__${region}`,
+          name: `${DOCS}/streamingAvailability/${animeId}__${platformId}__${region}`,
           fields: {
             animeId: s(animeId),
             platformId: s(platformId),
@@ -242,7 +267,7 @@ for (const doc of animes) {
     for (const region of faltanEnDisponibles) {
       writes.push({
         update: {
-          name: `${BASE}/streamingAvailability/${animeId}__${platformId}__${region}`,
+          name: `${DOCS}/streamingAvailability/${animeId}__${platformId}__${region}`,
           fields: {
             animeId: s(animeId),
             platformId: s(platformId),
@@ -262,9 +287,12 @@ for (const doc of animes) {
 
 // Plataformas que faltan en el catálogo: se crean con el nombre tal
 // cual viene de la ficha (que es como se escribieron siempre).
+const creadas = new Set();
 for (const { id, name } of faltan) {
+  if (creadas.has(id)) continue;
+  creadas.add(id);
   writes.push({
-    update: { name: `${BASE}/streamingPlatforms/${id}`, fields: plataformaDoc(id, name) },
+    update: { name: `${DOCS}/streamingPlatforms/${id}`, fields: plataformaDoc(id, name) },
   });
 }
 

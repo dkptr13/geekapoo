@@ -169,18 +169,32 @@ describe('disponibilidad regional: lectura pública', () => {
 });
 
 describe('región preferida en el perfil', () => {
-  it('permite guardar la región en el documento propio', async () => {
+  it('permite guardar la región en el documento privado propio', async () => {
     await assertSucceeds(
-      updateDoc(doc(db(USER), 'users', USER), { regionPreferida: 'MX' }),
+      setDoc(doc(db(USER), 'userPrivate', USER), {
+        regionPreferida: 'MX',
+        updatedAt: new Date(),
+      }),
     );
 
-    const perfil = await assertSucceeds(getDoc(doc(db(USER), 'users', USER)));
-    assert.equal(perfil.data().regionPreferida, 'MX');
+    const privado = await assertSucceeds(
+      getDoc(doc(db(USER), 'userPrivate', USER)),
+    );
+    assert.equal(privado.data().regionPreferida, 'MX');
   });
 
-  it('no permite cambiar la región del perfil de otra cuenta', async () => {
+  it('no permite cambiar la región privada de otra cuenta', async () => {
     await assertFails(
-      updateDoc(doc(db(USER), 'users', MOD), { regionPreferida: 'MX' }),
+      setDoc(doc(db(USER), 'userPrivate', MOD), {
+        regionPreferida: 'MX',
+        updatedAt: new Date(),
+      }),
+    );
+  });
+
+  it('la región ya no se puede escribir en el perfil público', async () => {
+    await assertFails(
+      updateDoc(doc(db(USER), 'users', USER), { regionPreferida: 'MX' }),
     );
   });
 });

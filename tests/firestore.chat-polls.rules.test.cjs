@@ -31,6 +31,7 @@ const {
   doc,
   setDoc,
   updateDoc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -246,7 +247,16 @@ describe('Votar en la encuesta de un mensaje', () => {
     );
   });
 
-  it('ni leer los votos', async () => {
+  it('solo se puede leer el voto propio, no el de los demás ni la lista', async () => {
+    await assertSucceeds(
+      getDoc(doc(db(BOB), 'chats', 'chat-1', 'messages', 'm1', 'pollVotes', BOB)),
+    );
+    await assertFails(
+      getDoc(doc(db(BOB), 'chats', 'chat-1', 'messages', 'm1', 'pollVotes', ALICE)),
+    );
+    await assertFails(
+      getDocs(query(collection(db(BOB), 'chats', 'chat-1', 'messages', 'm1', 'pollVotes'))),
+    );
     await assertFails(
       getDocs(query(collection(db(CARA), 'chats', 'chat-1', 'messages', 'm1', 'pollVotes'))),
     );

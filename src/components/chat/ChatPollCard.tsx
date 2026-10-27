@@ -18,24 +18,28 @@ import {
   type PollVoteRow,
 } from '../../services/polls';
 import {
-  listenChatPollVotes,
+  listenChatPollSummary,
+  listenMyChatPollVote,
   setChatPollClosed,
   voteChatPoll,
 } from '../../services/chatPolls';
-import type { Poll } from '../../types';
+import type { Poll, PollSummary } from '../../types';
 
 // ======================================================
 // ENCUESTA DENTRO DE UN MENSAJE DE CHAT
 // ======================================================
 //
-// La versión compacta de `PollCard` (hilos) para las burbujas:
-// misma lógica de conteo (`calcularPoll` cuenta los documentos
-// de voto, que son la verdad), pero en pequeño para que quepa
-// en una conversación sin comerse la pantalla.
+// La versión compacta de `PollCard` (hilos) para las burbujas.
 //
-// Los votos se escuchan al montar la tarjeta. En un historial
+// Los totales vienen de `pollStats/summary`, que mantiene la Cloud
+// Function; el cliente solo lee su propio voto. Antes esta tarjeta
+// contaba toda la subcolección `pollVotes` y cualquier miembro del
+// chat podía ver quién había votado qué.
+//
+// Las escuchas se abren al montar la tarjeta. En un historial
 // con varias encuestas hay una escucha por tarjeta visible,
-// igual que en los hilos.
+// igual que en los hilos. Es una escucha del resumen y, si hay
+// sesión, otra del voto propio.
 //
 // Cerrar la encuesta lo puede hacer el autor del mensaje y, en
 // chats de club, los moderadores (`puedeCerrar` lo decide el
@@ -56,7 +60,8 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
   puedeCerrar = false,
 }) => {
   const { currentUser, requireAuth } = useAuth();
-  const [votes, setVotes] = useState<PollVoteRow[]>([]);
+  const [miVoto, setMiVoto] = useState<PollVoteRow | null>(null);
+  const [resumen, setResumen] = useState<PollSummary | null>(null);
   const [cargando, setCargando] = useState(true);
   const [votando, setVotando] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -72,16 +77,42 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
 
   useEffect(() => {
     setCargando(true);
-    return listenChatPollVotes(chatId, messageId, (rows) => {
-      setVotes(rows);
-      setCargando(false);
-    });
-  }, [chatId, messageId]);
+    const parar: (() => void)[] = [];
+
+    parar.push(
+      listenChatPollSummary(chatId, messageId, (nuevo, e) => {
+        setResumen(nuevo);
+        if (e) setError('No se pudieron cargar los resultados.');
+        setCargando(false);
+      }),
+    );
+
+    if (currentUser?.uid) {
+      parar.push(
+        listenMyChatPollVote(chatId, messageId, currentUser.uid, (voto, e) => {
+          setMiVoto(voto);
+          if (e) setError('No se pudo comprobar tu voto.');
+          setCargando(false);
+        }),
+      );
+    } else {
+      setMiVoto(null);
+    }
+
+    return () => parar.forEach((f) => f());
+  }, [chatId, messageId, currentUser?.uid]);
 
   const resultado = useMemo(
-    () => calcularPoll(poll, votes, currentUser?.uid, ahora),
+    () =>
+      calcularPoll(
+        poll,
+        miVoto ? [miVoto] : [],
+        currentUser?.uid,
+        ahora,
+        resumen,
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [poll, votes, currentUser?.uid, Math.floor(ahora / 1000)],
+    [poll, miVoto, currentUser?.uid, Math.floor(ahora / 1000), resumen],
   );
 
   const votar = async (optionId: string) => {
@@ -247,7 +278,7 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
       {cargando && (
         <p className="flex items-center gap-1.5 px-2.5 pt-1.5 text-[10px] text-zinc-500">
           <Loader2 size={10} className="animate-spin" />
-          Contando los votos...
+          Cargando resultados...
         </p>
       )}
 

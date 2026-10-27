@@ -26,40 +26,32 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
 // Firestore y se convierten a texto ISO al leerlas en el
 // cliente, porque new Date(unTimestamp) devuelve Invalid Date.
 
-// 1. USERS: users/{uid}
+// 1. USERS: users/{uid}  (documento PÚBLICO)
 {
   "uid": "firebase_uid",
-  "email": "usuario@email.com",
   "username": "Otaku2005",
   "displayName": "Otaku2005",
   "chatId": "GK-8842-OTAK",
   "avatarUrl": "https://...",
   "bio": "Amante del anime y debates sin filtro",
   "role": "user" | "moderator" | "admin",
-  "isBanned": false,
   "createdAt": Timestamp,
   "lastSeen": "En línea",   // texto ya formateado, NO es una fecha
 
-  // ── Privacidad (apartado "Configuración de la cuenta") ──
-  // Van SUELTOS y no dentro de un mapa "privacy" porque las
-  // reglas de seguridad los leen para decidir si aceptan una
-  // solicitud de chat. Un campo que no está vale null, y en las
-  // reglas null != 'private' y null != false dan true: es decir,
-  // las cuentas anteriores a este apartado se leen como abiertas
-  // sin migrar nada.
-  "profileVisibility": "public" | "private",
-  "allowChatRequests": true,
-  "showActivity": true,
-
-  // Región de «Dónde verla». Opcional: ausente = España.
-  // Se guarda en el perfil para conservarla en otros dispositivos.
-  "regionPreferida": "ES"
+  // Señales públicas de privacidad. Los ajustes completos están
+  // en userPrivate: aquí solo lo mínimo para pintar el perfil.
+  "privateProfile": false,
+  "activityHidden": false
 }
+// Lo privado vive APARTE, porque las reglas son por documento:
+//   userPrivate/{uid} → { email, privacy, chatApariencia,
+//                         regionPreferida, updatedAt }
+// Solo lo lee su dueño; un admin puede leerlo para el panel.
+//
 // Y una subcolección con la lista de bloqueados:
-//   users/{uid}/blocked/{blockedUid} → { uid, blockedAt }
-// Va como subcolección de QUIEN bloquea (y no en el documento
-// del bloqueado) porque cualquiera con sesión lee todos los
-// usuarios: al revés, se vería a quién tiene bloqueado cada uno.
+//   users/{uid}/blocked/{blockedUid} → { blockedAt }
+// Solo la lee su dueño. Antes cualquier persona con sesión podía
+// recorrerla y deducir a quién tiene bloqueado cada uno.
 
 // 2. ANIMES: animes/{animeId}
 {
@@ -244,8 +236,8 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
 
   // ── Encuesta OPCIONAL ──
   // Solo existe si el autor la añadió al publicar. Sin
-  // contadores a propósito: los votos viven en la subcolección
-  // pollVotes y se CUENTAN, no se suman. Ver más abajo.
+  // contadores a propósito: el resumen lo calcula el servidor a
+  // partir de los votos. Ver más abajo.
   "poll": {
     "question": "¿Quién gana este combate?",
     // Mapa id → texto (no una lista) porque es lo que las
@@ -265,15 +257,16 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
 
 // VOTOS DE LA ENCUESTA: threads/{threadId}/pollVotes/{uid}
 // El id ES el uid. Ahí está la garantía de "un solo voto": no
-// hay forma de tener dos documentos con el mismo id, y las
-// reglas no permiten borrar (desvotar no existe), así que el
-// segundo intento choca contra el primero.
+// hay forma de tener dos documentos con el mismo id.
+// El voto es PRIVADO: solo lo lee quien votó y nadie puede
+// listar la subcolección, ni siquiera el equipo.
 { "userId": "uid", "optionId": "o1", "createdAt": Timestamp }
 
 // RESUMEN DE LA ENCUESTA: pollStats/{threadId}
-// CACHÉ que calcula el servidor contando los votos de arriba.
-// Sirve para ordenar y para estadísticas del panel. Ni el
-// cliente ni el equipo pueden escribirla (allow write: false).
+// Fuente de resultados de la tarjeta. La calcula el servidor
+// contando los votos de arriba; el cliente solo la lee y no
+// puede escribirla (allow write: false).
+// En chats: chats/{chatId}/messages/{messageId}/pollStats/summary
 { "threadId": "...", "options": { "o1": 42 }, "totalVotes": 57,
   "actualizadoAt": Timestamp }
 
@@ -483,51 +476,79 @@ service cloud.firestore {
     function isAdmin() { return myRole() == 'admin'; }
     function isModerator() { return myRole() == 'admin' || myRole() == 'moderator'; }
 
-    // El baneo vive en DOS sitios:
-    //   - users/{uid}.isBanned: la copia visible que pinta el panel.
-    //   - accountRestrictions/{uid}: el registro DURADERO, que solo
-    //     escriben las Cloud Functions con el Admin SDK.
-    // Manda el registro: asi, borrar el perfil y volver a entrar no
-    // levanta la sancion (el perfil se recrea, el registro sigue).
+    // El baneo vive en accountRestrictions/{uid}, que solo escriben
+    // las Cloud Functions con el Admin SDK. El campo antiguo
+    // users/{uid}.isBanned se acepta como respaldo de lectura
+    // mientras dura la migración, pero el cliente ya no lo escribe.
     function isBanned() {
-      return (isSignedIn()
-              && exists(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid))
-              && 'activo' in get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid)).data
-              && get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid)).data.activo == true
-              && get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid)).data.tipo == 'ban')
-             || (hasProfile()
-                 && 'isBanned' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data
-                 && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBanned == true);
+      // Si existe el registro duradero, manda él, esté activo o
+      // levantado. La bandera pública solo cubre cuentas sin migrar.
+      return isSignedIn()
+          && exists(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid))
+        ? (get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid)).data.activo == true
+           && get(/databases/$(database)/documents/accountRestrictions/$(request.auth.uid)).data.tipo == 'ban')
+        : (hasProfile()
+           && 'isBanned' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+           && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBanned == true);
     }
-    // Ademas de no estar baneado, tiene que existir el perfil: una
-    // cuenta de Auth sin documento en users no puede publicar.
     function isActive() { return isSignedIn() && hasProfile() && !isBanned(); }
 
-    // El registro de sanciones solo lo escribe el servidor. Ni el
-    // usuario, ni un moderador, ni un admin desde el navegador.
+    // El registro de sanciones solo lo escribe el servidor.
     match /accountRestrictions/{uid} {
       allow read: if isSignedIn()
                   && (request.auth.uid == uid || isAdmin() || isModerator());
       allow write: if false;
     }
 
+    // Perfil público: sin correo, sin preferencias privadas y sin
+    // estado de sanción. Esas claves se rechazan aunque sea el dueño.
     match /users/{uid} {
       allow read: if isSignedIn();
-      allow create: if isAdmin()
-                    || (isSelf(uid)
-                        && request.resource.data.role == 'user'
-                        && (!('isBanned' in request.resource.data)
-                            || request.resource.data.isBanned == false));
-      // El usuario NO puede tocar role, isBanned ni chatId
-      allow update: if (isAdmin()
-                        && !request.resource.data.diff(resource.data)
-                             .affectedKeys().hasAny(['isBanned']))
-                    || (isSelf(uid)
-                        && !request.resource.data.diff(resource.data)
-                             .affectedKeys().hasAny(['role','isBanned','chatId','uid']));
-      // Borrado: el admin, o el propio usuario (es lo que hace el
-      // apartado "Eliminar cuenta" del perfil).
+      allow create: if !request.resource.data.keys().hasAny(
+                          ['email','isBanned','profileVisibility',
+                           'allowChatRequests','showActivity',
+                           'chatApariencia','regionPreferida'])
+                    && (isAdmin()
+                        || (isSelf(uid) && request.resource.data.role == 'user'));
+      allow update: if !request.resource.data.diff(resource.data)
+                          .affectedKeys().hasAny(
+                            ['email','isBanned','profileVisibility',
+                             'allowChatRequests','showActivity',
+                             'chatApariencia','regionPreferida'])
+                    && (isAdmin()
+                        || (isSelf(uid)
+                            && !request.resource.data.diff(resource.data)
+                                 .affectedKeys().hasAny(['role','chatId','uid'])));
       allow delete: if isAdmin() || isSelf(uid);
+
+      // Lista de bloqueados: privada de su dueño, también para el
+      // equipo. No es información pública.
+      match /blocked/{blockedUid} {
+        allow read, create, delete: if isSelf(uid);
+        allow update: if false;
+      }
+    }
+
+    // Datos privados: dueño lee/escribe, admin lee y lista,
+    // moderador y demás usuarios no.
+    match /userPrivate/{uid} {
+      allow get: if isSelf(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow create, update: if isSelf(uid);
+      allow delete: if isSelf(uid) || isAdmin();
+    }
+
+    // Votos anónimos: solo se lee el propio; nada de listar.
+    // El resumen lo escribe únicamente la Cloud Function.
+    match /threads/{threadId}/pollVotes/{uid} {
+      allow get: if isSelf(uid);
+      allow list: if false;
+      allow create, update: if isSelf(uid);
+      allow delete: if isModerator();
+    }
+    match /pollStats/{threadId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // Catálogo: lectura pública, escritura solo admin
@@ -619,11 +640,12 @@ service cloud.firestore {
     }
 
     // ── ENCUESTAS ─────────────────────────────────────
-    // Los votos son un documento por persona y NO se pueden
-    // borrar: por eso no hay forma de votar dos veces ni de
-    // "desvotar" para reutilizar el voto.
+    // Los votos son un documento por persona y el voto es
+    // privado: solo se lee el propio y no se puede listar.
+    // Los resultados salen de pollStats.
     match /threads/{threadId}/pollVotes/{uid} {
-      allow read: if true;
+      allow get: if isSelf(uid);
+      allow list: if false;
       allow create: if isActive()
                     && request.auth.uid == uid
                     && pollAbierto(threadId)          // abierta y sin caducar
@@ -670,7 +692,7 @@ service cloud.firestore {
                         || reaccionDeChatAutorizada(resource.data));
       }
 
-    // Caché de los votos: pública de lectura, imposible de
+    // Resumen de resultados: lectura pública, imposible de
     // escribir desde el cliente. Solo la Cloud Function.
     match /pollStats/{threadId} { allow read: if true; allow write: if false; }
 

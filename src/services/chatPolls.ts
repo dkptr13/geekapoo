@@ -1,18 +1,15 @@
 import {
-  collection,
   doc,
   getDoc,
-  limit,
   onSnapshot,
-  query,
   serverTimestamp,
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
-import { TOPE_VOTOS_ESCUCHA, type PollVoteRow } from './polls';
-import type { Poll } from '../types';
+import { POLL_STATS, type PollVoteRow } from './polls';
+import type { Poll, PollSummary } from '../types';
 
 // ======================================================
 // ENCUESTAS DE LOS CHATS
@@ -27,23 +24,40 @@ import type { Poll } from '../types';
 //   chats/{chatId}/messages/{messageId}/pollVotes/{uid}
 //     el voto de cada persona { userId, optionId, createdAt }
 //
-// Sin contadores en la configuración y sin resumen del
-// servidor: los votos se cuentan en el cliente (ver
-// `calcularPoll` en `services/polls.ts`), igual que en la
-// tarjeta de los hilos. Solo puede votar quien es miembro del
-// chat, que es lo que comprueban las reglas en cada voto.
+//   chats/{chatId}/messages/{messageId}/pollStats/summary
+//     el resumen que escribe la Cloud Function
+//
+// Los votos son privados: solo los lee quien votó. Antes la
+// tarjeta contaba toda la subcolección en el cliente y cualquier
+// miembro del chat podía saber quién había votado qué. Ahora los
+// totales salen de `pollStats/summary`, que el cliente no puede
+// escribir, y el único voto legible es el propio.
 //
 // Quién puede cerrar: el autor del mensaje y, en chats de
 // club, los moderadores del club. La garantía está en las
 // reglas (`firestore.rules`, rama de cierre de encuesta).
 // ======================================================
 
-export { TOPE_VOTOS_ESCUCHA };
+export const CHAT_POLL_STATS_DOC = 'summary';
+
 export type { PollVoteRow };
 
 /** Referencia al documento de voto de una persona. */
 export function chatVoteRef(chatId: string, messageId: string, uid: string) {
   return doc(db, 'chats', chatId, 'messages', messageId, 'pollVotes', uid);
+}
+
+/** Referencia al resumen agregado del servidor. */
+export function chatPollSummaryRef(chatId: string, messageId: string) {
+  return doc(
+    db,
+    'chats',
+    chatId,
+    'messages',
+    messageId,
+    POLL_STATS,
+    CHAT_POLL_STATS_DOC,
+  );
 }
 
 /**
@@ -87,32 +101,52 @@ export async function voteChatPoll(
 }
 
 /**
- * Escucha los votos de la encuesta de un mensaje.
+ * Escucha SOLO el voto propio.
  *
- * Sin filtros ni órdenes: la subcolección entera son los votos
- * y así no hace falta ningún índice compuesto.
+ * Las reglas no dejan listar `pollVotes` ni siquiera a los
+ * miembros del chat: solo el dueño del documento puede leerlo.
  */
-export function listenChatPollVotes(
+export function listenMyChatPollVote(
   chatId: string,
   messageId: string,
-  alCambiar: (votes: PollVoteRow[], error?: Error) => void,
+  uid: string,
+  alCambiar: (vote: PollVoteRow | null, error?: Error) => void,
 ): () => void {
   return onSnapshot(
-    query(
-      collection(db, 'chats', chatId, 'messages', messageId, 'pollVotes'),
-      limit(TOPE_VOTOS_ESCUCHA),
-    ),
+    chatVoteRef(chatId, messageId, uid),
     (snap) => {
-      const votes: PollVoteRow[] = snap.docs.map((d) => ({
-        id: d.id,
-        userId: String(d.data().userId ?? d.id),
-        optionId: String(d.data().optionId ?? ''),
-      }));
-      alCambiar(votes.filter((v) => v.optionId !== ''));
+      if (!snap.exists()) {
+        alCambiar(null);
+        return;
+      }
+      const optionId = String(snap.data().optionId ?? '');
+      alCambiar(
+        optionId
+          ? { id: snap.id, userId: uid, optionId }
+          : null,
+      );
     },
     (e) => {
-      console.error('[Encuestas] Error escuchando los votos del chat:', e);
-      alCambiar([], e);
+      console.error('[Encuestas] Error escuchando tu voto del chat:', e);
+      alCambiar(null, e);
+    },
+  );
+}
+
+/** Escucha el resumen agregado de la encuesta de un mensaje. */
+export function listenChatPollSummary(
+  chatId: string,
+  messageId: string,
+  alCambiar: (resumen: PollSummary | null, error?: Error) => void,
+): () => void {
+  return onSnapshot(
+    chatPollSummaryRef(chatId, messageId),
+    (snap) => {
+      alCambiar(snap.exists() ? (snap.data() as PollSummary) : null);
+    },
+    (e) => {
+      console.error('[Encuestas] Error escuchando el resumen del chat:', e);
+      alCambiar(null, e);
     },
   );
 }

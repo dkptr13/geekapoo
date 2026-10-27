@@ -2,6 +2,7 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -21,8 +22,8 @@ import {
   doc,
   getDoc,
   onSnapshot,
-  setDoc,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore';
 
 import {
@@ -34,7 +35,19 @@ import {
 
 import { toIsoString } from '../services/firestoreUtils';
 
-import { User } from '../types';
+import { DEFAULT_PRIVACY, readPrivacy } from '../services/accountSettings';
+
+import {
+  PRIVATE_PROFILE_FIELDS,
+  getUserPrivate,
+  privateFieldsOf,
+  publicPrivacySignals,
+  soloCamposPublicos,
+  subscribeUserPrivate,
+  userPrivateRef,
+} from '../services/userPrivate';
+
+import { User, PrivacySettings, UserPrivateData } from '../types';
 
 
 // ======================================================
@@ -52,17 +65,43 @@ import { User } from '../types';
 // devuelve `false` y no se inventa un baneo: las reglas de
 // Firestore y Storage consultan el registro en cada escritura de
 // todos modos.
-async function restriccionVigente(uid: string): Promise<boolean> {
+interface EstadoRestriccion {
+  /** Hay un registro duradero, esté activo o levantado. */
+  existe: boolean;
+  /** Ese registro es un baneo vigente. */
+  vigente: boolean;
+}
+
+async function estadoRestriccion(uid: string): Promise<EstadoRestriccion> {
   try {
     const snap = await getDoc(doc(db, 'accountRestrictions', uid));
-    if (!snap.exists()) return false;
+    if (!snap.exists()) return { existe: false, vigente: false };
 
     const data = snap.data() as { activo?: boolean; tipo?: string };
-    return data.activo === true && data.tipo === 'ban';
+    return {
+      existe: true,
+      vigente: data.activo === true && data.tipo === 'ban',
+    };
   } catch (e) {
     console.error('[Auth] No se pudo leer el registro de restricciones:', e);
-    return false;
+    // Sin lectura no se inventa un baneo. Las reglas consultan el
+    // registro en cada escritura de todas formas.
+    return { existe: false, vigente: false };
   }
+}
+
+/**
+ * La restricción duradera manda desde que existe. El campo público
+ * `isBanned` solo se usa como respaldo en cuentas que todavía no
+ * tienen registro, para no dejar sin efecto un baneo antiguo.
+ */
+function estaBaneado(
+  perfil: { isBanned?: boolean },
+  restriccion: EstadoRestriccion,
+): boolean {
+  return restriccion.existe
+    ? restriccion.vigente
+    : perfil.isBanned === true;
 }
 
 
@@ -232,6 +271,70 @@ function mensajeErrorPopup(err: unknown, provider: 'Google' | 'GitHub'): string 
 }
 
 // ======================================================
+// PERFIL PÚBLICO + DATOS PRIVADOS
+// ======================================================
+//
+// `currentUser` es la única vista que mezcla las dos mitades. El
+// directorio (`usersList`) se queda solo con el documento público.
+// Así el resto de la interfaz sigue leyendo `email`,
+// `chatApariencia`, etc. sin abrir esas columnas a los demás.
+
+function unirPerfilPrivado(
+  publico: User,
+  privado: UserPrivateData | null,
+  emailDeAuth: string | null | undefined,
+  baneado: boolean,
+): User {
+  const camposPrivados = privateFieldsOf(privado);
+  const privacy: PrivacySettings = {
+    ...DEFAULT_PRIVACY,
+    ...(privado?.privacy ?? {}),
+  };
+
+  return {
+    ...publico,
+    ...camposPrivados,
+    ...publicPrivacySignals(privacy),
+    email: camposPrivados.email ?? emailDeAuth ?? '',
+    isBanned: baneado,
+    createdAt: toIsoString(publico.createdAt),
+  };
+}
+
+/**
+ * Crea las dos mitades del perfil en un lote atómico.
+ *
+ * Si se creara solo `users/{uid}` y fallara la privada, el usuario
+ * existiría sin correo ni ajustes. Si se creara solo la privada y
+ * fallara la pública, no podría usar la comunidad. El lote evita
+ * los dos estados a medias.
+ */
+async function crearPerfilEnFirestore(
+  uid: string,
+  perfil: User,
+  email: string,
+): Promise<void> {
+  const lote = writeBatch(db);
+  const publico = soloCamposPublicos(perfil);
+
+  lote.set(doc(db, 'users', uid), {
+    ...publico,
+    privateProfile: false,
+    activityHidden: false,
+    createdAt: serverTimestamp(),
+  });
+
+  lote.set(userPrivateRef(uid), {
+    email,
+    privacy: { ...DEFAULT_PRIVACY },
+    updatedAt: serverTimestamp(),
+  });
+
+  await lote.commit();
+}
+
+
+// ======================================================
 // CONTEXTO
 // ======================================================
 
@@ -281,6 +384,11 @@ export const AuthProvider = ({
   const [returnToAction, setReturnToAction] =
     useState<string | null>(null);
 
+  // Última versión del documento privado. Se guarda en un ref para
+  // que el listener del perfil público pueda mezclarla sin volver a
+  // suscribirse ni depender del orden en que lleguen los snapshots.
+  const datosPrivadosRef = useRef<UserPrivateData | null>(null);
+
   // El directorio de usuarios se carga DESPUÉS de resolver la
   // sesión, nunca en el montaje.
   //
@@ -309,17 +417,33 @@ export const AuthProvider = ({
         const directory = snapshot.docs
           .map((userDoc) => {
             const data = userDoc.data() as User & { isBanned?: boolean };
+            // Aunque la migración aún no haya limpiado un perfil
+            // antiguo, el directorio no se queda con sus campos
+            // privados: solo con la mitad pública y la señal de
+            // compatibilidad del baneo.
+            const publico = soloCamposPublicos(data) as unknown as User;
             return {
-              ...data,
+              ...publico,
+              // Mientras la migración termina, un perfil antiguo
+              // puede tener la privacidad solo en los campos viejos.
+              // Se traduce a las señales públicas antes de tirar
+              // esos campos, para no enseñar de más.
+              privateProfile:
+                data.privateProfile === true ||
+                data.profileVisibility === 'private',
+              activityHidden:
+                data.activityHidden === true || data.showActivity === false,
               // La fecha se guarda como Timestamp y aquí vuelve a
               // texto ISO, para no meter un objeto en un campo
               // declarado como string.
               createdAt: toIsoString(data.createdAt),
             };
           })
-          // Un usuario baneado no puede escribir en los chats, así
-          // que no tiene sentido ofrecerlo para añadir a un grupo.
-          .filter((u) => u.isBanned !== true)
+          // No se filtra por la bandera antigua: con el nuevo
+          // modelo un baneado no la lleva, y un baneo ya levantado
+          // podría conservarla en un perfil sin migrar. La sanción
+          // vigente la aplican las reglas; el directorio no es la
+          // lista de quién puede publicar.
           .sort((a, b) => a.username.localeCompare(b.username));
 
         setUsersList(directory);
@@ -360,6 +484,7 @@ export const AuthProvider = ({
         pararDoc = null;
 
         if (!fbUser) {
+          datosPrivadosRef.current = null;
           setCurrentUser(null);
           setLoading(false);
           return;
@@ -372,6 +497,7 @@ export const AuthProvider = ({
           );
 
         if (isPasswordUser && !fbUser.emailVerified) {
+          datosPrivadosRef.current = null;
           setCurrentUser(null);
           setLoading(false);
           return;
@@ -391,29 +517,20 @@ export const AuthProvider = ({
 
               const firestoreUser = userDoc.data() as User;
 
-              // ✅ LOG AÑADIDO AQUÍ
-              console.log('perfil en vivo - XP:', firestoreUser.xp, 'NIVEL:', firestoreUser.level);
+              // El registro duradero manda desde que existe. La
+              // bandera antigua solo se usa si aún no hay registro,
+              // para no reactivar un baneo ya levantado.
+              const restriccion = await estadoRestriccion(fbUser.uid);
+              const baneado = estaBaneado(firestoreUser, restriccion);
 
-              // La fecha se guarda como Timestamp y aquí vuelve a
-              // texto ISO, igual que en el directorio de usuarios
-              // de arriba: si no, un `serverTimestamp` recién
-              // escrito llegaría como objeto y no como string.
-              //
-              // El baneo se mira en las dos fuentes: la bandera del
-              // perfil y el registro duradero. Hace falta porque un
-              // baneado puede borrar su perfil y la app lo recrea
-              // con `isBanned: false`; sin esta lectura, la interfaz
-              // le diría que está activo aunque las reglas le sigan
-              // bloqueando las escrituras.
-              const baneado =
-                firestoreUser.isBanned === true ||
-                (await restriccionVigente(fbUser.uid));
-
-              setCurrentUser({
-                ...firestoreUser,
-                isBanned: baneado,
-                createdAt: toIsoString(firestoreUser.createdAt),
-              });
+              setCurrentUser(
+                unirPerfilPrivado(
+                  firestoreUser,
+                  datosPrivadosRef.current,
+                  fbUser.email,
+                  baneado,
+                ),
+              );
 
             } else {
 
@@ -428,9 +545,10 @@ export const AuthProvider = ({
               // vez). Antes de recrearlo se mira el registro
               // duradero: si hay un baneo vigente, el perfil nace
               // con el estado local de baneado. Las reglas lo
-              // aplican igualmente aunque el documento diga
-              // `isBanned: false`.
-              const baneado = await restriccionVigente(fbUser.uid);
+              // aplican igualmente aunque el documento no lleve
+              // ninguna bandera.
+              const restriccion = await estadoRestriccion(fbUser.uid);
+              const baneado = restriccion.vigente;
 
               const newUser: User = {
                 uid: fbUser.uid,
@@ -440,25 +558,37 @@ export const AuthProvider = ({
                 chatId: `GK-${Math.floor(1000 + Math.random() * 9000)}-${username.substring(0, 4).toUpperCase()}`,
                 avatarUrl: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
                 role: 'user',
-                isBanned: false,
                 createdAt: new Date().toISOString(),
                 lastSeen: 'En línea',
                 bio: 'Comunidad geekapoo.com',
+                privateProfile: false,
+                activityHidden: false,
               };
+
+              const privadoInicial: UserPrivateData = {
+                email: fbUser.email || '',
+                privacy: { ...DEFAULT_PRIVACY },
+              };
+              datosPrivadosRef.current = privadoInicial;
 
               // Al escribir, este mismo listener salta de nuevo y
               // pone el documento ya creado. No se espera aquí.
-              // `isBanned` se escribe siempre `false`: la regla de
-              // creación no deja al cliente ponerse una sanción.
-              setDoc(userDocRef, {
-                ...newUser,
-                createdAt: serverTimestamp(),
-              }).catch((e) => console.error('Error al crear el perfil de Firestore:', e));
+              crearPerfilEnFirestore(
+                fbUser.uid,
+                newUser,
+                fbUser.email || '',
+              ).catch((e) =>
+                console.error('Error al crear el perfil de Firestore:', e),
+              );
 
-              // ✅ LOG AÑADIDO AQUÍ
-              console.log('perfil en vivo - Perfil nuevo creado con rol:', newUser.role);
-
-              setCurrentUser(baneado ? { ...newUser, isBanned: true } : newUser);
+              setCurrentUser(
+                unirPerfilPrivado(
+                  newUser,
+                  privadoInicial,
+                  fbUser.email,
+                  baneado,
+                ),
+              );
             }
 
             setLoading(false);
@@ -480,8 +610,90 @@ export const AuthProvider = ({
 
 
   // ====================================================
-  // ABRIR MODAL DE AUTENTICACIÓN
+  // ESCUCHAR LA RESTRICCIÓN DURADERA PROPIA
   // ====================================================
+  //
+  // Un baneo o desbaneo ya NO escribe la bandera del perfil
+  // público: solo toca `accountRestrictions/{uid}`. Sin esta
+  // escucha, el usuario seguiría viendo el estado anterior hasta
+  // recargar o hasta que otro campo del perfil cambiara.
+  useEffect(() => {
+    const uid = currentUser?.uid;
+    if (!uid) return;
+
+    return onSnapshot(
+      doc(db, 'accountRestrictions', uid),
+      (snap) => {
+        const existe = snap.exists();
+        const data = snap.data() as { activo?: boolean; tipo?: string } | undefined;
+        const vigente = existe && data?.activo === true && data?.tipo === 'ban';
+
+        setCurrentUser((previo) => {
+          if (!previo || previo.uid !== uid) return previo;
+          // Si algún día se borra el registro, no se inventa un
+          // estado: se conserva el último conocido.
+          if (!existe) return previo;
+          return { ...previo, isBanned: vigente };
+        });
+      },
+      (error) => {
+        console.error('[Auth] No se pudo escuchar la restricción de la cuenta:', error);
+      },
+    );
+  }, [currentUser?.uid]);
+
+  // ====================================================
+  // ESCUCHAR LOS DATOS PRIVADOS PROPIOS
+  // ====================================================
+  //
+  // El documento público y el privado son dos escuchas distintas:
+  // el directorio de usuarios solo puede leer el primero y así
+  // nunca recibe correos ni preferencias ajenas. Esta escucha solo
+  // se abre para el uid de la sesión.
+  useEffect(() => {
+    const uid = currentUser?.uid;
+    if (!uid) {
+      datosPrivadosRef.current = null;
+      return;
+    }
+
+    return subscribeUserPrivate(
+      uid,
+      (privado) => {
+        datosPrivadosRef.current = privado;
+
+        setCurrentUser((previo) => {
+          if (!previo || previo.uid !== uid) return previo;
+
+          if (!privado) {
+            // Cuenta sin migrar: todavía no existe `userPrivate`.
+            // Se conservan los valores del perfil antiguo para no
+            // romper la apariencia, la región ni la privacidad
+            // mientras se ejecuta la migración. La migración los
+            // copia y los borra del documento público; a partir de
+            // ahí manda siempre el documento privado.
+            const privacidadPrevia = readPrivacy(previo);
+            return {
+              ...previo,
+              email: previo.email ?? auth.currentUser?.email ?? '',
+              ...publicPrivacySignals(privacidadPrevia),
+            };
+          }
+
+          return unirPerfilPrivado(
+            previo,
+            privado,
+            previo.email ?? auth.currentUser?.email,
+            previo.isBanned === true,
+          );
+        });
+      },
+      (error) => {
+        console.error('[Auth] No se pudo leer el perfil privado:', error);
+      },
+    );
+  }, [currentUser?.uid]);
+
 
   const openAuth = (
     mode: 'login' | 'register' | 'recover' = 'login',
@@ -552,26 +764,29 @@ export const AuthProvider = ({
       const userDocRef = doc(db, 'users', fbUser.uid);
       const userDoc = await getDoc(userDocRef);
 
-      // ✅ LOG AÑADIDO AQUÍ
-      console.log('login() - ¿Existe doc?', userDoc.exists());
-      console.log('login() - UID:', fbUser.uid);
-
       if (userDoc.exists()) {
 
         const firestoreUser = userDoc.data() as User;
+        const privado = await getUserPrivate(fbUser.uid).catch((e) => {
+          console.error('[Auth] No se pudo leer el perfil privado al entrar:', e);
+          return null;
+        });
+        datosPrivadosRef.current = privado;
 
-        // ✅ LOG AÑADIDO AQUÍ
-        console.log('login() - USUARIO FIRESTORE:', firestoreUser);
-        console.log('login() - ROL:', firestoreUser.role);
+        // Igual que en el listener: el registro duradero manda
+        // desde que existe. La bandera antigua solo cubre cuentas
+        // que aún no tienen registro.
+        const restriccion = await estadoRestriccion(fbUser.uid);
+        const baneado = estaBaneado(firestoreUser, restriccion);
 
-        // Igual que en el listener: la bandera del perfil puede
-        // haberse quedado atrás si el usuario lo borró y la app lo
-        // recreó. Manda el registro duradero.
-        const baneado =
-          firestoreUser.isBanned === true ||
-          (await restriccionVigente(fbUser.uid));
-
-        setCurrentUser({ ...firestoreUser, isBanned: baneado });
+        setCurrentUser(
+          unirPerfilPrivado(
+            firestoreUser,
+            privado,
+            fbUser.email,
+            baneado,
+          ),
+        );
 
       } else {
 
@@ -583,7 +798,8 @@ export const AuthProvider = ({
         // Mismo caso que en el listener: el perfil no existe (lo
         // acaban de borrar o es la primera entrada). Se consulta el
         // registro duradero antes de recrearlo.
-        const baneado = await restriccionVigente(fbUser.uid);
+        const restriccion = await estadoRestriccion(fbUser.uid);
+        const baneado = restriccion.vigente;
 
         const newUser: User = {
           uid: fbUser.uid,
@@ -593,21 +809,33 @@ export const AuthProvider = ({
           chatId: `GK-${Math.floor(1000 + Math.random() * 9000)}-${username.substring(0, 4).toUpperCase()}`,
           avatarUrl: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
           role: 'user',
-          isBanned: false,
           createdAt: new Date().toISOString(),
           lastSeen: 'En línea',
           bio: 'Comunidad geekapoo.com',
+          privateProfile: false,
+          activityHidden: false,
         };
 
-        await setDoc(userDocRef, {
-          ...newUser,
-          createdAt: serverTimestamp(),
-        });
+        const privadoInicial: UserPrivateData = {
+          email: fbUser.email || '',
+          privacy: { ...DEFAULT_PRIVACY },
+        };
+        datosPrivadosRef.current = privadoInicial;
 
-        // ✅ LOG AÑADIDO AQUÍ
-        console.log('login() - Perfil nuevo creado con rol:', newUser.role);
+        await crearPerfilEnFirestore(
+          fbUser.uid,
+          newUser,
+          fbUser.email || '',
+        );
 
-        setCurrentUser(baneado ? { ...newUser, isBanned: true } : newUser);
+        setCurrentUser(
+          unirPerfilPrivado(
+            newUser,
+            privadoInicial,
+            fbUser.email,
+            baneado,
+          ),
+        );
       }
 
       closeAuth();
@@ -668,15 +896,17 @@ export const AuthProvider = ({
         chatId,
         avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
         role: 'user',
-        isBanned: false,
         createdAt: new Date().toISOString(),
         lastSeen: 'En línea',
         bio: 'Nuevo miembro en geekapoo.com',
+        privateProfile: false,
+        activityHidden: false,
       };
 
-      await setDoc(
-        doc(db, 'users', fbUser.uid),
-        { ...newUser, createdAt: serverTimestamp() }
+      await crearPerfilEnFirestore(
+        fbUser.uid,
+        newUser,
+        email.trim(),
       );
 
       await signOut(auth);
@@ -822,14 +1052,105 @@ export const AuthProvider = ({
 
     if (!currentUser) return;
 
-    const userRef = doc(db, 'users', currentUser.uid);
+    const uid = currentUser.uid;
+    const privado: Partial<UserPrivateData> = {};
+    const publico: Record<string, unknown> = {};
+
+    const camposPrivados = new Set<string>(PRIVATE_PROFILE_FIELDS);
+
+    Object.entries(data).forEach(([campo, valor]) => {
+      if (valor === undefined) return;
+
+      if (camposPrivados.has(campo)) {
+        // `profileVisibility`, `allowChatRequests` y `showActivity`
+        // van dentro del mapa `privacy`; el resto, sueltos.
+        if (
+          campo !== 'profileVisibility' &&
+          campo !== 'allowChatRequests' &&
+          campo !== 'showActivity'
+        ) {
+          (privado as Record<string, unknown>)[campo] = valor;
+        }
+        return;
+      }
+
+      // El baneo nunca lo escribe el cliente: lo aplica la callable
+      // y lo guarda `accountRestrictions`.
+      if (campo === 'isBanned') return;
+
+      publico[campo] = valor;
+    });
+
+    const tocaPrivacidad =
+      data.profileVisibility !== undefined ||
+      data.allowChatRequests !== undefined ||
+      data.showActivity !== undefined;
+
+    let privacidad: PrivacySettings | null = null;
+
+    if (tocaPrivacidad) {
+      privacidad = {
+        ...readPrivacy(currentUser),
+        ...(data.profileVisibility !== undefined
+          ? { profileVisibility: data.profileVisibility }
+          : {}),
+        ...(data.allowChatRequests !== undefined
+          ? { allowChatRequests: data.allowChatRequests }
+          : {}),
+        ...(data.showActivity !== undefined
+          ? { showActivity: data.showActivity }
+          : {}),
+      };
+
+      privado.privacy = privacidad;
+
+      // Las dos únicas señales que el resto de la web necesita para
+      // decidir si enseña el perfil y la actividad. No son los
+      // ajustes completos: `allowChatRequests` se queda privado y
+      // lo comprueban las reglas.
+      const señales = publicPrivacySignals(privacidad);
+      publico.privateProfile = señales.privateProfile;
+      publico.activityHidden = señales.activityHidden;
+    }
+
+    const hayPrivado = Object.keys(privado).length > 0;
+    const hayPublico = Object.keys(publico).length > 0;
+
+    if (!hayPrivado && !hayPublico) return;
+
+    const lote = writeBatch(db);
+
+    if (hayPrivado) {
+      lote.set(
+        userPrivateRef(uid),
+        {
+          ...privado,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+
+    if (hayPublico) {
+      lote.set(doc(db, 'users', uid), publico, { merge: true });
+    }
+
+    await lote.commit();
+
+    const siguientesPrivados: UserPrivateData = {
+      ...(datosPrivadosRef.current ?? {}),
+      ...privado,
+      ...(privacidad ? { privacy: privacidad } : {}),
+    };
+    datosPrivadosRef.current = siguientesPrivados;
 
     const updatedUser: User = {
       ...currentUser,
       ...data,
+      ...privateFieldsOf(siguientesPrivados),
+      ...(privacidad ? publicPrivacySignals(privacidad) : {}),
+      isBanned: currentUser.isBanned,
     };
-
-    await setDoc(userRef, data, { merge: true });
 
     setCurrentUser(updatedUser);
   };

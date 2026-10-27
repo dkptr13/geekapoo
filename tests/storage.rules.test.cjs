@@ -175,10 +175,11 @@ describe('reglas de Storage', () => {
       });
 
       // Y uno al que ya le levantaron la sanción: el documento del
-      // registro sigue ahí, pero inactivo.
+      // registro sigue ahí, pero inactivo. El perfil conserva una
+      // bandera vieja en true a propósito: el registro manda.
       await setDoc(doc(f, 'users', DESBANEADO), {
         displayName: 'desbaneado',
-        isBanned: false,
+        isBanned: true,
       });
       await setDoc(doc(f, 'accountRestrictions', DESBANEADO), {
         uid: DESBANEADO,

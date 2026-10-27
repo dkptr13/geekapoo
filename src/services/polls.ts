@@ -1,17 +1,11 @@
 import {
   Timestamp,
-  collection,
   doc,
   getDoc,
-  getDocs,
-  limit,
   onSnapshot,
-  query,
   serverTimestamp,
   setDoc,
   updateDoc,
-  where,
-  writeBatch,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
@@ -34,29 +28,23 @@ import type { NewPollInput, Poll, PollOption, PollSummary } from '../types';
 //   pollStats/{threadId}                  resumen del servidor
 //     { options: {o1: 3}, totalVotes, actualizadoAt }
 //
-// ── Por qué la configuración NO lleva contadores ───────────
+// ── El voto es PRIVADO ────────────────────────────────────
 //
-// Lo natural sería guardar `votes` en cada opción, pero eso
-// obliga a que el cliente escriba el número que él mismo ha
-// calculado, y las reglas de Firestore no tienen forma de
-// comprobar que ese número corresponda con el voto que se está
-// creando en ese momento. Con lo único que se puede atar es con
-// la seguridad de los propios documentos de voto:
+// El documento de voto solo lo puede leer quien votó. Antes la
+// tarjeta contaba los votos en el cliente, y eso obligaba a dejar
+// toda la subcolección legible: cualquiera podía saber quién había
+// votado y qué opción había elegido. Ahora la tarjeta consume:
 //
-//   - El id es el uid, así que no hay dos votos de la misma
-//     persona, y NO se pueden borrar (no hay `allow delete`).
-//   - `optionId` tiene que existir en las opciones de la
-//     encuesta.
-//   - Solo se puede cambiar de opinión si el autor activó
-//     `allowChangeVote`, y nunca en una encuesta cerrada o
-//     caducada.
+//   · `pollStats/{threadId}`, que escribe la Cloud Function con
+//     el Admin SDK y NO se puede escribir desde el cliente;
+//   · el documento propio de voto, para saber qué opción marcó
+//     quien mira.
 //
-// Con eso, el número de votos se obtiene contando documentos:
-// no hay contador que nadie pueda mentir. El resumen de
-// `pollStats` lo calcula la Cloud Function con el Admin SDK y es
-// una caché para estadísticas, orden y el panel de
-// administración (ver `onPollVotesChanged` en
-// `functions/src/index.ts`).
+// Los totales siguen saliendo de documentos reales: la función
+// cuenta los votos, no acepta números del navegador. Si el trigger
+// aún no está desplegado no hay resultados agregados; por eso la
+// migración `migrar-resumenes-encuestas.mjs` rellena los que
+// falten.
 
 export const POLL_VOTES = 'pollVotes';
 export const POLL_STATS = 'pollStats';
@@ -241,59 +229,61 @@ export interface PollVoteRow {
 }
 
 /**
- * Escucha los votos de una encuesta.
+ * Escucha SOLO el voto de quien mira.
  *
- * Solo se suscribe la encuesta que se está viendo, así que abrir
- * veinte hilos no abre veinte escuchas de votos: únicamente las
- * de las tarjetas que se han abierto.
- *
- * El límite de 400 es una red de seguridad: una encuesta con más
- * votos que eso no cabe en una lectura, y sin tope Firestore
- * devolvería un error y se vería la tarjeta en blanco. Con el
- * tope, como mucho se ve el resumen del servidor.
+ * Es el único documento de `pollVotes` que las reglas dejan leer a
+ * una persona normal. La tarjeta no necesita los demás: los totales
+ * vienen del resumen del servidor.
  */
-export function listenPollVotes(
+export function listenMyPollVote(
   threadId: string,
-  alCambiar: (votes: PollVoteRow[], error?: Error) => void,
+  uid: string,
+  alCambiar: (vote: PollVoteRow | null, error?: Error) => void,
 ): () => void {
   return onSnapshot(
-    // Sin filtros ni órdenes a propósito: la subcolección entera
-    // son los votos de esa encuesta, y así la consulta no
-    // depende de ningún índice compuesto.
-    query(collection(db, 'threads', threadId, POLL_VOTES), limit(TOPE_VOTOS_ESCUCHA)),
+    voteRef(threadId, uid),
     (snap) => {
-      const votes: PollVoteRow[] = snap.docs.map((d) => ({
-        id: d.id,
-        userId: String(d.data().userId ?? d.id),
-        optionId: String(d.data().optionId ?? ''),
-      }));
-      alCambiar(votes.filter((v) => v.optionId !== ''));
+      if (!snap.exists()) {
+        alCambiar(null);
+        return;
+      }
+      const optionId = String(snap.data().optionId ?? '');
+      alCambiar(
+        optionId
+          ? { id: snap.id, userId: uid, optionId }
+          : null,
+      );
     },
     (e) => {
-      console.error('[Encuestas] Error escuchando los votos:', e);
-      alCambiar([], e);
+      console.error('[Encuestas] Error escuchando tu voto:', e);
+      alCambiar(null, e);
+    },
+  );
+}
+
+/** Escucha el resumen agregado que mantiene la Cloud Function. */
+export function listenPollSummary(
+  threadId: string,
+  alCambiar: (resumen: PollSummary | null, error?: Error) => void,
+): () => void {
+  return onSnapshot(
+    doc(db, POLL_STATS, threadId),
+    (snap) => {
+      alCambiar(snap.exists() ? (snap.data() as PollSummary) : null);
+    },
+    (e) => {
+      console.error('[Encuestas] Error escuchando el resumen:', e);
+      alCambiar(null, e);
     },
   );
 }
 
 /**
- * Tope de votos que trae una escucha.
- *
- * No es un límite inventado: Firestore entrega 1 MB por lectura y
- * un documento de voto son unos 100 bytes, así que a partir de
- * unos miles la propia plataforma se complaintaría. Con 400 votos
- * de margen, el día que se llegue al tope entra el resumen del
- * servidor (ver `leerResumen`).
- */
-export const TOPE_VOTOS_ESCUCHA = 400;
-
-/**
  * Lee el resumen que calcula el servidor.
  *
- * Solo se usa cuando los votos NO caben en una escucha. Es una
- * caché, pero la mantiene la Cloud Function contando los
- * documentos de verdad, así que no es un número que se pueda
- * inventar ni desde el cliente ni desde la consola.
+ * Es la única fuente de resultados. No hay lectura de votos ajenos
+ * ni siquiera para el panel: los votos son anónimos también para
+ * moderadores y administradores.
  */
 export async function leerResumen(threadId: string): Promise<PollSummary | null> {
   const ref = doc(db, POLL_STATS, threadId);
@@ -308,9 +298,11 @@ export async function leerResumen(threadId: string): Promise<PollSummary | null>
  * Toda la presentación de la encuesta sale de aquí, para que el
  * "72%" de la tarjeta y el del panel sean el mismo número.
  *
- * `resumen` es opcional: si se pasa, sus totales sustituyen a los
- * que saldrían de contar `votes`, para el caso de una encuesta
- * con más votos de los que trae una escucha.
+ * `votes` solo debe llevar el voto de quien mira: es el único que
+ * las reglas dejan leer. Los totales salen de `resumen`, que es el
+ * documento agregado que mantiene el servidor. Si aún no existe
+ * (por ejemplo, antes de desplegar el trigger), no se inventan
+ * resultados: se muestra 0.
  */
 export function calcularPoll(
   poll: Poll,
@@ -389,38 +381,19 @@ export async function setPollClosed(
   await updateDoc(pollRef(threadId), { 'poll.isClosed': closed });
 }
 
-/** Borra el campo `poll` del hilo (lo deja sin encuesta). */
-export async function clearPoll(threadId: string): Promise<void> {
-  await updateDoc(pollRef(threadId), { poll: null });
-}
-
-/**
- * Lectura de los votos para el panel de administración.
- *
- * No es una escucha: el panel solo los necesita cuando alguien
- * pide ver las estadísticas de una encuesta, y una lectura suelta
- * sale más barato que dejar una escucha abierta.
- */
-export async function readPollVotes(threadId: string): Promise<PollVoteRow[]> {
-  const snap = await getDocs(
-    query(collection(db, 'threads', threadId, POLL_VOTES), limit(1000)),
-  );
-  return snap.docs.map((d) => ({
-    id: d.id,
-    userId: String(d.data().userId ?? d.id),
-    optionId: String(d.data().optionId ?? ''),
-  }));
-}
-
 /**
  * Pide al servidor que elimine la encuesta y todos sus votos.
  *
  * Es lo que hace la Cloud Function `gestionarEncuesta` cuando el
  * panel pide "eliminar encuesta": Firestore no borra en cascada,
- * y dejar los votos ahí sería dejar basura que además se
- * seguiría leyendo. El cliente solo llama a la función; el
- * borrado real va con el Admin SDK, que es lo único que puede
- * saltarse las reglas.
+ * y dejar los votos ahí sería dejar basura. El cliente solo llama
+ * a la función; el borrado real va con el Admin SDK, que es lo
+ * único que puede saltarse las reglas y leer los votos ajenos.
+ *
+ * Ya NO hay plan B desde el navegador: para que los votos sean
+ * anónimos, las reglas tampoco dejan listarlos al equipo. Si la
+ * función no está desplegada, el botón falla y se avisa; no se
+ * abre un agujero para que funcione.
  */
 export async function requestDeletePoll(threadId: string): Promise<number> {
   const llamar = httpsCallable<{ threadId: string; accion: string }, { borrados: number }>(
@@ -431,61 +404,9 @@ export async function requestDeletePoll(threadId: string): Promise<number> {
   return res.data?.borrados ?? 0;
 }
 
-/**
- * Borra los votos desde el propio navegador, por si la Cloud
- * Function no está desplegada.
- *
- * Las reglas SÍ dejan que el equipo borre votos sueltos
- * (`allow delete: if isModerator()`), así que esto funciona sin
- * desplegar nada. Es el plan B, no el bueno: son dos viajes por
- * cada 200 votos y no toca el resumen del servidor, que para eso
- * está `pollStats`. Por eso solo se usa cuando la función no está
- * desplegada, y avisando por la consola para que nadie piense
- * que ha ido todo bien.
- */
-async function borrarVotosDesdeCliente(threadId: string): Promise<number> {
-  console.warn(
-    '[Encuestas] La función gestionarEncuesta no está desplegada; se borran los votos ' +
-      'desde el cliente (más lento y sin tocar el resumen del servidor).',
-  );
-
-  let borrados = 0;
-
-  for (;;) {
-    const snap = await getDocs(
-      query(collection(db, 'threads', threadId, POLL_VOTES), limit(200)),
-    );
-    if (snap.empty) break;
-
-    const lote = writeBatch(db);
-    snap.docs.forEach((d) => lote.delete(d.ref));
-    await lote.commit();
-    borrados += snap.size;
-
-    if (borrados > 2000) break;
-  }
-
-  await clearPoll(threadId);
-  return borrados;
-}
-
-/**
- * Elimina una encuesta entera, votes included.
- *
- * Intenta la Cloud Function (que es lo correcto, porque usa el
- * Admin SDK) y, si no está desplegada, cae al borrado desde el
- * cliente para que el botón del panel no se quede muerto.
- */
+/** Elimina una encuesta entera, votos incluidos. */
 export async function deletePollEverywhere(threadId: string): Promise<number> {
-  try {
-    return await requestDeletePoll(threadId);
-  } catch (e) {
-    const code = (e as { code?: string })?.code ?? '';
-    if (code.includes('not-found') || code.includes('unavailable') || code.includes('internal')) {
-      return borrarVotosDesdeCliente(threadId);
-    }
-    throw e;
-  }
+  return requestDeletePoll(threadId);
 }
 
 /** Texto para "1 voto" / "3 votos", en el singular que toca. */

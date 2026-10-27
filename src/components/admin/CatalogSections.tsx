@@ -5,7 +5,7 @@ import { Plus, X, Loader2, MessageSquare, Trash2, Heart, AlertCircle, Search, Sl
 import { createAnime, createTrivia, deleteItem, updateFields } from '../../services/catalogAdmin';
 import {
   deletePollEverywhere,
-  readPollVotes,
+  leerResumen,
   setPollClosed,
 } from '../../services/polls';
 import type { UploadProvider } from '../../services/imageUpload';
@@ -835,9 +835,8 @@ const ThreadRow: FC<{ thread: RawDoc }> = ({ thread }) => {
   // ── Encuesta del hilo ────────────────────────────────
   //
   // El equipo puede cerrarla, reabrirla y borrarla. Lo que NO
-  // puede es tocar los resultados: los votos son documentos que
-  // solo crea quien vota, y las reglas no dejan ni que se
-  // cambien ni que se inventen.
+  // puede es tocar los resultados ni leer los votos ajenos: los
+  // totales salen del resumen que calcula la Cloud Function.
   const poll =
     thread.poll && typeof thread.poll === 'object'
       ? (thread.poll as {
@@ -863,18 +862,22 @@ const ThreadRow: FC<{ thread: RawDoc }> = ({ thread }) => {
 
   const cargarStats = async () => {
     setCargandoStats(true);
+    setError('');
     try {
-      const votes = await readPollVotes(thread.id);
+      // El panel ya NO cuenta los votos: no puede leerlos, y ese
+      // es justo el objetivo. Usa el mismo resumen del servidor
+      // que ve la tarjeta, así que los números coinciden.
+      const resumen = await leerResumen(thread.id);
       const opciones: Record<string, number> = {};
       Object.keys(poll?.options ?? {}).forEach((k) => {
         opciones[k] = 0;
       });
-      votes.forEach((v) => {
-        if (v.optionId in opciones) opciones[v.optionId] += 1;
+      Object.entries(resumen?.options ?? {}).forEach(([k, n]) => {
+        if (k in opciones) opciones[k] = n;
       });
-      setStats({ options: opciones, total: votes.length });
+      setStats({ options: opciones, total: resumen?.totalVotes ?? 0 });
     } catch {
-      setError('No se pudieron leer los votos de la encuesta.');
+      setError('No se pudo leer el resumen de la encuesta.');
     } finally {
       setCargandoStats(false);
     }
@@ -966,11 +969,11 @@ const ThreadRow: FC<{ thread: RawDoc }> = ({ thread }) => {
       </div>
 
       {/* ── Encuesta ─────────────────────────────────────
-          Los resultados se leen de los documentos de voto, que
-          son la verdad; el resumen que guarda el servidor
-          (`pollStats`) solo se usa para informes, y aquí se
-          cuentan al vuelo para que estas cifras existan aunque
-          las funciones no estén desplegadas. */}
+          Los resultados salen de `pollStats`, el resumen que
+          mantiene la Cloud Function. El panel no puede listar los
+          votos (son privados), así que no hay un plan B contando
+          documentos: si falta el resumen, hay que desplegar el
+          trigger o ejecutar la migración de resúmenes. */}
       {hayPoll && poll && (
         <div className="mt-2 rounded-lg border border-violet-500/20 bg-violet-950/20 p-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1034,7 +1037,7 @@ const ThreadRow: FC<{ thread: RawDoc }> = ({ thread }) => {
               disabled={cargandoStats}
               className="rounded-md bg-zinc-800 px-2 py-1 text-[10px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 disabled:opacity-50"
             >
-              {cargandoStats ? 'Contando...' : stats ? 'Actualizar' : 'Ver estadísticas'}
+              {cargandoStats ? 'Leyendo...' : stats ? 'Actualizar' : 'Ver estadísticas'}
             </button>
 
             <button

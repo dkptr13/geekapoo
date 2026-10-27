@@ -135,7 +135,10 @@ export const ProfileView: React.FC<ProfileViewProps> = (props) => {
    * puso en "privado" seguiría viéndose igual, porque el ajuste
    * es suyo y se respeta desde el otro lado.
    */
-  const privado = !esPropio && readPrivacy(perfil).profileVisibility === 'private';
+  const privado =
+    !esPropio &&
+    (perfil.privateProfile === true ||
+      readPrivacy(perfil).profileVisibility === 'private');
 
   // Perfil marcado como privado por su dueño. Se enseña lo justo
   // para reconocer a quién es (avatar y nombre) y nada más: ni su
@@ -252,7 +255,8 @@ const Perfil: React.FC<{
   // cuentan los hilos ni los comentarios ni se le listan. La
   // cuenta sigue ahí (los posts existen), pero su perfil no los
   // enseña.
-  const showActivity = readPrivacy(perfil).showActivity;
+  const showActivity =
+    perfil.activityHidden !== true && readPrivacy(perfil).showActivity;
 
   // ── Contadores de seguidores ──────────────────────
   //

@@ -66,7 +66,8 @@ async function sembrar(uid, extra) {
       avatarUrl: '',
       role: 'user',
       createdAt: '2026-01-01T00:00:00.000Z',
-      // Como lo escribe AuthContext al crear la cuenta.
+      // Perfil antiguo: conserva email/isBanned en el documento
+      // público para probar la compatibilidad mientras se migra.
       isBanned: false,
       ...extra,
     });
@@ -192,7 +193,8 @@ describe('gamificacion: XP y medallas', () => {
         setDoc(doc(db('nuevo'), 'users', 'nuevo'), {
           ...perfil(),
           uid: 'nuevo',
-          email: 'nuevo@test.com',
+          // El correo ya NO va en el perfil público: vive en
+          // `userPrivate/{uid}` y las reglas lo rechazan aquí.
           username: 'nuevo',
           chatId: 'GK-nuevo',
           role: 'user',
@@ -206,7 +208,6 @@ describe('gamificacion: XP y medallas', () => {
         setDoc(doc(db('tramposo'), 'users', 'tramposo'), {
           ...perfil(),
           uid: 'tramposo',
-          email: 't@test.com',
           username: 'tramposo',
           chatId: 'GK-t',
           role: 'user',
@@ -222,7 +223,6 @@ describe('gamificacion: XP y medallas', () => {
         setDoc(doc(db('tramposo2'), 'users', 'tramposo2'), {
           ...perfil(),
           uid: 'tramposo2',
-          email: 't2@test.com',
           username: 'tramposo2',
           chatId: 'GK-t2',
           role: 'user',
@@ -237,7 +237,6 @@ describe('gamificacion: XP y medallas', () => {
         setDoc(doc(db('falso'), 'users', 'falso'), {
           ...perfil(),
           uid: 'falso',
-          email: 'f@test.com',
           username: 'falso',
           chatId: 'GK-f',
           role: 'admin',
@@ -474,9 +473,10 @@ describe('gamificacion: XP y medallas', () => {
       );
     });
 
-    it('puede guardar la apariencia del chat', async () => {
+    it('puede guardar la apariencia del chat en su documento privado', async () => {
       await assertSucceeds(
-        updateDoc(doc(db(ALICE), 'users', ALICE), {
+        setDoc(doc(db(ALICE), 'userPrivate', ALICE), {
+          updatedAt: new Date(),
           chatApariencia: {
             tema: 'neon',
             colorPropio: '#2563eb',
@@ -491,35 +491,35 @@ describe('gamificacion: XP y medallas', () => {
 
     it('puede quitarse la apariencia del chat', async () => {
       await assertSucceeds(
-        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: null }),
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), { chatApariencia: null }),
       );
     });
 
     it('NO puede guardar una apariencia del chat con valores inventados', async () => {
       await assertFails(
-        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: { tema: 'inventado' } }),
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), { chatApariencia: { tema: 'inventado' } }),
       );
       await assertFails(
-        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: { colorPropio: 'rojo' } }),
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), { chatApariencia: { colorPropio: 'rojo' } }),
       );
       await assertFails(
-        updateDoc(doc(db(ALICE), 'users', ALICE), {
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), {
           chatApariencia: { fondo: { url: 'https://x/y.jpg', dim: 81 } },
         }),
       );
       await assertFails(
-        updateDoc(doc(db(ALICE), 'users', ALICE), {
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), {
           chatApariencia: { fondo: { url: 'ftp://x/y.jpg' } },
         }),
       );
       await assertFails(
-        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: { forma: 'triangulo' } }),
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), { chatApariencia: { forma: 'triangulo' } }),
       );
     });
 
     it('NO puede personalizar el chat de otro', async () => {
       await assertFails(
-        updateDoc(doc(db(BOB), 'users', ALICE), { chatApariencia: { tema: 'neon' } }),
+        updateDoc(doc(db(BOB), 'userPrivate', ALICE), { chatApariencia: { tema: 'neon' } }),
       );
     });
 
@@ -529,7 +529,7 @@ describe('gamificacion: XP y medallas', () => {
       );
       await assertSucceeds(updateDoc(doc(db(ALICE), 'users', ALICE), { bio: 'hola' }));
       await assertSucceeds(
-        updateDoc(doc(db(ALICE), 'users', ALICE), { chatApariencia: { tema: 'neon' } }),
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), { chatApariencia: { tema: 'neon' } }),
       );
     });
   });

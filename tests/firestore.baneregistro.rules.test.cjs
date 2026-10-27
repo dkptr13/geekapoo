@@ -113,13 +113,16 @@ async function crearRestriccion(uid, extra = {}) {
 function perfilNuevo(uid, extra = {}) {
   return {
     uid,
-    email: `${uid}@test.com`,
+    // El correo y el estado de sanción ya no viven en el perfil
+    // público: `email` está en `userPrivate/{uid}` y el baneo en
+    // `accountRestrictions/{uid}`.
     username: uid,
     displayName: uid,
     chatId: `GK-${uid}`,
     avatarUrl: '',
     role: 'user',
-    isBanned: false,
+    privateProfile: false,
+    activityHidden: false,
     createdAt: '2026-01-01T00:00:00.000Z',
     lastSeen: 'En línea',
     bio: 'Comunidad geekapoo.com',
@@ -270,8 +273,8 @@ describe('perfil eliminado y recreado', () => {
     //    legítimo de cuenta: las reglas lo siguen permitiendo).
     await assertSucceeds(deleteDoc(doc(db(RECREADO), 'users', RECREADO)));
 
-    // 2. Al volver a entrar, AuthContext se lo recrea con
-    //    `isBanned: false` (es lo único que permite la regla).
+    // 2. Al volver a entrar, AuthContext se lo recrea sin la
+    //    bandera de sanción ni datos privados.
     await assertSucceeds(
       setDoc(doc(db(RECREADO), 'users', RECREADO), perfilNuevo(RECREADO)),
     );
@@ -316,6 +319,19 @@ describe('perfil eliminado y recreado', () => {
   it('una restricción levantada (activo:false) deja publicar', async () => {
     // Es lo que hace `desbanearUsuario`: no borra el documento,
     // solo lo marca inactivo.
+    await assertSucceeds(
+      addDoc(collection(db(DESBANEADO), 'threads'), hilo(DESBANEADO)),
+    );
+  });
+
+  it('una bandera pública vieja no resucita un baneo levantado', async () => {
+    // `desbanearUsuario` ya no escribe `users.isBanned`, así que un
+    // perfil antiguo puede conservar la bandera en true. El
+    // registro duradero inactivo tiene que mandar.
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'users', DESBANEADO), { isBanned: true });
+    });
+
     await assertSucceeds(
       addDoc(collection(db(DESBANEADO), 'threads'), hilo(DESBANEADO)),
     );

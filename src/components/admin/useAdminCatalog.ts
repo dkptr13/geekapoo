@@ -3,10 +3,12 @@ import { collection, onSnapshot, updateDoc, doc, deleteDoc } from 'firebase/fire
 import { httpsCallable } from 'firebase/functions';
 
 import { db, functions } from '../../lib/firebase';
+import { useAuth } from '../../context/AuthContext';
 import { collectionOf } from '../../services/catalogAdmin';
 import { toIsoString } from '../../services/firestoreUtils';
 import { SUPPORT_TICKETS } from '../../services/support';
-import type { SupportTicket, User } from '../../types';
+import { USER_PRIVATE, soloCamposPublicos } from '../../services/userPrivate';
+import type { SupportTicket, User, UserPrivateData } from '../../types';
 
 // ======================================================
 // DATOS DEL PANEL DE ADMINISTRACIÓN
@@ -86,9 +88,19 @@ const EMPTY: Record<ListenedSection, RawDoc[]> = {
 };
 
 export function useAdminCatalog() {
+  const { currentUser } = useAuth();
   const [docs, setDocs] = useState<Record<ListenedSection, RawDoc[]>>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Datos que NO están en el perfil público. El correo solo lo
+  // recibe un admin; el estado de baneo lo recibe todo el equipo
+  // desde `accountRestrictions`, que ya era legible para
+  // moderadores y administradores.
+  const [privados, setPrivados] = useState<Record<string, UserPrivateData>>({});
+  const [restricciones, setRestricciones] = useState<
+    Record<string, { activo?: boolean; tipo?: string }>
+  >({});
 
   useEffect(() => {
     const unsubs: (() => void)[] = [];
@@ -122,6 +134,65 @@ export function useAdminCatalog() {
     return () => unsubs.forEach((u) => u());
   }, []);
 
+  useEffect(() => {
+    if (!currentUser) {
+      setPrivados({});
+      setRestricciones({});
+      return;
+    }
+
+    const unsubs: (() => void)[] = [];
+
+    unsubs.push(
+      onSnapshot(
+        collection(db, 'accountRestrictions'),
+        (snap) => {
+          const next: Record<string, { activo?: boolean; tipo?: string }> = {};
+          snap.docs.forEach((d) => {
+            next[d.id] = d.data() as { activo?: boolean; tipo?: string };
+          });
+          setRestricciones(next);
+        },
+        (e) => {
+          console.error('[Admin] No se pudo leer accountRestrictions:', e);
+        },
+      ),
+    );
+
+    // El correo y el resto de preferencias privadas solo los puede
+    // listar un admin. Un moderador sigue viendo el panel de
+    // usuarios, pero sin la columna de correo. Si una sesión pasa
+    // de admin a moderador, se vacía lo que ya se había leído para
+    // no seguir enseñándolo por estado residual.
+    if (currentUser.role !== 'admin') {
+      setPrivados({});
+    }
+
+    if (currentUser.role === 'admin') {
+      unsubs.push(
+        onSnapshot(
+          collection(db, USER_PRIVATE),
+          (snap) => {
+            const next: Record<string, UserPrivateData> = {};
+            snap.docs.forEach((d) => {
+              next[d.id] = d.data() as UserPrivateData;
+            });
+            setPrivados(next);
+          },
+          (e) => {
+            console.error('[Admin] No se pudo leer userPrivate:', e);
+            setError(
+              `No se pudieron leer los datos privados de los usuarios: ${e.message}. ` +
+              'Comprueba que tienes rol admin y que las reglas están desplegadas.',
+            );
+          },
+        ),
+      );
+    }
+
+    return () => unsubs.forEach((u) => u());
+  }, [currentUser?.role, currentUser?.uid]);
+
   const counts = useMemo(() => {
     const out = {} as Record<AdminSection, number>;
     LISTENED_SECTIONS.forEach((s) => {
@@ -138,12 +209,36 @@ export function useAdminCatalog() {
 
   const users: (User & { id: string })[] = useMemo(
     () =>
-      docs.users.map((u) => ({
-        ...(u as unknown as User),
-        id: u.id,
-        createdAt: toIsoString(u.createdAt),
-      })),
-    [docs.users],
+      docs.users.map((u) => {
+        const privado = privados[u.id];
+        const restriccion = restricciones[u.id];
+        // El registro duradero manda desde que existe, aunque esté
+        // levantado. La copia pública antigua solo se usa mientras
+        // el perfil no tenga registro; así un desbaneo no se queda
+        // pisado por una bandera vieja.
+        const baneado = restriccion
+          ? restriccion.activo === true && restriccion.tipo === 'ban'
+          : u.isBanned === true;
+
+        return {
+          // El perfil público, sin los campos antiguos que todavía
+          // pueda conservar un documento sin migrar. El correo solo
+          // lo añade el listener privado, que únicamente abre un
+          // admin. Un moderador ve la ficha sin datos privados.
+          ...(soloCamposPublicos(u as unknown as User) as unknown as User),
+          id: u.id,
+          // El correo privado manda; el público es solo el respaldo
+          // de una cuenta sin migrar, y únicamente lo ve un admin.
+          email:
+            currentUser?.role === 'admin'
+              ? privado?.email ??
+                (typeof u.email === 'string' ? u.email : undefined)
+              : undefined,
+          isBanned: baneado,
+          createdAt: toIsoString(u.createdAt),
+        };
+      }),
+    [docs.users, privados, restricciones, currentUser?.role],
   );
 
   const setUserRole = useCallback(
@@ -156,11 +251,10 @@ export function useAdminCatalog() {
   /**
    * Banea o desbanea a un usuario.
    *
-   * NO escribe `users/{uid}.isBanned` desde el cliente: eso lo
-   * hacen las callables `banearUsuario` / `desbanearUsuario`, que
-   * además escriben el registro duradero `accountRestrictions`.
-   * Escribir solo el documento del usuario dejaría el baneo a medias:
-   * al borrar y recrear el perfil, volvería a estar activo.
+   * NO escribe `users/{uid}.isBanned` desde el cliente. Las
+   * callables `banearUsuario` / `desbanearUsuario` escriben SOLO
+   * el registro duradero `accountRestrictions`, que es la fuente
+   * de verdad y sobrevive a borrar y recrear el perfil.
    */
   const setUserBanned = useCallback(async (uid: string, banned: boolean): Promise<void> => {
     const nombre = banned ? 'banearUsuario' : 'desbanearUsuario';
@@ -184,6 +278,11 @@ export function useAdminCatalog() {
    * puede, y pretender lo contrario sería engañoso.
    */
   const deleteUser = useCallback(async (uid: string): Promise<void> => {
+    // Primero los datos privados. Si se borrara el perfil público
+    // y fallara esta escritura, el correo y las preferencias
+    // quedarían huérfanos en `userPrivate` aunque ya no hubiera
+    // perfil que enseñar.
+    await deleteDoc(doc(db, USER_PRIVATE, uid));
     await deleteDoc(doc(db, 'users', uid));
   }, []);
 

@@ -86,18 +86,19 @@ export interface UserReaction {
 // La CONFIGURACIÓN de la encuesta vive dentro del propio hilo
 // (`threads/{id}.poll`), sin contadores: solo lo que escribió el
 // autor al publicarlo. El autoincremento de los votos no puede
-// living ahí, porque las reglas de Firestore no saben
-// comprobar que el número enviado corresponda con el voto que se
-// está creando.
+// vivir ahí, porque las reglas de Firestore no saben comprobar
+// que el número enviado corresponda con el voto que se está
+// creando.
 //
 // Los votos van en `threads/{id}/pollVotes/{uid}`: un documento
 // por persona, y como el id es el uid, las reglas SOLO permiten
-// crearlo una vez (no hay borrado). Ahí están los contadores de
-// verdad, que se leen en tiempo real tal cual.
+// crearlo una vez. El voto es PRIVADO: solo lo lee quien votó y
+// nadie puede listar la subcolección.
 //
 // El resumen agregado (`pollStats/{threadId}`) lo escribe la
-// Cloud Function y sirve para estadísticas y para el panel de
-// administración: es una caché, no la fuente de verdad.
+// Cloud Function y es la fuente de resultados de la tarjeta y del
+// panel. En los chats el resumen vive en
+// `chats/{chatId}/messages/{messageId}/pollStats/summary`.
 
 export interface PollOption {
   /**
@@ -145,7 +146,12 @@ export interface NewPollInput {
   allowChangeVote: boolean;
 }
 
-/** `pollStats/{threadId}`: el resumen que calcula el servidor. */
+/**
+ * Resumen de votos que calcula el servidor.
+ *
+ * Hilos: `pollStats/{threadId}`.
+ * Chats: `chats/{chatId}/messages/{messageId}/pollStats/summary`.
+ */
 export interface PollSummary {
   id?: string;
   /** id de opción → votos. */
@@ -323,29 +329,15 @@ export interface GifAttachment {
  * valores por defecto puesta (ver `readPrivacy` en
  * `services/accountSettings`).
  *
- * En Firestore viven como TRES campos de primer nivel del
- * documento del usuario ("profileVisibility", "allowChatRequests"
- * y "showActivity"), no anidados en un mapa "privacy".
+ * En Firestore viven dentro de `userPrivate/{uid}.privacy`, en un
+ * mapa. Ese documento solo lo puede leer su dueño (y un admin).
+ * El documento público `users/{uid}` solo lleva dos señales
+ * mínimas para pintar el perfil de otra persona:
+ * `privateProfile` y `activityHidden`.
  *
- * Es a propósito, y por dos razones:
- *
- *  1. Las reglas de seguridad leen esos campos para decidir si
- *     se acepta una solicitud de conversación. Leer un campo
- *     anidado de un mapa que puede no existir es justo el caso
- *     que falla en reglas, y aquí hay miles de cuentas antiguas
- *     sin ninguno de los ajustes. Un campo de primer nivel que
- *     no está vale null, y "null != 'private'" es true, que es
- *     el valor por defecto que se quiere.
- *  2. El resto de ajustes del usuario (role, isBanned) ya son
- *     campos de primer nivel, y la regla de actualización
- *     comprueba los nombres afectados uno a uno.
- *
- * Lo que NO se ofrece: "ocultar mi correo". Las reglas deciden a
- * nivel de documento, no de campo, así que no hay forma de dejar
- * leer el campo "email" del documento de otro sin enseñarle el
- * documento entero. Ofrecer ese interruptor sería prometer algo
- * que no se cumple, y el correo es justo el dato que más importa
- * proteger.
+ * El correo ya no se ofrece como campo opcional: directamente está
+ * fuera del documento público (`userPrivate/{uid}.email`), porque
+ * las reglas deciden a nivel de documento y no de campo.
  */
 export interface PrivacySettings {
   /**
@@ -362,7 +354,16 @@ export interface PrivacySettings {
 
 export interface User {
   uid: string;
-  email: string;
+  /**
+   * Correo de la cuenta.
+   *
+   * Ya NO vive en el documento público `users/{uid}`: se guarda en
+   * `userPrivate/{uid}`, que solo pueden leer su dueño y un admin.
+   * En el objeto `currentUser` del cliente sí aparece porque se
+   * mezcla con los datos privados; el directorio público
+   * (`usersList`) no lo trae.
+   */
+  email?: string;
   username: string;
   displayName: string;
   chatId: string; // e.g. "GK-9482-OTAKU" or uid
@@ -372,6 +373,12 @@ export interface User {
   role: UserRole;
   createdAt: string;
   lastSeen?: string;
+  /**
+   * Copia antigua del baneo. Las cuentas nuevas ya no la escriben:
+   * la fuente de verdad es `accountRestrictions/{uid}`. Se mantiene
+   * solo para leer perfiles que aún no se hayan migrado y para que
+   * el propio usuario sepa que está baneado.
+   */
   isBanned?: boolean;
 
   // ── Comunidad (ver `types/follows.ts`) ────────────
@@ -388,13 +395,22 @@ export interface User {
   followingCount?: number;
 
 // ── Privacidad (ver `PrivacySettings`) ──────────────
-  // Los tres van sueltos y no dentro de un mapa, por lo que
-  // explican los comentarios de arriba. Los que no estén
-  // significan "sin configurar", y se leen como los valores por
-  // defecto: todo abierto, como ha funcionado la web siempre.
+  // Los ajustes reales viven en `userPrivate/{uid}.privacy`, que
+  // solo lee su dueño (y un admin). En el documento público solo
+  // queda lo imprescindible para pintar el perfil de otra persona:
+  //
+  //   · privateProfile: true → no mostrar su actividad.
+  //   · activityHidden: true → no mostrar hilos/comentarios.
+  //
+  // Los campos de abajo se conservan porque `currentUser` mezcla el
+  // documento privado. `usersList` no los trae.
   profileVisibility?: 'public' | 'private';
   allowChatRequests?: boolean;
   showActivity?: boolean;
+  /** Señal pública mínima de que el perfil está en privado. */
+  privateProfile?: boolean;
+  /** Señal pública de que la actividad está oculta. */
+  activityHidden?: boolean;
 
   /**
    * Región preferida para «Dónde verla», como código ISO en
@@ -402,9 +418,9 @@ export interface User {
    * las cuentas anteriores a la disponibilidad regional no la
    * tienen; en ese caso se usa la preferencia local o España.
    *
-   * La escribe el propio usuario desde el selector de la wiki.
-   * No es un dato de seguridad: solo decide qué disponibilidad
-   * se muestra.
+   * La escribe el propio usuario desde el selector de la wiki y
+   * vive en `userPrivate/{uid}`, no en el perfil público: es una
+   * preferencia personal, no información que deba ver el resto.
    */
   regionPreferida?: string;
 
@@ -516,6 +532,28 @@ export interface User {
    * con sus colores. Ausente = tema oscuro de la casa.
    */
   chatApariencia?: AparienciaChat | null;
+}
+
+/**
+ * Documento privado de una cuenta: `userPrivate/{uid}`.
+ *
+ * No es una subcolección de `users/{uid}` a propósito. El panel de
+ * administración necesita listar los correos de todos los usuarios
+ * de una sola consulta, y una subcolección obligaría a un
+ * `collectionGroup` con índices y reglas más frágiles. Al ser una
+ * colección plana, el dueño lee su documento y un admin puede
+ * listarlos; nadie más.
+ *
+ * Lo que NO va aquí: `isBanned`. La fuente de verdad de las
+ * sanciones es `accountRestrictions/{uid}`, que ya existe y
+ * sobrevive a borrar el perfil.
+ */
+export interface UserPrivateData {
+  email?: string;
+  privacy?: Partial<PrivacySettings>;
+  chatApariencia?: AparienciaChat | null;
+  regionPreferida?: string;
+  updatedAt?: Timestamp;
 }
 
 /**
@@ -861,7 +899,8 @@ export interface Thread {
   /**
    * Encuesta opcional. Solo existe si el autor la añadió al
    * publicar. No lleva contadores: los votos viven en la
-   * subcolección `pollVotes` (ver `Poll`).
+   * subcolección privada `pollVotes` y los totales en `pollStats`
+   * (ver `Poll`).
    */
   poll?: Poll;
   /**
@@ -1002,8 +1041,8 @@ export interface ChatMessage {
    * Es el mismo `Poll` de los hilos (pregunta, opciones como
    * mapa, caducidad y cierre), pero vive dentro del mensaje y
    * sus votos van en `chats/{chatId}/messages/{id}/pollVotes/`.
-   * Se cuenta igual que allí: los documentos de voto son la
-   * verdad, sin contadores que el cliente pueda mentir.
+   * Igual que allí, el voto solo lo lee quien votó y los
+   * resultados salen de `pollStats/summary`.
    */
   poll?: Poll;
   /**
@@ -1315,8 +1354,8 @@ export interface ChatPrefs {
   /**
    * Fondo PROPIO de esta conversación.
    *
-   * Vive aquí, y no en `users/{uid}.chatApariencia`, porque ese
-   * campo es UNO para toda la cuenta: al guardar un fondo en un
+   * Vive aquí, y no en `userPrivate/{uid}.chatApariencia`, porque
+   * ese campo es UNO para toda la cuenta: al guardar un fondo en un
    * club, pisaba el que la persona tenía en sus privados. Al
    * guardarlo por conversación, cada chat tiene el suyo.
    *

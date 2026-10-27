@@ -588,11 +588,12 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // ====================================================
   // ENCUESTAS
   // ====================================================
-  // Los votos NO se cuentan aquí ni se suman a un contador del
-  // hilo: se escriben en `threads/{id}/pollVotes/{uid}` y quien
-  // los cuenta es la tarjeta de encuesta, contando documentos.
-  // El "un solo voto" lo garantizan las reglas (el id es el uid
-  // y no hay borrado), no este archivo.
+  // Los votos NO se cuentan aquí: se escriben en
+  // `threads/{id}/pollVotes/{uid}`, un documento privado por
+  // persona. Los totales los agrega la Cloud Function en
+  // `pollStats/{id}` y la tarjeta los lee de ahí.
+  // El "un solo voto" lo garantizan las reglas (el id es el uid),
+  // no este archivo.
   // ====================================================
 
   const voteInPoll = useCallback(

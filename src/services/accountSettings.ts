@@ -5,7 +5,6 @@ import {
   getDocs,
   limit,
   query,
-  updateDoc,
   where,
   writeBatch,
 } from 'firebase/firestore';
@@ -27,6 +26,7 @@ import { auth, db, githubProvider, googleProvider } from '../lib/firebase';
 import { deleteThread } from './threads';
 import { deleteChat, hideChat, leaveGroup } from './chats';
 import { borrarRelacionesDe } from './follows';
+import { saveUserPrivate, userPrivateRef } from './userPrivate';
 
 import type { PrivacySettings } from '../types';
 
@@ -240,10 +240,14 @@ export async function changeAccountEmail(
   // está hecho en Auth, esta parte no debería poder fallar, y si
   // falla solo queda desincronizado el texto que se ve en el
   // perfil, no el acceso a la cuenta.
+  //
+  // Va a `userPrivate/{uid}`, no a `users/{uid}`: el correo es el
+  // dato que más importa proteger y el documento público lo lee
+  // cualquier persona con sesión.
   try {
-    await updateDoc(doc(db, USERS, fbUser.uid), { email });
+    await saveUserPrivate(fbUser.uid, { email });
   } catch (e) {
-    console.warn('[Cuenta] El correo cambió en Auth, pero no en el perfil:', e);
+    console.warn('[Cuenta] El correo cambió en Auth, pero no en el perfil privado:', e);
   }
 
   await sendEmailVerification(fbUser).catch(() => undefined);
@@ -490,7 +494,17 @@ async function borrarTodoLoDeLaCuenta(uid: string, paso: DeleteStep): Promise<vo
     }
   }
 
-  // ── 6. Documento de perfil ──────────────────────────
+  // ── 6. Documento privado ────────────────────────────
+  // Se borra antes que el público. Si se dejara, quedaría un
+  // documento con correo y preferencias de una cuenta que ya no
+  // existe. Las reglas dejan al dueño borrarlo.
+  paso('Borrando tus datos privados...');
+  await deleteDoc(userPrivateRef(uid)).catch((e) => {
+    console.error('[Cuenta] No se pudo borrar el documento privado:', e);
+    throw e;
+  });
+
+  // ── 7. Documento de perfil ──────────────────────────
   // Último de todo en Firestore, porque tiene subcolecciones
   // (los bloqueados, ya borrados) y porque es el que la app
   // lee para saber quién eres.

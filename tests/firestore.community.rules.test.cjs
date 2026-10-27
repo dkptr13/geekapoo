@@ -356,8 +356,21 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
       }));
     });
 
-    it('los votos se pueden leer sin entrar (los resultados son públicos)', async () => {
-      await assertSucceeds(getDocs(collection(anon(), 'threads', 'hilo1', 'pollVotes')));
+    it('cada persona solo puede leer su propio voto', async () => {
+      // Alicia votó en hilo1: su documento sí se puede leer.
+      await assertSucceeds(
+        getDoc(doc(db(ALICE), 'threads', 'hilo1', 'pollVotes', ALICE)),
+      );
+      // Pero no puede leer el de Bob, ni listar la subcolección.
+      await assertFails(
+        getDoc(doc(db(ALICE), 'threads', 'hilo1', 'pollVotes', BOB)),
+      );
+      await assertFails(
+        getDocs(collection(db(ALICE), 'threads', 'hilo1', 'pollVotes')),
+      );
+      await assertFails(
+        getDocs(collection(anon(), 'threads', 'hilo1', 'pollVotes')),
+      );
     });
   });
 

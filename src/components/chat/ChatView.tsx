@@ -71,6 +71,7 @@ import {
 import { deleteReplacedImage, uploadCommunityImage } from '../../services/imageUpload';
 import { getChatPrefs } from '../../services/chatPrefs';
 import { saveFondoChat, subscribeChatPrefs } from '../../services/chatPrefs';
+import { userPrivateRef } from '../../services/userPrivate';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useChat } from '../../context/ChatContext';
 import { useClubs } from '../../context/ClubsContext';
@@ -572,7 +573,7 @@ export const ChatView: React.FC = () => {
   // `borradorApariencia` a null = panel cerrado. Mientras está
   // abierto, la conversación pinta el borrador: vista previa
   // en vivo sin recargar. Guardar lo escribe en
-  // `users/{uid}.chatApariencia` (solo la ve quien la pone) y
+  // `userPrivate/{uid}.chatApariencia` (solo la ve quien la pone) y
   // cancelar lo tira sin tocar nada.
   const [panelApariencia, setPanelApariencia] = useState(false);
   const [borradorApariencia, setBorradorApariencia] = useState<AparienciaChat | null>(null);
@@ -674,8 +675,8 @@ export const ChatView: React.FC = () => {
       //
       // Esto es lo que arregla que poner una imagen en el club
       // cambiara también el fondo de los privados: antes TODO se
-      // guardaba en `users/{uid}.chatApariencia`, que es un
-      // único documento para toda la cuenta.
+      // guardaba en la apariencia personal (`userPrivate`), que es
+      // un único documento para toda la cuenta.
       const esClub =
         esChatClub &&
         (soyDuenoDelClub || soyModDelClub) &&
@@ -757,7 +758,7 @@ export const ChatView: React.FC = () => {
         // Se comprueba contra el servidor antes de cerrar.
         let enServidor;
         try {
-          const comp = await getDocFromServer(doc(db, 'users', currentUser.uid));
+          const comp = await getDocFromServer(userPrivateRef(currentUser.uid));
           enServidor = sujetarApariencia(
             (comp.data() as { chatApariencia?: unknown } | undefined)?.chatApariencia,
           );

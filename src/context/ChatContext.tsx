@@ -37,8 +37,6 @@ import {
 
 import { blockUser, subscribeBlocked, unblockUser } from '../services/blocks';
 
-import { acceptsChatRequests } from '../services/accountSettings';
-
 import {
   ChatMessage,
   ChatReplyTo,
@@ -584,7 +582,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      if (!acceptsChatRequests(target)) {
+      // El perfil privado solo expone esta señal pública. El
+      // interruptor fino `allowChatRequests` ya no es legible por
+      // otros: lo comprueban las reglas contra el documento privado
+      // del destinatario. Aquí se evita el viaje cuando el perfil
+      // está en privado, que sí es información pública por diseño.
+      if (target.privateProfile === true) {
         return {
           ok: false,
           error: `${target.displayName || target.username} no admite solicitudes de conversación.`,

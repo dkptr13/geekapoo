@@ -2,9 +2,9 @@
  * Apariencia del chat: catálogo, valores y resolución.
  *
  * Todo lo que un usuario puede ponerse en el chat vive aquí.
- * Se guarda en `users/{uid}.chatApariencia` y solo afecta a SU
- * conversación: cada uno ve el chat con sus colores, nunca con
- * los del otro.
+ * Se guarda en `userPrivate/{uid}.chatApariencia` (no en el perfil
+ * público) y solo afecta a SU conversación: cada uno ve el chat con
+ * sus colores, nunca con los del otro.
  *
  * ── POR QUÉ UN MAPA Y NO CAMPOS SUELTOS ─────────────────────
  *
@@ -14,7 +14,7 @@
  * migrar nada.
  *
  * Las reglas de Firestore (`firestore.rules`,
- * `personalizacionValida()`) solo comprueban FORMATOS (ids de
+ * `chatAparienciaValida()`) solo comprueban FORMATOS (ids de
  * la lista, hex de la paleta, https, rangos): la lista válida
  * es esta de aquí.
  */

@@ -1894,6 +1894,10 @@ export const eliminarMensajeParaTodos = onCall(async (request) => {
       votos.docs.forEach((d) => lote.delete(d.ref));
       await lote.commit();
     }
+    // El resumen agregado también se va. El trigger de los votos
+    // borra el documento cuando se queda sin votos, pero se hace
+    // aquí otra vez por si el mensaje no tenía ninguno.
+    await ref.collection(POLL_STATS).doc('summary').delete();
   } catch (e) {
     logger.error('No se pudieron limpiar los votos de la encuesta al borrar', {
       chatId,
@@ -3214,17 +3218,15 @@ export const onReactionChanged = onDocumentWritten(
 // ======================================================
 //
 // Los votos están en `threads/{threadId}/pollVotes/{uid}`: un
-// documento por persona, sin borrado, y las reglas solo dejan
-// crearlo si la encuesta está abierta y el id de opción existe.
-// Eso ya es la garantía de "un voto por persona"; no hay ningún
-// número que un cliente pueda escribir.
+// documento por persona, sin borrado desde el cliente, y las reglas
+// solo dejan crearlo si la encuesta está abierta y el id de opción
+// existe. Eso ya es la garantía de "un voto por persona"; no hay
+// ningún número que un cliente pueda escribir.
 //
-// Aquí se mantiene `pollStats/{threadId}`, que es la CACHÉ de esos
-// votos: se usa para ordenar, para las estadísticas del panel y
-// para no tener que recorrer mil votos cada vez que se mira un
-// resumen. Si un día el trigger no estuviera desplegado, los
-// resultados de la tarjeta seguirían siendo correctos (se cuentan
-// en el cliente) y solo faltarían las estadísticas.
+// Aquí se mantiene `pollStats/{threadId}`, que es la ÚNICA fuente
+// de resultados de la tarjeta: el cliente ya no puede leer los
+// votos ajenos. Lo mismo se hace para las encuestas de chat en
+// `chats/{chatId}/messages/{messageId}/pollStats/summary`.
 
 interface PollVoteDoc {
   userId?: string;
@@ -3233,11 +3235,12 @@ interface PollVoteDoc {
 
 /** Resumen de los votos de una encuesta. */
 async function ajustarResumenEncuesta(
-  threadId: string,
+  rutaResumen: string,
+  meta: Record<string, unknown>,
   antes: PollVoteDoc | undefined,
   despues: PollVoteDoc | undefined,
 ): Promise<void> {
-  const ref = db.doc(`${POLL_STATS}/${threadId}`);
+  const ref = db.doc(rutaResumen);
 
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
@@ -3274,10 +3277,34 @@ async function ajustarResumenEncuesta(
       return;
     }
 
+    // Un cambio de opinión con el resumen ausente (por ejemplo, si
+    // el trigger nuevo se desplegó antes de ejecutar la migración)
+    // no puede quedarse en total 0: este voto existe y, como poco,
+    // cuenta uno. La migración lo recalcula después con el total
+    // real. Sin esto, la tarjeta perdería los resultados.
+    if (total === 0 && antes && despues) {
+      total = 1;
+      if (despues.optionId) {
+        opciones[despues.optionId] = Math.max(
+          1,
+          num(opciones[despues.optionId]) || 0,
+        );
+      }
+    }
+
+    // Sin votos no hay nada que agregar. Borrar el documento evita
+    // dejar un resumen vacío que se recreate tras limpiar una
+    // encuesta o un mensaje, y la tarjeta lo trata igual que si no
+    // existiera: 0 votos.
+    if (total === 0) {
+      tx.delete(ref);
+      return;
+    }
+
     tx.set(
       ref,
       {
-        threadId,
+        ...meta,
         options: opciones,
         totalVotes: total,
         actualizadoAt: FieldValue.serverTimestamp(),
@@ -3358,7 +3385,12 @@ export const onPollVotesChanged = onDocumentWritten(
     const despues = event.data?.after.data() as PollVoteDoc | undefined;
 
     try {
-      await ajustarResumenEncuesta(threadId, antes, despues);
+      await ajustarResumenEncuesta(
+        `${POLL_STATS}/${threadId}`,
+        { threadId },
+        antes,
+        despues,
+      );
     } catch (e) {
       logger.error('Fallo actualizando el resumen de una encuesta', { threadId, error: e });
     }
@@ -3372,6 +3404,38 @@ export const onPollVotesChanged = onDocumentWritten(
       await procesarVotoEncuesta(threadId, despues ?? antes, despues ? 'crear' : 'borrar');
     } catch (e) {
       logger.error('Fallo procesando el voto de una encuesta', { threadId, error: e });
+    }
+  },
+);
+
+/**
+ * Resumen agregado de las encuestas de los chats.
+ *
+ * Es el mismo cálculo que el de los hilos, pero colgando del
+ * mensaje. No concede XP: las encuestas de chat nunca lo han hecho
+ * y este cambio es de privacidad, no de gamificación.
+ */
+export const onChatPollVotesChanged = onDocumentWritten(
+  `${CHATS}/{chatId}/messages/{messageId}/${POLL_VOTES}/{voteId}`,
+  async (event) => {
+    const chatId = event.params['chatId'];
+    const messageId = event.params['messageId'];
+    const antes = event.data?.before.data() as PollVoteDoc | undefined;
+    const despues = event.data?.after.data() as PollVoteDoc | undefined;
+
+    try {
+      await ajustarResumenEncuesta(
+        `${CHATS}/${chatId}/messages/${messageId}/${POLL_STATS}/summary`,
+        { chatId, messageId },
+        antes,
+        despues,
+      );
+    } catch (e) {
+      logger.error('Fallo actualizando el resumen de una encuesta de chat', {
+        chatId,
+        messageId,
+        error: e,
+      });
     }
   },
 );
@@ -3700,28 +3764,32 @@ async function exigirAdmin(auth: unknown): Promise<string> {
 // REGISTRO DURABLE DE BANEOS
 // ======================================================
 //
-// Un baneo NO puede vivir solo en `users/{uid}.isBanned`: ese
-// documento lo puede borrar su dueño (el borrado legítimo de
-// cuenta) y, al volver a entrar, el cliente se lo recrea con
-// `isBanned: false`. Si la sanción viviera solo ahí, borrar y
-// recrear sería la forma más fácil de saltarse un baneo.
+// Un baneo NO puede vivir en `users/{uid}.isBanned`: ese documento
+// es público (lo lee cualquier persona con sesión) y su dueño lo
+// puede borrar (el borrado legítimo de cuenta). Al volver a entrar,
+// la app lo recrearía con `isBanned: false`, y además todo el mundo
+// podría ver el estado de sanción ajeno.
 //
-// Por eso la fuente de verdad es `accountRestrictions/{uid}`,
-// que solo escribe este archivo con el Admin SDK. Las reglas de
-// Firestore y Storage la consultan en `isBanned()`. El documento
-// de `users` sigue llevando la copia visible para el panel.
+// Por eso la fuente de verdad es `accountRestrictions/{uid}`, que
+// solo escribe este archivo con el Admin SDK. Las reglas de
+// Firestore y Storage la consultan en `isBanned()`. El panel de
+// administración también la lee, que es el único sitio que necesita
+// conocer las sanciones.
 //
-// Las dos escrituras van en una transacción: o quedan las dos
-// copias de acuerdo, o no queda ninguna.
+// El campo antiguo `users/{uid}.isBanned` se mantiene solo como
+// compatibilidad de lectura mientras dure la migración. Este código
+// ya no lo escribe.
 
 /**
- * Deja el baneo (o su levantamiento) en el registro duradero y en
- * la copia visible de `users/{uid}`, a la vez.
+ * Deja el baneo (o su levantamiento) en el registro duradero.
  *
  * `fechaFin` solo se usa al banear: `null` es un baneo permanente.
  * Al levantar la restricción se conserva el motivo y la fecha del
  * baneo original (con `merge`), y se añade quién y cuándo lo
  * levantó, para que el registro siga contando lo que pasó.
+ *
+ * Ya NO se escribe `users/{uid}.isBanned`: el perfil público no
+ * debe llevar datos de moderación.
  */
 async function guardarBaneo(
   uid: string,
@@ -3778,10 +3846,6 @@ async function guardarBaneo(
         },
         { merge: true },
       );
-    }
-
-    if (usuario.exists) {
-      tx.update(usuarioRef, { isBanned: activo });
     }
   });
 }
@@ -3949,9 +4013,9 @@ export const levantarBaneosVencidos = onSchedule('every 1 hours', async () => {
  * entrar. Esta callable recorre los perfiles con la bandera puesta
  * y crea el registro que falte.
  *
- * Es idempotente: si ya hay una restricción activa, no la toca. Se
- * llama una vez después de desplegar (desde el panel o con
- * `httpsCallable`); no hace falta programarla.
+ * Es idempotente: si ya existe una restricción, no la toca (aunque
+ * esté levantada). Se llama una vez después de desplegar (desde el
+ * panel o con `httpsCallable`); no hace falta programarla.
  */
 export const sincronizarBaneos = onCall(
   { timeoutSeconds: 300 },
@@ -3966,29 +4030,25 @@ export const sincronizarBaneos = onCall(
     for (const usuario of snap.docs) {
       const ref = db.doc(`${ACCOUNT_RESTRICTIONS}/${usuario.id}`);
       const actual = await ref.get();
-      const datosActuales = actual.data();
 
-      if (datosActuales?.activo === true && datosActuales?.tipo === 'ban') {
+      // Si ya existe CUALQUIER restricción, es la fuente de verdad:
+      // puede estar activa o levantada. No se reactiva un baneo
+      // levantado solo porque el perfil antiguo conserve la bandera.
+      if (actual.exists) {
         existentes += 1;
         continue;
       }
 
-      await ref.set(
-        {
-          uid: usuario.id,
-          tipo: 'ban',
-          activo: true,
-          motivo:
-            typeof datosActuales?.motivo === 'string'
-              ? datosActuales.motivo
-              : 'Baneo anterior al registro duradero',
-          fechaFin: datosActuales?.fechaFin ?? null,
-          creadoEn: datosActuales?.creadoEn ?? FieldValue.serverTimestamp(),
-          actualizadoEn: FieldValue.serverTimestamp(),
-          actualizadoPor: 'migracion',
-        },
-        { merge: true },
-      );
+      await ref.set({
+        uid: usuario.id,
+        tipo: 'ban',
+        activo: true,
+        motivo: 'Baneo anterior al registro duradero',
+        fechaFin: null,
+        creadoEn: FieldValue.serverTimestamp(),
+        actualizadoEn: FieldValue.serverTimestamp(),
+        actualizadoPor: 'migracion',
+      });
       creados += 1;
     }
 
@@ -4380,7 +4440,7 @@ export const ajustarXp = onCall(async (request) => {
  * Gestión de encuestas desde el panel: cerrar, reabrir y eliminar.
  *
  * Existe como función y no como escritura directa porque borrar
- * una encuesta entails borrar los votos que cuelgan de ella, y
+ * una encuesta implica borrar los votos que cuelgan de ella, y
  * Firestore no borra en cascada. Con reglas de cliente eso
  * significaría "borra los votos que puedas y ya": aquí se borran
  * TODOS, por lotes, y el trigger `onPollVotesChanged` va
