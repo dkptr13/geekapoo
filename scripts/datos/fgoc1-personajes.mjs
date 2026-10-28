@@ -1,0 +1,112 @@
+// PERSONAJES - Fate/Grand Order: Camelot - Wandering; Agateram
+//
+// Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
+//
+// Nombres japoneses y seiyuu de AniList (103276).
+
+export const PERSONAJES = [
+  [
+    'Bedivere',
+    '',
+    'main',
+    'ベディヴィエール',
+    '宮野真守',
+    'El caballero de la Mesa Redonda que sobrevivió a la caída de su rey y lleva siglos buscándole. Se une a Ritsuka y a Mash para llegar a Camelot y cumplir una promesa que no pudo terminar. Su brazo izquierdo es el secreto mejor guardado de la película.',
+  ],
+  [
+    'Ritsuka Fujimaru',
+    '',
+    'main',
+    '藤丸立香',
+    '島﨑信長',
+    'El maestro de Chaldea, que llega a un desierto donde la gente se muere de hambre y descubre que la enemiga no es una bestia sino una reina con un plan. Intenta negociar antes de pelear y casi nunca le funciona.',
+  ],
+  [
+    'Mash Kyrielight',
+    '',
+    'main',
+    'マシュ・キリエライト',
+    '高橋李依',
+    'La sirviente de Ritsuka y la voz que le recuerda por qué están allí. Su escudo protege al grupo en cada emboscada y su relación con Bedivere sirve para entender qué significa servir a alguien que ya no existe.',
+  ],
+  [
+    'Leonardo da Vinci',
+    '',
+    'supporting',
+    'レオナルド・ダ・ヴィンチ',
+    '坂本真綾',
+    'La directora técnica de Chaldea, que analiza la singularidad desde el otro lado y explica por qué Camelot no se parece a ninguna de las anteriores. Su papel es el de la persona que pone nombre a lo que el grupo se encuentra.',
+  ],
+  [
+    'Romani Archaman',
+    '',
+    'supporting',
+    'ロマニ・アーキマン',
+    '鈴村健一',
+    'El médico de Chaldea, que se queda en la sala de control y se preocupa por Ritsuka y Mash como si fueran sus hijos. Su tono ligero choca con la gravedad de lo que están viendo.',
+  ],
+  [
+    'Arash',
+    '',
+    'supporting',
+    'アーラシュ',
+    '鶴岡聡',
+    'El arquero persa que ayuda a los refugiados del desierto. Conoce el terreno, protege a la gente que Camelot ha dejado fuera y se ofrece para la parte más peligrosa del plan sin pedir nada a cambio.',
+  ],
+  [
+    'Xuanzang Sanzang',
+    '',
+    'supporting',
+    '玄奘三蔵',
+    '小松未可子',
+    'La monja budista que viaja por la singularidad buscando a sus discípulos. Es alegre, habladora y mucho más fuerte de lo que aparenta; su papel es el de aliada que aparece cuando el grupo está en apuros.',
+  ],
+  [
+    'Ozymandias',
+    '',
+    'supporting',
+    'オジマンディアス',
+    '子安武人',
+    'El rey de Egipto, que gobierna un territorio neutral y no tiene ningún interés en la guerra de Camelot. Recibe al grupo en su templo y les ayuda a su manera, que consiste en ponerles a prueba antes de mover un dedo.',
+  ],
+  [
+    'Nitocris',
+    '',
+    'supporting',
+    'ニトクリス',
+    '田中美海',
+    'La reina egipcia que sirve a Ozymandias. Es seria, orgullosa y la única persona que consigue que el rey escuche una petición ajena a sus caprichos.',
+  ],
+  [
+    'Gawain',
+    '',
+    'antagonist',
+    'ガウェイン',
+    '水島大宙',
+    'El caballero del sol y uno de los defensores de Camelot. Su lealtad a la reina es absoluta y su fuerza, mientras reciba luz, casi no tiene límite. La primera pelea contra él deja claro al grupo que no van a ganar por potencia.',
+  ],
+  [
+    'Mordred',
+    '',
+    'antagonist',
+    'モードレッド',
+    '沢城みゆき',
+    'La caballera que lidera las patrullas de Camelot y la que más disfruta persiguiendo a los intrusos. Su relación con Artoria sigue siendo el centro de todo lo que hace.',
+  ],
+  [
+    'Hassan-i-Sabbah',
+    '',
+    'supporting',
+    'ハサン・サッバーハ',
+    '中田譲治',
+    'El líder de los Hassan, que vive en las montañas con los suyos y desconfía de cualquier rey. Ayuda al grupo porque Camelot también le ha declarado la guerra a su pueblo.',
+  ],
+  [
+    'Artoria Pendragon',
+    '',
+    'antagonist',
+    'アルトリア・ペンドラゴン',
+    '川澄綾子',
+    'La reina que gobierna Camelot y que dice ser Artoria. Ha reunido a los caballeros de la Mesa Redonda y decide quién entra en la ciudad santa y quién se queda fuera a morir. Su mirada es lo primero que ve el grupo al llegar.',
+  ],
+];
