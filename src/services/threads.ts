@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
-import { toggleLike, type WithId } from './firestoreUtils';
+import type { WithId } from './firestoreUtils';
 import { normalizarPoll } from './polls';
 import { dimsValidas, type ImageDims } from '../utils/imagenes';
 import type { NewPollInput, Poll, Thread, TierListRef } from '../types';
@@ -102,9 +102,6 @@ export async function createThread(input: NewThreadInput): Promise<string> {
     categoryId: input.categoryId,
     categoryName: input.categoryName,
     tags: input.tags.length > 0 ? input.tags.slice(0, LIMITS.tags) : ['General', 'Debate'],
-    likesCount: 0,
-    likedBy: [],
-    commentsCount: 0,
     pinned: false,
     createdAt: serverTimestamp(),
   };
@@ -156,9 +153,7 @@ export async function createThread(input: NewThreadInput): Promise<string> {
   return ref.id;
 }
 
-export async function toggleThreadLike(threadId: string, uid: string): Promise<boolean> {
-  return toggleLike(doc(db, THREADS, threadId), uid, 'likesCount');
-}
+export { toggleThreadLike } from './likes';
 
 /**
  * Adjunta (o cambia) la tier list de un hilo propio ya publicado.

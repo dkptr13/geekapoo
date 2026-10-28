@@ -42,7 +42,7 @@
 
 import { initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore, FieldPath, Timestamp } from 'firebase-admin/firestore';
-import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onDocumentCreated, onDocumentDeleted, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
@@ -61,6 +61,7 @@ import {
   type Estadisticas,
 } from './stats';
 import { topicosDe } from './topicos';
+import { accionDeLike, debeProcesarLike, idsDeLikes } from './likesLogic';
 
 // `rss-parser` y `createHash` viven en `functions/src/rss.ts`, que es
 // donde se usan. Aquí no hacen falta: lo que se importa de `./rss` son
@@ -91,6 +92,14 @@ const FOLLOWING = 'following';
 const FOLLOWERS = 'followers';
 const THREADS = 'threads';
 const COMMENTS = 'comments';
+/** Subcolección de "me gusta" dentro de un hilo o un comentario. */
+const LIKES = 'likes';
+/**
+ * Registro de contadores de comentarios. Un documento por
+ * comentario; lo escribe solo este archivo. Ver
+ * `contarComentarioCreado` y `contarComentarioEliminado`.
+ */
+const ENGAGEMENT_LEDGER = 'engagement_ledger';
 const EPISODES = 'episodes';
 const CHARACTERS = 'characters';
 const CHATS = 'chats';
@@ -712,19 +721,6 @@ async function concederXP(
       return { aplicado: false, nivelAntes: 1, nivel: 1, xp: 0, medallasNuevas: [] };
     }
 
-    // La recompensa ya se concedio. Esto es lo que impide cobrar
-    // dos veces por lo mismo.
-    if (ledgerSnap.exists) {
-      const guardado = userSnap.data() ?? {};
-      return {
-        aplicado: false,
-        nivelAntes: num(guardado.level) || 1,
-        nivel: num(guardado.level) || 1,
-        xp: num(guardado.xp),
-        medallasNuevas: [],
-      };
-    }
-
     const data = userSnap.data() ?? {};
     const xpAntes = num(data.xp);
     const nivelAntes = num(data.level) || 1;
@@ -739,6 +735,37 @@ async function concederXP(
         uid,
         motivo: r.reason,
       });
+      return {
+        aplicado: false,
+        nivelAntes,
+        nivel: nivelAntes,
+        xp: xpAntes,
+        medallasNuevas: [],
+      };
+    }
+
+    // Un retiro es la unica operacion que puede tocar una entrada
+    // del libro que YA existe. Se reconoce por `permitirNegativo` y
+    // cantidad negativa.
+    const esRetiro = opciones.permitirNegativo === true && cantidad < 0;
+
+    // La recompensa ya se concedio. Esto es lo que impide cobrar
+    // dos veces por lo mismo cuando el trigger se repite.
+    if (ledgerSnap.exists && !esRetiro) {
+      return {
+        aplicado: false,
+        nivelAntes,
+        nivel: nivelAntes,
+        xp: xpAntes,
+        medallasNuevas: [],
+      };
+    }
+
+    // Y al reves: no se puede retirar algo que nunca se pago. Esto
+    // hace idempotente el borrado de un "Me gusta": el primer
+    // trigger borra la entrada del libro y el segundo ya no
+    // encuentra nada que retirar.
+    if (!ledgerSnap.exists && esRetiro) {
       return {
         aplicado: false,
         nivelAntes,
@@ -892,11 +919,11 @@ est = ponerTotales(est, stats);
     tx.update(userRef, update);
 
     // ── Libro mayor ────────────────────────────────────────
-    // Se guarda SIEMPRE, tambien en los retiros: es lo que hace
-    // que un "Me gusta" quitado y puesto otra vez no pague dos
-    // veces. En el retiro se borra en vez de escribir, y por eso
-    // el documento puede volver a crearse despues (que es justo
-    // lo que quiere: un like nuevo vuelve a pagar).
+    // En una concesion se escribe, y es lo que impide pagar dos
+    // veces por el mismo hecho. En un retiro se BORRA: la baja ya
+    // ha descontado el XP y asi el documento puede volver a
+    // crearse si la persona vuelve a dar el "me gusta" (que es
+    // justo lo que se quiere: un like nuevo vuelve a pagar).
     if (opciones.permitirNegativo && cantidad < 0) {
       tx.delete(ledgerRef);
     } else {
@@ -1276,6 +1303,130 @@ export const onThreadCreated = onDocumentCreated(
   },
 );
 
+// ======================================================
+// CONTADOR DE COMENTARIOS
+// ======================================================
+//
+// `commentsCount` vive en el hilo o en el anime, no en el comentario.
+// Lo mueve este archivo, nunca el cliente. El problema de los
+// triggers es que se entregan "al menos una vez": si el de alta se
+// ejecuta dos veces, sumaría dos. Por eso cada comentario tiene una
+// entrada en `engagement_ledger/{commentId}` que dice si su alta ya
+// se contó. Alta y baja van en transacción con esa entrada, así que
+// un reintento no cambia nada.
+
+const COLECCION_DEL_CONTADOR: Record<string, string> = {
+  thread: THREADS,
+  anime: 'animes',
+};
+
+function refDelContadorDeComentarios(
+  targetType: string | undefined,
+  targetId: string,
+) {
+  const coleccion = targetType ? COLECCION_DEL_CONTADOR[targetType] : undefined;
+  if (!coleccion || !targetId) return null;
+  return db.doc(`${coleccion}/${targetId}`);
+}
+
+async function contarComentarioCreado(
+  commentId: string,
+  targetType: string | undefined,
+  targetId: string,
+): Promise<void> {
+  const parentRef = refDelContadorDeComentarios(targetType, targetId);
+  if (!parentRef) return;
+
+  const commentRef = db.doc(`${COMMENTS}/${commentId}`);
+  const ledgerRef = db.doc(`${ENGAGEMENT_LEDGER}/${commentId}`);
+
+  await db.runTransaction(async (tx) => {
+    const [commentSnap, parentSnap, ledgerSnap] = await Promise.all([
+      tx.get(commentRef),
+      tx.get(parentRef),
+      tx.get(ledgerRef),
+    ]);
+
+    // El comentario se borró antes de que llegara el alta. No se
+    // suma; la baja dejará la marca para que un reintento no cuente.
+    if (!commentSnap.exists) return;
+    if (ledgerSnap.exists) return;
+
+    if (!parentSnap.exists) {
+      // El destino ya no existe: se marca como no contado para que
+      // una baja posterior tampoco reste.
+      tx.set(ledgerRef, {
+        commentId,
+        targetType,
+        targetId,
+        action: 'deleted',
+        at: FieldValue.serverTimestamp(),
+      });
+      return;
+    }
+
+    tx.update(parentRef, { commentsCount: FieldValue.increment(1) });
+    tx.set(ledgerRef, {
+      commentId,
+      targetType,
+      targetId,
+      action: 'created',
+      at: FieldValue.serverTimestamp(),
+    });
+  });
+}
+
+async function contarComentarioEliminado(
+  commentId: string,
+  targetType: string | undefined,
+  targetId: string,
+): Promise<void> {
+  const parentRef = refDelContadorDeComentarios(targetType, targetId);
+  if (!parentRef) return;
+
+  const ledgerRef = db.doc(`${ENGAGEMENT_LEDGER}/${commentId}`);
+
+  await db.runTransaction(async (tx) => {
+    const [parentSnap, ledgerSnap] = await Promise.all([
+      tx.get(parentRef),
+      tx.get(ledgerRef),
+    ]);
+
+    const action = ledgerSnap.exists
+      ? String(ledgerSnap.data()?.action ?? '')
+      : '';
+
+    // Solo resta si el alta llegó a sumar. Si el comentario se creó
+    // y se borró antes de que corriera el trigger de alta, el libro
+    // no existe y no hay nada que descontar.
+    if (action === 'created') {
+      if (parentSnap.exists) {
+        tx.update(parentRef, { commentsCount: FieldValue.increment(-1) });
+      }
+      tx.set(ledgerRef, {
+        commentId,
+        targetType,
+        targetId,
+        action: 'deleted',
+        at: FieldValue.serverTimestamp(),
+      });
+      return;
+    }
+
+    // Sin libro (o ya borrado): se deja constancia para que un alta
+    // que llegue tarde no cuente un comentario que ya no existe.
+    if (!ledgerSnap.exists || action !== 'deleted') {
+      tx.set(ledgerRef, {
+        commentId,
+        targetType,
+        targetId,
+        action: 'deleted',
+        at: FieldValue.serverTimestamp(),
+      });
+    }
+  });
+}
+
 /**
  * Crear un comentario: +5 XP.
  *
@@ -1302,6 +1453,15 @@ export const onCommentCreated = onDocumentCreated(
     const targetType =
       typeof data.targetType === 'string' ? data.targetType : undefined;
     const targetId = typeof data.targetId === 'string' ? data.targetId : '';
+
+    // El contador del hilo/anime es responsabilidad del servidor. Va
+    // antes del XP y con su propio try: que falle el contador no
+    // puede impedir que el autor cobre su recompensa.
+    try {
+      await contarComentarioCreado(commentId, targetType, targetId);
+    } catch (e) {
+      logger.error('Fallo contando un comentario nuevo', { commentId, error: e });
+    }
 
     const animeId = await resolverAnimeDe(targetType, targetId);
 
@@ -1432,6 +1592,71 @@ export const onCommentCreated = onDocumentCreated(
       }
     } catch (e) {
       logger.error('Fallo avisando de un comentario nuevo', { commentId, error: e });
+    }
+  },
+);
+
+/**
+ * Un hilo borrado: se retira el XP de los "me gusta" que tenía.
+ *
+ * No se borran los comentarios (decisión del foro) ni sus "me
+ * gusta"; solo se retira lo que esos "me gusta" habían pagado al
+ * autor del hilo, que es lo que hacía el trigger anterior al
+ * desaparecer el documento.
+ */
+export const onThreadDeleted = onDocumentDeleted(
+  `${THREADS}/{threadId}`,
+  async (event) => {
+    const data = event.data?.data();
+    if (!data) return;
+
+    try {
+      await retirarLikesDeContenido(
+        THREADS,
+        event.params['threadId'],
+        data,
+      );
+    } catch (e) {
+      logger.error('Fallo retirando el XP de un hilo borrado', { error: e });
+    }
+  },
+);
+
+/**
+ * Un comentario borrado: baja el contador del destino y retira el XP
+ * de sus "me gusta".
+ *
+ * Las dos cosas van en bloques separados: si falla el contador, el
+ * XP se retira igual, y al revés. Un reintento de cualquiera de los
+ * dos es idempotente (libro del contador y libro de recompensas).
+ */
+export const onCommentDeleted = onDocumentDeleted(
+  `${COMMENTS}/{commentId}`,
+  async (event) => {
+    const data = event.data?.data();
+    if (!data) return;
+
+    const commentId = event.params['commentId'];
+    const targetType =
+      typeof data.targetType === 'string' ? data.targetType : undefined;
+    const targetId = typeof data.targetId === 'string' ? data.targetId : '';
+
+    try {
+      await contarComentarioEliminado(commentId, targetType, targetId);
+    } catch (e) {
+      logger.error('Fallo descontando un comentario borrado', {
+        commentId,
+        error: e,
+      });
+    }
+
+    try {
+      await retirarLikesDeContenido(COMMENTS, commentId, data);
+    } catch (e) {
+      logger.error('Fallo retirando el XP de un comentario borrado', {
+        commentId,
+        error: e,
+      });
     }
   },
 );
@@ -1618,37 +1843,190 @@ async function procesarLikes(
   }
 }
 
-export const onThreadLikesChanged = onDocumentWritten(
-  `${THREADS}/{threadId}`,
+/**
+ * Recalcula `likedBy` y `likesCount` desde la subcolección de "me
+ * gusta" y devuelve el documento padre ya actualizado.
+ *
+ * ── Por qué se recalcula entero ─────────────────────────────
+ *
+ * Podría hacerse `increment(1)`, pero entonces un reintento del
+ * trigger (Firestore entrega "al menos una vez") contaría dos veces.
+ * Contando los documentos de la subcolección, el resultado es el
+ * mismo se ejecute una o cinco veces, y además corrige cualquier
+ * desajuste anterior la próxima vez que alguien toque un "me gusta".
+ *
+ * ── Por qué en transacción ──────────────────────────────────
+ *
+ * Dos personas dando "me gusta" a la vez lanzan dos ejecuciones. Si
+ * las dos leyeran la lista y escribieran el padre sin transacción, la
+ * última en escribir podría dejar el número de la primera. Al leer y
+ * escribir el padre dentro de la transacción, la segunda reintenta y
+ * vuelve a contar con el documento que acaba de entrar.
+ */
+async function recalcularLikesDe(
+  coleccion: string,
+  docId: string,
+): Promise<{ parent: Record<string, unknown>; likedBy: string[] } | null> {
+  const parentRef = db.doc(`${coleccion}/${docId}`);
+
+  return db.runTransaction(async (tx) => {
+    const parentSnap = await tx.get(parentRef);
+    if (!parentSnap.exists) return null;
+
+    const likesSnap = await tx.get(parentRef.collection(LIKES));
+    const likedBy = idsDeLikes(likesSnap.docs.map((d) => d.id));
+
+    const parent = (parentSnap.data() ?? {}) as Record<string, unknown>;
+    const actual = Array.isArray(parent.likedBy)
+      ? (parent.likedBy as string[])
+      : [];
+    const mismaLista =
+      actual.length === likedBy.length &&
+      actual.every((uid, i) => uid === likedBy[i]);
+
+    if (!mismaLista || num(parent.likesCount) !== likedBy.length) {
+      tx.update(parentRef, {
+        likedBy,
+        likesCount: likedBy.length,
+      });
+    }
+
+    return {
+      parent: { ...parent, likedBy, likesCount: likedBy.length },
+      likedBy,
+    };
+  });
+}
+
+/**
+ * Un "me gusta" de hilo o comentario ha cambiado.
+ *
+ * Primero se recalcula el agregado (siempre, aunque el documento se
+ * haya creado y borrado antes de que llegue el trigger) y después se
+ * paga o retira el XP. Para reutilizar `procesarLikes`, se le pasa el
+ * padre con la lista de antes y la de después: el resto de campos
+ * (autor, texto, destino del comentario) siguen siendo los del
+ * documento real.
+ */
+async function procesarCambioDeLike(
+  coleccion: string,
+  docId: string,
+  liker: string,
+  antes: Record<string, unknown> | undefined,
+  despues: Record<string, unknown> | undefined,
+): Promise<void> {
+  const accion = accionDeLike(Boolean(antes), Boolean(despues));
+
+  const resultado = await recalcularLikesDe(coleccion, docId);
+  if (!resultado) return;
+
+  // Un `update` no cambia el estado del "me gusta". Las reglas no lo
+  // permiten, pero el trigger también puede recibir escrituras del
+  // Admin SDK o de la consola.
+  if (!accion) return;
+
+  // El id del documento tiene que ser el uid de quien firma. Si no
+  // coincide (una escritura hecha desde la consola), se actualiza el
+  // contador pero no se paga XP por una autoría falsa.
+  if (accion === 'crear') {
+    if (!despues || despues.userId !== liker) {
+      logger.warn('"Me gusta" con userId incoherente; no se paga XP', {
+        coleccion,
+        docId,
+        liker,
+      });
+      return;
+    }
+  }
+
+  // Si el documento se creó y se borró antes de que corriera esta
+  // ejecución, la lista final ya no lo contiene (o sí, si se volvió a
+  // poner). Solo se procesa el cambio que de verdad ha quedado.
+  if (!debeProcesarLike(accion, liker, resultado.likedBy)) return;
+
+  const likedAntes = accion === 'crear' ? [] : [liker];
+  const likedDespues = accion === 'crear' ? [liker] : [];
+
+  await procesarLikes(
+    coleccion,
+    docId,
+    { ...resultado.parent, likedBy: likedAntes },
+    { ...resultado.parent, likedBy: likedDespues },
+  );
+}
+
+export const onThreadLikeChanged = onDocumentWritten(
+  `${THREADS}/{threadId}/${LIKES}/{uid}`,
   async (event) => {
     try {
-      await procesarLikes(
+      await procesarCambioDeLike(
         THREADS,
         event.params['threadId'],
-        event.data?.before.data(),
-        event.data?.after.data(),
+        event.params['uid'],
+        event.data?.before.exists ? event.data.before.data() : undefined,
+        event.data?.after.exists ? event.data.after.data() : undefined,
       );
     } catch (e) {
-      logger.error('Fallo procesando likes de un hilo', { error: e });
+      logger.error('Fallo procesando un "Me gusta" de un hilo', { error: e });
     }
   },
 );
 
-export const onCommentLikesChanged = onDocumentWritten(
-  `${COMMENTS}/{commentId}`,
+export const onCommentLikeChanged = onDocumentWritten(
+  `${COMMENTS}/{commentId}/${LIKES}/{uid}`,
   async (event) => {
     try {
-      await procesarLikes(
+      await procesarCambioDeLike(
         COMMENTS,
         event.params['commentId'],
-        event.data?.before.data(),
-        event.data?.after.data(),
+        event.params['uid'],
+        event.data?.before.exists ? event.data.before.data() : undefined,
+        event.data?.after.exists ? event.data.after.data() : undefined,
       );
     } catch (e) {
-      logger.error('Fallo procesando likes de un comentario', { error: e });
+      logger.error('Fallo procesando un "Me gusta" de un comentario', { error: e });
     }
   },
 );
+
+/**
+ * Al borrar un hilo o un comentario se retira el XP de sus "me gusta".
+ *
+ * Antes esto salía del trigger del padre, que comparaba `likedBy`
+ * antes y después. Ahora los "me gusta" viven en su subcolección, así
+ * que el borrado del padre no genera ningún evento de "me gusta": hay
+ * que recorrer la lista que el servidor tenía cacheada y retirar cada
+ * pago. Los avisos no se borran, igual que cuando se quita un "me
+ * gusta" normal.
+ */
+async function retirarLikesDeContenido(
+  coleccion: string,
+  docId: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  const parentRef = db.doc(`${coleccion}/${docId}`);
+
+  // La subcolección sigue existiendo aunque el padre se haya
+  // borrado, así que se cuenta de ahí y se une con la caché. Así no
+  // se pierde ningún pago si el agregado iba un paso por detrás.
+  const likesSnap = await parentRef.collection(LIKES).get();
+  const enDocumentos = idsDeLikes(likesSnap.docs.map((d) => d.id));
+  const enCache = Array.isArray(data.likedBy)
+    ? (data.likedBy as unknown[]).filter(
+        (uid): uid is string => typeof uid === 'string' && uid.length > 0,
+      )
+    : [];
+  const likedBy = idsDeLikes([...enDocumentos, ...enCache]);
+
+  if (likedBy.length === 0) return;
+
+  await procesarLikes(
+    coleccion,
+    docId,
+    { ...data, likedBy },
+    { ...data, likedBy: [] },
+  );
+}
 
 // ── Aviso de mensaje de chat ─────────────────────────────────────
 //
@@ -4416,6 +4794,13 @@ export const ajustarXp = onCall(async (request) => {
     throw new HttpsError('invalid-argument', 'Escribe un motivo: queda en el historial.');
   }
 
+  // Un ajuste NO es la retirada de una recompensa: no existe una
+  // entrada previa en el libro que deshacer. Por eso no lleva
+  // `permitirNegativo` aunque la cantidad sea negativa: así el
+  // movimiento se aplica siempre y queda escrito en el historial,
+  // que es justo lo que se espera de un ajuste manual. Ese modo
+  // solo vale para deshacer un pago concreto (un "me gusta"
+  // quitado, una reacción retirada o un voto borrado).
   const resultado = await concederConHitos(
     uid,
     `admin_${adminUid}_${Date.now()}`,
@@ -4428,7 +4813,6 @@ export const ajustarXp = onCall(async (request) => {
       animeId: null,
     },
     {},
-    { permitirNegativo: true },
   );
 
   logger.info('Ajuste manual de XP', { objetivo: uid, cantidad, por: adminUid });

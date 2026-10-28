@@ -38,6 +38,7 @@ const {
   query,
   where,
   limit,
+  serverTimestamp,
 } = require('firebase/firestore');
 
 const fs = require('fs');
@@ -736,15 +737,24 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
       }));
     });
 
-    it('los "me gusta" siguen funcionando igual que antes', async () => {
-      await assertSucceeds(updateDoc(doc(db(BOB), 'threads', 'hilo2'), {
+    it('los contadores de "me gusta" ya NO los escribe el cliente', async () => {
+      await assertFails(updateDoc(doc(db(BOB), 'threads', 'hilo2'), {
         likedBy: [BOB],
         likesCount: 1,
       }));
-      await assertSucceeds(updateDoc(doc(db(BOB), 'comments', 'com1'), {
+      await assertFails(updateDoc(doc(db(BOB), 'comments', 'com1'), {
         likedBy: [BOB],
         likesCount: 1,
       }));
+
+      // El "me gusta" nuevo va en su propio documento, con el uid
+      // como id. Es lo que impide duplicados y suplantaciones.
+      await assertSucceeds(
+        setDoc(doc(db(BOB), 'threads', 'hilo2', 'likes', BOB), {
+          userId: BOB,
+          createdAt: serverTimestamp(),
+        }),
+      );
     });
   });
 

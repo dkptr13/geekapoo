@@ -32,8 +32,6 @@ let disponibles = 0;
 let noDisponibles = 0;
 
 for (const obra of obras) {
-  if (!obra.elegido) continue;
-
   for (const fila of obra.filas ?? []) {
     const docId = `${obra.id}__${fila.platformId}__${fila.region}`;
     if (vistos.has(docId)) throw new Error(`Documento repetido: ${docId}`);
@@ -60,7 +58,7 @@ for (const obra of obras) {
   }
 }
 
-const obrasConFilas = obras.filter((o) => o.elegido && (o.filas?.length ?? 0) > 0).length;
+const obrasConFilas = obras.filter((o) => (o.filas?.length ?? 0) > 0).length;
 console.log(`Obras con disponibilidad: ${obrasConFilas}/${obras.length}`);
 console.log(`Filas nuevas: ${vistos.size} (${disponibles} disponibles / ${noDisponibles} no disponibles)`);
 console.log(`Escrituras totales: ${writes.length} (${existentes.length} borrados + ${vistos.size} filas)`);

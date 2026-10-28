@@ -69,11 +69,23 @@ const fichas = (texto) => new Set(normaliza(texto).split(' ').filter(Boolean));
 function plataformaDePaquete(nombre, moneda) {
   const n = normaliza(nombre);
 
+  // Los canales se descartan antes de nada: "Crunchyroll Amazon Channel"
+  // es una suscripcion dentro de Prime Video, no Crunchyroll, y su
+  // `standardWebURL` apunta a primevideo.com. Si se acepta, la ficha
+  // acaba diciendo "Crunchyroll disponible" con un enlace de Amazon.
+  if (n.includes('channel')) return '';
+
   if (n === 'netflix' || n === 'netflix standard with ads' || n === 'netflix basic with ads') {
     return 'netflix';
   }
-  if (n === 'crunchyroll' || n === 'crunchyroll amazon channel') return 'crunchyroll';
-  if (n === 'amazon prime video' || n === 'prime video') return 'amazon-prime-video';
+  if (n === 'crunchyroll') return 'crunchyroll';
+  if (
+    n === 'amazon prime video' ||
+    n === 'prime video' ||
+    n === 'amazon prime video with ads'
+  ) {
+    return 'amazon-prime-video';
+  }
   if (n === 'disney plus' || n === 'disney+') return 'disney-plus';
   if (n === 'max' || n === 'hbo max') return 'max';
   if (n === 'apple tv plus' || n === 'apple tv+') {

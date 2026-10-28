@@ -1,18 +1,15 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
-  increment,
-  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
-  writeBatch,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
 import { esUrlDeGifValida } from './gifs';
-import { toggleLike } from './firestoreUtils';
 import { dimsValidas, type ImageDims } from '../utils/imagenes';
 import type { Comment, GifAttachment } from '../types';
 
@@ -25,12 +22,6 @@ import type { Comment, GifAttachment } from '../types';
 export const COMMENTS = 'comments';
 
 const MAX_BODY = 5000;
-
-/** Colecciones cuyo documento lleva contador de comentarios. */
-const COUNTER_TARGETS: Partial<Record<Comment['targetType'], string>> = {
-  thread: 'threads',
-  anime: 'animes',
-};
 
 /**
  * Comprueba que el GIF venga de verdad de GIPHY o de Tenor.
@@ -70,9 +61,12 @@ export interface NewCommentInput {
 }
 
 /**
- * Crea un comentario y sube el contador de comentarios del objetivo
- * en un único lote (writeBatch), de forma que no puedan quedar
- * desincronizados: o se escriben ambos, o ninguno.
+ * Crea un comentario.
+ *
+ * El contador `commentsCount` del hilo o del anime NO se toca aquí:
+ * lo mantiene la Cloud Function `onCommentCreated` a partir del
+ * documento recién creado. Si lo escribiera el cliente, cualquiera
+ * podría inflarlo desde la consola sin publicar nada.
  */
 export async function createComment(input: NewCommentInput): Promise<string> {
   const body = input.body.trim();
@@ -108,8 +102,6 @@ export async function createComment(input: NewCommentInput): Promise<string> {
     targetId: input.targetId,
     parentId: input.parentId,
     body,
-    likesCount: 0,
-    likedBy: [],
     createdAt: serverTimestamp(),
   };
 
@@ -125,28 +117,12 @@ export async function createComment(input: NewCommentInput): Promise<string> {
   }
   if (gif) payload.gif = gif;
 
-  const batch = writeBatch(db);
-  batch.set(ref, payload);
-
-  const counterCollection = COUNTER_TARGETS[input.targetType];
-  if (counterCollection) {
-    // `increment` suma en el servidor: no se pierde si dos personas
-    // comentan a la vez (el código anterior leía y escribía el valor).
-    batch.set(
-      doc(db, counterCollection, input.targetId),
-      { commentsCount: increment(1) },
-      { merge: true },
-    );
-  }
-
-  await batch.commit();
+  await setDoc(ref, payload);
 
   return ref.id;
 }
 
-export async function toggleCommentLike(commentId: string, uid: string): Promise<boolean> {
-  return toggleLike(doc(db, COMMENTS, commentId), uid, 'likesCount');
-}
+export { toggleCommentLike } from './likes';
 
 export async function updateCommentBody(commentId: string, body: string): Promise<void> {
   const clean = body.trim();
@@ -167,15 +143,12 @@ export async function updateCommentBody(commentId: string, body: string): Promis
  * Lo pueden hacer tres, y las reglas lo comprueban: quien lo
  * escribió, el admin y el moderador.
  *
- * ── El contador del hilo baja ─────────────────────────────
+ * ── El contador del hilo lo baja la Cloud Function ──────────
  *
- * El número de comentarios de la tarjeta se guarda DENRO del
- * hilo, así que borrar un comentario sin tocarlo dejaba el
- * contador marcando más comentarios de los que hay. Por eso la
- * lectura y el borrado van en la misma transacción: con dos
- * escrituras sueltas, un fallo entre medias dejaba el número
- * desfasado para siempre (y no hay ninguna forma de
- * recalcularlo desde el cliente).
+ * Antes se leía el hilo y se restaba uno en la misma transacción.
+ * Ahora `commentsCount` es un campo que solo mantiene el servidor:
+ * `onCommentDeleted` apunta en un registro qué comentarios llegaron
+ * a contarse y resta una sola vez, aunque el trigger se repita.
  *
  * ── Las respuestas NO se borran ────────────────────────────
  *
@@ -187,50 +160,23 @@ export async function updateCommentBody(commentId: string, body: string): Promis
  * quiere así (puede borrar las respuestas una a una, que es lo
  * que hace el equipo desde el panel).
  *
- * Devuelve de qué hilo era, para que quien lo llama pueda
+ * Devuelve de qué contenido era, para que quien lo llama pueda
  * cerrar el formulario de respuesta si estaba abierto.
  */
 export async function deleteComment(
   commentId: string,
 ): Promise<{ targetType?: string; targetId?: string }> {
   const ref = doc(db, COMMENTS, commentId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return {};
 
-  return runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    if (!snap.exists()) return {};
+  const data = snap.data() ?? {};
+  const targetType = data.targetType as string | undefined;
+  const targetId = data.targetId as string | undefined;
 
-    const data = snap.data() ?? {};
-    const targetType = data.targetType as string | undefined;
-    const targetId = data.targetId as string | undefined;
+  await deleteDoc(ref);
 
-    // ── Todas las LECTURAS antes de la primera escritura ──────
-    //
-    // Firestore exige que en una transacción no se lea después de
-    // haber escrito nada ("Firestore transactions require all reads
-    // to be executed before all writes"), y lo lanza el propio SDK
-    // antes de tocar el servidor. Por eso el hilo se lee AQUÍ, con
-    // el `tx.delete` todavía sin pasar: al revés, el borrado de
-    // cualquier comentario en un hilo falla siempre con
-    // "invalid-argument", y como el error no menciona los
-    // permisos parece un fallo de la regla del moderador.
-    //
-    // Nada de esto es culpa de quien borra: le pasa igual al autor
-    // que al admin, y por eso las reglas de seguridad ya lo
-    // permitían sin problema.
-    const threadRef =
-      targetType === 'thread' && targetId ? doc(db, 'threads', targetId) : null;
-    const threadSnap = threadRef ? await tx.get(threadRef) : null;
-
-    // Y ahora sí, a escribir.
-    tx.delete(ref);
-
-    if (threadRef && threadSnap?.exists()) {
-      const actual = Number(threadSnap.data()?.commentsCount) || 0;
-      tx.update(threadRef, { commentsCount: Math.max(0, actual - 1) });
-    }
-
-    return { targetType, targetId };
-  });
+  return { targetType, targetId };
 }
 
 /**

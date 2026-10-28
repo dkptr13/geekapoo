@@ -1,9 +1,26 @@
 // ======================================================
-// CREAR DISPONIBILIDAD REGIONAL DE TODAS LAS OBRAS
+// OBSOLETO: NO EJECUTAR
 // ======================================================
 //
-//   node scripts/crear-disponibilidad.mjs
+// Este script inventaba la disponibilidad por regla de plataforma
+// ("Crunchyroll está en los diez países", "Hulu en Estados Unidos"...).
+// Ese es justo el origen de los datos falsos: Akame ga Kill salía en
+// Crunchyroll España sin estarlo.
 //
+// La disponibilidad real vive en `streamingAvailability` y sale de las
+// ofertas de JustWatch, contrastadas con Crunchyroll y Netflix. Volver a
+// ejecutar esto sustituiría datos comprobados por inventados.
+//
+//   node scripts/crear-disponibilidad.mjs   ->  se niega a ejecutarse
+//
+// ======================================================
+
+console.error(
+  'crear-disponibilidad.mjs está obsoleto: genera disponibilidad inventada.\n' +
+    'Los datos reales ya están en Firestore (ofertas de JustWatch verificadas).',
+);
+process.exit(1);
+
 // ── POR QUÉ EXISTE ───────────────────────────────────────
 //
 // La wiki «Dónde verla» NO usa `animes/{id}.streaming` como

@@ -1,0 +1,1341 @@
+[
+ {
+  "id": 356,
+  "idMal": 356,
+  "title": {
+   "romaji": "Fate/stay night",
+   "english": "Fate/stay night",
+   "native": "Fate/stay night"
+  },
+  "format": "TV",
+  "episodes": 24,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2006,
+  "startDate": {
+   "year": 2006,
+   "month": 1,
+   "day": 7
+  },
+  "endDate": {
+   "year": 2006,
+   "month": 6,
+   "day": 17
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "NBCUniversal Entertainment Japan"
+    },
+    {
+     "name": "Studio DEEN"
+    },
+    {
+     "name": "Frontier Works"
+    },
+    {
+     "name": "TBS"
+    },
+    {
+     "name": "Sentai Filmworks"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "CREi"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy",
+   "Romance",
+   "Supernatural"
+  ],
+  "averageScore": 69,
+  "popularity": 191383,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx356-mTpMvtillumS.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/356-0VzS7BcObayT.jpg",
+  "description": "Raised by a mysterious sorcerer after the death of his parents in a catastrophic fire, Shirou Emiya has only just begun to learn small tidbits of magic. When he is caught in a battle between two powerful Magi, however, he ends up performing a spell above his expected ability, accidentally summoning a beautiful woman knight to protect him.<br>\n<br>\nShirou is thus unwillingly thrust into the competition known as the Holy Grail War where Seven Magi called Masters, together with their spirit partners called Servants, fight to acquire a powerful artifact said to grant every wish.<br><br>\n\n<i>Note: Based on the first route from TYPE-MOON's visual novel of the same name, while incorporating elements of both the second and third routes.</i>"
+ },
+ {
+  "id": 10087,
+  "idMal": 10087,
+  "title": {
+   "romaji": "Fate/Zero",
+   "english": "Fate/Zero",
+   "native": "Fate/Zero"
+  },
+  "format": "TV",
+  "episodes": 13,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2011,
+  "startDate": {
+   "year": 2011,
+   "month": 10,
+   "day": 2
+  },
+  "endDate": {
+   "year": 2011,
+   "month": 12,
+   "day": 25
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "ufotable"
+    },
+    {
+     "name": "Nitroplus"
+    },
+    {
+     "name": "Aniplex of America"
+    },
+    {
+     "name": "Seikaisha"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "ufotable"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Drama",
+   "Fantasy",
+   "Supernatural"
+  ],
+  "averageScore": 81,
+  "popularity": 351942,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx10087-M4Hd9qrHGrXk.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/10087-32MFY9VnJQ7I.jpg",
+  "description": "With the promise of granting any wish, the omnipotent Holy Grail triggered three wars in the past, each too cruel and fierce to leave a victor. In spite of that, the wealthy Einzbern family is confident that the Fourth Holy Grail War will be different; namely, with a vessel of the Holy Grail now in their grasp. Solely for this reason, the much hated \"Magus Killer\" Kiritsugu Emiya is hired by the Einzberns, with marriage to their only daughter Irisviel as binding contract.\n<br><br>\nKiritsugu now stands at the center of a cutthroat game of survival, facing off against six other participants, each armed with an ancient familiar, and fueled by unique desires and ideals. Accompanied by his own familiar, Saber, the notorious mercenary soon finds his greatest opponent in Kirei Kotomine, a priest who seeks salvation from the emptiness within himself in pursuit of Kiritsugu.\n<br><br>\nBased on the light novel written by Gen Urobuchi, <i>Fate/Zero</i> depicts the events of the Fourth Holy Grail War—10 years prior to <i>Fate/stay night</i>. Witness a battle royale in which no one is guaranteed to survive.\n<br><br>\n(Source: MAL Rewrite)\n<br><br>\n<i>Note: The first episode aired with a runtime of ~48 minutes as opposed to the standard 24 minute long episode.</i>"
+ },
+ {
+  "id": 11741,
+  "idMal": 11741,
+  "title": {
+   "romaji": "Fate/Zero 2nd Season",
+   "english": "Fate/Zero Season 2",
+   "native": "Fate/Zero 2ndシーズン"
+  },
+  "format": "TV",
+  "episodes": 12,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2012,
+  "startDate": {
+   "year": 2012,
+   "month": 4,
+   "day": 8
+  },
+  "endDate": {
+   "year": 2012,
+   "month": 6,
+   "day": 24
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "ufotable"
+    },
+    {
+     "name": "Nitroplus"
+    },
+    {
+     "name": "Aniplex of America"
+    },
+    {
+     "name": "Seikaisha"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "ufotable"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Drama",
+   "Fantasy",
+   "Supernatural"
+  ],
+  "averageScore": 84,
+  "popularity": 244631,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx11741-oEy1fJHYm2zJ.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/11741-TWwZCgsK5aXh.jpg",
+  "description": "As the Fourth Holy Grail War rages on with no clear victor in sight, the remaining Servants and their Masters are called upon by Church supervisor Risei Kotomine, in order to band together and confront an impending threat that could unravel the Grail War and bring about the destruction of Fuyuki City. The uneasy truce soon collapses as Masters demonstrate that they will do anything in their power, no matter how despicable, to win.\n<br><br>\nSeeds of doubt are sown between Kiritsugu Emiya and Saber, his Servant, as their conflicting ideologies on heroism and chivalry clash. Meanwhile, an ominous bond forms between Kirei Kotomine, who still seeks to find his purpose in life, and one of the remaining Servants. As the countdown to the end of the war reaches zero, the cost of winning begins to blur the line between victory and defeat.\n<br><br>\n(Source: MAL Rewrite)"
+ },
+ {
+  "id": 19603,
+  "idMal": 22297,
+  "title": {
+   "romaji": "Fate/stay night: Unlimited Blade Works",
+   "english": "Fate/stay night: Unlimited Blade Works",
+   "native": "Fate/stay night [Unlimited Blade Works]"
+  },
+  "format": "TV",
+  "episodes": 13,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2014,
+  "startDate": {
+   "year": 2014,
+   "month": 10,
+   "day": 5
+  },
+  "endDate": {
+   "year": 2014,
+   "month": 12,
+   "day": 28
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "ufotable"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "Aniplex of America"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "Studio Mausu"
+    },
+    {
+     "name": "ufotable"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy",
+   "Supernatural"
+  ],
+  "averageScore": 80,
+  "popularity": 268675,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx19603-ycT0pyEgDVQu.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/19603.jpg",
+  "description": "Fuyuki City - a city surrounded by the sea and mountains becomes the setting for an ancient ritual. Seven masters are given control of heroic spirits in order to realize the mythical Holy Grail, which is said to grant its owner any wish. These heroic spirits or servants represent legendary heroes of various classes: \"Saber,\" \"Lancer,\" \"Archer,\" \"Rider,\" \"Caster,\" \"Assassin,\" and \"Berserker.\" Each master will enter into a contract with their chosen servant and battle the others to the death until only one pair remains... This is the \"Holy Grail War.\"<br>\n<br>\nThe young and capable mage, Rin Tohsaka, prepares for her long-awaited Fifth Holy Grail War to begin... With her servant Archer, Rin enters the Holy Grail War as the sole heir to the prestigious Tohsaka family after her father's death. But when Shirou Emiya, a boy from Rin's school, unwittingly becomes a Master and is fatally wounded in battle, she has no choice but to save him. With Shirou and his servant Saber, Rin sets out to strike down the conspiracies surrounding the Holy Grail War. Will the Holy Grail bless Rin and Shirou's path toward victory or will they be cursed with defeat?<br>\n<br>\n(Source: Aniplex of America)<br>\n<br>\n<i>Notes:<br>\n- Includes Prologue.<br>\n- The first, second and last episodes aired with a runtime of ~48 minutes as opposed to the standard 24 minute long episode.<br>\n- Based on the second route from TYPE-MOON's visual novel, Fate/stay night.\n</i>"
+ },
+ {
+  "id": 20791,
+  "idMal": 25537,
+  "title": {
+   "romaji": "Fate/stay night [Heaven's Feel] I. presage flower",
+   "english": "Fate/stay night [Heaven's Feel] I. presage flower",
+   "native": "Fate/stay night[Heaven's Feel] Ⅰ.presage flower"
+  },
+  "format": "MOVIE",
+  "episodes": 1,
+  "duration": 120,
+  "status": "FINISHED",
+  "seasonYear": 2017,
+  "startDate": {
+   "year": 2017,
+   "month": 10,
+   "day": 14
+  },
+  "endDate": {
+   "year": 2017,
+   "month": 10,
+   "day": 14
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "ufotable"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "KADOKAWA"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "ufotable"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy",
+   "Psychological",
+   "Supernatural"
+  ],
+  "averageScore": 80,
+  "popularity": 147480,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20791-yPCX5GJuMH2k.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/20791-oJEIboUcTf4o.jpg",
+  "description": "10 years after the Holy Grail War—a battle waged by Masters and Servants over the wish-granting container, the Holy Grail—another war breaks out in Fuyuki City. Shirou Emiya—the adopted son of Kiritsugu Emiya, a participant of the previous Holy Grail War—is leading a peaceful life with people dear to him. Especially close to him is his underclassman Sakura Matou, who brings kindness into his otherwise lonely life. But once the Holy Grail War starts, Shirou’s peaceful life is sundered.<br>\n<br>\n(Source: Aniplex of America)<br>\n<br>\n<i>Note: Based on the third route from TYPE-MOON's visual novel, Fate/stay night.</i>"
+ },
+ {
+  "id": 21718,
+  "idMal": 33049,
+  "title": {
+   "romaji": "Fate/stay night [Heaven's Feel] II. lost butterfly",
+   "english": "Fate/stay night [Heaven's Feel] II. lost butterfly",
+   "native": "Fate/stay night[Heaven's Feel] ⅠⅠ.lost butterfly"
+  },
+  "format": "MOVIE",
+  "episodes": 1,
+  "duration": 117,
+  "status": "FINISHED",
+  "seasonYear": 2019,
+  "startDate": {
+   "year": 2019,
+   "month": 1,
+   "day": 12
+  },
+  "endDate": {
+   "year": 2019,
+   "month": 1,
+   "day": 12
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "ufotable"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "Aniplex of America"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "KADOKAWA"
+    },
+    {
+     "name": "ufotable"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy",
+   "Psychological",
+   "Romance",
+   "Supernatural",
+   "Thriller"
+  ],
+  "averageScore": 84,
+  "popularity": 132128,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21718-Hjj26Sapx1bd.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/21718-7NXra2yezc9T.jpg",
+  "description": "Shirou Emiya made his choice: to keep fighting, and to protect Sakura Matou. Due to the participation of Zouken Matou in the Holy Grail War, and his summoning of the Servant True Assassin, things begin to distort, steadily worsening day by day. Resolved to protect Sakura and not betray her, Shirou refuses to leave the battle. While Sakura worries about Shirou, she also finds herself entangled in her own fate as a mage. However, their fervent wishes are about be crushed by the mysterious black shadow that covers the city, killing Masters and Servants one by one…<br>\n<br>\n(Source: Aniplex of America)"
+ },
+ {
+  "id": 21719,
+  "idMal": 33050,
+  "title": {
+   "romaji": "Fate/stay night [Heaven's Feel] III. spring song",
+   "english": "Fate/stay night [Heaven’s Feel] III. spring song",
+   "native": "Fate/stay night[Heaven's Feel] ⅠⅠⅠ.spring song"
+  },
+  "format": "MOVIE",
+  "episodes": 1,
+  "duration": 122,
+  "status": "FINISHED",
+  "seasonYear": 2020,
+  "startDate": {
+   "year": 2020,
+   "month": 8,
+   "day": 15
+  },
+  "endDate": {
+   "year": 2020,
+   "month": 8,
+   "day": 15
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "ufotable"
+    },
+    {
+     "name": "KADOKAWA"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "Aniplex of America"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "ufotable"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Drama",
+   "Fantasy",
+   "Psychological",
+   "Supernatural",
+   "Thriller"
+  ],
+  "averageScore": 85,
+  "popularity": 120818,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21719-MSdTlkno0Z0u.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/21719-D361L20cvUXL.jpg",
+  "description": "To save the girl, to enact the justice he's chosen...The young man will no longer turn a blind eye to\nthe truth. Mages (Masters) and Heroic Spirits (Servants) work together in the battles of the Holy\nGrail War, a fight for an omnipotent wish-granting container called the Holy Grail. However, this\nwar has become horribly twisted.<br>\n<br>\nA young woman named Sakura Matou, with the sins she has committed, drowns in the murky\ndarkness. A young man named Shirou Emiya, who vowed to protect Sakura, works together with\nRin Tohsaka and throws himself into the raging battle to put a stop to the Holy Grail War. Illyasviel\nvon Einzbern, as one of the few who knows the truth behind the conflict, confronts her own fate,\nwhile Zouken Matou uses Sakura to try to fulfill his own desires.<br>\n<br>\nWill the young man’s wish reach her even as he challenges fate itself, battling against the rising\ntide? The Holy Grail War is coming to an end... The final battle is about to begin.<br>\n<br>\n(Source: Aniplex of America)"
+ },
+ {
+  "id": 98035,
+  "idMal": 34662,
+  "title": {
+   "romaji": "Fate/Apocrypha",
+   "english": "Fate/Apocrypha",
+   "native": "Fate/Apocrypha"
+  },
+  "format": "TV",
+  "episodes": 25,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2017,
+  "startDate": {
+   "year": 2017,
+   "month": 7,
+   "day": 2
+  },
+  "endDate": {
+   "year": 2017,
+   "month": 12,
+   "day": 31
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "A-1 Pictures"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "Aniplex of America"
+    },
+    {
+     "name": "Half H.P Studio"
+    },
+    {
+     "name": "Notes"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Drama",
+   "Fantasy",
+   "Supernatural"
+  ],
+  "averageScore": 70,
+  "popularity": 133657,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx98035-rdkjeqUUsG2j.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/98035-hbrEf8ulDnAe.jpg",
+  "description": "There was once a Holy Grail War waged by Mages and Heroic Spirits in a town of Fuyuki. However, one Mage took advantage of the chaos of World War II to steal a Holy Grail. Several decades have passed, and the Yggdmillennia family, who took upon the Holy Grail as its symbol, defected from the Mages' Association. Furious, the Association sent forces to deal with the Yggdmillennia, but were defeated. With the Holy Grail system changed, war at an unprecedented scale breaks out.\n<br><br>\n(Source: Anime News Network)"
+ },
+ {
+  "id": 14829,
+  "idMal": 14829,
+  "title": {
+   "romaji": "Fate/kaleid liner Prisma☆Illya",
+   "english": "Fate/kaleid liner Prisma☆Illya",
+   "native": "Fate/kaleid liner プリズマ☆イリヤ"
+  },
+  "format": "ONA",
+  "episodes": 10,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2013,
+  "startDate": {
+   "year": 2013,
+   "month": 7,
+   "day": 6
+  },
+  "endDate": {
+   "year": 2013,
+   "month": 9,
+   "day": 7
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "SILVER LINK."
+    },
+    {
+     "name": "Sentai Filmworks"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "Lantis"
+    },
+    {
+     "name": "Kadokawa Shoten"
+    },
+    {
+     "name": "AT-X"
+    },
+    {
+     "name": "DAX Production"
+    },
+    {
+     "name": "Dwango"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Comedy",
+   "Ecchi",
+   "Fantasy",
+   "Mahou Shoujo"
+  ],
+  "averageScore": 67,
+  "popularity": 71786,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx14829-PZVOr1ZxwOJV.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/14829-BkeJaqab8coy.jpg",
+  "description": "Illyasviel von Einzbern’s normal life is suddenly halted by the Kaleidostick Ruby, a magical wand on the run from her former master, who instantly decides that little Illya has all the right stuff to become the next great magical girl. However, Ruby’s previous owner Rin Tohsaka isn’t exactly thrilled to be de-wanded, especially since she’s just accepted an assignment to collect the seven legendary Class Cards. It seems the only solution is for Illya to take up the task and learn the ropes under Rin’s supervision. Meanwhile, a girl named Miyu has been chosen by the Kaleidostick Sapphire as HER new master, much to the irritation of Sapphire’s previous master, Rin’s arch rival Luviagelita Edelfelt! Exactly what kind of plan are the wands conjuring up?<br>\n<br>\n(Source: Sentai Filmworks)<br>\n<br>\n<i>Note: The show streamed in advance on Niconico Live on July 6, 2013 in Japan. The regular TV broadcast started on July 13, 2013."
+ },
+ {
+  "id": 20467,
+  "idMal": 20509,
+  "title": {
+   "romaji": "Fate/kaleid liner Prisma☆Illya 2wei!",
+   "english": "Fate/kaleid liner Prisma☆Illya 2wei!",
+   "native": "Fate/kaleid linerプリズマ☆イリヤ ツヴァイ！"
+  },
+  "format": "TV",
+  "episodes": 10,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2014,
+  "startDate": {
+   "year": 2014,
+   "month": 7,
+   "day": 10
+  },
+  "endDate": {
+   "year": 2014,
+   "month": 9,
+   "day": 11
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "SILVER LINK."
+    },
+    {
+     "name": "Sentai Filmworks"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Comedy",
+   "Ecchi",
+   "Fantasy",
+   "Mahou Shoujo"
+  ],
+  "averageScore": 69,
+  "popularity": 45257,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx20467-GwWFUCzsiUF7.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/20467-8yzwBPEBEYeC.jpg",
+  "description": "With great powers come great responsibilities, and that includes cleaning up the aftermath of your previous adventures. Which means that, instead of getting a break after saving the world, newly changed magical girls Illya and Miyu have to help deal with the side-effects caused by the sealing of the Ley Cards. Still, that shouldn't be too hard, right? Wrong! Not only are the ley lines failing, but to make matters worse, Illya somehow ends up with a magical clone… and that sinister clone has plans of her own! Worse yet, since the \"dark\" version of herself is drawing its power from the same source as our heroine, Illya's own powers are being reduced proportionately. These are definitely not the kind of problems that the average girl should have to deal with.\n<br><br>\n(Source: Sentai Filmworks)"
+ },
+ {
+  "id": 20845,
+  "idMal": 27525,
+  "title": {
+   "romaji": "Fate/kaleid liner Prisma☆Illya 2wei Herz!",
+   "english": "Fate/kaleid liner Prisma☆Illya 2wei! Herz!",
+   "native": "Fate/kaleid liner プリズマ☆イリヤ ツヴァイ ヘルツ！"
+  },
+  "format": "TV",
+  "episodes": 10,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2015,
+  "startDate": {
+   "year": 2015,
+   "month": 7,
+   "day": 25
+  },
+  "endDate": {
+   "year": 2015,
+   "month": 9,
+   "day": 26
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "SILVER LINK."
+    },
+    {
+     "name": "Sentai Filmworks"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Comedy",
+   "Ecchi",
+   "Fantasy",
+   "Mahou Shoujo"
+  ],
+  "averageScore": 69,
+  "popularity": 39330,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20845-4iTgYkjPsUYh.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/20845-iiodGMDGio38.jpg",
+  "description": "Illyasviel von Einzbern's life has become ridiculously complicated since the Kaleidostick Ruby convinced her to become a magical girl and join the quest for collecting the seven Class Cards. Since then, almost every day has brought a new surprise, from gaining new friends and partners like Miyu Edelfelt, to encountering her own magical twin! One would think Illya deserves a little time off, right? No such luck: a trip to the beach quickly turns into a magical quest, and Illya finds herself caught in a string of magical feuds, encounters with love potions, an excursion into the world of \"boys love\" comics (plus the women who read them), and half a dozen other delirious diversions. However, that's only the warm-up for what might be her final mission: recovering the long-lost Eighth Card!\n<br><br>\n(Source: Sentai Filmworks)"
+ },
+ {
+  "id": 21379,
+  "idMal": 31706,
+  "title": {
+   "romaji": "Fate/kaleid liner Prisma☆Illya 3rei!!",
+   "english": "Fate/kaleid liner Prisma☆Illya 3rei!!",
+   "native": "Fate/kaleid liner プリズマ☆イリヤ ドライ!!"
+  },
+  "format": "TV",
+  "episodes": 12,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2016,
+  "startDate": {
+   "year": 2016,
+   "month": 7,
+   "day": 6
+  },
+  "endDate": {
+   "year": 2016,
+   "month": 9,
+   "day": 21
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "SILVER LINK."
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Comedy",
+   "Ecchi",
+   "Fantasy",
+   "Mahou Shoujo"
+  ],
+  "averageScore": 73,
+  "popularity": 37594,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21379-RDJgELNOIGDS.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/21379-a3qpVhkekzks.jpg",
+  "description": "Illya and the gang have finished their battle against the heroic spirit residing in the eighth class card. They're back in vacation mode again, looking to make the most of what they have left of summer break. But their hopes get crushed in the blink of an eye. An all-too-unrealistic silhouette appears before them when they go to investigate the strange event at Mount Enzō. After a short skirmish, the entire space ends up being warped. Illya wakes up in a wintry Fuyuki City... in a parallel world. This is the world where Miyu was born and raised.\n<br><br>\n(Source: Anime News Network)"
+ },
+ {
+  "id": 97757,
+  "idMal": 34100,
+  "title": {
+   "romaji": "Fate/kaleid liner Prisma☆Illya: Sekka no Chikai",
+   "english": "Fate/kaleid liner Prisma☆Illya: Vow in the Snow",
+   "native": "Fate/kaleid liner プリズマ☆イリヤ 雪下の誓い"
+  },
+  "format": "MOVIE",
+  "episodes": 1,
+  "duration": 89,
+  "status": "FINISHED",
+  "seasonYear": 2017,
+  "startDate": {
+   "year": 2017,
+   "month": 8,
+   "day": 26
+  },
+  "endDate": {
+   "year": 2017,
+   "month": 8,
+   "day": 26
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "SILVER LINK."
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Drama",
+   "Fantasy",
+   "Psychological"
+  ],
+  "averageScore": 78,
+  "popularity": 31774,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/b97757-BWFRkX81LpGS.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/97757-NAbK3w90qKOq.jpg",
+  "description": "Despite his adoptive father's warnings that the girl found in the remnants of a destroyed city is too dangerous to be considered anything other than a tool or weapon, Shirou Emiya comes to treat Miyu as a younger sister. But when Shirou relaxes his guard and Miyu starts normal school, the Ainsworth family and their agents swoop in, kidnapping the girl with the goal of sacrificing her! Faced with the realization that Miyu's ability to do good will always be equaled by her capacity for destruction, Shirou must attempt to both rescue his adopted sister, and decide how to confront the threat that her powers will always pose.<br>\n<br>\n(Source: Sentai Filmworks)"
+ },
+ {
+  "id": 118743,
+  "idMal": 42030,
+  "title": {
+   "romaji": "Fate/kaleid liner Prisma☆Illya: Licht - Namae no Nai Shoujo",
+   "english": "Fate/kaleid liner Prisma☆Illya: Licht Nameless Girl",
+   "native": "Fate/kaleid liner プリズマ☆イリヤ Licht 名前の無い少女"
+  },
+  "format": "MOVIE",
+  "episodes": 1,
+  "duration": 94,
+  "status": "FINISHED",
+  "seasonYear": 2021,
+  "startDate": {
+   "year": 2021,
+   "month": 8,
+   "day": 27
+  },
+  "endDate": {
+   "year": 2021,
+   "month": 8,
+   "day": 27
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "SILVER LINK."
+    },
+    {
+     "name": "AT-X"
+    },
+    {
+     "name": "Bandai Namco Arts"
+    },
+    {
+     "name": "Kadokawa Media House"
+    },
+    {
+     "name": "KADOKAWA"
+    },
+    {
+     "name": "TOKYO MX"
+    },
+    {
+     "name": "Sentai Filmworks"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Drama",
+   "Fantasy",
+   "Mahou Shoujo"
+  ],
+  "averageScore": 71,
+  "popularity": 15585,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx118743-T2Zm7kA33pnj.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/118743-5ezkCHxE87zf.jpg",
+  "description": "The world is dying, no longer able to support life. The Ainsworth family can use the Holy Grail to save humanity, but the price of salvation is sacrifice of the magical girl Miyu — but Miyu’s brother, Shirou, won’t let them have her without a fight. Now it’s up to Illya to step in and find a solution that will save not only Miyu, but the entire world for impending doom. But when the price for the world's salvation is the life of a single, innocent girl, what will Illya choose?<br>\n<br>\n(Source: Sentai Filmworks)"
+ },
+ {
+  "id": 21717,
+  "idMal": 33047,
+  "title": {
+   "romaji": "Fate/EXTRA Last Encore",
+   "english": "Fate/EXTRA Last Encore",
+   "native": "Fate/EXTRA Last Encore"
+  },
+  "format": "TV",
+  "episodes": 13,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2018,
+  "startDate": {
+   "year": 2018,
+   "month": 1,
+   "day": 28
+  },
+  "endDate": {
+   "year": 2018,
+   "month": 7,
+   "day": 29
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Shaft"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "Notes"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy",
+   "Psychological"
+  ],
+  "averageScore": 61,
+  "popularity": 63103,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx21717-2gU0L4IvrUVC.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/21717-5IX8Mc32IBG1.jpg",
+  "description": "Waking up in a strange virtual world with no recollection of the past, Hakuno finds himself forced to fight for survival in a war he does not understand for a prize beyond value; the opportunity to have one's wish granted. With only an enigmatic \"Servant\" by his side, Hakuno Kishinami will have to face both friends and foes in battles to the death in order to not only gain possession of a mysterious object known as the \"Holy Grail,\" but also to find the answer to the most important question of all: \"Who am I?\"<br><br>\n\n\n<i>Notes: \n<br>\n- Includes episodes 11-13, Illustrias Geocentric Theory. \n<br>\n- The last episode aired with a runtime of 48 minutes as opposed to the standard 24.\n</i>"
+ },
+ {
+  "id": 97815,
+  "idMal": 34321,
+  "title": {
+   "romaji": "Fate/Grand Order: First Order",
+   "english": "Fate/Grand Order: First Order",
+   "native": "Fate/Grand Order -First Order-"
+  },
+  "format": "SPECIAL",
+  "episodes": 1,
+  "duration": 74,
+  "status": "FINISHED",
+  "seasonYear": 2016,
+  "startDate": {
+   "year": 2016,
+   "month": 12,
+   "day": 31
+  },
+  "endDate": {
+   "year": 2016,
+   "month": 12,
+   "day": 31
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Lay-duce"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "Aniplex of America"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy"
+  ],
+  "averageScore": 65,
+  "popularity": 72270,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx97815-NnWheNnaKCmS.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/97815-SV1vR4GlLRIq.jpg",
+  "description": "The story is set in the year 2015, during the final era over which magic still held sway. The humanity survival and security organization Chaldea was established to observe the world that can only be seen by magic and the world that can only be measured by science — as well as to prevent the final extinction of mankind.<br><br>\n\nThanks to the efforts of many researchers, the path of human history has been ensured for 100 years into the future. However, without warning, the realm of the future that was under constant observation by Chaldea vanished. The extinction of humanity in 2017 was observed — no, confirmed.<br><br>\n\nThe apparent cause of the extinction was in the Japanese city of Fuyuki in 2004. In that city, there was an \"unobservable realm\" which had never existed until now.<br><br>\n\nChaldea issued the Grand Order for a \"Holy Grail Expedition,\" to investigate, uncover, and possibly destroy the singularity that apparently will cause the extinction of humanity.\n<br><br>\n(Source: Anime News Network)<br>\n<br>\n<i>Note: Based on the prologue chapter of the first arc in Fate/Grand Order, a Japanese smartphone role-playing game from TYPE-MOON’s Fate franchise.</i>"
+ },
+ {
+  "id": 103275,
+  "idMal": 38084,
+  "title": {
+   "romaji": "Fate/Grand Order: Zettai Majuu Sensen Babylonia",
+   "english": "Fate/Grand Order Absolute Demonic Front: Babylonia",
+   "native": "Fate/Grand Order -絶対魔獣戦線バビロニア-"
+  },
+  "format": "TV",
+  "episodes": 21,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2019,
+  "startDate": {
+   "year": 2019,
+   "month": 10,
+   "day": 5
+  },
+  "endDate": {
+   "year": 2020,
+   "month": 3,
+   "day": 21
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "CloverWorks"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "DELiGHTWORKS"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Adventure",
+   "Fantasy",
+   "Supernatural"
+  ],
+  "averageScore": 78,
+  "popularity": 84878,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx103275-SN0wwshS3tWA.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/103275-9vSzr7YzbXQb.jpg",
+  "description": "A seventh Singularity has been discovered in ancient Mesopotamia in the year 2655 B.C.<br>\n<br>\nThe land of Uruk, governed by the wise King Gilgamesh after he returned from his quest for immortality, was grand and prosperous until three goddesses and countless Demonic Beasts appeared. These enemies have brought Uruk to the brink of destruction. With a Rayshift—a method of traveling across both time and space—Fujimaru and Mash journey to the land of Uruk, where they encounter the fortress city of Uruk and the Absolute Demonic Front, where a terrible battle against the fearsome onslaught of the Demonic Beasts rages. There, the citizens of Uruk, who live their lives to the fullest despite facing an existential threat, continue to fight for their future. Deities and Demonic Beasts attack with terrifying force, and mankind pushes back with all its might... This is the era where humans and gods are destined to part ways.<br>\n<br>\nFujimaru and Mash, the pair who have fought through all six previous Singularities, embark on their final battle.<br>\n<br>\n(Source: Aniplex of America)<br>\n<br>\n<i>Note: Based on the seventh chapter of the first arc in Fate/Grand Order, a Japanese smartphone role-playing game from TYPE-MOON’s Fate franchise.</i>"
+ },
+ {
+  "id": 103276,
+  "idMal": 38085,
+  "title": {
+   "romaji": "Fate/Grand Order: Shinsei Entaku Ryouiki Camelot - Wandering; Agateram",
+   "english": "Fate/Grand Order Divine Realm of the Round Table: Camelot - Wandering; Agateram",
+   "native": "劇場版 Fate/Grand Order -神聖円卓領域キャメロット- 前編 Wandering; Agateram"
+  },
+  "format": "MOVIE",
+  "episodes": 1,
+  "duration": 89,
+  "status": "FINISHED",
+  "seasonYear": 2020,
+  "startDate": {
+   "year": 2020,
+   "month": 12,
+   "day": 5
+  },
+  "endDate": {
+   "year": 2020,
+   "month": 12,
+   "day": 5
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Production I.G"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "Signal.MD"
+    },
+    {
+     "name": "DELiGHTWORKS"
+    },
+    {
+     "name": "Notes"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy"
+  ],
+  "averageScore": 68,
+  "popularity": 37710,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx103276-7QhBwJs0O6Gi.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/103276-Al60Ha42yp1h.jpg",
+  "description": "The wandering knight, Bedivere, reaches the end of his journey.<br>\n<br>\nThe year is A.D. 1273 in Jerusalem.<br>\n<br>\nThe Holy Land has been transformed into a massive desert, the people have been forced out of their homes, and three major powers wage war with each other in this wasteland. The Knights of the Round Table come together to protect the Holy City and their Lion King. With the whole of his kingdom summoned into a strange land, Ozymandias, the Sun-King, quietly plots against the tyranny of this bizarre realm.<br>\n<br>\nThe mountain people, protectors of those who were stripped of their land, await their chance at rebellion. In order to fulfill his mission, Bedivere heads for the Holy City where the Lion King rules. There he meets humanity’s final Master, Ritsuka Fujimaru, who has come to Jerusalem, accompanied by his Demi-Servant, Mash Kyrielight, in their quest to restore human history.<br>\n<br>\nBedivere joins with Fujimaru and his companions to undertake this quest.<br>\n<br>\n(Source: Official Website)<br>\n<br>\n<i>Note: Based on the sixth chapter of the first arc in Fate/Grand Order, a Japanese smartphone role-playing game from TYPE-MOON’s Fate franchise.</i>"
+ },
+ {
+  "id": 103277,
+  "idMal": 38086,
+  "title": {
+   "romaji": "Fate/Grand Order: Shinsei Entaku Ryouiki Camelot - Paladin; Agateram",
+   "english": "Fate/Grand Order Divine Realm of the Round Table: Camelot - Paladin; Agateram",
+   "native": "劇場版Fate/Grand Order -神聖円卓領域キャメロット- 後編Paladin; Agateram"
+  },
+  "format": "MOVIE",
+  "episodes": 1,
+  "duration": 96,
+  "status": "FINISHED",
+  "seasonYear": 2021,
+  "startDate": {
+   "year": 2021,
+   "month": 5,
+   "day": 15
+  },
+  "endDate": {
+   "year": 2021,
+   "month": 5,
+   "day": 15
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Production I.G"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "DELiGHTWORKS"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy"
+  ],
+  "averageScore": 76,
+  "popularity": 32143,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx103277-BuAfaC3dKOUp.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/103277-aTpOhNwE5a94.jpg",
+  "description": "\"This time for sure, I will kill my king with my own hands...\"\n<br><br>\nJerusalem, 1273 A.D. Here, both the wandering knight, Bedivere, and Chaldea’s own expedition find the Sixth Singularity. The residents of this desolate land have been driven from their homes as three opposing powers battle for control of the land.\n<br><br>\nBedivere and company seek the help of the Mountain People to rise up against the Lion King and the Knights of the Round Table and combat their slaughter of innocents. After a deadly struggle and the loss of a dear friend, the group approaches Ozymandias, the Sun King, whose incredible power could help them turn the tables. In the halls of this great pharaoh, they desperately seek an alliance. Ozymandias, however, reveals the Lion King’s plans and refuses to assist in foiling them, instead wishing to protect his own people.\n<br><br>\nShaken to their core by the revelation of the Lion King’s true intentions, Bedivere and the Chaldean expedition decide to mount an attack on Camelot itself, hoping to put an end to the Lion King’s schemes.\n<br><br>\nAt last, the day of the final battle in the Holy City arrives.\n<br><br>\nWhat are the true intentions of the Lion King, who has become so cold-blooded and diabolical?<br>\nHow can humanity be saved from a world where ruin has been already promised?<br>\nWhat will become of Bedivere after shouldering the burden of a sin that can never be pardoned?\n<br><br>\n(Source: Official Website)"
+ },
+ {
+  "id": 116756,
+  "idMal": 41497,
+  "title": {
+   "romaji": "Fate/Grand Order: Shuukyoku Tokuiten - Kani Jikan Shinden Solomon",
+   "english": "Fate/Grand Order Final Singularity - Grand Temple of Time: Solomon",
+   "native": "Fate/Grand Order -終局特異点 冠位時間神殿ソロモン-"
+  },
+  "format": "MOVIE",
+  "episodes": 1,
+  "duration": 94,
+  "status": "FINISHED",
+  "seasonYear": 2021,
+  "startDate": {
+   "year": 2021,
+   "month": 7,
+   "day": 30
+  },
+  "endDate": {
+   "year": 2021,
+   "month": 7,
+   "day": 30
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "CloverWorks"
+    },
+    {
+     "name": "Aniplex"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy",
+   "Supernatural"
+  ],
+  "averageScore": 76,
+  "popularity": 31546,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx116756-jIU2HrnEsDjR.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/116756-Bb7BkeRMTpaP.jpg",
+  "description": "After battling their way through all seven Singularities, the Chaldea Security Organization has finally arrived at the endpoint of the Grand Order: The Final Singularity, Grand Temple of Time: Solomon.<br>\n<br>\nNow is the time to defeat the root of all evil, Solomon, the King of Mages. Now is the time to reclaim the future.<br>\n<br>\nWith the final operation looming large, Romani Archaman considers the choices he will soon have to make, Mash Kyrielight dwells on life’s limitations, and Fujimaru prepares to receive a new Mystic Code.<br>\n<br>\nAll their many encounters have led to this moment as Fujimaru and Mash at last embark on their final operation...<br>\n<br>\n(Source: Aniplex USA)<br>\n<br>\n<i>Note: Based on the eighth and final chapter of the first arc in Fate/Grand Order, a Japanese smartphone role-playing game from TYPE-MOON’s Fate franchise.</i>"
+ },
+ {
+  "id": 100855,
+  "idMal": 37033,
+  "title": {
+   "romaji": "Emiya-san Chi no Kyou no Gohan",
+   "english": "Today's Menu for the Emiya Family",
+   "native": "衛宮さんちの今日のごはん"
+  },
+  "format": "ONA",
+  "episodes": 13,
+  "duration": 14,
+  "status": "FINISHED",
+  "seasonYear": 2018,
+  "startDate": {
+   "year": 2018,
+   "month": 1,
+   "day": 25
+  },
+  "endDate": {
+   "year": 2019,
+   "month": 1,
+   "day": 1
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "ufotable"
+    }
+   ]
+  },
+  "genres": [
+   "Comedy",
+   "Slice of Life",
+   "Supernatural"
+  ],
+  "averageScore": 77,
+  "popularity": 49974,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx100855-r8cXwdCschnX.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/100855-wYz8OnxwESfV.jpg",
+  "description": "The story revolves around the delicious, beautiful cuisine that the Emiya family enjoy from day to day, no matter what the season is.\n<br><br>\n(Source: Anime News Network)"
+ },
+ {
+  "id": 106918,
+  "idMal": 38959,
+  "title": {
+   "romaji": "Lord El-Melloi II-sei no Jikenbo: \"Rail Zeppelin\" Grace note",
+   "english": "Lord El-Melloi II's Case Files {Rail Zeppelin} Grace note",
+   "native": "ロード・エルメロイⅡ世の事件簿 {魔眼蒐集列車} Grace note"
+  },
+  "format": "TV",
+  "episodes": 13,
+  "duration": 24,
+  "status": "FINISHED",
+  "seasonYear": 2019,
+  "startDate": {
+   "year": 2019,
+   "month": 7,
+   "day": 7
+  },
+  "endDate": {
+   "year": 2019,
+   "month": 9,
+   "day": 29
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "TROYCA"
+    },
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "Notes"
+    }
+   ]
+  },
+  "genres": [
+   "Drama",
+   "Fantasy",
+   "Mystery",
+   "Supernatural"
+  ],
+  "averageScore": 73,
+  "popularity": 54906,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx106918-4T0AdnCg8d64.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/106918-rfoPP8HknWAM.jpg",
+  "description": "Ten years after facing defeat in the Fourth Holy Grail War, Waver Velvet, now Lord El Melloi II, teaches classes at the Clock Tower—the center of education for mages. However, his new status as \"Lord\" comes with a caveat: obey the orders of Reines, the younger sister of the deceased Kayneth El Melloi, until she is old enough to rule the House of El Melloi.<br>\n<br>\nWaver, along with his mysterious apprentice Gray, takes on a series of cases assigned by Reines and the Mages Association. With each case proving to be more complex than the last, could there be more to the Clock Tower than meets the eye, and what secrets does Reines hide?\n"
+ },
+ {
+  "id": 166617,
+  "idMal": 55830,
+  "title": {
+   "romaji": "Fate/strange Fake",
+   "english": "Fate/strange Fake",
+   "native": "Fate/strange Fake"
+  },
+  "format": "TV",
+  "episodes": 13,
+  "duration": 25,
+  "status": "FINISHED",
+  "seasonYear": 2026,
+  "startDate": {
+   "year": 2026,
+   "month": 1,
+   "day": 3
+  },
+  "endDate": {
+   "year": 2026,
+   "month": 3,
+   "day": 28
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Aniplex"
+    },
+    {
+     "name": "A-1 Pictures"
+    },
+    {
+     "name": "Notes"
+    },
+    {
+     "name": "TOKYO MX"
+    },
+    {
+     "name": "BS11"
+    },
+    {
+     "name": "Contents Seed"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Adventure",
+   "Fantasy",
+   "Mystery",
+   "Supernatural"
+  ],
+  "averageScore": 82,
+  "popularity": 84739,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx166617-34fpC9y47tTx.png"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/166617-P4w3p0H4lE1O.jpg",
+  "description": "In a Holy Grail War, Mages (Masters) and their Heroic Spirits (Servants) fight for the control of the Holy Grail—an omnipotent wish-granting device said to fulfill any desire. Years have passed since the end of the Fifth Holy Grail War in Japan. Now, signs portend the emergence of a new Holy Grail in the western American city of Snowfield. Sure enough, Masters and Servants begin to gather... <br><br>\n\nA missing Servant class...<br>\nImpossible Servant summonings...<br>\nA nation shrouded in secrecy...<br>\nAnd a city created as a battleground.<br>\n<br>\nIn the face of such irregularities, the Holy Grail War is twisted and driven into the depth of madness. Let the curtain rise on a masquerade of humans and heroes, made to dance upon the stage of a false Holy Grail. <i>This is a Holy Grail War covered in lies.</i>\n<br><br>\n(Source: Official Site, Aniplex USA, edited)\n<br><br>\n<i>Notes:</i><br>\n•  <i>Special premiere of Episode 1 in its English Dub occurred in Los Angeles at the Fate 20th Anniversary Showcase event and as well through Crunchyroll’s YouTube Channel on November 23, 2024 before the Japanese television premiere.</i><br>\n•  <i>The Japanese advanced premiere occurred during the \"Fate New Year's Eve TV Special 2024\" on December 31, 2024.</i>"
+ },
+ {
+  "id": 12565,
+  "idMal": 12565,
+  "title": {
+   "romaji": "Fate/Prototype",
+   "english": null,
+   "native": "Fate/Prototype"
+  },
+  "format": "OVA",
+  "episodes": 1,
+  "duration": 12,
+  "status": "FINISHED",
+  "seasonYear": 2011,
+  "startDate": {
+   "year": 2011,
+   "month": 12,
+   "day": 31
+  },
+  "endDate": {
+   "year": 2011,
+   "month": 12,
+   "day": 31
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Lerche"
+    },
+    {
+     "name": "Notes"
+    }
+   ]
+  },
+  "genres": [
+   "Action",
+   "Fantasy",
+   "Romance"
+  ],
+  "averageScore": 63,
+  "popularity": 34013,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx12565-paVJhzp4BrF0.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/12565-7WWfYQ3rzTpv.jpg",
+  "description": "Coming from a renowned magus family, Ayaka Sajou is much expected to partake in the Holy Grail War. But ever since her father and sister's demise in the previous battle, she has grown gloomy and unwilling to involve herself in the matters that killed her loved ones. Soon, she finds herself in grave danger at the hands of a knight and ends up summoning her own Servant named Saber. With him by her side, Ayaka ultimately becomes an official participant in the war she initially wanted to avoid so much.<br>\n<br>\n(Source: MAL Rewrite)<br>\n<br>\n<i>Note: Fate/Prototype is a digest version of Kinoko Nasu's original concept for Fate/stay night.</i>"
+ },
+ {
+  "id": 10012,
+  "idMal": 10012,
+  "title": {
+   "romaji": "Carnival Phantasm",
+   "english": null,
+   "native": "カーニバル・ファンタズム"
+  },
+  "format": "OVA",
+  "episodes": 12,
+  "duration": 14,
+  "status": "FINISHED",
+  "seasonYear": 2011,
+  "startDate": {
+   "year": 2011,
+   "month": 8,
+   "day": 14
+  },
+  "endDate": {
+   "year": 2011,
+   "month": 12,
+   "day": 31
+  },
+  "studios": {
+   "nodes": [
+    {
+     "name": "Lerche"
+    },
+    {
+     "name": "Notes"
+    }
+   ]
+  },
+  "genres": [
+   "Comedy",
+   "Supernatural"
+  ],
+  "averageScore": 77,
+  "popularity": 59835,
+  "coverImage": {
+   "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx10012-MNLVctKXaIAf.jpg"
+  },
+  "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/10012-U5a5plRViPJF.jpg",
+  "description": "The Carnival Moment is a time when several narratives from Type-Moon's famous works intersect. It happens every decade in an entirely new dimension, and those who have never run into each other can meet. And what's more, all individuals involved gain the opportunity to fulfill any of their wishes! However, they will have to come a long way, as they will need to partake in contests.\n<br><br>\nIn <i>Carnival Phantasm</i>, various characters are put into situations that ridicule their own worlds. Nevertheless, they all have the same objective: to win the contests by any means necessary!\n<br><br>\n(Source: MAL Rewrite)\n<br><br>\n<i>Note: Adaptation of the \"Take Moon\" manga series by Type-Moon's Eri Takenashi, created to celebrate Type-Moon's 10th anniversary. It features parodies and new stories loosely based on Type-Moon's original works, including Fate/stay night, Tsukihime, Melty Blood, and more.</i>"
+ }
+]

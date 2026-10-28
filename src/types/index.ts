@@ -15,11 +15,12 @@ export type UserRole = 'user' | 'moderator' | 'admin';
 // REACCIONES MÚLTIPLES
 // ======================================================
 //
-// El "Me gusta" de siempre NO se toca: sigue viviendo en
-// `likedBy`/`likesCount` de cada documento, con su propio botón y
-// su propio contador. Las reacciones son un sistema NUEVO y
-// paralelo, para que los "me gusta" que ya tienen miles de
-// personas no se pierdan al migrarlos.
+// El "Me gusta" conserva su botón y su contador: en hilos y
+// comentarios cada persona tiene un documento propio
+// (`likes/{uid}`) y la Cloud Function mantiene `likedBy` y
+// `likesCount` en el padre. Las reacciones son un sistema
+// paralelo con su propia colección, para que los "me gusta" que
+// ya tienen miles de personas no se pierdan al migrarlos.
 //
 // Cada reacción es un documento suelto en la colección
 // `reactions`, con un id DETERMINISTA que se compone del

@@ -17,10 +17,13 @@ export * from './reactionLogic';
 // REACCIONES MÚLTIPLES
 // ======================================================
 //
-// Son un sistema PARALELO al "Me gusta". Los "me gusta" siguen
-// donde estaban (`likedBy` + `likesCount` en el documento, con
-// su botón de corazón y su propio contador), así que no se
-// pierde ni uno solo de los que ya había.
+// Son un sistema PARALELO al "Me gusta". El "me gusta" conserva
+// su botón de corazón y su contador (`likedBy` + `likesCount` en
+// el documento), aunque ahora cada persona tiene además un
+// documento en `threads/{id}/likes/{uid}` o
+// `comments/{id}/likes/{uid}` y el agregado lo mantiene la Cloud
+// Function. Las reacciones no pasan por ahí: son su propia
+// colección y su propio contador.
 //
 // ── El truco que evita las reacciones duplicadas ───────────
 //

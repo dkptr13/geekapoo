@@ -223,11 +223,27 @@ service cloud.firestore {
                             .data.adminIds));
     }
 
-    // Solo contadores de "me gusta" y de comentarios: cualquier usuario activo puede tocarlos
-    function onlyEngagement() {
-      return isActive()
-        && request.resource.data.diff(resource.data)
-             .affectedKeys().hasOnly(['likedBy', 'likesCount', 'commentsCount']);
+    // Los contadores de "me gusta" y de comentarios los mantiene
+    // SOLO la Cloud Function con el Admin SDK. Ningún cliente
+    // (tampoco el equipo) puede escribirlos: si el mismo que pinta
+    // el número puede cambiarlo, el número no vale nada.
+    //
+    // En la creación sí se aceptan los valores iniciales en cero,
+    // para que un cliente antiguo que aún los mande no se rompa.
+    // Lo que no se acepta nunca es un valor distinto de cero.
+    function sinContadoresDeEngagement() {
+      return !request.resource.data.diff(resource.data)
+               .affectedKeys()
+               .hasAny(['likedBy', 'likesCount', 'commentsCount']);
+    }
+
+    // En el catálogo los "me gusta" siguen siendo del cliente (no
+    // tienen subcolección), pero `commentsCount` también es del
+    // servidor: lo mueve `onCommentCreated`/`onCommentDeleted`.
+    function sinContadorDeComentarios() {
+      return !request.resource.data.diff(resource.data)
+               .affectedKeys()
+               .hasAny(['commentsCount']);
     }
 
     // ======================================================
@@ -1821,7 +1837,13 @@ service cloud.firestore {
     // ======================================================
     match /animes/{animeId} {
       allow read: if true;
-      allow write: if isAdmin() || isModerator();
+      allow create: if (isAdmin() || isModerator())
+                    && (!('commentsCount' in request.resource.data)
+                        || (request.resource.data.commentsCount is number
+                            && request.resource.data.commentsCount == 0));
+      allow update: if (isAdmin() || isModerator())
+                    && sinContadorDeComentarios();
+      allow delete: if isAdmin() || isModerator();
     }
 
     // ======================================================
@@ -2275,9 +2297,22 @@ service cloud.firestore {
                     // cerrada: da igual, no hay forma de abrirla
                     // después.
                     && (!('reactionCounts' in request.resource.data))
-                    && (!('reactionsTotal' in request.resource.data));
+                    && (!('reactionsTotal' in request.resource.data))
+                    // Los contadores nacen en cero y los mueve solo
+                    // la Cloud Function. Se admite que un cliente
+                    // antiguo los mande, pero no que invente cifras.
+                    && (!('likedBy' in request.resource.data)
+                        || (request.resource.data.likedBy is list
+                            && request.resource.data.likedBy.size() == 0))
+                    && (!('likesCount' in request.resource.data)
+                        || (request.resource.data.likesCount is number
+                            && request.resource.data.likesCount == 0))
+                    && (!('commentsCount' in request.resource.data)
+                        || (request.resource.data.commentsCount is number
+                            && request.resource.data.commentsCount == 0));
 
-      allow update: if isAdmin() || isModerator()
+      allow update: if ((isAdmin() || isModerator())
+                        && sinContadoresDeEngagement())
                     || (isSignedIn()
                         && resource.data.authorId == request.auth.uid
                         && request.resource.data.diff(resource.data)
@@ -2306,8 +2341,7 @@ service cloud.firestore {
                              .affectedKeys().hasOnly(['tierList'])
                         && (!('tierList' in request.resource.data)
                             || request.resource.data.tierList == null
-                            || tierRefValida(request.resource.data.tierList)))
-                    || onlyEngagement();
+                            || tierRefValida(request.resource.data.tierList)));
 
       allow delete: if isAdmin() || isModerator()
                     || (isSignedIn() && resource.data.authorId == request.auth.uid);
@@ -2353,6 +2387,33 @@ service cloud.firestore {
         // borrar un voto problemático (moderación), pero no
         // listarlo ni leerlo.
         allow delete: if isModerator();
+      }
+
+      // ── ME GUSTA DEL HILO ───────────────────────────
+      //
+      // Un documento por persona, con el uid como id. No hay
+      // `update`: poner o quitar el "me gusta" es crear o borrar
+      // este documento, nunca reescribir el de otra persona.
+      //
+      // El agregado (`likedBy`/`likesCount`) lo calcula la Cloud
+      // Function desde esta subcolección. El cliente no lo toca.
+      match /likes/{uid} {
+        allow read: if true;
+
+        allow create: if isActive()
+                      && request.auth.uid == uid
+                      && request.resource.data.userId == uid
+                      && request.resource.data.keys().hasOnly(['userId', 'createdAt'])
+                      && (!('createdAt' in request.resource.data)
+                          || request.resource.data.createdAt is timestamp)
+                      && exists(/databases/$(database)/documents/threads/$(threadId));
+
+        allow update: if false;
+
+        // Un usuario baneado tampoco puede retirar su "me gusta":
+        // el estado de la cuenta se comprueba en las dos direcciones.
+        allow delete: if isActive()
+                      && request.auth.uid == uid;
       }
     }
 
@@ -2438,6 +2499,20 @@ service cloud.firestore {
     }
 
     // ======================================================
+    // LIBRO DE CONTADORES DE COMENTARIOS (lo escribe el servidor)
+    // ======================================================
+    //
+    // Un documento por comentario. Sirve para que el trigger de alta
+    // sepa si ya sumó y el de baja si ya restó: los triggers de
+    // Firestore se entregan "al menos una vez" y sin este registro un
+    // reintento dejaría `commentsCount` desfasado.
+    //
+    // El cliente no lo lee ni lo escribe: no le hace falta para nada.
+    match /engagement_ledger/{commentId} {
+      allow read, write: if false;
+    }
+
+    // ======================================================
     // COMENTARIOS (polimorficos: hilo, anime, episodio, personaje)
     // ======================================================
     match /comments/{commentId} {
@@ -2462,19 +2537,48 @@ service cloud.firestore {
                     // Los recuentos de reacciones los lleva el
                     // servidor (ver `onReactionChanged`).
                     && (!('reactionCounts' in request.resource.data))
-                    && (!('reactionsTotal' in request.resource.data));
+                    && (!('reactionsTotal' in request.resource.data))
+                    // Los "me gusta" nacen en cero; su contador lo
+                    // mantiene la Cloud Function.
+                    && (!('likedBy' in request.resource.data)
+                        || (request.resource.data.likedBy is list
+                            && request.resource.data.likedBy.size() == 0))
+                    && (!('likesCount' in request.resource.data)
+                        || (request.resource.data.likesCount is number
+                            && request.resource.data.likesCount == 0));
 
-      allow update: if isAdmin() || isModerator()
+      allow update: if ((isAdmin() || isModerator())
+                        && sinContadoresDeEngagement())
                     || (isSignedIn()
                         && resource.data.authorId == request.auth.uid
                         && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['body']))
-                    || (isActive()
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['likedBy', 'likesCount']));
+                             .affectedKeys().hasOnly(['body']));
 
       allow delete: if isAdmin() || isModerator()
                     || (isSignedIn() && resource.data.authorId == request.auth.uid);
+
+      // ── ME GUSTA DEL COMENTARIO ─────────────────────
+      //
+      // Mismo patrón que el del hilo: un documento por persona con
+      // su uid como id, sin `update`, y el agregado lo escribe la
+      // Cloud Function. Se exige que el comentario exista para no
+      // dejar "me gusta" colgando de un id inventado.
+      match /likes/{uid} {
+        allow read: if true;
+
+        allow create: if isActive()
+                      && request.auth.uid == uid
+                      && request.resource.data.userId == uid
+                      && request.resource.data.keys().hasOnly(['userId', 'createdAt'])
+                      && (!('createdAt' in request.resource.data)
+                          || request.resource.data.createdAt is timestamp)
+                      && exists(/databases/$(database)/documents/comments/$(commentId));
+
+        allow update: if false;
+
+        allow delete: if isActive()
+                      && request.auth.uid == uid;
+      }
     }
 
     // ======================================================

@@ -91,7 +91,7 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
 
   "likesCount": 0,
   "likedBy": [],          // likesCount SIEMPRE es likedBy.length
-  "commentsCount": 0
+  "commentsCount": 0     // este lo mantiene la Cloud Function
 }
 
 // 2b. DISPONIBILIDAD REGIONAL: streamingAvailability/{id}
@@ -228,6 +228,8 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
   "categoryId": "romance",
   "categoryName": "Romance & Comedia",
   "tags": ["debate", "kaguya"],
+  // Los tres contadores los escribe SOLO la Cloud Function. El
+  // cliente da o quita su "me gusta" en la subcolección de abajo.
   "likesCount": 0,
   "likedBy": [],
   "commentsCount": 0,
@@ -270,6 +272,13 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
 { "threadId": "...", "options": { "o1": 42 }, "totalVotes": 57,
   "actualizadoAt": Timestamp }
 
+// ME GUSTA DE HILO: threads/{threadId}/likes/{uid}
+// Un documento por persona y el uid como id: no hay forma de
+// duplicarlo ni de escribir el de otra persona. Al crearlo o
+// borrarlo, la Cloud Function recalcula "likedBy" y "likesCount"
+// del hilo. Mismo patrón en comments/{commentId}/likes/{uid}.
+{ "userId": "uid", "createdAt": Timestamp }
+
 // 8. COMMENTS: comments/{commentId}
 // Polimórficos: el mismo comentario puede apuntar a un hilo,
 // un anime, un episodio o un personaje.
@@ -281,6 +290,7 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
   "targetId": "kaguya-ep-1",
   "parentId": null,
   "body": "El ending de Chika es historia pura.",
+  // Contadores del servidor, igual que en el hilo.
   "likesCount": 0,
   "likedBy": [],
   "createdAt": Timestamp,
@@ -594,10 +604,9 @@ service cloud.firestore {
                     && request.resource.data.body.size() <= 10000
                     && (!('poll' in request.resource.data)
                         || pollValido(request.resource.data.poll));
-      // El autor edita su hilo; cualquiera puede tocar solo los
-      // contadores de "me gusta" y comentarios. Cerrar la
-      // encuesta es lo único más que puede cambiar el autor,
-      // y solo ese campo.
+      // El autor edita su hilo. Los contadores de "me gusta" y de
+      // comentarios NO los toca nadie desde el cliente: los
+      // mantiene la Cloud Function.
       allow update: if isAdmin()
                     || (isSignedIn()
                         && resource.data.authorId == request.auth.uid
@@ -608,12 +617,21 @@ service cloud.firestore {
                         && resource.data.authorId == request.auth.uid
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(['poll.isClosed','poll'])
-                        && pollSoloCambiaIsClosed(threadId))
-                    || (isActive()
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['likedBy','likesCount','commentsCount']));
+                        && pollSoloCambiaIsClosed(threadId));
       allow delete: if isAdmin()
                     || (isSignedIn() && resource.data.authorId == request.auth.uid);
+
+      // Un "me gusta" por persona, con el uid como id. Sin update:
+      // se pone creando y se quita borrando. El agregado del padre
+      // lo escribe el servidor desde esta subcolección.
+      match /likes/{uid} {
+        allow read: if true;
+        allow create: if isActive()
+                      && request.auth.uid == uid
+                      && request.resource.data.userId == uid;
+        allow update: if false;
+        allow delete: if isActive() && request.auth.uid == uid;
+      }
     }
 
     match /comments/{commentId} {
@@ -631,12 +649,18 @@ service cloud.firestore {
                     || (isSignedIn()
                         && resource.data.authorId == request.auth.uid
                         && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['body']))
-                    || (isActive()
-                        && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['likedBy','likesCount']));
+                             .affectedKeys().hasOnly(['body']));
       allow delete: if isAdmin()
                     || (isSignedIn() && resource.data.authorId == request.auth.uid);
+
+      match /likes/{uid} {
+        allow read: if true;
+        allow create: if isActive()
+                      && request.auth.uid == uid
+                      && request.resource.data.userId == uid;
+        allow update: if false;
+        allow delete: if isActive() && request.auth.uid == uid;
+      }
     }
 
     // ── ENCUESTAS ─────────────────────────────────────

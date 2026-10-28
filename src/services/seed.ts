@@ -3,7 +3,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  increment,
   setDoc,
   serverTimestamp,
   writeBatch,
@@ -422,9 +421,6 @@ async function cleanGhostAuthors(owner: {
       categoryId: t.categoryId,
       categoryName: t.categoryName,
       tags: t.tags,
-      likesCount: 0,
-      likedBy: [],
-      commentsCount: 0,
       pinned: false,
       createdAt: now,
     });
@@ -464,17 +460,8 @@ async function cleanGhostAuthors(owner: {
       targetId: c.targetId,
       parentId: null,
       body: c.body,
-      likesCount: 0,
-      likedBy: [],
       createdAt: now,
     });
-
-    // El hilo recibe su contador de comentarios en el mismo lote
-    demoCommentBatch.set(
-      doc(db, 'threads', c.targetId),
-      { commentsCount: increment(1) },
-      { merge: true },
-    );
 
     createdComments++;
   }
@@ -517,15 +504,17 @@ export async function runFullMigration(owner: MigrationOwner): Promise<SeedRepor
 
   steps.push(await ensureUserFields());
 
-  steps.push(await ensureLikedBy('threads', 'likesCount'));
-  steps.push(await ensureLikedBy('comments', 'likesCount'));
+  // Los "me gusta" y los comentarios de hilos ya NO se reparan
+  // desde aquí: sus contadores los mantiene la Cloud Function y el
+  // cliente no puede escribirlos. Para migrar los datos antiguos
+  // hay que ejecutar `scripts/migrar-me-gusta.mjs` con el Admin SDK.
+  // El catálogo (animes, episodios, personajes y trivia) sigue con
+  // el sistema de siempre.
   steps.push(await ensureLikedBy('animes', 'likesCount'));
   steps.push(await ensureLikedBy('episodes', 'likesCount'));
   steps.push(await ensureLikedBy('characters', 'likesCount'));
   steps.push(await ensureLikedBy('trivia_extras', 'likes'));
 
-  steps.push(await syncLikeCounters('threads', 'likesCount'));
-  steps.push(await syncLikeCounters('comments', 'likesCount'));
   steps.push(await syncLikeCounters('animes', 'likesCount'));
   steps.push(await syncLikeCounters('episodes', 'likesCount'));
   steps.push(await syncLikeCounters('characters', 'likesCount'));

@@ -204,7 +204,9 @@ export const MigrationPanel: FC = () => {
           <p className="mt-1 text-xs leading-relaxed text-zinc-400">
             Escribe el catálogo que aún no existe en Firestore (categorías, trivia y diálogos de
             la mascota), convierte las fechas antiguas de texto ISO a <code className="text-zinc-300">Timestamp</code>,
-            repara los campos de "me gusta" y recalcula los contadores de categoría.
+            repara los campos de "me gusta" del catálogo y recalcula los contadores de categoría.
+            Los "me gusta" de hilos y comentarios se migran aparte, con{' '}
+            <code className="text-zinc-300">scripts/migrar-me-gusta.mjs</code> y el Admin SDK.
           </p>
         </div>
       </div>

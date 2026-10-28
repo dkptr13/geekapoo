@@ -175,6 +175,32 @@ export interface CommunityContextType {
 
 const CommunityContext = createContext<CommunityContextType | undefined>(undefined);
 
+/**
+ * Rellena los campos que ahora escribe el servidor.
+ *
+ * Los hilos y comentarios nuevos ya no nacen con `likedBy`,
+ * `likesCount` ni `commentsCount`: los pone la Cloud Function. Hasta
+ * que el trigger corre (o si un documento antiguo viene sin ellos),
+ * la interfaz tiene que seguir viendo 0 y una lista vacía en vez de
+ * `undefined`, que rompería los contadores y los filtros del perfil.
+ */
+function normalizarHilo(thread: Thread): Thread {
+  return {
+    ...thread,
+    likesCount: typeof thread.likesCount === 'number' ? thread.likesCount : 0,
+    likedBy: Array.isArray(thread.likedBy) ? thread.likedBy : [],
+    commentsCount: typeof thread.commentsCount === 'number' ? thread.commentsCount : 0,
+  };
+}
+
+function normalizarComentario(comment: Comment): Comment {
+  return {
+    ...comment,
+    likesCount: typeof comment.likesCount === 'number' ? comment.likesCount : 0,
+    likedBy: Array.isArray(comment.likedBy) ? comment.likedBy : [],
+  };
+}
+
 // ======================================================
 // PROVIDER
 // ======================================================
@@ -269,7 +295,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       onSnapshot(
         query(collection(db, 'threads'), orderBy('createdAt', 'desc')),
         (snap) => {
-          setThreads(mapWithId<Thread>(snap));
+          setThreads(mapWithId<Thread>(snap).map(normalizarHilo));
           markReady();
         },
         handleError('threads'),
@@ -281,7 +307,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       onSnapshot(
         query(collection(db, 'comments'), orderBy('createdAt', 'desc')),
         (snap) => {
-          setComments(mapWithId<Comment>(snap));
+          setComments(mapWithId<Comment>(snap).map(normalizarComentario));
           markReady();
         },
         handleError('comments'),
@@ -533,8 +559,10 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // ====================================================
   // "ME GUSTA"
-  // Todas pasan por el servicio, que usa transacciones
-  // para que dos clics a la vez no se pisen.
+  // Todas pasan por el servicio. En hilos y comentarios el
+  // servicio escribe un documento por persona y es la Cloud
+  // Function quien actualiza `likedBy` y `likesCount`; en el
+  // catálogo se sigue usando la transacción de siempre.
   // ====================================================
 
   const guardUser = useCallback((): string | null => {
