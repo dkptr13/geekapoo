@@ -13,6 +13,10 @@
 //
 //   node scripts/crear-disponibilidad.mjs   ->  se niega a ejecutarse
 //
+// Para volver a traer las ofertas reales está
+// `scripts/importar-disponibilidad-justwatch.mjs` (sin `--escribir` solo
+// enseña lo que escribiría).
+//
 // ======================================================
 
 console.error(

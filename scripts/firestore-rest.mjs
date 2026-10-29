@@ -149,9 +149,16 @@ export async function cliente() {
     if (!r.ok && r.status !== 404) await fallo(`borrar ${col}/${id}`, r);
   }
 
-  /** Crea un documento, fallando si ya existe. */
+  /**
+   * Crea un documento, fallando si ya existe.
+   *
+   * El POST va a la COLECCION con `documentId`, no a la ruta del
+   * documento: `POST .../streamingPlatforms/d-anime-store` responde 400
+   * ("Document parent name ... lacks /"), porque el API espera el nombre
+   * del documento padre y el id aparte.
+   */
   async function crear(col, id, campos) {
-    const r = await fetch(`${BASE}/${col}/${id}`, {
+    const r = await fetch(`${BASE}/${col}?documentId=${encodeURIComponent(id)}`, {
       method: 'POST',
       headers: cabeceras,
       body: JSON.stringify({ fields: campos }),
