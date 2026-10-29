@@ -88,7 +88,11 @@ function resumenDe(msg: ChatMessage): { texto: string; tipo: string; imagenUrl?:
   }
   if (cuerpo) {
     const esEnlace = /https?:\/\/\S+/i.test(cuerpo);
-    return { texto: cuerpo.slice(0, 300), tipo: esEnlace ? 'link' : 'text' };
+    // Se guarda el cuerpo COMPLETO, no un resumen: la regla compara
+    // este campo con el mensaje real y necesita el texto exacto para
+    // que nadie pueda fijar una frase distinta. El panel ya recorta
+    // la vista con `line-clamp`.
+    return { texto: cuerpo, tipo: esEnlace ? 'link' : 'text' };
   }
   return { texto: 'Mensaje sin texto', tipo: 'text' };
 }

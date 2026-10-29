@@ -1,0 +1,121 @@
+// PERSONAJES - Fate/stay night: Unlimited Blade Works
+//
+// Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
+//
+// Todos salen en las dos temporadas, asi que la temporada va vacia.
+// Nombres japoneses y seiyuu de la ficha de AniList (19603 y 20792).
+
+export const PERSONAJES = [
+  [
+    'Shirou Emiya',
+    '',
+    'main',
+    '衛宮士郎',
+    '杉山紀彰',
+    'El hijo adoptivo de Kiritsugu y el maestro accidental de Saber. Quiere ser un héroe de la justicia porque su padre se lo pidió antes de morir, y no se le ocurre que ese deseo pueda ser un problema hasta que Archer se lo pone delante.',
+  ],
+  [
+    'Rin Tohsaka',
+    '',
+    'main',
+    '遠坂凛',
+    '植田佳奈',
+    'La maestra de Archer y la mejor maga de su generación. Se pasa la serie enfadada con Shirou por meterse donde no le llaman y aun así le enseña, le cura y le saca de los líos. Su alianza empieza como un contrato y termina siendo otra cosa.',
+  ],
+  [
+    'Archer',
+    '',
+    'main',
+    'アーチャー',
+    '諏訪部順一',
+    'El sirviente de Rin. Sabe demasiado de Shirou, pelea con espadas que aparecen de la nada y se burla de su idea de salvar a todos porque él ya la vivió. Debajo del cinismo hay alguien que no ha conseguido olvidar a la persona que fue.',
+  ],
+  [
+    'Saber',
+    '',
+    'main',
+    'アルトリア・ペンドラゴン',
+    '川澄綾子',
+    'Artoria Pendragon, invocada por Shirou sin reliquia ni preparación. Mantiene la promesa de protegerle incluso cuando se queda sin maestro y sin energía, y descubre en esta ruta que su deseo de repetir su reinado no era el único camino posible.',
+  ],
+  [
+    'Illyasviel von Einzbern',
+    '',
+    'supporting',
+    'イリヤスフィール・フォン・アインツベルン',
+    '門脇舞以',
+    'La maestra de Berserker y la hija de Kiritsugu, aunque Shirou no lo sepa al principio. Vive sola con su sirviente y trata a Shirou como a un hermano pequeño al que por fin puede ver crecer. Su final en esta ruta es el que menos se espera.',
+  ],
+  [
+    'Lancer',
+    '',
+    'supporting',
+    'クー・フーリン',
+    '神奈延年',
+    'El sirviente de Kirei, un lancero irlandés al que le gusta pelear y no soporta las órdenes sucias. Ayuda a Shirou y a Rin más de lo que le corresponde y acaba pagándolo, porque su maestro no le ha elegido para ganar.',
+  ],
+  [
+    'Shinji Matou',
+    '',
+    'antagonist',
+    '間桐慎二',
+    '神谷浩史',
+    'El hermano de Sakura, sin circuitos mágicos y con una necesidad enorme de que alguien le diga que vale. Se cree el maestro de Rider y luego el de Gilgamesh, y trata a todo el mundo como si le debiera el sitio que no tiene.',
+  ],
+  [
+    'Rider',
+    '',
+    'supporting',
+    'メドゥーサ',
+    '浅川悠',
+    'La sirviente de Shinji. Obedece porque su maestro tiene el libro que la controla, no porque le respete, y protege a Shinji de Caster en el último momento. Sakura la conoce desde hace años y eso nunca se explica del todo en esta ruta.',
+  ],
+  [
+    'Sakura Matou',
+    '',
+    'supporting',
+    '間桐桜',
+    '下屋則子',
+    'La hermana de Shinji y la chica que va a casa de Shirou a cocinar. Sonríe, ayuda y no cuenta nada de lo que le pasa en su familia. En esta ruta se queda en el borde de la historia, y lo poco que se ve hace pensar que ahí dentro hay algo muy grave.',
+  ],
+  [
+    'Kirei Kotomine',
+    '',
+    'antagonist',
+    '言峰綺礼',
+    '中田譲治',
+    'El sacerdote que vigila la guerra desde la iglesia. Le gusta ver sufrir a la gente y lo disimula con una educación impecable. En esta ruta se alía con Shinji y espera el momento de quedarse con el Grial sin que nadie se lo discuta.',
+  ],
+  [
+    'Gilgamesh',
+    '',
+    'antagonist',
+    'ギルガメッシュ',
+    '関智一',
+    'El rey de los héroes, que sigue vivo de la guerra anterior porque el Grial le mantiene. Considera que la humanidad le pertenece y que Shirou es un imitador sin derecho a llamarse héroe. Su tesoro es la razón por la que casi nadie puede ganarle.',
+  ],
+  [
+    'Caster',
+    '',
+    'antagonist',
+    'メデイア',
+    '田中敦子',
+    'La maga griega que se cansó de que la usaran y decidió usar ella. Se instala en el templo, roba sirvientes y trata a Kuzuki como a lo único que le queda. Su plan es quedarse con Saber y salir de la guerra con un deseo que no piensa compartir.',
+  ],
+  [
+    'Souichirou Kuzuki',
+    '',
+    'antagonist',
+    '葛木宗一郎',
+    'てらそままさき',
+    'El profesor de historia y el maestro de Caster. No sabe nada de magia, pelea con las manos y es el único adulto del instituto que trata a sus alumnos como personas. Su lealtad a Caster no tiene nada que ver con el Grial.',
+  ],
+  [
+    'Taiga Fujimura',
+    '',
+    'supporting',
+    '藤村大河',
+    '伊藤美紀',
+    'La profesora de inglés de Shirou y su tutora legal. Duerme en su casa, se come todo lo que cocina y no se entera de nada de la guerra, lo cual es la única razón por la que sigue viva. Caster la usa como rehén sin saber con quién está tratando.',
+  ],
+];

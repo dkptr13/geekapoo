@@ -132,7 +132,8 @@ function nuevoChatGrupo(ownerId, memberIds, extra = {}) {
     memberIds,
     hiddenFor: [],
     lastMessage: '',
-    lastMessageAt: '2026-01-01T00:00:00.000Z',
+    // La vista previa la escribe el servidor desde el mensaje real.
+    lastMessageAt: serverTimestamp(),
     lastMessageSenderId: ownerId,
     readAt: {},
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -152,7 +153,8 @@ function nuevoChatClub(ownerId, memberIds, extra = {}) {
     memberIds,
     hiddenFor: [],
     lastMessage: '',
-    lastMessageAt: '2026-01-01T00:00:00.000Z',
+    // La vista previa la escribe el servidor desde el mensaje real.
+    lastMessageAt: serverTimestamp(),
     lastMessageSenderId: ownerId,
     readAt: {},
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -281,6 +283,7 @@ function fijado(chatId, messageId, autorId, fijadoPor, extra = {}) {
     messageId,
     autorId,
     autorNombre: autorId,
+    autorAvatar: '',
     texto: 'Hola',
     tipo: 'text',
     mensajeCreadoEn: '2026-01-01T00:00:00.000Z',
@@ -1209,7 +1212,9 @@ describe('mensajes fijados', () => {
     await assertSucceeds(
       setDoc(
         doc(db(BOB), 'chats', 'g1', 'fijados', 'm-poll'),
-        fijado('g1', 'm-poll', BOB, BOB),
+        // La encuesta no tiene cuerpo: el resumen que guarda el
+        // cliente es "Mensaje sin texto", no "Hola".
+        fijado('g1', 'm-poll', BOB, BOB, { texto: 'Mensaje sin texto' }),
       ),
     );
   });
@@ -1218,7 +1223,7 @@ describe('mensajes fijados', () => {
     await assertFails(
       setDoc(
         doc(db(BAN_FLAG), 'chats', 'g1', 'fijados', 'm-poll'),
-        fijado('g1', 'm-poll', BOB, BAN_FLAG),
+        fijado('g1', 'm-poll', BOB, BAN_FLAG, { texto: 'Mensaje sin texto' }),
       ),
     );
   });
@@ -1334,12 +1339,15 @@ describe('documento del chat', () => {
   it('un miembro activo marca leído; un baneado no', async () => {
     await assertSucceeds(
       updateDoc(doc(db(BOB), 'chats', 'g1'), {
-        readAt: { [BOB]: '2026-01-02T00:00:00.000Z' },
+        // El cliente escribe un Timestamp del servidor, no una
+        // cadena: la regla solo acepta su propia clave y un
+        // timestamp real.
+        readAt: { [BOB]: serverTimestamp() },
       }),
     );
     await assertFails(
       updateDoc(doc(db(BAN_FLAG), 'chats', 'g1'), {
-        readAt: { [BAN_FLAG]: '2026-01-02T00:00:00.000Z' },
+        readAt: { [BAN_FLAG]: serverTimestamp() },
       }),
     );
   });

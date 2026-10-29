@@ -24,6 +24,7 @@ const {
   getDoc,
   collection,
   addDoc,
+  serverTimestamp,
 } = require('firebase/firestore');
 
 const fs = require('fs');
@@ -198,7 +199,9 @@ describe('gamificacion: XP y medallas', () => {
           username: 'nuevo',
           chatId: 'GK-nuevo',
           role: 'user',
-          createdAt: '2026-01-01T00:00:00.000Z',
+          // El servidor pone la fecha: el cliente no puede nacer
+          // con una antigüedad inventada.
+          createdAt: serverTimestamp(),
         }),
       );
     });

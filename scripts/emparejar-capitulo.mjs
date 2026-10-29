@@ -44,7 +44,7 @@
 // y duplicar la normalizacion en dos sitios es como se desincronizan.
 
 import { limpiar, mismoTitulo } from './normalizar-titulo.mjs';
-import { capituloEnTvdb, SIN_COMPROBAR_NUMERO } from './temporadas-tvdb.mjs';
+import { capituloEnTvdb, SIN_COMPROBAR_NUMERO, SIN_TITULO_JAPONES, tituloEnTvdb } from './temporadas-tvdb.mjs';
 
 /**
  * El capitulo de TVDB que corresponde a un capitulo del catalogo.
@@ -77,13 +77,57 @@ export function capituloDe({ animeId, nuestro, capitulos, usadas }) {
   // La lista esta en `temporadas-tvdb.mjs`, con la explicacion de por
   // que no se puede arreglar con un desfase.
   const sinNumero = SIN_COMPROBAR_NUMERO.has(animeId);
+
+  // Gintama no tiene titulos japoneses en los ficheros de datos: no hay
+  // nada que comparar por titulo. Se usa la temporada y el numero, que
+  // estan mapeados a mano en `TEMPORADA_TVDB` y `TRAMO_TVDB` (ver
+  // `SIN_TITULO_JAPONES`). La fecha no se exige, pero si no coincide se
+  // devuelve el aviso: TVDB e IMDb no siempre escriben el mismo dia.
+  if (SIN_TITULO_JAPONES.has(animeId)) {
+    const destino = capituloEnTvdb(animeId, Number(nuestro.temporada), numero);
+
+    const ep = capitulos.find(
+      (e) =>
+        Number(e.seasonNumber) === destino.temporada && Number(e.number) === destino.numero,
+    );
+
+    if (!ep) return null;
+
+    const url = ep.image || ep.thumbnail;
+
+    if (!url || usadas.has(url)) return null;
+
+    const dias =
+      nuestro.fecha && ep.aired
+        ? Math.abs((Date.parse(nuestro.fecha) - Date.parse(ep.aired)) / 86400000)
+        : 0;
+
+    return {
+      url,
+      ep,
+      aviso:
+        dias > 1
+          ? `la fecha del catalogo (${nuestro.fecha}) no es la de TVDB (${ep.aired})`
+          : undefined,
+    };
+  }
+
   if (!nuestro?.japones) return null;
 
   if (!limpiar(nuestro.japones)) return null;
 
   // Puede haber mas de uno: el mismo titulo en dos capitulos distintos no
   // es raro en series con cortos.
-  const candidatos = capitulos.filter((e) => mismoTitulo(e.name, nuestro.japones));
+  //
+  // `tituloEnTvdb` devuelve el titulo traducido en los pocos casos en que
+  // TVDB lo escribe con otras palabras (ver `TITULO_TVDB`). La
+  // comprobacion de temporada y numero de mas abajo sigue siendo la
+  // misma: lo unico que cambia es el texto que se busca.
+  const alias = tituloEnTvdb(animeId, nuestro.japones);
+
+  const candidatos = alias
+    ? capitulos.filter((e) => limpiar(e.name) === alias)
+    : capitulos.filter((e) => mismoTitulo(e.name, nuestro.japones));
 
   if (!candidatos.length) return null;
 

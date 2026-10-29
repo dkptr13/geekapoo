@@ -1200,6 +1200,43 @@ async function resolverAnimeDe(
 }
 
 /**
+ * El objetivo de un comentario existe de verdad.
+ *
+ * Las reglas ya lo exigen, pero el trigger no puede fiarse de que el
+ * documento haya pasado por el cliente: un comentario escrito con el
+ * Admin SDK (o creado antes de desplegar las reglas) también dispara.
+ * Sin esta comprobación, un objetivo inventado pagaba 5 XP y contaba
+ * para las medallas sin aparecer en ninguna vista: farmeo invisible.
+ */
+const COLECCION_DE_OBJETIVO_COMENTARIO: Record<string, string> = {
+  thread: THREADS,
+  anime: 'animes',
+  episode: EPISODES,
+  character: CHARACTERS,
+};
+
+async function comentarioTieneObjetivoReal(
+  targetType: string | undefined,
+  targetId: string,
+): Promise<boolean> {
+  if (!targetType || !targetId) return false;
+  const coleccion = COLECCION_DE_OBJETIVO_COMENTARIO[targetType];
+  if (!coleccion) return false;
+
+  try {
+    const snap = await db.doc(`${coleccion}/${targetId}`).get();
+    return snap.exists;
+  } catch (e) {
+    logger.warn('No se pudo comprobar el objetivo de un comentario', {
+      targetType,
+      targetId,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return false;
+  }
+}
+
+/**
  * Que motivo de XP corresponde a un "Me gusta" de esta coleccion,
  * o `null` si no da XP.
  *
@@ -1453,6 +1490,19 @@ export const onCommentCreated = onDocumentCreated(
     const targetType =
       typeof data.targetType === 'string' ? data.targetType : undefined;
     const targetId = typeof data.targetId === 'string' ? data.targetId : '';
+
+    // Sin un objetivo real no hay recompensa ni contador. Si el
+    // comentario se escribió con el Admin SDK, las reglas no lo
+    // filtraron; si es de una versión antigua, tampoco. El trigger
+    // tiene que decidirlo por su cuenta.
+    if (!(await comentarioTieneObjetivoReal(targetType, targetId))) {
+      logger.warn('Comentario con objetivo inexistente; no se concede XP', {
+        commentId,
+        targetType,
+        targetId,
+      });
+      return;
+    }
 
     // El contador del hilo/anime es responsabilidad del servidor. Va
     // antes del XP y con su propio try: que falle el contador no
@@ -2074,6 +2124,62 @@ export const onChatMessageCreated = onDocumentCreated(
         return;
       }
 
+      const tipoMensaje = typeof data.type === 'string' ? data.type : 'text';
+      const cuerpo = typeof data.body === 'string' ? data.body.trim() : '';
+
+      // ── Vista previa del chat ────────────────────────────
+      //
+      // La escribe SOLO el servidor. Antes la movía el cliente en
+      // una segunda escritura, y las reglas tenían que dejarle
+      // tocar `lastMessage*`: con eso podía falsear el remitente o
+      // el texto para todos. Ahora el mensaje real manda.
+      //
+      // En transacción y comparando fechas: si dos mensajes se
+      // crean a la vez, el trigger del más viejo no puede pisar la
+      // vista previa del más nuevo al llegar tarde.
+      const resumen =
+        cuerpo ||
+        (tipoMensaje === 'gif'
+          ? 'GIF'
+          : tipoMensaje === 'image'
+            ? 'Imagen'
+            : tipoMensaje === 'location'
+              ? 'Ubicación'
+              : tipoMensaje === 'poll'
+                ? 'Encuesta'
+                : tipoMensaje === 'tier'
+                  ? 'Tier list'
+                  : 'Mensaje');
+      const fechaMensaje =
+        data.createdAt instanceof Timestamp ? data.createdAt : Timestamp.now();
+
+      try {
+        await db.runTransaction(async (tx) => {
+          const actual = await tx.get(chatSnap.ref);
+          if (!actual.exists) return;
+
+          const ultima = actual.data()?.lastMessageAt;
+          if (
+            ultima instanceof Timestamp &&
+            ultima.toMillis() > fechaMensaje.toMillis()
+          ) {
+            return;
+          }
+
+          tx.update(chatSnap.ref, {
+            lastMessage: resumen.slice(0, 500),
+            lastMessageAt: fechaMensaje,
+            lastMessageSenderId: senderId,
+          });
+        });
+      } catch (e) {
+        logger.error('Fallo actualizando la vista previa del chat', {
+          chatId,
+          messageId,
+          error: e,
+        });
+      }
+
       const destinatarios = miembros.filter(
         (id): id is string => typeof id === 'string' && !!id && id !== senderId,
       );
@@ -2088,9 +2194,6 @@ export const onChatMessageCreated = onDocumentCreated(
         senderId,
         destinatarios: destinatarios.length,
       });
-
-      const tipoMensaje = typeof data.type === 'string' ? data.type : 'text';
-      const cuerpo = typeof data.body === 'string' ? data.body.trim() : '';
 
       // Sin texto no hay cita que enseñar, pero el aviso tiene que
       // decir algo: un aviso sin `snippet` sale con el texto
@@ -4086,7 +4189,7 @@ async function contarEn(ruta: string): Promise<number> {
 // es la unica fuente que no depende de lo que diga el cliente.
 
 /**
- * Lanza si el que llama no es del equipo. Devuelve su uid.
+ * Comprueba sesion, perfil, rol permitido y baneo. Devuelve uid y rol.
  *
  * Ademas del rol, se exige que el perfil EXISTA y que la cuenta no
  * tenga un baneo vigente. Son las mismas tres condiciones que
@@ -4098,7 +4201,10 @@ async function contarEn(ruta: string): Promise<number> {
  * bandera visible) para que una cuenta baneada antes de existir
  * `accountRestrictions` tampoco se cuele.
  */
-async function exigirAdmin(auth: unknown): Promise<string> {
+async function exigirRol(
+  auth: unknown,
+  permitidos: readonly string[],
+): Promise<{ uid: string; rol: string }> {
   const uid = (auth as { uid?: string } | undefined)?.uid;
   if (!uid) {
     throw new HttpsError('unauthenticated', 'Tienes que iniciar sesion.');
@@ -4117,9 +4223,9 @@ async function exigirAdmin(auth: unknown): Promise<string> {
   }
 
   const datos = snap.data();
-  const rol = datos?.role;
+  const rol = typeof datos?.role === 'string' ? datos.role : '';
 
-  if (rol !== 'admin' && rol !== 'moderator') {
+  if (!permitidos.includes(rol)) {
     throw new HttpsError('permission-denied', 'No tienes permiso para esto.');
   }
 
@@ -4135,6 +4241,26 @@ async function exigirAdmin(auth: unknown): Promise<string> {
     );
   }
 
+  return { uid, rol };
+}
+
+/**
+ * Solo administradores. Un moderador NO puede ajustar XP, conceder
+ * medallas, cambiar la configuracion, recalcular cuentas, abrir chats
+ * directos, gestionar la trivia ni sincronizar datos globales.
+ */
+async function exigirAdmin(auth: unknown): Promise<string> {
+  const { uid } = await exigirRol(auth, ['admin']);
+  return uid;
+}
+
+/**
+ * Administradores y moderadores, para las acciones de moderacion
+ * cotidiana (banear, desbanear por debajo de su rango, borrar
+ * encuestas). La jerarquia se comprueba ademas en cada callable.
+ */
+async function exigirModerador(auth: unknown): Promise<string> {
+  const { uid } = await exigirRol(auth, ['admin', 'moderator']);
   return uid;
 }
 
@@ -4241,7 +4367,7 @@ async function guardarBaneo(
  * levanta sola `levantarBaneosVencidos`.
  */
 export const banearUsuario = onCall(async (request) => {
-  const adminUid = await exigirAdmin(request.auth);
+  const adminUid = await exigirModerador(request.auth);
 
   const uid = typeof request.data?.uid === 'string' ? request.data.uid.trim() : '';
   const motivo =
@@ -4319,10 +4445,34 @@ export const banearUsuario = onCall(async (request) => {
  * volver a banear.
  */
 export const desbanearUsuario = onCall(async (request) => {
-  const adminUid = await exigirAdmin(request.auth);
+  const adminUid = await exigirModerador(request.auth);
 
   const uid = typeof request.data?.uid === 'string' ? request.data.uid.trim() : '';
   if (!uid) throw new HttpsError('invalid-argument', 'Falta el usuario.');
+
+  // Misma jerarquía que al banear: un moderador puede levantar el
+  // baneo de un usuario normal, pero no el de otro moderador ni el
+  // de un admin. Antes `desbanearUsuario` solo miraba que quien
+  // llamaba fuera "del equipo", así que un moderador podía revocar
+  // una decisión de un superior.
+  const objetivo = await db.doc(`${USERS}/${uid}`).get();
+  if (!objetivo.exists) {
+    throw new HttpsError('not-found', 'Ese usuario no existe.');
+  }
+
+  const rolObjetivo = objetivo.data()?.role;
+  const llamante = await db.doc(`${USERS}/${adminUid}`).get();
+  const rolLlamante = llamante.data()?.role;
+
+  if (
+    (rolObjetivo === 'admin' || rolObjetivo === 'moderator') &&
+    rolLlamante !== 'admin'
+  ) {
+    throw new HttpsError(
+      'permission-denied',
+      'No puedes desbanear a un miembro del equipo.',
+    );
+  }
 
   await guardarBaneo(uid, false, null, null, adminUid);
 
@@ -4614,6 +4764,53 @@ export const onClubMembersChanged = onDocumentUpdated(
           logger.error('Fallo marcando miembro de club', { clubId, uid, error: e });
         }
       }
+
+      // ── Limpieza de chats al salir o ser expulsado ──────
+      //
+      // Las reglas ya exigen pertenencia al club en `isChatMember`,
+      // pero `memberIds` del chat es la lista que filtra la consulta
+      // de la bandeja. Si no se limpia, el chat sigue apareciendo
+      // (y hasta que el cliente vuelva a leer, se puede intentar
+      // abrir). Se hace aquí, con el Admin SDK, para que valga
+      // también si alguien escribió el documento del club a mano
+      // saltándose el servicio que antes hacía esta limpieza.
+      const salieron = [...eran].filter((uid) => !son.includes(uid));
+      if (salieron.length > 0) {
+        const chats = new Set<string>();
+        if (typeof despues.chatId === 'string' && despues.chatId) {
+          chats.add(despues.chatId);
+        }
+        try {
+          const canales = await db
+            .collection(`${CLUBS}/${clubId}/${CHANNELS}`)
+            .get();
+          canales.forEach((canal) => {
+            const chatId = canal.data()?.chatId;
+            if (typeof chatId === 'string' && chatId) chats.add(chatId);
+          });
+        } catch (e) {
+          logger.warn('No se pudieron listar los canales al limpiar chats', {
+            clubId,
+            error: e,
+          });
+        }
+
+        for (const chatId of chats) {
+          try {
+            await db.doc(`${CHATS}/${chatId}`).update({
+              memberIds: FieldValue.arrayRemove(...salieron),
+              hiddenFor: FieldValue.arrayUnion(...salieron),
+            });
+          } catch (e) {
+            logger.warn('No se pudo limpiar un chat de club', {
+              clubId,
+              chatId,
+              salieron,
+              error: e,
+            });
+          }
+        }
+      }
     } catch (e) {
       logger.error('Fallo en cambio de miembros de club', { error: e });
     }
@@ -4836,7 +5033,7 @@ export const ajustarXp = onCall(async (request) => {
  * la gente vota y no escondido en un panel.
  */
 export const gestionarEncuesta = onCall(async (request) => {
-  await exigirAdmin(request.auth);
+  await exigirModerador(request.auth);
 
   const threadId = typeof request.data?.threadId === 'string' ? request.data.threadId : '';
   const accion = typeof request.data?.accion === 'string' ? request.data.accion : '';

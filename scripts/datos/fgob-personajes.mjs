@@ -1,0 +1,138 @@
+// PERSONAJES - Fate/Grand Order: Absolute Demonic Front Babylonia
+//
+// Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
+//
+// Nombres japoneses y seiyuu de AniList (103275). Ana es la version
+// joven de Medusa y Kingu el cuerpo de Enkidu con una voluntad nueva;
+// se usan los nombres con los que se presentan en la serie.
+
+export const PERSONAJES = [
+  [
+    'Ritsuka Fujimaru',
+    '',
+    'main',
+    '藤丸立香',
+    '島﨑信長',
+    'El último maestro de Chaldea. Llega a Uruk sin saber nada de la guerra y se queda porque es la única persona que puede cerrar la singularidad. No pelea: da órdenes, escucha a sus sirvientes y aguanta lo que haga falta.',
+  ],
+  [
+    'Mash Kyrielight',
+    '',
+    'main',
+    'マシュ・キリエライト',
+    '高橋李依',
+    'La sirviente de Ritsuka, una chica criada en Chaldea que nunca había salido de allí. Su escudo la protege a ella y a los demás, y en esta guerra descubre que su vida también cuenta.',
+  ],
+  [
+    'Gilgamesh',
+    '',
+    'main',
+    'ギルガメッシュ',
+    '関智一',
+    'El rey de Uruk, que gobierna una ciudad asediada por tres diosas y por un ejército de bestias. Ha cambiado desde la guerra del Grial: trabaja hasta morir por su pueblo y no piensa entregar el Grial a nadie.',
+  ],
+  [
+    'Ishtar',
+    '',
+    'main',
+    'イシュタル',
+    '植田佳奈',
+    'La diosa de Venus y una de las tres que atacan Uruk. Es vanidosa, caprichosa y bastante menos terrible de lo que su fama sugiere. Se alía con Ritsuka cuando entiende que Tiamat no va a dejarle nada.',
+  ],
+  [
+    'Merlin',
+    '',
+    'supporting',
+    'マーリン',
+    '櫻井孝宏',
+    'El mago de la corte de Artoria, que aparece en Uruk sin que nadie le haya llamado. Sonríe, miente y ayuda a la vez, y su versión de la guerra tiene más que ver con el espectáculo que con la victoria.',
+  ],
+  [
+    'Ana',
+    '',
+    'supporting',
+    'アナ',
+    '浅川悠',
+    'La versión joven de Medusa, invocada como Lancer. Es callada, desconfía de todo el mundo y se queda en Uruk porque los niños de la ciudad no le tienen miedo. Su otra forma es la Gorgona.',
+  ],
+  [
+    'Kingu',
+    '',
+    'supporting',
+    'キングー',
+    '小林ゆう',
+    'El cuerpo de Enkidu con una voluntad nueva. Sirve al Rey Mago y al principio cree que su papel es destruir Uruk, hasta que los Lahmu le abandonan y empieza a preguntarse qué es.',
+  ],
+  [
+    'Leonardo da Vinci',
+    '',
+    'supporting',
+    'レオナルド・ダ・ヴィンチ',
+    '坂本真綾',
+    'La directora técnica de Chaldea, que aparece como una mujer renacentista y habla como si supiera todo. Desde el otro lado del rayshift sostiene la misión y explica lo que nadie más entiende.',
+  ],
+  [
+    'Romani Archaman',
+    '',
+    'supporting',
+    'ロマニ・アーキマン',
+    '鈴村健一',
+    'El médico de Chaldea y el superior de Ritsuka. Se preocupa por todos, se disculpa por todo y esconde un secreto que Solomon va a poner a prueba.',
+  ],
+  [
+    'Ushiwakamaru',
+    '',
+    'supporting',
+    '牛若丸',
+    '早見沙織',
+    'La general del periodo Heian, invocada como Rider. Pelea con una espada y una energía que no caben en su cuerpo, y se sacrifica contra la Gorgona sin dudar.',
+  ],
+  [
+    'Leonidas',
+    '',
+    'supporting',
+    'レオニダス一世',
+    '三木眞一郎',
+    'El rey de Esparta y comandante del muro norte. Sabe que no puede ganar a la Gorgona y aun así se queda con sus hombres, porque su trabajo es aguantar.',
+  ],
+  [
+    'Siduri',
+    '',
+    'supporting',
+    'シドゥリ',
+    '内山夕実',
+    'La secretaria de Gilgamesh y la persona que mantiene la ciudad en marcha. Conoce a todo el mundo, apunta todo y es la voz que recuerda que Uruk no es solo un campo de batalla.',
+  ],
+  [
+    'Quetzalcoatl',
+    '',
+    'supporting',
+    'ケツァル・コアトル',
+    '遠藤綾',
+    'La diosa del sol y una de las tres que atacan Uruk. Es ruidosa, generosa y le encanta pelear; cuando entiende lo que es Tiamat, cambia de bando y se juega el cuerpo.',
+  ],
+  [
+    'Ereshkigal',
+    '',
+    'supporting',
+    'エレシュキガル',
+    '植田佳奈',
+    'La diosa del inframundo y la tercera miembro de la alianza. Quiere llevarse las almas de toda la humanidad antes de que lo haga la Gorgona, y su idea de proteger a la gente es encerrarla.',
+  ],
+  [
+    'Tiamat',
+    '',
+    'antagonist',
+    'ティアマト',
+    '悠木碧',
+    'La diosa madre de Mesopotamia, la bestia que está detrás de la singularidad. Su forma verdadera es un océano de barro negro que no se puede matar con armas normales.',
+  ],
+  [
+    'Fou',
+    '',
+    'supporting',
+    'フォウ',
+    '川澄綾子',
+    'La pequeña criatura que acompaña a Mash desde Chaldea. No habla, muerde a Merlin y aparece en los momentos más raros. Nadie sabe exactamente qué es.',
+  ],
+];

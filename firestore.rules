@@ -29,14 +29,6 @@ service cloud.firestore {
       return hasProfile() ? myDoc().data.role : null;
     }
 
-    function isAdmin() {
-      return myRole() == 'admin';
-    }
-
-    function isModerator() {
-      return myRole() == 'admin' || myRole() == 'moderator';
-    }
-
     // Forma mínima de una fila de disponibilidad regional. El
     // catálogo es público, pero solo el equipo puede escribir en
     // él. La comprobación evita que una escritura accidental deje
@@ -143,6 +135,18 @@ service cloud.firestore {
       return isSignedIn() && hasProfile() && !isBanned();
     }
 
+    // El rol NO basta: una cuenta baneada conserva su documento y su
+    // `role`, así que sin `isActive()` un admin o moderador baneado
+    // seguía leyendo datos privados y cambiando roles. Las Cloud
+    // Functions ya lo comprobaban (`exigirAdmin`); las reglas no.
+    function isAdmin() {
+      return isActive() && myRole() == 'admin';
+    }
+
+    function isModerator() {
+      return isActive() && (myRole() == 'admin' || myRole() == 'moderator');
+    }
+
     // Código NUEVO de invitación a un grupo.
     //
     // El formato lo garantiza la regla; la aleatoriedad, el cliente,
@@ -171,8 +175,25 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/chats/$(chatId));
     }
 
+    /**
+     * Miembro del chat Y, si es un chat de club, del club.
+     *
+     * La lista `memberIds` del chat se limpia al salir o ser
+     * expulsado, pero hasta que el trigger termina (o si alguien
+     * escribe el documento del club a mano) podía quedar acceso
+     * residual. Las subcolecciones de un chat conocen su `chatId`
+     * por la ruta, así que este `get` es seguro también en las
+     * consultas `list` de mensajes.
+     */
     function isChatMember(chatId) {
-      return isSignedIn() && request.auth.uid in chatData(chatId).memberIds;
+      return isSignedIn()
+             && request.auth.uid in chatData(chatId).memberIds
+             && (chatData(chatId).type != 'club'
+                 || (chatData(chatId).slug is string
+                     && exists(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+                     && request.auth.uid in
+                          get(/databases/$(database)/documents/clubs/$(chatData(chatId).slug))
+                            .data.memberIds));
     }
 
     function isChatOwner(chatId) {
@@ -536,24 +557,29 @@ service cloud.firestore {
      * autor podría reescribir las opciones dejando los votos
      * apuntando a otro lado.
      */
-    function pollMensajeSoloCambiaIsClosed(chatId, messageId) {
-      return hayPollMensaje(chatId, messageId)
+    function pollMensajeSoloCambiaIsClosed() {
+      // La actualización ES el mensaje: `resource.data` ya trae la
+      // encuesta anterior. Antes se volvía a leer el documento con
+      // `get()` hasta diez veces, y una simple actualización de
+      // `poll.isClosed` agotaba el límite de expresiones.
+      let r = resource.data;
+      return 'poll' in r
+             && r.poll is map
              && request.resource.data.poll is map
-             && request.resource.data.poll.question == pollDelMensaje(chatId, messageId).question
-             && request.resource.data.poll.options == pollDelMensaje(chatId, messageId).options
+             && request.resource.data.poll.question == r.poll.question
+             && request.resource.data.poll.options == r.poll.options
              && (('allowChangeVote' in request.resource.data.poll)
-                 == ('allowChangeVote' in pollDelMensaje(chatId, messageId)))
+                 == ('allowChangeVote' in r.poll))
              && (!('allowChangeVote' in request.resource.data.poll)
                  || request.resource.data.poll.allowChangeVote
-                    == pollDelMensaje(chatId, messageId).allowChangeVote)
+                    == r.poll.allowChangeVote)
              && (('expiresAt' in request.resource.data.poll)
-                 == ('expiresAt' in pollDelMensaje(chatId, messageId)))
+                 == ('expiresAt' in r.poll))
              && (!('expiresAt' in request.resource.data.poll)
                  || request.resource.data.poll.expiresAt
-                    == pollDelMensaje(chatId, messageId).expiresAt)
+                    == r.poll.expiresAt)
              && request.resource.data.poll.isClosed is bool
-             && request.resource.data.poll.isClosed
-                != pollDelMensaje(chatId, messageId).isClosed;
+             && request.resource.data.poll.isClosed != r.poll.isClosed;
     }
 
     // ======================================================
@@ -611,6 +637,29 @@ service cloud.firestore {
               && exists(/databases/$(database)/documents/comments/$(objetivoId)))
           || (tipo == 'chat_message'
               && existeMensajeDeChat(request.resource.data.chatId, objetivoId));
+    }
+
+    /**
+     * El objetivo de un comentario existe de verdad.
+     *
+     * `targetType` es singular ('thread', 'anime', 'episode',
+     * 'character') y la colección es plural. Sin esta comprobación,
+     * un comentario podía apuntar a un objetivo inventado: no se veía
+     * en ninguna parte, pero el trigger pagaba igualmente 5 XP y
+     * contaba para las medallas. Era farmeo invisible.
+     */
+    function objetivoDeComentarioExiste(tipo, objetivoId) {
+      return tipo is string
+             && objetivoId is string
+             && objetivoId.size() > 0
+             && ((tipo == 'thread'
+                  && exists(/databases/$(database)/documents/threads/$(objetivoId)))
+                 || (tipo == 'anime'
+                     && exists(/databases/$(database)/documents/animes/$(objetivoId)))
+                 || (tipo == 'episode'
+                     && exists(/databases/$(database)/documents/episodes/$(objetivoId)))
+                 || (tipo == 'character'
+                     && exists(/databases/$(database)/documents/characters/$(objetivoId))));
     }
 
     /** El mensaje existe Y quien escribe es del chat. */
@@ -1186,6 +1235,13 @@ service cloud.firestore {
                           ['email', 'isBanned', 'chatApariencia',
                            'regionPreferida', 'profileVisibility',
                            'allowChatRequests', 'showActivity'])
+                    // La antigüedad alimenta la medalla de veterano
+                    // (`antiguedadDias` en Functions). Si el cliente
+                    // pudiera elegir la fecha, bastaría con nacer con
+                    // `createdAt` de 2019 para llevársela. El único
+                    // valor aceptado es el reloj del servidor.
+                    && 'createdAt' in request.resource.data
+                    && request.resource.data.createdAt == request.time
                     && (isAdmin()
                     || (isSelf(uid)
                         // El rol NUNCA se lo pone el cliente: si no
@@ -1220,6 +1276,16 @@ service cloud.firestore {
                             ['email', 'isBanned', 'chatApariencia',
                              'regionPreferida', 'profileVisibility',
                              'allowChatRequests', 'showActivity'])
+                    // `createdAt` no se puede mover ni con rol de
+                    // admin. Los perfiles antiguos que no lo tengan
+                    // pueden rellenarlo, pero solo con la hora del
+                    // servidor; una vez existe, queda congelado.
+                    && (('createdAt' in resource.data
+                         && 'createdAt' in request.resource.data
+                         && request.resource.data.createdAt == resource.data.createdAt)
+                        || (!('createdAt' in resource.data)
+                            && (!('createdAt' in request.resource.data)
+                                || request.resource.data.createdAt == request.time)))
                     && ((isAdmin())
                     || (isSelf(uid)
                         && !request.resource.data.diff(resource.data)
@@ -2285,6 +2351,13 @@ service cloud.firestore {
                     && (!('imageUrl' in request.resource.data)
                         || (request.resource.data.imageUrl is string
                             && request.resource.data.imageUrl.size() <= 1000))
+                    // Fijar un hilo es una decisión de moderación. Si
+                    // el autor pudiera nacer con `pinned: true`, se
+                    // saltaría la restricción del `update`.
+                    && (!('pinned' in request.resource.data)
+                        || request.resource.data.pinned == false
+                        || isAdmin()
+                        || isModerator())
                     && (!('poll' in request.resource.data)
                         || pollValido(request.resource.data.poll))
                     // La tier list adjunta, si viene, con forma
@@ -2313,10 +2386,20 @@ service cloud.firestore {
 
       allow update: if ((isAdmin() || isModerator())
                         && sinContadoresDeEngagement())
-                    || (isSignedIn()
+                    || (isActive()
                         && resource.data.authorId == request.auth.uid
                         && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['title', 'body', 'tags', 'pinned']))
+                             // `pinned` ya NO está aquí: fijar es
+                             // cosa del equipo, no del autor.
+                             .affectedKeys().hasOnly(['title', 'body', 'tags'])
+                        // Los mismos límites que en `create`. Sin
+                        // esto, editar era la puerta de atrás para
+                        // saltarse los 200/10.000 caracteres.
+                        && request.resource.data.title is string
+                        && request.resource.data.title.size() > 0
+                        && request.resource.data.title.size() <= 200
+                        && request.resource.data.body is string
+                        && request.resource.data.body.size() <= 10000)
                     // Cerrar (o reabrir) la encuesta propia.
                     //
                     // Se acepta tanto "poll.isClosed" como
@@ -2326,7 +2409,7 @@ service cloud.firestore {
                     // el resto de la encuesta sea idéntico: si no,
                     // el autor podría reescribir las opciones y
                     // dejar Votes apuntando a otro lado.
-                    || (isSignedIn()
+                    || (isActive()
                         && hayPoll(threadId)
                         && resource.data.authorId == request.auth.uid
                         && request.resource.data.diff(resource.data)
@@ -2335,7 +2418,7 @@ service cloud.firestore {
                     // Adjuntar (cambiar o quitar) la tier list del
                     // hilo propio. Solo la referencia: el contenido
                     // vive en su documento y lo gobiernan sus reglas.
-                    || (isSignedIn()
+                    || (isActive()
                         && resource.data.authorId == request.auth.uid
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(['tierList'])
@@ -2344,7 +2427,7 @@ service cloud.firestore {
                             || tierRefValida(request.resource.data.tierList)));
 
       allow delete: if isAdmin() || isModerator()
-                    || (isSignedIn() && resource.data.authorId == request.auth.uid);
+                    || (isActive() && resource.data.authorId == request.auth.uid);
 
       // ── VOTOS DE LA ENCUESTA ────────────────────────
       //
@@ -2523,7 +2606,17 @@ service cloud.firestore {
       // texto, imagen o GIF.
       allow create: if isActive()
                     && request.resource.data.authorId == request.auth.uid
+                    // El tipo va en lista blanca y el objetivo TIENE
+                    // que existir. Antes bastaba cualquier string:
+                    // el comentario no se veía en ningún sitio, pero
+                    // el trigger pagaba 5 XP y contaba para medallas.
+                    && request.resource.data.targetType is string
+                    && request.resource.data.targetType in
+                       ['thread', 'anime', 'episode', 'character']
                     && request.resource.data.targetId is string
+                    && objetivoDeComentarioExiste(
+                         request.resource.data.targetType,
+                         request.resource.data.targetId)
                     && request.resource.data.body is string
                     && request.resource.data.body.size() <= 5000
                     && (request.resource.data.body.size() > 0
@@ -2549,13 +2642,21 @@ service cloud.firestore {
 
       allow update: if ((isAdmin() || isModerator())
                         && sinContadoresDeEngagement())
-                    || (isSignedIn()
+                    || (isActive()
                         && resource.data.authorId == request.auth.uid
                         && request.resource.data.diff(resource.data)
-                             .affectedKeys().hasOnly(['body']));
+                             .affectedKeys().hasOnly(['body'])
+                        // El mismo límite que en `create`. Sin esto,
+                        // publicar 10 caracteres y editarlos a un
+                        // millón esquivaba el tope de 5.000.
+                        && request.resource.data.body is string
+                        && request.resource.data.body.size() <= 5000
+                        && (request.resource.data.body.size() > 0
+                            || ('gif' in request.resource.data)
+                            || ('imageUrl' in request.resource.data)));
 
       allow delete: if isAdmin() || isModerator()
-                    || (isSignedIn() && resource.data.authorId == request.auth.uid);
+                    || (isActive() && resource.data.authorId == request.auth.uid);
 
       // ── ME GUSTA DEL COMENTARIO ─────────────────────
       //
@@ -3300,7 +3401,7 @@ service cloud.firestore {
       //
       // `moderatorIds` tiene que venir vacío: si no, cualquiera
       // podría estrenar el club con moderadores inventados.
-      allow create: if isSignedIn()
+      allow create: if isActive()
                     && request.resource.data.ownerId == request.auth.uid
                     && request.resource.data.moderatorIds is list
                     && request.resource.data.moderatorIds.size() == 0
@@ -3326,7 +3427,21 @@ service cloud.firestore {
                     && request.resource.data.rules.size() <= 1000
                     && request.resource.data.accessType in ['public', 'private', 'request']
                     && request.resource.data.chatId is string
-                    && request.resource.data.chatId.size() > 0;
+                    && request.resource.data.chatId.size() > 0
+                    // El chat tiene que existir y ser EL chat de este
+                    // club: del mismo dueño, con el mismo slug y con
+                    // el creador como único miembro. Antes bastaba
+                    // cualquier string: un baneado creaba clubes
+                    // huérfanos o apuntando al chat de otra persona.
+                    && chatExiste(request.resource.data.chatId)
+                    && chatData(request.resource.data.chatId).type == 'club'
+                    && chatData(request.resource.data.chatId).slug == clubId
+                    && chatData(request.resource.data.chatId).ownerId
+                         == request.auth.uid
+                    && chatData(request.resource.data.chatId).memberIds is list
+                    && chatData(request.resource.data.chatId).memberIds.size() == 1
+                    && chatData(request.resource.data.chatId).memberIds
+                         .hasOnly([request.auth.uid]);
 
       // ── Actualización ───────────────────────────────
       //
@@ -3361,9 +3476,14 @@ service cloud.firestore {
       // a sí mismo y deje el club sin nadie al mando; en la
       // rama del moderador hace lo mismo con el dueño: un
       // moderador tampoco puede expulsar al propietario.
-      allow update: if isAdmin()
-                    // El dueño: todo lo del club, y además los
-                    // permisos y los roles.
+      allow update: if isActive()
+                    && (isAdmin()
+                    // El dueño: configuración, roles, altas y bajas.
+                    // La puerta P0 es `isActive()`: un dueño baneado
+                    // ya no puede añadir ni echar a nadie (C3/C4).
+                    // Que un dueño ACTIVO pueda dar de alta sin el
+                    // consentimiento del otro sigue siendo un asunto
+                    // de producto/estadísticas (P1), no de esta regla.
                     || (esPropietarioClub(clubId)
                         && request.resource.data.diff(resource.data)
                              .affectedKeys().hasOnly(
@@ -3418,7 +3538,7 @@ service cloud.firestore {
                             || (request.resource.data.memberIds.size()
                                  == resource.data.memberIds.size() - 1
                                 && esAdminClub(clubData(clubId), request.auth.uid)
-                                && permisoActivado(clubData(clubId), 'adminExpulsa'))));
+                                && permisoActivado(clubData(clubId), 'adminExpulsa')))));
 
       // Salir del club: quitarse a uno mismo de las tres
       // listas. Exactamente una persona menos, y soy yo.
@@ -3426,13 +3546,20 @@ service cloud.firestore {
       // El propietario NO puede usar esta vía: si no, un
       // club se quedaría sin nadie que lo administre. Tiene
       // que transferir la propiedad o borrarlo antes.
-      allow update: if esMiembroClub(clubId)
+      allow update: if isActive()
+                    && esMiembroClub(clubId)
                     && resource.data.ownerId != request.auth.uid
                     && request.resource.data.memberIds is list
                     && !(request.auth.uid in request.resource.data.memberIds)
                     && request.resource.data.memberIds.size()
                          == resource.data.memberIds.size() - 1
                     && !(request.auth.uid in request.resource.data.members.keys())
+                    && request.resource.data.members.size()
+                         == resource.data.members.size() - 1
+                    && resource.data.members.keys()
+                         .hasAll(request.resource.data.members.keys())
+                    && request.resource.data.memberCount
+                         == request.resource.data.memberIds.size()
                     && request.resource.data.diff(resource.data)
                          .affectedKeys().hasOnly(['members', 'memberIds', 'memberCount', 'updatedAt']);
 
@@ -3473,7 +3600,8 @@ service cloud.firestore {
       // Solo el propietario (o un admin global). Borrar un
       // club se lleva por delante el acceso al chat de
       // todos sus miembros, y eso no lo decide un moderador.
-      allow delete: if esPropietarioClub(clubId) || isAdmin();
+      allow delete: if isActive()
+                    && (esPropietarioClub(clubId) || isAdmin());
 
       // ── Solicitudes de acceso ───────────────────────
       //
@@ -3526,7 +3654,8 @@ service cloud.firestore {
         // el cliente pudiera escribir `accepted`, se estaría
         // aceptando su propia solicitud y el estado dejaría de
         // ser fiable.
-        allow update: if resource.data.fromId == request.auth.uid
+        allow update: if isActive()
+                      && resource.data.fromId == request.auth.uid
                       && (
                         (request.resource.data.status == 'cancelled'
                           && request.resource.data.diff(resource.data)
@@ -3537,7 +3666,8 @@ service cloud.firestore {
                                .affectedKeys().hasOnly(['createdAt']))
                       );
 
-        allow delete: if isAdmin() || esModeradorClub(clubId);
+        allow delete: if isActive()
+                      && (isAdmin() || esModeradorClub(clubId));
       }
 
       // ── Sanciones vigentes ────────────────────────────
@@ -3560,7 +3690,8 @@ service cloud.firestore {
         allow read: if esModeradorClub(clubId)
                     || (isSignedIn() && request.auth.uid == uid);
 
-        allow create, update: if puedeSancionarA(
+        allow create, update: if isActive()
+                              && puedeSancionarA(
                                   clubId,
                                   request.auth.uid,
                                   uid,
@@ -3568,7 +3699,8 @@ service cloud.firestore {
                                   request.resource.data.permanente == true)
                               && sancionVigenteValida(request.resource.data, clubId, uid);
 
-        allow delete: if puedeLevantarDe(clubId, request.auth.uid, uid);
+        allow delete: if isActive()
+                      && puedeLevantarDe(clubId, request.auth.uid, uid);
       }
 
       // ── Historial de sanciones ───────────────────────
@@ -3582,7 +3714,8 @@ service cloud.firestore {
         allow read: if esModeradorClub(clubId)
                     || (isSignedIn() && resource.data.objetivoUid == request.auth.uid);
 
-        allow create: if esModeradorClub(clubId)
+        allow create: if isActive()
+                      && esModeradorClub(clubId)
                       && sancionHistorialValida(request.resource.data, clubId);
 
         allow update, delete: if false;
@@ -3628,7 +3761,8 @@ service cloud.firestore {
                     || (clubExiste(clubId)
                         && clubData(clubId).accessType in ['public', 'request']);
 
-        allow create: if (puedeGestionarCanales(clubId) || isAdmin())
+        allow create: if isActive()
+                      && (puedeGestionarCanales(clubId) || isAdmin())
                       && request.resource.data.id == channelId
                       && request.resource.data.clubId == clubId
                       && request.resource.data.chatId is string
@@ -3756,7 +3890,8 @@ service cloud.firestore {
         // existe y ya era legible, así que crearlo no abre nada.
         // Va clavado al `chatId` histórico del club, con
         // visibilidad pública y sin spoilers.
-        allow create: if esMiembroClub(clubId)
+        allow create: if isActive()
+                      && esMiembroClub(clubId)
                       && channelId == 'general'
                       && !clubChannelExiste(clubId, channelId)
                       && request.resource.data.id == 'general'
@@ -3777,7 +3912,8 @@ service cloud.firestore {
         // orden. El `id`, el `clubId`, el `chatId`, el creador y
         // la creación no se tocan nunca. El `general` sigue
         // público siempre.
-        allow update: if (puedeGestionarCanales(clubId) || isAdmin())
+        allow update: if isActive()
+                      && (puedeGestionarCanales(clubId) || isAdmin())
                       && request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(
                              ['name', 'description',
@@ -3868,7 +4004,8 @@ service cloud.firestore {
         // Borrar: todo menos el `general`. El historial se va
         // con el canal (el cliente vacía antes el chat para que
         // no quede legible por rutas antiguas).
-        allow delete: if (puedeGestionarCanales(clubId) || isAdmin())
+        allow delete: if isActive()
+                      && (puedeGestionarCanales(clubId) || isAdmin())
                       && channelId != 'general';
       }
     }
@@ -3913,10 +4050,12 @@ service cloud.firestore {
               && mismoTipo
               && mismoDueno
               && mismosMiembros
+              // `lastMessage*` y las marcas personales (readAt,
+              // clearedAt, hiddenFor) ya no se tocan desde aquí:
+              // la vista previa la escribe el trigger y cada
+              // persona mueve solo la suya.
               && cambios.hasOnly(
-                   ['name', 'avatar', 'coverUrl', 'category', 'code',
-                    'hiddenFor', 'lastMessage', 'lastMessageAt',
-                    'lastMessageSenderId', 'readAt', 'clearedAt']))
+                   ['name', 'avatar', 'coverUrl', 'category', 'code']))
 
           // Expulsar a UN miembro del grupo (el dueño no puede
           // expulsarse a sí mismo: para irse, primero transfiere).
@@ -3952,7 +4091,10 @@ service cloud.firestore {
               && !(request.auth.uid in d.memberIds)
               && d.memberIds.size() == r.memberIds.size() - 1
               && d.memberIds.hasOnly(r.memberIds)
-              && cambios.hasOnly(['memberIds', 'hiddenFor']));
+              && cambios.hasOnly(['memberIds', 'hiddenFor'])
+              // Al salir, ocultar solo su propia copia.
+              && (!cambios.hasAny(['hiddenFor'])
+                  || chatHiddenForSoloCambiaSuUid()));
     }
 
     // Actualizaciones de un chat de CLUB. Cada capacidad tiene su
@@ -4049,6 +4191,137 @@ service cloud.firestore {
              && d.diff(r).affectedKeys().hasOnly(['memberIds', 'hiddenFor']);
     }
 
+    /**
+     * Un mapa personal del chat (`readAt`, `clearedAt`) solo puede
+     * cambiar en la clave de quien escribe.
+     *
+     * El cliente escribe el mapa ENTERO (no una ruta anidada), así
+     * que no basta con mirar `affectedKeys()` del documento: hay que
+     * comparar el mapa con el anterior. Así se conservan las marcas
+     * de los demás y solo se mueve la propia. Antes, cualquier
+     * miembro podía marcar como leído, limpiar u ocultar el chat a
+     * otra persona.
+     */
+    function chatMapaSoloCambiaSuClave(campo) {
+      let d = request.resource.data;
+      let r = resource.data;
+
+      return campo in d
+             && d[campo] is map
+             && request.auth.uid in d[campo]
+             && d[campo][request.auth.uid] is timestamp
+             && (
+               !(campo in r)
+               ? d[campo].keys().hasOnly([request.auth.uid])
+               : (r[campo] is map
+                  && d[campo].diff(r[campo])
+                       .affectedKeys().hasOnly([request.auth.uid]))
+             );
+    }
+
+    /**
+     * `hiddenFor` solo puede añadir o quitar el uid de quien escribe.
+     *
+     * Se compara con la lista anterior en los dos sentidos: para
+     * ocultar tiene que conservar todo y añadir solo su uid; para
+     * volver a mostrarla, conservar todo y quitar solo su uid.
+     */
+    function chatHiddenForSoloCambiaSuUid() {
+      let d = request.resource.data.hiddenFor;
+      let r = resource.data;
+
+      return d is list
+             && (
+               !('hiddenFor' in r)
+               ? d.hasOnly([request.auth.uid])
+               : (r.hiddenFor is list
+                  && (
+                    (d.size() == r.hiddenFor.size() + 1
+                     && !(request.auth.uid in r.hiddenFor)
+                     && d.hasAll(r.hiddenFor)
+                     && d.hasOnly(r.hiddenFor.concat([request.auth.uid])))
+                    ||
+                    (d.size() == r.hiddenFor.size() - 1
+                     && request.auth.uid in r.hiddenFor
+                     && r.hiddenFor.hasAll(d)
+                     && r.hiddenFor.hasOnly(d.concat([request.auth.uid])))
+                  ))
+             );
+    }
+
+    /**
+     * El fijado copia al pie de la letra el mensaje real.
+     *
+     * Antes solo se comprobaba que el mensaje existiera: el autor,
+     * el nombre, el texto y el tipo los ponía el cliente, así que
+     * se podía fijar un mensaje citando a un administrador con un
+     * texto que nunca escribió. Ahora los campos derivados se
+     * contrastan con el documento `messages/{messageId}`.
+     *
+     * `mensajeCreadoEn` se guarda como texto ISO y las reglas no
+     * pueden formatear un Timestamp, así que solo se valida su
+     * forma; el resto sí se compara.
+     */
+    function fijadoCoincideConMensaje(chatId, messageId) {
+      let m = get(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId)).data;
+      let d = request.resource.data;
+      let cuerpo = ('body' in m && m.body is string) ? m.body.trim() : '';
+      let autorNombre = ('senderName' in m && m.senderName is string)
+                        ? m.senderName : '';
+      let autorAvatar = ('senderAvatar' in m && m.senderAvatar is string)
+                        ? m.senderAvatar : '';
+
+      return d.autorId == m.senderId
+             && d.autorNombre == autorNombre
+             && d.autorAvatar == autorAvatar
+             && d.mensajeCreadoEn is string
+             && d.mensajeCreadoEn.size() <= 40
+             && (
+               ('gif' in m
+                && m.gif is map
+                && d.tipo == 'gif'
+                && d.texto == (cuerpo.size() > 0 ? cuerpo : 'GIF')
+                && (!('gifUrl' in d)
+                    || ('url' in m.gif && d.gifUrl == m.gif.url)))
+               ||
+               ('imageUrl' in m
+                && m.imageUrl is string
+                && d.tipo == 'image'
+                && d.texto == (cuerpo.size() > 0 ? cuerpo : 'Imagen')
+                && (!('imagenUrl' in d) || d.imagenUrl == m.imageUrl))
+               ||
+               (!('gif' in m)
+                && !('imageUrl' in m)
+                && d.tipo in ['text', 'link']
+                // Texto exacto. Antes solo se comparaba el autor y
+                // se aceptaba cualquier resumen de hasta 300
+                // caracteres, así que un mensaje largo se podía
+                // fijar con una frase inventada.
+                && d.texto == (cuerpo.size() == 0 ? 'Mensaje sin texto' : cuerpo))
+             );
+    }
+
+    /**
+     * Actualización personal de un chat: recibos, ocultar y vaciar
+     * la copia propia. No toca miembros, metadatos ni la vista
+     * previa (esa la escribe el servidor).
+     */
+    function actualizacionPersonalDeChatPermitida() {
+      let d = request.resource.data;
+      let r = resource.data;
+      let cambios = d.diff(r).affectedKeys();
+
+      return r.memberIds.hasAll([request.auth.uid])
+             && d.memberIds.size() == r.memberIds.size()
+             && cambios.hasOnly(['readAt', 'hiddenFor', 'clearedAt'])
+             && (!cambios.hasAny(['readAt'])
+                 || chatMapaSoloCambiaSuClave('readAt'))
+             && (!cambios.hasAny(['clearedAt'])
+                 || chatMapaSoloCambiaSuClave('clearedAt'))
+             && (!cambios.hasAny(['hiddenFor'])
+                 || chatHiddenForSoloCambiaSuUid());
+    }
+
     // ======================================================
     // CHATS PRIVADOS Y GRUPALES
     // ======================================================
@@ -4092,6 +4365,31 @@ service cloud.firestore {
                     && request.resource.data.memberIds is list
                     && request.auth.uid in request.resource.data.memberIds
                     && request.resource.data.type in ['group', 'club']
+                    // La vista previa y las marcas personales no
+                    // pueden nacer falseadas: el emisor es quien
+                    // crea, la fecha es la del servidor y `readAt`
+                    // solo puede traer su propia clave. Los mensajes
+                    // reales mueven la vista previa desde el trigger
+                    // `onChatMessageCreated`.
+                    && (!('lastMessage' in request.resource.data)
+                        || (request.resource.data.lastMessage is string
+                            && request.resource.data.lastMessage.size() <= 500))
+                    && (!('lastMessageAt' in request.resource.data)
+                        || request.resource.data.lastMessageAt == request.time)
+                    && (!('lastMessageSenderId' in request.resource.data)
+                        || request.resource.data.lastMessageSenderId
+                             == request.auth.uid)
+                    && (!('hiddenFor' in request.resource.data)
+                        || (request.resource.data.hiddenFor is list
+                            && request.resource.data.hiddenFor.size() == 0))
+                    && (!('readAt' in request.resource.data)
+                        || (request.resource.data.readAt is map
+                            && request.resource.data.readAt.keys()
+                                 .hasOnly([request.auth.uid])
+                            && (!(request.auth.uid in request.resource.data.readAt)
+                                || request.resource.data.readAt[request.auth.uid]
+                                     is timestamp)))
+                    && !('clearedAt' in request.resource.data)
                     && (
                       // Grupo normal: solo su creador.
                       (request.resource.data.type == 'group'
@@ -4155,16 +4453,22 @@ service cloud.firestore {
       // pasando: `isActive()` es la puerta GLOBAL, no la sanción
       // del club.
       //
-      // 1) Admin global: cualquier chat.
-      allow update: if isActive() && isAdmin();
+      // 1) Admin global: cualquier chat. `isAdmin()` ya exige
+      // `isActive()`: un admin baneado no pasa.
+      allow update: if isAdmin();
 
       // 1b) Salir de un chat de club: el miembro se quita a sí mismo.
       // Va antes de la regla de miembro para no gastar el presupuesto
       // de expresiones en su `diff` de campos personales y en las
       // ramas de equipo. El `diff` de aquí ya impide tocar type,
       // ownerId o cualquier otro campo.
-      allow update: if isActive()
-                    && resource.data.type == 'club'
+      //
+      // El `type == 'club'` va ANTES de `isActive()`: así una
+      // actualización de un grupo no paga esta comprobación en las
+      // cuatro ramas de club. Sin ese orden, las operaciones de
+      // grupo agotaban el límite de 1.000 expresiones.
+      allow update: if resource.data.type == 'club'
+                    && isActive()
                     && request.resource.data.memberIds is list
                     && resource.data.memberIds.hasAll([request.auth.uid])
                     && !(request.auth.uid in request.resource.data.memberIds)
@@ -4172,48 +4476,44 @@ service cloud.firestore {
                          == resource.data.memberIds.size() - 1
                     && request.resource.data.memberIds.hasOnly(resource.data.memberIds)
                     && request.resource.data.diff(resource.data)
-                         .affectedKeys().hasOnly(['memberIds', 'hiddenFor']);
+                         .affectedKeys().hasOnly(['memberIds', 'hiddenFor'])
+                    // Al salir solo puede ocultarse el chat a sí
+                    // mismo, no a los demás miembros.
+                    && (!request.resource.data.diff(resource.data)
+                         .affectedKeys().hasAny(['hiddenFor'])
+                        || chatHiddenForSoloCambiaSuUid());
 
       // 1c) Altas en un chat de club: el equipo mete a un miembro del
       // equipo en un canal restringido, o un miembro del club entra en
       // el chat público. Va antes de la regla de miembro y de las
       // ramas de expulsión/vaciado.
-      allow update: if isActive()
-                    && resource.data.type == 'club'
+      allow update: if resource.data.type == 'club'
+                    && isActive()
                     && actualizacionDeChatClubAltasPermitida(chatId);
 
       // 1d) Expulsar a UN miembro de un chat de club.
-      allow update: if isActive()
-                    && resource.data.type == 'club'
+      allow update: if resource.data.type == 'club'
+                    && isActive()
                     && actualizacionDeChatClubExpulsionPermitida(chatId);
 
       // 1e) Vaciar un chat de club (propietario o gestor de canales).
-      allow update: if isActive()
-                    && resource.data.type == 'club'
+      allow update: if resource.data.type == 'club'
+                    && isActive()
                     && actualizacionDeChatClubVaciadoPermitida();
 
-      // 2) Miembro: vista previa, recibos, ocultar y vaciar SU copia.
-      // No mueve ni un miembro. El `diff` ya garantiza que type,
-      // ownerId y memberIds no cambian: repetir esas igualdades solo
-      // acercaba la regla al límite de expresiones.
+      // 2) Miembro: recibos, ocultar y vaciar SU copia. También cubre
+      // al dueño/miembro de un grupo (metadatos, expulsar, transferir,
+      // salir). Una sola evaluación de `isActive()` para las dos
+      // capacidades: antes cada rama la repetía y una transferencia
+      // de grupo agotaba el límite de 1.000 expresiones.
+      //
+      // La vista previa (`lastMessage*`) ya NO está aquí: la escribe
+      // el trigger desde el mensaje real. Antes, un miembro podía
+      // falsear el remitente o el texto para todos.
       allow update: if isActive()
-                    && resource.data.memberIds.hasAll([request.auth.uid])
-                    && request.resource.data.memberIds.size()
-                         == resource.data.memberIds.size()
-                    && request.resource.data.diff(resource.data)
-                         .affectedKeys().hasOnly(
-                           ['lastMessage', 'lastMessageAt',
-                            'lastMessageSenderId', 'readAt',
-                            'hiddenFor', 'clearedAt',
-                            'hiddenFor.' + request.auth.uid,
-                            'readAt.' + request.auth.uid,
-                            'clearedAt.' + request.auth.uid]);
-
-      // 3) Dueño de grupo: metadatos, expulsar a uno y transferir.
-      // Miembro: salir.
-      allow update: if isActive()
-                    && resource.data.type == 'group'
-                    && actualizacionDeChatGrupoPermitida(chatId);
+                    && (actualizacionPersonalDeChatPermitida()
+                        || (resource.data.type == 'group'
+                            && actualizacionDeChatGrupoPermitida(chatId)));
 
       // Borrar el documento del chat. Un grupo lo puede borrar su
       // dueño (es lo que hace el borrado de cuenta). Un privado,
@@ -4287,13 +4587,20 @@ service cloud.firestore {
                       && request.resource.data.fijadoPorNombre is string
                       && request.resource.data.autorId is string
                       && request.resource.data.autorNombre is string
+                      && request.resource.data.autorAvatar is string
                       && request.resource.data.texto is string
-                      && request.resource.data.texto.size() <= 300
+                      // Como máximo, el mismo tamaño que un mensaje
+                      // (`body <= 4000`). Se guarda el texto entero
+                      // para poder compararlo con el original.
+                      && request.resource.data.texto.size() <= 4000
                       && request.resource.data.tipo is string
                       && request.resource.data.mensajeCreadoEn is string
                       // Y el mensaje tiene que existir de verdad:
                       // no se puede fijar algo que no está.
-                      && exists(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId));
+                      && exists(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId))
+                      // Autor, texto y tipo se copian del mensaje
+                      // real, no de lo que diga el cliente.
+                      && fijadoCoincideConMensaje(chatId, messageId);
 
         // Quitar es borrar el documento: el historial de lo
         // que se fijó no hace falta conservarlo, y así no
@@ -4378,17 +4685,28 @@ service cloud.firestore {
         // Sin esta rama, el botón de "eliminar mensaje" del
         // moderador daría permission-denied y el club no podría
         // mantener el orden del grupo.
-        allow update, delete: if isActive()
+        allow update: if isActive()
                              && (isAdmin()
                                  || (puedeRetirarMensajesDeChat(chatId)
-                                     && request.resource.data.body == ''
-                                     && request.resource.data.deletedForEveryone == true
-                                     && request.resource.data.createdAt == resource.data.createdAt
-                                     && request.resource.data.senderId == resource.data.senderId
+                                     // El `diff` va ANTES de leer `body`:
+                                     // en una actualización de encuesta
+                                     // esa clave no existe y el acceso
+                                     // directo lanzaba un error de
+                                     // evaluación en vez de un simple
+                                     // «no».
                                      && request.resource.data.diff(resource.data)
                                           .affectedKeys().hasOnly(
                                             ['body', 'deletedForEveryone', 'deletedAt',
-                                             'deletedBy', 'deletedByMod'])));
+                                             'deletedBy', 'deletedByMod'])
+                                     && request.resource.data.body == ''
+                                     && request.resource.data.deletedForEveryone == true
+                                     && request.resource.data.createdAt == resource.data.createdAt
+                                     && request.resource.data.senderId == resource.data.senderId));
+
+        // Borrar el documento es solo del equipo global: la
+        // moderación de club VACÍA el mensaje (update), no lo
+        // destruye, para no romper las citas ni los contadores.
+        allow delete: if isActive() && isAdmin();
 
         // Cerrar (o reabrir) la encuesta del mensaje.
         //
@@ -4398,20 +4716,22 @@ service cloud.firestore {
         // pregunta, las opciones, la caducidad y el cambio de
         // voto queden idénticos, igual que en los hilos.
         //
-        // Se acepta tanto "poll.isClosed" como "poll" entero
-        // porque `affectedKeys()` no informa siempre igual.
+        // Autor del mensaje. Se comprueba el `diff` antes de
+        // resolver la membresía: es barato y descarta cualquier
+        // actualización que no sea el cierre de la encuesta.
         allow update: if isActive()
-                      && (
-                        (isChatMember(chatId)
-                           && resource.data.senderId == request.auth.uid
-                           && request.resource.data.diff(resource.data)
-                                .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
-                           && pollMensajeSoloCambiaIsClosed(chatId, messageId))
-                        || (esModeradorClubDeChat(chatId)
-                            && request.resource.data.diff(resource.data)
-                                 .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
-                            && pollMensajeSoloCambiaIsClosed(chatId, messageId))
-                      );
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
+                      && resource.data.senderId == request.auth.uid
+                      && isChatMember(chatId)
+                      && pollMensajeSoloCambiaIsClosed();
+
+        // Moderador del club (dueño, moderadores y adminIds).
+        allow update: if isActive()
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(['poll.isClosed', 'poll'])
+                      && esModeradorClubDeChat(chatId)
+                      && pollMensajeSoloCambiaIsClosed();
 
         // ── VOTOS DE LA ENCUESTA ────────────────────────
         //

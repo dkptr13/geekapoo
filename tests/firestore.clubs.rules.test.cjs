@@ -266,6 +266,19 @@ beforeEach(async () => {
 // ╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝
 
 describe('Crear un club', () => {
+  // El club ya no puede nacer apuntando a un `chatId` inventado:
+  // la regla exige que el chat exista, sea de tipo `club`, tenga el
+  // mismo slug y pertenezca al creador. El chat se siembra aquí
+  // como lo dejaría `crearClub` antes de escribir la ficha.
+  beforeEach(async () => {
+    await sembrar(async (f) => {
+      await setDoc(
+        doc(f, 'chats', 'chat-club-1'),
+        nuevoChatClub(ALICE, [ALICE], 'club-de-frieren'),
+      );
+    });
+  });
+
   it('un usuario normal puede crear un club y queda como propietario', async () => {
     const club = nuevoClub(ALICE);
 

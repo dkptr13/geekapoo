@@ -1,0 +1,61 @@
+// TEMPORADA 1 - Fate/Apocrypha (2017)
+//
+// Veinticinco capitulos emitidos del 2 de julio al 30 de diciembre de
+// 2017. Titulos japoneses, fechas y resumenes de la lista de episodios
+// de Wikipedia en ingles, reescritos en castellano para este catalogo.
+// Los recaps 12.5 y 19.5 no se incluyen.
+//
+// Sin nota por episodio: van a 0.
+
+export const T1 = [
+  [1, 'Apócrifo: la gran guerra del Grial', '外典:聖杯大戦', '2017-07-02', 0,
+   'La Asociación de Magos manda a Kairi Sisigou a Rumanía: Darnic Yggdmillennia ha robado el Grial de Fuyuki y ha declarado una guerra de equipos. El Grial responde invocando a una gobernante neutral, Juana de Arco.'],
+  [2, 'La aparición de la santa', '聖女の出立', '2017-07-09', 0,
+   'Jeanne llega a Trifas con el encargo de vigilar que la guerra se haga como manda el Grial. Los siete sirvientes negros ya están convocados, y los rojos empiezan a moverse para asaltar el castillo de los Yggdmillennia.'],
+  [3, 'El primer paso del destino', '歩き出す運命', '2017-07-16', 0,
+   'Karna ataca a Jeanne en el camino a Trifas y Siegfried sale a defenderla. Los dos caballeros se miden sin sacar ventaja y Karna se retira por orden de su maestro, dejando claro que los rojos no van a esperar.'],
+  [4, 'Precio de la vida, redención de la muerte', '生の代償、死の償い', '2017-07-23', 0,
+   'Spartacus avanza hacia el castillo y los negros tienen que frenarle. Astolfo aprovecha el caos para sacar a un homúnculo, Gordes le alcanza y le mata sin querer; Siegfried le da su propio corazón para salvarle.'],
+  [5, 'La voz del cielo', '天の声', '2017-07-30', 0,
+   'El homúnculo despierta con Jeanne y Astolfo, y la santa le pone bajo su protección. Se pone el nombre de Sieg en recuerdo de Siegfried y decide que quiere vivir, aunque Jeanne ya ha visto que está destinado a morir en la guerra.'],
+  [6, 'El caballero de la rebelión', '叛逆の騎士', '2017-08-06', 0,
+   'Se explica por qué Mordred se rebeló contra Artoria: nunca la reconoció como hijo ni como heredero. En el presente, Sisigou y Mordred llegan a Sighisoara y se cruzan con Jack el Destripador, que lleva días matando magos.'],
+  [7, 'Dónde está la libertad', '自由の在処', '2017-08-13', 0,
+   'Fiore se salva porque Caules se pone delante de la espada de Sisigou. Chiron avisa de que no puede ganar a Mordred y los negros se retiran; Sisigou también se marcha y llama al combate un empate.'],
+  [8, 'El comienzo de la guerra', '開戦の狼煙', '2017-08-20', 0,
+   'Los rojos asaltan el castillo. Vlad aguanta solo a Karna y Atalanta, y Achilles se encuentra con Chiron, su antiguo maestro, en un duelo que ninguno de los dos quería. La guerra de equipos empieza de verdad.'],
+  [9, 'Cien llamas y cien flores', '百の焔と百の華', '2017-08-27', 0,
+   'Darnic recuerda cómo robó el Grial de Fuyuki. Amakusa se mide con Frankenstein mientras Shakespeare mira, Astolfo intenta asaltar los jardines colgantes y Semiramis le derriba de un disparo.'],
+  [10, 'Caer como una flor', '花と散る', '2017-09-03', 0,
+   'Sieg intenta salvar a Astolfo de Mordred y muere por ello. Frankenstein se sacrifica para frenar a Mordred y Sieg despierta dentro de su propia mente con Siegfried, que le da su poder antes de volver a la vida.'],
+  [11, 'Resplandor eterno', '永遠の輝き', '2017-09-10', 0,
+   'Sieg y Mordred chocan sus ataques definitivos y Spartacus, ya deformado, se mete en medio. Jeanne protege a Sieg y Astolfo de la explosión, y Amakusa aprovecha el desastre para robar el Grial del castillo.'],
+  [12, 'El regreso triunfal del santo', '聖人の凱旋', '2017-09-17', 0,
+   'Darnic obliga a Vlad a convertirse en vampiro y se fusiona con él para quedarse con su cuerpo. Jeanne propone una tregua a los rojos y a los negros para detenerle antes de que llegue al Grial.'],
+  [13, 'El último maestro', '最後のマスター', '2017-10-01', 0,
+   'Sieg descubre que ha heredado las órdenes de mando de Siegfried. Celenike intenta obligar a Astolfo a matarle y Mordred la mata primero; Astolfo se queda sin maestra y Sieg le ofrece un contrato.'],
+  [14, 'Plegaria de salvación', '救世の祈り', '2017-10-08', 0,
+   'Los jardines colgantes se marchan volando con Amakusa y Semiramis dentro. Jeanne acepta a regañadientes que Sieg participe como maestro, mientras Avicebron usa a Roche como núcleo de su golem.'],
+  [15, 'Caminos distintos', '道は違えど', '2017-10-15', 0,
+   'Achilles, Atalanta y Karna se enfrentan a Amakusa, que les revela que sus maestros siguen vivos y los tiene prisioneros. Los tres aceptan seguirle y cada uno cuenta qué deseo le pidió al Grial.'],
+  [16, 'Jack el Destripador', 'ジャック・ザ・リッパー', '2017-10-22', 0,
+   'Jack tortura a un mago hasta que le dice lo que quiere oír y después le arranca el corazón. Jeanne sigue preocupada por Sieg, que se desmaya, y Chiron intenta explicarle qué le está pasando al cuerpo del homúnculo.'],
+  [17, 'Ensueño', 'トロイメライ', '2017-10-29', 0,
+   'Sieg y Jeanne entran en Trifas como señuelo para atraer a Jack y a su maestra, Reika. Fiore cuenta que Reika iba a ser un sacrificio y que Jack se volvió contra el mago que la invocó.'],
+  [18, 'Desde el infierno', 'フロム・ヘル', '2017-11-05', 0,
+   'Jack arrastra a Sieg, Jeanne y Atalanta a un Londres de pesadilla. Allí descubren que Jack no es una persona, sino la suma de los espíritus de los niños abandonados en el Londres victoriano.'],
+  [19, 'El amanecer del final', '終わりの朝', '2017-11-12', 0,
+   'Jeanne y los Yggdmillennia planean el asalto a los jardines colgantes, y el único acceso posible es por aire. Astolfo ofrece su nave, aunque solo aguanta un ataque y hay que elegir bien el momento.'],
+  [20, 'Cruzando el cielo', '空を駆ける', '2017-11-25', 0,
+   'Jeanne, Sieg, Astolfo, Chiron, Fiore y Caules salen hacia los jardines. Jeanne y Chiron distraen a los sirvientes mientras Sieg y Astolfo desmontan las defensas para que los demás puedan entrar.'],
+  [21, 'El disparo de Antares', '天蠍一射', '2017-12-02', 0,
+   'Chiron y Achilles siguen su duelo, y Astolfo usa la luna nueva para anular la magia de Semiramis. Semiramis responde con todo lo que tiene y los jardines empiezan a caer a pedazos sobre Trifas.'],
+  [22, 'Reencuentro y despedida', '再会と別離', '2017-12-09', 0,
+   'Jeanne apenas aguanta a Atalanta, que se ha dejado llevar por su forma bestial. Achilles se mete en medio para salvarla y Jeanne sigue adelante para encontrar a Amakusa antes de que abra el Grial.'],
+  [23, 'Hacia el otro lado', '彼方へと', '2017-12-16', 0,
+   'Mordred y Sisigou se enfrentan a Semiramis, que envenena a Mordred y le ofrece perdonarle la vida si traiciona a su maestro. Mordred recuerda su pasado y decide qué clase de caballero quiere ser.'],
+  [24, 'La guerra del Grial', '聖杯戦争', '2017-12-23', 0,
+   'Amakusa sale del Grial y le explica a Jeanne su plan: separar las almas de los cuerpos de toda la humanidad para que nadie vuelva a sufrir. Sieg llega para decirle que eso no es salvar a nadie.'],
+  [25, 'Apócrifa', 'アポクリファ', '2017-12-30', 0,
+   'La explosión acaba con los jardines y con Amakusa, que acepta su derrota junto a Semiramis. Sieg y Astolfo despiertan lejos de Trifas, y el Grial queda cerrado sin que nadie haya pedido el deseo que quería.'],
+];

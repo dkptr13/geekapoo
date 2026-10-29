@@ -146,7 +146,7 @@ function nuevoChatCanal(chatId, miembros, extra = {}) {
     memberIds: miembros,
     hiddenFor: [],
     lastMessage: '',
-    lastMessageAt: '2026-01-01T00:00:00.000Z',
+    lastMessageAt: serverTimestamp(),
     lastMessageSenderId: DUENO,
     readAt: {},
     createdAt: '2026-01-01T00:00:00.000Z',

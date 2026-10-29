@@ -250,8 +250,42 @@ describe('Fijar mensajes en un club', () => {
     await assertFails(
       setDoc(doc(db(DUENO), 'chats', 'chat-club', 'fijados', 'm1'), fijado({
         fijadoPor: DUENO,
-        texto: 'x'.repeat(400),
+        texto: 'x'.repeat(4001),
       })),
+    );
+  });
+
+  it('no se puede resumir un mensaje largo con un texto inventado', async () => {
+    const largo = 'x'.repeat(500);
+    await sembrar(async (f) => {
+      await setDoc(
+        doc(f, 'chats', 'chat-club', 'messages', 'm-largo'),
+        mensaje({ body: largo }),
+      );
+    });
+
+    // Antes bastaba con que el resumen tuviera <= 300 caracteres:
+    // se podía fijar un mensaje largo atribuyéndole otra frase.
+    await assertFails(
+      setDoc(
+        doc(db(DUENO), 'chats', 'chat-club', 'fijados', 'm-largo'),
+        fijado({
+          messageId: 'm-largo',
+          texto: 'x'.repeat(300),
+          fijadoPor: DUENO,
+        }),
+      ),
+    );
+
+    await assertSucceeds(
+      setDoc(
+        doc(db(DUENO), 'chats', 'chat-club', 'fijados', 'm-largo'),
+        fijado({
+          messageId: 'm-largo',
+          texto: largo,
+          fijadoPor: DUENO,
+        }),
+      ),
     );
   });
 

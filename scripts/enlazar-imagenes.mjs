@@ -215,6 +215,40 @@ const ANIMES = [
   { id: 'danganronpa-the-animation', buscar: 'Danganronpa: The Animation' },
   { id: 'angels-of-death', buscar: 'Angels of Death' },
   { id: 'el-diario-de-la-boticaria', buscar: 'The Apothecary Diaries' },
+
+  // ── Fate ────────────────────────────────────────────────────────
+  // La franquicia necesita el id de AniList: buscar "Fate/stay night"
+  // devuelve una entrega cualquiera de las seis que se llaman parecido,
+  // y la portada acaba en la ficha equivocada. Con `anilist` se salta la
+  // busqueda y se va directo al media que corresponde.
+  { id: 'fate-prototype', buscar: 'Fate/Prototype', anilist: 12565 },
+  { id: 'fate-stay-night', buscar: 'Fate/stay night', anilist: 356 },
+  { id: 'fate-zero', buscar: 'Fate/Zero', anilist: 10087 },
+  {
+    id: 'fate-stay-night-unlimited-blade-works',
+    buscar: 'Fate/stay night: Unlimited Blade Works',
+    anilist: 19603,
+  },
+  { id: 'fate-stay-night-heaven-s-feel-i-presage-flower', buscar: "Fate/stay night [Heaven's Feel] I. presage flower", anilist: 20791 },
+  { id: 'fate-stay-night-heaven-s-feel-ii-lost-butterfly', buscar: "Fate/stay night [Heaven's Feel] II. lost butterfly", anilist: 21718 },
+  { id: 'fate-stay-night-heaven-s-feel-iii-spring-song', buscar: "Fate/stay night [Heaven's Feel] III. spring song", anilist: 21719 },
+  { id: 'fate-apocrypha', buscar: 'Fate/Apocrypha', anilist: 98035 },
+  { id: 'fate-kaleid-liner-prisma-illya', buscar: 'Fate/kaleid liner Prisma☆Illya', anilist: 14829 },
+  { id: 'fate-kaleid-liner-prisma-illya-2wei', buscar: 'Fate/kaleid liner Prisma☆Illya 2wei!', anilist: 20467 },
+  { id: 'fate-kaleid-liner-prisma-illya-2wei-herz', buscar: 'Fate/kaleid liner Prisma☆Illya 2wei Herz!', anilist: 20845 },
+  { id: 'fate-kaleid-liner-prisma-illya-3rei', buscar: 'Fate/kaleid liner Prisma☆Illya 3rei!!', anilist: 21379 },
+  { id: 'fate-kaleid-liner-prisma-illya-sekka-no-chikai', buscar: 'Fate/kaleid liner Prisma☆Illya: Sekka no Chikai', anilist: 97757 },
+  { id: 'fate-kaleid-liner-prisma-illya-licht-namae-no-nai-shoujo', buscar: 'Fate/kaleid liner Prisma☆Illya: Licht - Namae no Nai Shoujo', anilist: 118743 },
+  { id: 'fate-extra-last-encore', buscar: 'Fate/EXTRA Last Encore', anilist: 21717 },
+  { id: 'fate-grand-order-first-order', buscar: 'Fate/Grand Order: First Order', anilist: 97815 },
+  { id: 'fate-grand-order-absolute-demonic-front-babylonia', buscar: 'Fate/Grand Order: Zettai Majuu Sensen Babylonia', anilist: 103275 },
+  { id: 'fate-grand-order-camelot-wandering-agateram', buscar: 'Fate/Grand Order: Shinsei Entaku Ryouiki Camelot - Wandering; Agateram', anilist: 103276 },
+  { id: 'fate-grand-order-camelot-paladin-agateram', buscar: 'Fate/Grand Order: Shinsei Entaku Ryouiki Camelot - Paladin; Agateram', anilist: 103277 },
+  { id: 'fate-grand-order-solomon', buscar: 'Fate/Grand Order: Shuukyoku Tokuiten - Kani Jikan Shinden Solomon', anilist: 116756 },
+  { id: 'emiya-san-chi-no-kyou-no-gohan', buscar: 'Emiya-san Chi no Kyou no Gohan', anilist: 100855 },
+  { id: 'lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note', buscar: 'Lord El-Melloi II-sei no Jikenbo: "Rail Zeppelin" Grace note', anilist: 106918 },
+  { id: 'carnival-phantasm', buscar: 'Carnival Phantasm', anilist: 10012 },
+  { id: 'fate-strange-fake', buscar: 'Fate/strange Fake', anilist: 166617 },
 ];
 const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
 
@@ -238,7 +272,36 @@ const TITULOS_EN_ANILIST = {
     7: 'Tensei Shitara Slime Datta Ken: Soukai no Namida-hen',
     8: 'Tensei Shitara Slime Datta Ken 4th Season Part 1 & 2',
   },
+  // Fate/Zero y Unlimited Blade Works tienen la segunda temporada como
+  // media aparte en AniList, pero en el catalogo la temporada no lleva
+  // titulo: sin el titulo de AniList, el emparejador solo tiene el año y
+  // puede coger cualquier otra entrega de la franquicia del mismo año.
+  'fate-zero': { 2: 'Fate/Zero 2nd Season' },
+  'fate-stay-night-unlimited-blade-works': {
+    2: 'Fate/stay night: Unlimited Blade Works 2nd Season',
+  },
+  // Illustrias es un media que AniList no separa: sus tres episodios van
+  // dentro de la ficha de Last Encore. Se le da la portada de la serie.
+  'fate-extra-last-encore': { 2: 'Fate/EXTRA Last Encore' },
 };
+
+/**
+ * El media de AniList de un anime del catálogo.
+ *
+ * Con `anilist` se pide por id y no hay duda posible. Sin él, se busca
+ * por título, que es lo que vale para el resto del catálogo.
+ *
+ * @returns {Promise<null|{base:object, todos:Map<number,object>}>}
+ */
+async function mediaDe(anime) {
+  const semilla = anime.anilist ?? (await anilist.buscarAnime(anime.buscar))?.id;
+
+  if (!semilla) return null;
+
+  const { base, todos } = await anilist.arbol(semilla);
+
+  return base ? { base, todos } : null;
+}
 
 // ── Estado ─────────────────────────────────────────────────────────
 const cambios = [];
@@ -279,13 +342,14 @@ if (pide('personajes')) {
     if (soloAnimes.length && !soloAnimes.includes(anime.id)) continue;
     const delAnime = chars.filter((c) => str(c.f, 'animeId') === anime.id);
     if (!delAnime.length) continue;
-    const medio = await anilist.buscarAnime(anime.buscar);
-    if (!medio) {
+    const media = await mediaDe(anime);
+    if (!media) {
       console.log(`\n${anime.id}: AniList no encuentra "${anime.buscar}"`);
       omitidos.push(`${anime.id}: AniList no encuentra "${anime.buscar}"`);
       continue;
     }
-    const { todos } = await anilist.arbol(medio.id);
+    const medio = media.base;
+    const { todos } = media;
 
     // Los candidatos se sacan de TODAS las temporadas de la
     // franquicia, no solo de la primera. La lista de la T1 de Ataque a
@@ -381,11 +445,11 @@ if (pide('temporadas')) {
     if (soloAnimes.length && !soloAnimes.includes(anime.id)) continue;
     const suyas = seasons.filter((s) => str(s.f, 'animeId') === anime.id);
     if (!suyas.length) continue;
-    const medio = await anilist.buscarAnime(anime.buscar);
-    if (!medio) continue;
-    const { base, todos } = await anilist.arbol(medio.id);
+    const media = await mediaDe(anime);
+    if (!media) continue;
+    const { base, todos } = media;
     console.log(
-      `\n${anime.id} -> AniList ${medio.id} (${medio.titulo}): ` +
+      `\n${anime.id} -> AniList ${base.id} (${base.titulo}): ` +
         `${suyas.length} temporadas, ${todos.size} medias relacionados`,
     );
     const laBase = base ?? [...todos.values()][0];
@@ -425,11 +489,12 @@ if (pide('animes')) {
       omitidos.push(`${a.id}: no esta en Firestore`);
       continue;
     }
-    const medio = await anilist.buscarAnime(a.buscar);
-    if (!medio) {
+    const media = await mediaDe(a);
+    if (!media) {
       omitidos.push(`${a.id}: AniList no encuentra "${a.buscar}"`);
       continue;
     }
+    const medio = media.base;
     console.log(`  ${a.id} -> ${medio.titulo}`);
     await poner('animes', doc.id, 'coverUrl', medio.portada, a.id, str(doc.f, 'coverUrl'));
     await poner('animes', doc.id, 'bannerUrl', medio.banner, a.id, str(doc.f, 'bannerUrl'));

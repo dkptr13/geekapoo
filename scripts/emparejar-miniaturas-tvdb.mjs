@@ -1,6 +1,6 @@
 // Rellena las miniaturas de capitulo desde TVDB.
 //    $env:TVDB_KEY='...'
-//    node scripts/emparejar-miniaturas-tvdb.mjs [--anime <id>] [--escribir]
+//    node scripts/emparejar-miniaturas-tvdb.mjs [--anime <id>[,<id>...]] [--escribir]
 //
 // ── POR QUE TVDB Y NO ANILIST ──────────────────────────────────────
 //
@@ -40,6 +40,14 @@
 // encontrada tengan el mismo titulo japones que los del catalogo. Si no
 // llega al minimo, es otra serie y se descarta con el motivo escrito.
 //
+// ── LAS PELICULAS ──────────────────────────────────────────────────
+//
+// Una pelicula no es una serie: TVDB la guarda aparte (`type=movie`),
+// sin lista de capitulos, y la busqueda de series no la devuelve. Esas
+// fichas estan en `PELICULA_TVDB`, con el id comprobado a mano, y la
+// miniatura es el fondo de la pelicula. Si no tiene fondo se usa el
+// poster, que la lista recorta.
+//
 // ── LA CLAVE ───────────────────────────────────────────────────────
 //
 // Se lee de la variable de entorno TVDB_KEY y no se escribe en ningun
@@ -51,7 +59,12 @@ import { coleccion, escribir, str, num } from './firestore-rest.mjs';
 import { comoBuscarTvdb } from './busquedas-anime.mjs';
 import { capituloDe } from './emparejar-capitulo.mjs';
 import { limpiar } from './normalizar-titulo.mjs';
-import { temporadaEnTvdb } from './temporadas-tvdb.mjs';
+import {
+  temporadaEnTvdb,
+  capituloEnTvdb,
+  PELICULA_TVDB,
+  SIN_TITULO_JAPONES,
+} from './temporadas-tvdb.mjs';
 
 
 const clave = process.env.TVDB_KEY;
@@ -63,7 +76,17 @@ if (!clave) {
 
 const args = process.argv.slice(2);
 const escribirEnBase = args.includes('--escribir');
-const soloAnime = args.includes('--anime') ? args[args.indexOf('--anime') + 1] : null;
+
+// `--anime` se puede repetir, y tambien admite una lista separada por
+// comas: al rellenar el catalogo entero interesa pasar las fichas de una
+// obra de golpe sin tocar las de otras.
+const soloAnime = new Set(
+  args
+    .flatMap((a, i) => (a === '--anime' ? (args[i + 1] ?? '').split(',') : []))
+    .map((a) => a.trim())
+    .filter(Boolean),
+);
+const filtrarAnime = soloAnime.size > 0;
 
 // Minimo de capitulos que tienen que coincidir por titulo japones para
 // dar por buena una serie de TVDB.
@@ -165,6 +188,7 @@ for (const [animeId, prefijo] of prefijos) {
           numero: fila[0],
           japones: String(fila[2] ?? ''),
           espanol: String(fila[1] ?? ''),
+          fecha: String(fila[3] ?? ''),
           nombre,
         });
       }
@@ -281,11 +305,77 @@ let totalSinFuente = 0;
 for (const anime of animes) {
   const id = anime.id;
 
-  if (soloAnime && id !== soloAnime) continue;
+  if (filtrarAnime && !soloAnime.has(id)) continue;
 
   const necesidad = sinImagen.get(id) ?? [];
 
   if (!necesidad.length) continue;
+
+  // ── Peliculas ─────────────────────────────────────────────────────
+  //
+  // Una ficha que es una pelicula no tiene serie en TVDB: esta en
+  // `PELICULA_TVDB`, con el id comprobado a mano. Se usa el fondo
+  // (1920x1080), que es lo que se ve bien en una lista de capitulos, y
+  // si no lo hay, el poster.
+  const idPelicula = PELICULA_TVDB[id];
+
+  if (idPelicula) {
+    let ficha;
+
+    try {
+      ficha = (await pedir(`/movies/${idPelicula}/extended`))?.data;
+    } catch (e) {
+      console.log(`${id}: no se pudo leer la pelicula ${idPelicula} (${e.message.slice(0, 70)})`);
+      totalSinFuente++;
+      continue;
+    }
+
+    const fondo = (ficha?.artworks ?? [])
+      .filter((a) => a.type === 15 && a.image)
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+
+    const url = fondo?.image || ficha?.image;
+
+    if (!url) {
+      console.log(`${id}: la pelicula ${idPelicula} no tiene imagen en TVDB`);
+      totalSinFuente++;
+      continue;
+    }
+
+    console.log(`\n=== ${id}   TVDB pelicula ${idPelicula} "${ficha.name}"`);
+
+    let puestas = 0;
+
+    for (const f of necesidad) {
+      // La ficha de una pelicula tiene un solo capitulo, el 1 de la
+      // temporada 1. Cualquier otra cosa es un dato raro y se avisa.
+      if (Number(f.temporada) !== 1 || Number(f.numero) !== 1) {
+        console.log(`  T${f.temporada} ${f.numero}  no es la pelicula, se deja sin miniatura`);
+        continue;
+      }
+
+      if (usadas.has(url)) {
+        console.log(`  T1   1  la imagen ya la tiene otro capitulo de otra ficha`);
+        continue;
+      }
+
+      console.log(`  T1   1  ${url.slice(0, 82)}`);
+
+      if (escribirEnBase) {
+        await escribir('episodes', f.id, { thumbnailUrl: { stringValue: url } }, [
+          'thumbnailUrl',
+        ]);
+      }
+
+      usadas.add(url);
+      puestas++;
+      totalNuevas++;
+    }
+
+    console.log(`  ${puestas} puestas`);
+
+    continue;
+  }
 
   const delCatalogo = porAnime.get(id);
 
@@ -303,7 +393,12 @@ for (const anime of animes) {
     if (k && !nuestrosPorTitulo.has(k)) nuestrosPorTitulo.set(k, f);
   }
 
-  if (!nuestrosPorTitulo.size) {
+  // Hay series cuyos ficheros de datos no traen el titulo japones (ver
+  // `SIN_TITULO_JAPONES`). En esas se empareja por temporada y numero, y
+  // para saber que la serie de TVDB es la buena se comparan las fechas.
+  const sinTitulos = !nuestrosPorTitulo.size;
+
+  if (sinTitulos && !SIN_TITULO_JAPONES.has(id)) {
     console.log(`${id}: los capitulos no tienen titulo japones`);
     continue;
   }
@@ -332,9 +427,22 @@ for (const anime of animes) {
       continue;
     }
 
-    const deTvdb = new Set(eps.map((e) => limpiar(e.name)));
+    let comunes;
 
-    const comunes = [...nuestrosPorTitulo.keys()].filter((t) => deTvdb.has(t)).length;
+    if (sinTitulos) {
+      // La serie se comprueba con las fechas: cuantos de nuestros
+      // episodios caen en un dia en que TVDB emitio uno de la serie.
+      // Se dejan fuera los especiales (S0), que repiten fechas.
+      const fechas = new Set(
+        eps.filter((e) => Number(e.seasonNumber) >= 1).map((e) => e.aired),
+      );
+
+      comunes = delCatalogo.filter((f) => f.fecha && fechas.has(f.fecha)).length;
+    } else {
+      const deTvdb = new Set(eps.map((e) => limpiar(e.name)));
+
+      comunes = [...nuestrosPorTitulo.keys()].filter((t) => deTvdb.has(t)).length;
+    }
 
     if (comunes > mejor) {
       mejor = comunes;
@@ -342,12 +450,14 @@ for (const anime of animes) {
     }
   }
 
-  const exigido = Math.ceil(nuestrosPorTitulo.size * MINIMO);
+  const total = sinTitulos ? delCatalogo.length : nuestrosPorTitulo.size;
+
+  const exigido = Math.ceil(total * MINIMO);
 
   if (!elegida || mejor < exigido) {
     console.log(
-      `${id}: ninguna serie de TVDB encaja (mejor ${mejor} de ${nuestrosPorTitulo.size} titulos, ` +
-        `hacen falta ${exigido})`,
+      `${id}: ninguna serie de TVDB encaja (mejor ${mejor} de ${total} ` +
+        `${sinTitulos ? 'fechas' : 'titulos'}, hacen falta ${exigido})`,
     );
     totalSinFuente++;
     continue;
@@ -355,7 +465,7 @@ for (const anime of animes) {
 
 console.log(
     `\n=== ${id}   TVDB ${elegida.serie.tvdb_id} "${elegida.serie.name}" ` +
-      `(${mejor}/${nuestrosPorTitulo.size} titulos)  ${elegida.capitulos.length} capitulos`,
+      `(${mejor}/${total} ${sinTitulos ? 'fechas' : 'titulos'})  ${elegida.capitulos.length} capitulos`,
   );
 
   // El emparejado de un capitulo va en `emparejar-capitulo.mjs`, que es
@@ -402,19 +512,29 @@ for (const f of necesidad) {
       // cuadran, si es que estan mal las temporadas o si es que la imagen
       // ya la tenia puesta otro.
       if (REHACER) {
-        const clave = limpiar(nuestro?.japones);
+        if (SIN_TITULO_JAPONES.has(id)) {
+          const d = capituloEnTvdb(id, Number(f.temporada), Number(f.numero));
 
-        const conTitulo = elegida.capitulos.filter((e) => limpiar(e.name) === clave);
+          console.log(
+            `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
+              `sin titulo japones, se busca S${d.temporada}E${d.numero}` +
+              ` y no hay imagen o ya la tiene otro`,
+          );
+        } else {
+          const clave = limpiar(nuestro?.japones);
 
-        console.log(
-          `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
-            `${(clave || '(sin titulo)').slice(0, 34).padEnd(36)}` +
-            `${conTitulo.length} con ese titulo en TVDB` +
-            (conTitulo.length
-              ? `, se busca S${temporadaEnTvdb(id, f.temporada)}E${f.numero}, y esta en ` +
-                `en ${[...new Set(conTitulo.map((c) => `S${c.seasonNumber}E${c.number}`))].join(' ')}`
-              : ''),
-        );
+          const conTitulo = elegida.capitulos.filter((e) => limpiar(e.name) === clave);
+
+          console.log(
+            `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
+              `${(clave || '(sin titulo)').slice(0, 34).padEnd(36)}` +
+              `${conTitulo.length} con ese titulo en TVDB` +
+              (conTitulo.length
+                ? `, se busca S${temporadaEnTvdb(id, f.temporada)}E${f.numero}, y esta en ` +
+                  `en ${[...new Set(conTitulo.map((c) => `S${c.seasonNumber}E${c.number}`))].join(' ')}`
+                : ''),
+          );
+        }
       }
 
       saltadas++;
@@ -428,7 +548,7 @@ for (const f of necesidad) {
 
     console.log(
       `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
-        `${limpiar(nuestro.japones).slice(0, 36).padEnd(38)}${r.url.slice(0, 82)}`,
+        `${(limpiar(nuestro.japones) || nuestro.espanol).slice(0, 36).padEnd(38)}${r.url.slice(0, 82)}`,
     );
 
     if (escribirEnBase) {

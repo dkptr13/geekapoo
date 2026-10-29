@@ -49,6 +49,8 @@
 // temporadas coinciden", que es lo que ocurre en la mayoria, y por eso
 // no hace falta escribirlo.
 
+import { limpiar } from './normalizar-titulo.mjs';
+
 /** @type {Record<string, Record<number, number>>} */
 export const TEMPORADA_TVDB = {
   // Blue Lock va en orden cronologico y mezcla serie, pelicula y
@@ -108,6 +110,32 @@ export const TEMPORADA_TVDB = {
   // TVDB no tiene. Es el unico capitulo que se queda sin imagen, y no
   // porque este mal el dato sino porque en esa fuente no existe.
   'neon-genesis-evangelion': { 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+
+  // Prisma Illya: TVDB (269319) tiene las cuatro temporadas de la
+  // serie en S1 a S4, pero cada una es una ficha distinta en el
+  // catalogo y todas empiezan en la temporada 1. Las peliculas van
+  // aparte, en `PELICULA_TVDB`.
+  //
+  //   catalogo 2wei       T1 -> TVDB S2
+  //   catalogo 2wei Herz  T1 -> TVDB S3
+  //   catalogo 3rei       T1 -> TVDB S4
+  'fate-kaleid-liner-prisma-illya-2wei': { 1: 2 },
+  'fate-kaleid-liner-prisma-illya-2wei-herz': { 1: 3 },
+  'fate-kaleid-liner-prisma-illya-3rei': { 1: 4 },
+
+  // Gintama: TVDB (79895) parte la serie por años y el catalogo por
+  // emision. La temporada 1 del catalogo son las cuatro primeras de
+  // TVDB (49 + 50 + 51 + 51 = 201); el resto coincide una a una. El
+  // reparto de la T1 esta en `TRAMO_TVDB`.
+  //
+  //   catalogo T1  (2006-2010)  TVDB S1..S4
+  //   catalogo T2  (2011)       TVDB S5
+  //   catalogo T3  (2012)       TVDB S6
+  //   catalogo T4  (2015)       TVDB S7
+  //   catalogo T5  (2017)       TVDB S8
+  //   catalogo T6  (2017)       TVDB S9
+  //   catalogo T7  (2018)       TVDB S10
+  'gintama': { 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10 },
 
   // Seishun Buta Yaro va en orden cronologico: series y peliculas
   // mezcladas. TVDB guarda las cuatro pelis en el cajon de la
@@ -398,6 +426,25 @@ export const TEMPORADA_TVDB = {
  * @type {Record<string, Record<number, {temporada: number, desde: number}>>}
  */
 export const CAPITULO_TVDB = {
+  // Fate/Zero va partido en dos temporadas en el catalogo (13 + 12) y
+  // TVDB (275798) tiene los 25 capitulos seguidos en la S1. El primer
+  // capitulo de la segunda parte es el 14 de TVDB.
+  //
+  //   catalogo T1 -> TVDB S1E1..13
+  //   catalogo T2 -> TVDB S1E14..25
+  'fate-zero': {
+    1: { temporada: 1, desde: 1 },
+    2: { temporada: 1, desde: 14 },
+  },
+  // Unlimited Blade Works va igual: 12 + 13 en el catalogo y los 25 en
+  // la S1 de TVDB (278626). La segunda parte arranca en el 13.
+  //
+  //   catalogo T1 -> TVDB S1E1..12
+  //   catalogo T2 -> TVDB S1E13..25
+  'fate-stay-night-unlimited-blade-works': {
+    1: { temporada: 1, desde: 1 },
+    2: { temporada: 1, desde: 13 },
+  },
   'ataque-a-los-titanes': {
     1: { temporada: 1, desde: 1 },
     2: { temporada: 2, desde: 1 },
@@ -412,6 +459,45 @@ export const CAPITULO_TVDB = {
   // buscaria el S0E1, que es del OVA de 2009.
   'to-love-ru': {
     7: { temporada: 4, desde: 13 },
+  },
+};
+
+/**
+ * Temporadas del catalogo repartidas en varios tramos de TVDB.
+ *    TRAMO_TVDB[animeId][temporadaDelCatalogo] = [ {temporada, desde, hasta}, ... ]
+ *
+ * ── POR QUE NO BASTA `CAPITULO_TVDB` ────────────────────────────────
+ *
+ * `CAPITULO_TVDB` dice "esta temporada empieza en el episodio N de
+ * aquella", y sirve cuando la temporada del catalogo es un trozo de una
+ * sola temporada de TVDB. Gintama es el otro caso: su primera temporada
+ * en el catalogo son 201 episodios seguidos, y TVDB los reparte en
+ * cuatro temporadas por año (49, 50, 51 y 51).
+ *
+ * El numero de cada tramo es el del episodio de TVDB (desde y hasta
+ * incluidos). Los tramos van en orden: el episodio siguiente al ultimo
+ * del primero es el primero del segundo.
+ *
+ * ── COMO SE COMPRUEBA ───────────────────────────────────────────────
+ *
+ * La suma de los tramos tiene que dar el numero de episodios de la
+ * temporada del catalogo, y las fechas tienen que cuadrar. En Gintama
+ * cuadran 366 de los 367: 331 el mismo dia y 35 con un dia de
+ * diferencia, que es como IMDb y TVDB escriben la misma emision en
+ * husos distintos. El que queda (T1E85) tiene la fecha repetida en el
+ * catalogo por un error de IMDb; TVDB lo tiene una semana despues y el
+ * titulo confirma que es el mismo episodio.
+ *
+ * @type {Record<string, Record<number, Array<{temporada: number, desde: number, hasta: number}>>>}
+ */
+export const TRAMO_TVDB = {
+  gintama: {
+    1: [
+      { temporada: 1, desde: 1, hasta: 49 },
+      { temporada: 2, desde: 1, hasta: 50 },
+      { temporada: 3, desde: 1, hasta: 51 },
+      { temporada: 4, desde: 1, hasta: 51 },
+    ],
   },
 };
 
@@ -435,6 +521,34 @@ export function capituloEnTvdb(animeId, temporada, numero) {
   // temporada 1" translated a S1E17, es otra cosa.
   if (numero % 1 !== 0) {
     return { temporada: 0, numero };
+  }
+
+  // Una temporada del catalogo que son varios tramos de TVDB. Va antes
+  // que los otros mapas porque los tramos ya dicen temporada y numero.
+  const tramos = TRAMO_TVDB[animeId]?.[temporada];
+
+  if (tramos) {
+    let base = 0;
+
+    for (const tramo of tramos) {
+      const largo = tramo.hasta - tramo.desde + 1;
+
+      if (numero <= base + largo) {
+        return {
+          temporada: tramo.temporada,
+          numero: tramo.desde + (numero - base - 1),
+        };
+      }
+
+      base += largo;
+    }
+
+    // Un episodio fuera de los tramos no deberia existir: el catalogo
+    // tiene que tener tantos como la suma. Se devuelve una posicion que
+    // no existe para que la comprobacion de posicion lo rechace.
+    const ultimo = tramos.at(-1);
+
+    return { temporada: ultimo.temporada, numero: ultimo.hasta + 1 };
   }
 
   const mapa = CAPITULO_TVDB[animeId]?.[temporada];
@@ -498,6 +612,172 @@ export const SIN_COMPROBAR_NUMERO = new Set([
   // de temporada.
   'hunter-x-hunter',
 ]);
+
+/**
+ * Series cuyos ficheros de datos no traen el titulo japones.
+ *
+ * ── POR QUE EXISTE ESTA LISTA ──────────────────────────────────────
+ *
+ * El emparejador busca por titulo japones porque es el dato que no se
+ * puede confundir. Gintama se dio de alta con los titulos traducidos y
+ * las fechas de IMDb, y la tercera columna de los ficheros (el japones)
+ * esta vacia en los 367 episodios. Sin titulo no hay nada que comparar,
+ * y el anime se quedaba sin miniaturas aunque TVDB las tuviera.
+ *
+ * ── QUE SE HACE EN SU LUGAR ────────────────────────────────────────
+ *
+ * Se usa la temporada y el numero, que estan mapeados a mano en
+ * `TEMPORADA_TVDB` y `TRAMO_TVDB`, y que en Gintama cuadran con TVDB
+ * episodio a episodio. No es una regla automatica que valga para
+ * cualquier serie: aqui se ha comprobado que el reparto es el mismo
+ * (49 + 50 + 51 + 51 = 201 episodios en la T1, y el resto temporada a
+ * temporada) y que las fechas coinciden.
+ *
+ * Si algun dia se rellenan los titulos japoneses de Gintama, esta lista
+ * deja de hacer falta: el emparejador usa el titulo en cuanto lo hay.
+ *
+ * @type {Set<string>}
+ */
+export const SIN_TITULO_JAPONES = new Set(['gintama']);
+
+/**
+ * Las fichas del catalogo que son una pelicula suelta y su id en TVDB.
+ *
+ * ── POR QUE NO LAS ENCUENTRA LA BUSQUEDA NORMAL ────────────────────
+ *
+ * El emparejador busca series (`type=series`) y compara los titulos
+ * japoneses de los capitulos. Una pelicula no es una serie: TVDB la
+ * guarda como `movie`, sin lista de capitulos, y el titulo japones del
+ * fichero de datos es solo un trozo del titulo de la pelicula ("雪下の
+ * 誓い" frente a "劇場版 Fate/kaleid liner プリズマ☆イリヤ 雪下の誓い").
+ *
+ * Por eso aqui se guarda el id a mano, comprobado uno por uno con
+ *
+ *   node scripts/buscar-tvdb.mjs "Fate/stay night Heaven's Feel" --peliculas
+ *
+ * y la imagen se coge del fondo de la pelicula (1920x1080), que es lo
+ * que se ve bien en una lista de capitulos. Si no tuviera fondo se usa
+ * el poster.
+ *
+ * @type {Record<string, number>}
+ */
+export const PELICULA_TVDB = {
+  // Heaven's Feel I, II y III.
+  'fate-stay-night-heaven-s-feel-i-presage-flower': 8668,
+  'fate-stay-night-heaven-s-feel-ii-lost-butterfly': 41,
+  'fate-stay-night-heaven-s-feel-iii-spring-song': 5327,
+
+  // Grand Order: First Order, Camelot (las dos) y Solomon.
+  'fate-grand-order-first-order': 64203,
+  'fate-grand-order-camelot-wandering-agateram': 134463,
+  'fate-grand-order-camelot-paladin-agateram': 136396,
+  'fate-grand-order-solomon': 175793,
+
+  // El OVA de Prototype, que TVDB tambien tiene como pelicula.
+  'fate-prototype': 105028,
+
+  // Las dos de Prisma Illya.
+  'fate-kaleid-liner-prisma-illya-sekka-no-chikai': 32293,
+  'fate-kaleid-liner-prisma-illya-licht-namae-no-nai-shoujo': 199664,
+};
+
+/**
+ * Titulos que TVDB escribe de otra forma.
+ *    TITULO_TVDB[animeId][tituloDelCatalogo] = tituloEnTvdb
+ *
+ * ── POR QUE HACE FALTA ─────────────────────────────────────────────
+ *
+ * El emparejado se hace por titulo japones porque es el dato mas fiable,
+ * pero no siempre los dos sitios escriben lo mismo. Las diferencias que
+ * hay en Fate son de tres tipos:
+ *
+ *   · La misma frase en otro alfabeto. TVDB escribe "SEIHAI GRANDPRIX" y
+ *     el catalogo "セイハイグランプリ", o "Kaleidoscope" y
+ *     "カレイドスコープ". No es que falte el dato: es que la fuente
+ *     tradujo el titulo y el fichero conservo el japones.
+ *
+ *   · Una palabra distinta para el mismo episodio. "十二の試煉" frente a
+ *     "十二の試練", "観察者" frente a "監視者".
+ *
+ *   · Un trozo de mas o de menos. "魔眼蒐集列車1/6 旅立ちの汽笛と第一の
+ *     殺人" frente a "魔眼蒐集列車1/6 汽笛と第一の殺人".
+ *
+ * ── POR QUE ES SEGURO ──────────────────────────────────────────────
+ *
+ * Cada pareja esta comprobada una por una mirando la temporada y el
+ * numero: el episodio esta donde toca y solo cambia como se llama. No se
+ * usa para saltarse la comprobacion de posicion, que sigue haciendo
+ * `emparejar-capitulo.mjs`: el titulo traducido se busca en la misma
+ * temporada y el mismo numero que antes.
+ *
+ * No se puede resolver con normalizacion porque no es ruido: son
+ * palabras distintas. Por eso la lista es corta y explicita.
+ *
+ * @type {Record<string, Record<string, string>>}
+ */
+export const TITULO_TVDB = {
+  'carnival-phantasm': {
+    '働くセイバー': 'はたらくセイバー',
+    'セイハイグランプリ': 'SEIHAI GRANDPRIX',
+    'ファイナルデッドランサー': 'FINAL DEAD LANCER',
+  },
+  'fate-apocrypha': {
+    '生の代償、死の償い': '生の代償、死の贖い',
+    'アポクリファ': 'Apocrypha',
+  },
+  'fate-extra-last-encore': {
+    '無限の残骸 -アンリミテッド / レイズ・デッド-':
+      '無限の――― ―アンリミテッド／レイズ・デッド―',
+  },
+  'fate-grand-order-absolute-demonic-front-babylonia': {
+    'グランドオーダー': 'Grand Order',
+  },
+  'fate-kaleid-liner-prisma-illya': {
+    'カレイドスコープ': 'Kaleidoscope',
+  },
+  'fate-kaleid-liner-prisma-illya-2wei-herz': {
+    'ブルーグラスムーン': 'Blue glass moon',
+    '観察者': '監視者',
+  },
+  'fate-stay-night': {
+    '十二の試煉': '十二の試練',
+  },
+  'fate-stay-night-unlimited-blade-works': {
+    '理想の末路 [こたえ]': '理想の末路',
+    'アンリミテッド・ブレイドワークス': 'Unlimited Blade Works.',
+    'アンサー': 'answer',
+  },
+  'fate-zero': {
+    'フェイト/ゼロ': '第二十五話「Fate/Zero」',
+  },
+  'lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note': {
+    '魔眼蒐集列車1/6 旅立ちの汽笛と第一の殺人': '魔眼蒐集列車1/6 汽笛と第一の殺人',
+  },
+};
+
+// Las claves y los valores se comparan ya limpios, para que una
+// diferencia de espacios o de parentesis no deje la pareja sin efecto.
+const TITULOS_LIMPIOS = new Map(
+  Object.entries(TITULO_TVDB).map(([animeId, mapa]) => [
+    animeId,
+    new Map(Object.entries(mapa).map(([a, b]) => [limpiar(a), limpiar(b)])),
+  ]),
+);
+
+/**
+ * El titulo que TVDB usa para un capitulo, si esta en la lista.
+ *
+ * @param {string} animeId
+ * @param {string | null | undefined} japones
+ * @returns {string | null} ya limpio, o null si no hay traduccion
+ */
+export function tituloEnTvdb(animeId, japones) {
+  const mapa = TITULOS_LIMPIOS.get(animeId);
+
+  if (!mapa) return null;
+
+  return mapa.get(limpiar(japones)) ?? null;
+}
 
 /**
  * La temporada de TVDB para una temporada del catalogo.
