@@ -149,8 +149,6 @@ function solicitudGrupo(from, to, groupId, extra = {}) {
     fromName: from,
     fromAvatar: '',
     toId: to,
-    toName: to,
-    toAvatar: '',
     groupId,
     groupName: 'Grupo de prueba',
     status: 'pending',
@@ -331,8 +329,10 @@ describe('groupCodes: consultar la invitación', () => {
   it('el camino autorizado sigue siendo pedir entrada al dueño', async () => {
     await assertSucceeds(
       setDoc(
-        doc(collection(db(CARA), 'chatRequests')),
-        solicitudGrupo(CARA, ALICE, GRUPO),
+        doc(db(CARA), 'chatRequests', `group_${GRUPO}_${CARA}`),
+        solicitudGrupo(CARA, ALICE, GRUPO, {
+          groupName: 'Grupo de Alice',
+        }),
       ),
     );
 
@@ -345,8 +345,10 @@ describe('groupCodes: consultar la invitación', () => {
     await assertFails(getDoc(doc(db(BANEADO), 'groupCodes', CODIGO)));
     await assertFails(
       setDoc(
-        doc(collection(db(BANEADO), 'chatRequests')),
-        solicitudGrupo(BANEADO, ALICE, GRUPO),
+        doc(db(BANEADO), 'chatRequests', `group_${GRUPO}_${BANEADO}`),
+        solicitudGrupo(BANEADO, ALICE, GRUPO, {
+          groupName: 'Grupo de Alice',
+        }),
       ),
     );
   });
@@ -354,8 +356,10 @@ describe('groupCodes: consultar la invitación', () => {
   it('una solicitud de grupo no puede apuntar a un chat de club', async () => {
     await assertFails(
       setDoc(
-        doc(collection(db(CARA), 'chatRequests')),
-        solicitudGrupo(CARA, ALICE, CHAT_CLUB),
+        doc(db(CARA), 'chatRequests', `group_${CHAT_CLUB}_${CARA}`),
+        solicitudGrupo(CARA, ALICE, CHAT_CLUB, {
+          groupName: 'Club privado',
+        }),
       ),
     );
   });

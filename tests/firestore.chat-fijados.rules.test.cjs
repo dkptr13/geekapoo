@@ -45,6 +45,13 @@ const MOD = 'moderador';
 const BOB = 'bob';
 const CARA = 'cara';
 
+// Fecha fija del mensaje citado: la regla compara el Timestamp real
+// con `mensajeCreadoEnMs`, así que las dos pruebas tienen que usar el
+// mismo instante.
+const CREADO_EN = Timestamp.fromDate(new Date('2026-10-19T10:00:00.000Z'));
+const CREADO_EN_ISO = '2026-10-19T10:00:00.000Z';
+const CREADO_EN_MS = CREADO_EN.toMillis();
+
 let testEnv;
 
 function db(uid) {
@@ -111,7 +118,7 @@ function mensaje(extra = {}) {
     senderAvatar: '',
     body: 'un mensaje cualquiera',
     type: 'text',
-    createdAt: serverTimestamp(),
+    createdAt: CREADO_EN,
     ...extra,
   };
 }
@@ -125,7 +132,8 @@ function fijado(extra = {}) {
     autorAvatar: '',
     texto: 'un mensaje cualquiera',
     tipo: 'text',
-    mensajeCreadoEn: '2026-10-19T10:00:00.000Z',
+    mensajeCreadoEn: CREADO_EN_ISO,
+    mensajeCreadoEnMs: CREADO_EN_MS,
     fijadoPor: ADMIN,
     fijadoPorNombre: 'admin',
     fijadoEn: serverTimestamp(),
@@ -252,6 +260,24 @@ describe('Fijar mensajes en un club', () => {
         fijadoPor: DUENO,
         texto: 'x'.repeat(4001),
       })),
+    );
+  });
+
+  it('no se puede falsear la fecha del mensaje con otro milisegundo', async () => {
+    await assertFails(
+      setDoc(doc(db(DUENO), 'chats', 'chat-club', 'fijados', 'm1'), fijado({
+        fijadoPor: DUENO,
+        mensajeCreadoEnMs: CREADO_EN_MS + 1,
+      })),
+    );
+  });
+
+  it('no se puede omitir la fecha en milisegundos', async () => {
+    const sinMs = fijado({ fijadoPor: DUENO });
+    delete sinMs.mensajeCreadoEnMs;
+
+    await assertFails(
+      setDoc(doc(db(DUENO), 'chats', 'chat-club', 'fijados', 'm1'), sinMs),
     );
   });
 

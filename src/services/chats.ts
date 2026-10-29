@@ -530,15 +530,17 @@ export async function sendChatMessage(
     // contenido vive en su documento. Las reglas exigen forma
     // válida (`tierRefValida`).
     ...(tier ? { tierList: { tierListId: tier.tierListId, title: tier.title.slice(0, 160) } } : {}),
-    // La cita es una foto fija del citado. Se recorta aquí porque
-    // la escribe el cliente y las reglas solo dejan pasar forma y
-    // tamaños sanos; la garantía final está allí.
+    // La cita es una foto fija del citado. `texto` va COMPLETO
+    // porque las reglas lo comparan exacto con el mensaje real; el
+    // recorte es solo de la vista y lo hace `fragmentoParaCita`.
+    // `snippet` no se escribe en mensajes nuevos: queda para leer
+    // citas antiguas.
     ...(respuesta?.messageId
       ? {
           replyTo: {
             messageId: String(respuesta.messageId).slice(0, 100),
-            senderName: String(respuesta.senderName ?? '').slice(0, 60),
-            snippet: String(respuesta.snippet ?? '').slice(0, 200),
+            senderName: String(respuesta.senderName ?? ''),
+            texto: String(respuesta.texto ?? respuesta.snippet ?? '').slice(0, 4000),
           },
         }
       : {}),

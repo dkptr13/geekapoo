@@ -43,7 +43,9 @@ const {
   where,
   arrayUnion,
   arrayRemove,
+  deleteField,
   serverTimestamp,
+  Timestamp,
 } = require('firebase/firestore');
 
 const fs = require('fs');
@@ -99,20 +101,61 @@ async function crearUsuario(uid, extra = {}) {
   });
 }
 
+function idDirecto(from, to) {
+  return `direct_${from}_${to}`;
+}
+
+function idGrupo(groupId, from) {
+  return `group_${groupId}_${from}`;
+}
+
+function idInvitacion(groupId, from, to) {
+  return `invite_${groupId}_${from}_${to}`;
+}
+
+/** Referencia con el id determinista que exige la regla. */
+function refSolicitud(clientDb, from, to, extra = {}) {
+  if (extra.type === 'group') {
+    return doc(clientDb, 'chatRequests', idGrupo(extra.groupId, from));
+  }
+  if (extra.type === 'invite') {
+    return doc(clientDb, 'chatRequests', idInvitacion(extra.groupId, from, to));
+  }
+  return doc(clientDb, 'chatRequests', idDirecto(from, to));
+}
+
 /** Una solicitud de conversacion tal cual la escribe `requestDirectChat`. */
 function nuevaSolicitud(from, to, extra = {}) {
-  return {
-    type: 'direct',
+  const tipo = extra.type ?? 'direct';
+  const base = {
+    type: tipo,
     fromId: from,
     fromName: from,
     fromAvatar: '',
     toId: to,
-    toName: to,
-    toAvatar: '',
     status: 'pending',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    ...extra,
+    createdAt: serverTimestamp(),
+    // El cliente de un grupo no manda los datos del destinatario:
+    // se derivan del dueño en las reglas. Un tipo desconocido tampoco
+    // debe llevar campos de grupo (así el rechazo es de la regla y no
+    // un `undefined` del SDK).
+    ...(tipo === 'group' ? {} : { toName: to, toAvatar: '' }),
+    ...(tipo === 'group' || tipo === 'invite'
+      ? { groupId: extra.groupId, groupName: 'Grupo de prueba' }
+      : {}),
   };
+  return { ...base, ...extra };
+}
+
+function crearSolicitud(clientDb, from, to, extra = {}) {
+  return setDoc(refSolicitud(clientDb, from, to, extra), nuevaSolicitud(from, to, extra));
+}
+
+function crearInvitacion(clientDb, from, to, groupId, extra = {}) {
+  return setDoc(
+    doc(clientDb, 'chatRequests', idInvitacion(groupId, from, to)),
+    nuevaInvitacion(from, to, groupId, extra),
+  );
 }
 
 /** Una invitacion a un grupo, tal cual la escribe `inviteToGroup`. */
@@ -128,7 +171,7 @@ function nuevaInvitacion(from, to, groupId, extra = {}) {
     groupId,
     groupName: 'Grupo de prueba',
     status: 'pending',
-    createdAt: '2026-01-01T00:00:00.000Z',
+    createdAt: serverTimestamp(),
     ...extra,
   };
 }
@@ -178,24 +221,18 @@ beforeEach(async () => {
 
 describe('Anadir contactos: cualquier cuenta con sesion', () => {
   it('un usuario normal puede enviar una solicitud', async () => {
-    await assertSucceeds(
-      setDoc(doc(collection(db(ALICE), 'chatRequests')), nuevaSolicitud(ALICE, BOB)),
-    );
+    await assertSucceeds(crearSolicitud(db(ALICE), ALICE, BOB));
   });
 
   it('otra cuenta normal tambien, no solo el primero', async () => {
     // El fallo que se vio era de permisos para cuentas sin rol. Esta
     // comprueba que no depende de quien seas: CARA no ha tocado nada
     // antes y le tiene que dejar igual que a ALICE.
-    await assertSucceeds(
-      setDoc(doc(collection(db(CARA), 'chatRequests')), nuevaSolicitud(CARA, BOB)),
-    );
+    await assertSucceeds(crearSolicitud(db(CARA), CARA, BOB));
   });
 
   it('la solicitud se puede leer despues (la lista no esta vacia)', async () => {
-    await assertSucceeds(
-      setDoc(doc(collection(db(ALICE), 'chatRequests')), nuevaSolicitud(ALICE, BOB)),
-    );
+    await assertSucceeds(crearSolicitud(db(ALICE), ALICE, BOB));
 
     const recibidas = await assertSucceeds(
       getDocs(query(collection(db(BOB), 'chatRequests'), where('toId', '==', BOB))),
@@ -211,33 +248,19 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
   it('no se puede enviar en nombre de otra persona', async () => {
     // fromId de CARA pero escribiendo ALICE: esto si es un ataque y tiene
     // que seguir fallando aunque se haya relajado el "quien puede".
-    await assertFails(
-      setDoc(doc(collection(db(ALICE), 'chatRequests')), nuevaSolicitud(CARA, BOB)),
-    );
+    await assertFails(crearSolicitud(db(ALICE), CARA, BOB));
   });
 
   it('uno no puede mandarse una solicitud a si mismo', async () => {
-    await assertFails(
-      setDoc(doc(collection(db(ALICE), 'chatRequests')), nuevaSolicitud(ALICE, ALICE)),
-    );
+    await assertFails(crearSolicitud(db(ALICE), ALICE, ALICE));
   });
 
   it('no se puede mandar una solicitud a un destinatario que no existe', async () => {
-    await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaSolicitud(ALICE, FANTASMA),
-      ),
-    );
+    await assertFails(crearSolicitud(db(ALICE), ALICE, FANTASMA));
   });
 
   it('no se puede mandar una solicitud a una cuenta baneada', async () => {
-    await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaSolicitud(ALICE, BANEADO),
-      ),
-    );
+    await assertFails(crearSolicitud(db(ALICE), ALICE, BANEADO));
   });
 
   it('no se puede mandar una solicitud a una cuenta con baneo duradero', async () => {
@@ -254,42 +277,24 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
       });
     });
 
-    await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaSolicitud(ALICE, RESTRINGIDO),
-      ),
-    );
+    await assertFails(crearSolicitud(db(ALICE), ALICE, RESTRINGIDO));
   });
 
   it('no se puede mandar una solicitud a un perfil privado', async () => {
     await crearUsuario(PRIVADO, { profileVisibility: 'private' });
 
-    await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaSolicitud(ALICE, PRIVADO),
-      ),
-    );
+    await assertFails(crearSolicitud(db(ALICE), ALICE, PRIVADO));
   });
 
   it('no se puede mandar una solicitud a quien tiene los mensajes cerrados', async () => {
     await crearUsuario(SIN_SOLICITUDES, { allowChatRequests: false });
 
-    await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaSolicitud(ALICE, SIN_SOLICITUDES),
-      ),
-    );
+    await assertFails(crearSolicitud(db(ALICE), ALICE, SIN_SOLICITUDES));
   });
 
   it('rechaza un tipo de solicitud que no existe', async () => {
     await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaSolicitud(ALICE, BOB, { type: 'broadcast' }),
-      ),
+      crearSolicitud(db(ALICE), ALICE, BOB, { type: 'broadcast' }),
     );
   });
 
@@ -301,29 +306,21 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
     });
 
     await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaSolicitud(ALICE, PRIVADO, { type: 'group', groupId: 'g-privado' }),
-      ),
+      crearSolicitud(db(ALICE), ALICE, PRIVADO, {
+        type: 'group',
+        groupId: 'g-privado',
+      }),
     );
 
     // La invitación también llega al mismo destinatario; tampoco debe
     // poder saltarse su ajuste de privacidad.
     await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaInvitacion(ALICE, PRIVADO, 'g-alice'),
-      ),
+      crearInvitacion(db(ALICE), ALICE, PRIVADO, 'g-alice'),
     );
   });
 
   it('un baneado no puede enviar solicitudes', async () => {
-    await assertFails(
-      setDoc(
-        doc(collection(db(BANEADO), 'chatRequests')),
-        nuevaSolicitud(BANEADO, BOB),
-      ),
-    );
+    await assertFails(crearSolicitud(db(BANEADO), BANEADO, BOB));
   });
 
   it('no se puede escribir en la solicitud de otro', async () => {
@@ -503,6 +500,203 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
       }),
     );
   });
+
+  // ── G1: identidad, id determinista y reapertura ──────────
+
+  it('no se puede presentar la solicitud con otro nombre', async () => {
+    await assertFails(
+      crearSolicitud(db(ALICE), ALICE, BOB, {
+        fromName: 'Soporte oficial de Geekapoo',
+      }),
+    );
+  });
+
+  it('no se puede presentar la solicitud con otro avatar', async () => {
+    await assertFails(
+      crearSolicitud(db(ALICE), ALICE, BOB, {
+        fromAvatar: 'https://example.com/falso.png',
+      }),
+    );
+  });
+
+  it('no se puede falsear el nombre del destinatario', async () => {
+    await assertFails(
+      crearSolicitud(db(ALICE), ALICE, BOB, { toName: 'Soporte oficial' }),
+    );
+  });
+
+  it('un id que no es el determinista no pasa', async () => {
+    await assertFails(
+      setDoc(
+        doc(db(ALICE), 'chatRequests', 'direct_inventado'),
+        nuevaSolicitud(ALICE, BOB),
+      ),
+    );
+  });
+
+  it('la fecha de creación tiene que ser la del servidor', async () => {
+    await assertFails(
+      crearSolicitud(db(ALICE), ALICE, BOB, {
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }),
+    );
+  });
+
+  it('el nombre del grupo tiene que ser el real', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE]));
+    });
+
+    await assertFails(
+      crearSolicitud(db(CARA), CARA, ALICE, {
+        type: 'group',
+        groupId: 'g1',
+        groupName: 'Otro nombre',
+      }),
+    );
+  });
+
+  it('una solicitud cancelada se puede reabrir', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', idDirecto(ALICE, BOB)), {
+        ...nuevaSolicitud(ALICE, BOB),
+        status: 'cancelled',
+        respondedAt: Timestamp.now(),
+        respondedBy: ALICE,
+      });
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)), {
+        status: 'pending',
+        respondedAt: deleteField(),
+        respondedBy: deleteField(),
+      }),
+    );
+  });
+
+  it('una solicitud rechazada no se puede repetir antes de 24 h', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', idDirecto(ALICE, BOB)), {
+        ...nuevaSolicitud(ALICE, BOB),
+        status: 'rejected',
+        respondedAt: Timestamp.now(),
+        respondedBy: BOB,
+      });
+    });
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)), {
+        status: 'pending',
+        respondedAt: deleteField(),
+        respondedBy: deleteField(),
+      }),
+    );
+  });
+
+  it('una solicitud rechazada se puede repetir pasadas 24 h', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', idDirecto(ALICE, BOB)), {
+        ...nuevaSolicitud(ALICE, BOB),
+        status: 'rejected',
+        respondedAt: Timestamp.fromDate(
+          new Date(Date.now() - 25 * 60 * 60 * 1000),
+        ),
+        respondedBy: BOB,
+      });
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)), {
+        status: 'pending',
+        respondedAt: deleteField(),
+        respondedBy: deleteField(),
+      }),
+    );
+  });
+
+  it('una entrada aceptada se puede repetir si ya no es miembro', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE]));
+      await setDoc(doc(f, 'chatRequests', idGrupo('g1', BOB)), {
+        ...nuevaSolicitud(BOB, ALICE, { type: 'group', groupId: 'g1' }),
+        status: 'accepted',
+        respondedAt: Timestamp.now(),
+        respondedBy: ALICE,
+        resultingChatId: 'chat-viejo',
+      });
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(BOB), 'chatRequests', idGrupo('g1', BOB)), {
+        status: 'pending',
+        respondedAt: deleteField(),
+        respondedBy: deleteField(),
+      }),
+    );
+  });
+
+  it('una entrada aceptada NO se repite si sigue siendo miembro', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+      await setDoc(doc(f, 'chatRequests', idGrupo('g1', BOB)), {
+        ...nuevaSolicitud(BOB, ALICE, { type: 'group', groupId: 'g1' }),
+        status: 'accepted',
+        respondedAt: Timestamp.now(),
+        respondedBy: ALICE,
+        resultingChatId: 'chat-viejo',
+      });
+    });
+
+    await assertFails(
+      updateDoc(doc(db(BOB), 'chatRequests', idGrupo('g1', BOB)), {
+        status: 'pending',
+        respondedAt: deleteField(),
+        respondedBy: deleteField(),
+      }),
+    );
+  });
+
+  it('una invitación aceptada se puede repetir si el invitado ya no está', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE]));
+      await setDoc(doc(f, 'chatRequests', idInvitacion('g1', ALICE, BOB)), {
+        ...nuevaInvitacion(ALICE, BOB, 'g1'),
+        status: 'accepted',
+        respondedAt: Timestamp.now(),
+        respondedBy: BOB,
+        resultingChatId: 'chat-viejo',
+      });
+    });
+
+    await assertSucceeds(
+      updateDoc(doc(db(ALICE), 'chatRequests', idInvitacion('g1', ALICE, BOB)), {
+        status: 'pending',
+        respondedAt: deleteField(),
+        respondedBy: deleteField(),
+      }),
+    );
+  });
+
+  it('una conversación directa aceptada no se reabre', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', idDirecto(ALICE, BOB)), {
+        ...nuevaSolicitud(ALICE, BOB),
+        status: 'accepted',
+        respondedAt: Timestamp.now(),
+        respondedBy: BOB,
+        resultingChatId: 'chat-directo',
+      });
+    });
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)), {
+        status: 'pending',
+        respondedAt: deleteField(),
+        respondedBy: deleteField(),
+      }),
+    );
+  });
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -550,7 +744,7 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
 
     // La via legitima: el dueño crea una invitacion y BOB entra
     // cuando la acepta (la entrada real la hace el servidor).
-    const invitacion = doc(collection(db(ALICE), 'chatRequests'));
+    const invitacion = doc(db(ALICE), 'chatRequests', idInvitacion('g1', ALICE, BOB));
     await assertSucceeds(
       setDoc(invitacion, nuevaInvitacion(ALICE, BOB, 'g1')),
     );
@@ -572,12 +766,7 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
       updateDoc(doc(db(BOB), 'chats', 'g1'), { memberIds: arrayUnion(CARA) }),
     );
 
-    await assertFails(
-      setDoc(
-        doc(collection(db(BOB), 'chatRequests')),
-        nuevaInvitacion(BOB, CARA, 'g1'),
-      ),
-    );
+    await assertFails(crearInvitacion(db(BOB), BOB, CARA, 'g1'));
   });
 
   it('el dueno tampoco puede invitar a quien ya esta dentro', async () => {
@@ -585,12 +774,7 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
       await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
     });
 
-    await assertFails(
-      setDoc(
-        doc(collection(db(ALICE), 'chatRequests')),
-        nuevaInvitacion(ALICE, BOB, 'g1'),
-      ),
-    );
+    await assertFails(crearInvitacion(db(ALICE), ALICE, BOB, 'g1'));
   });
 
   it('nadie puede cambiar el tipo, el codigo de canal ni el dueno a mano', async () => {
@@ -809,10 +993,7 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
     //    dueño NUEVO; si el índice siguiera con ALICE, la regla
     //    de `chatRequests` lo rechazaría.
     await assertSucceeds(
-      setDoc(
-        doc(collection(db(CARA), 'chatRequests')),
-        nuevaSolicitud(CARA, BOB, { type: 'group', groupId: 'g1' }),
-      ),
+      crearSolicitud(db(CARA), CARA, BOB, { type: 'group', groupId: 'g1' }),
     );
 
     // 4. Ni el dueño nuevo puede regalar el índice a un tercero.
@@ -1038,10 +1219,7 @@ describe('Ataques de pertenencia', () => {
 
     // Y no puede fabricar una solicitud dirigida a un falso dueño.
     await assertFails(
-      setDoc(
-        doc(collection(db(CARA), 'chatRequests')),
-        nuevaSolicitud(CARA, BOB, { type: 'group', groupId: 'g1' }),
-      ),
+      crearSolicitud(db(CARA), CARA, BOB, { type: 'group', groupId: 'g1' }),
     );
   });
 });
@@ -1274,8 +1452,29 @@ describe('Ocultar para mí: cada uno lo suyo', () => {
 // ═══════════════════════════════════════════════════════════
 //
 // La cita viaja dentro del mensaje nuevo (`replyTo`). Como la
-// escribe el cliente, la regla exige forma: mapa con id, autor y
-// fragmento acotado. Sin eso serviría para colar datos.
+// escribe el cliente, la regla lee el mensaje citado de verdad y
+// compara autor y texto canónico completo.
+
+/** Un mensaje real que se puede citar. */
+function mensajeCitado(extra = {}) {
+  return {
+    chatId: 'g1',
+    senderId: BOB,
+    senderName: 'bob',
+    senderAvatar: '',
+    body: 'Hola',
+    type: 'text',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ...extra,
+  };
+}
+
+async function sembrarChatConMensaje() {
+  await sembrar(async (f) => {
+    await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+    await setDoc(doc(f, 'chats', 'g1', 'messages', 'm0'), mensajeCitado());
+  });
+}
 
 /** Un mensaje válido con cita, tal cual lo manda el cliente. */
 function mensajeConCita(de = ALICE) {
@@ -1287,15 +1486,13 @@ function mensajeConCita(de = ALICE) {
     body: 'Totalmente',
     type: 'text',
     createdAt: '2026-01-01T00:00:00.000Z',
-    replyTo: { messageId: 'm0', senderName: 'bob', snippet: 'Hola' },
+    replyTo: { messageId: 'm0', senderName: 'bob', texto: 'Hola' },
   };
 }
 
-describe('Citar mensajes: forma obligatoria', () => {
-  it('un mensaje con cita bien formada se puede enviar', async () => {
-    await sembrar(async (f) => {
-      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
-    });
+describe('Citar mensajes: contra el mensaje real', () => {
+  it('un mensaje con una cita real se puede enviar', async () => {
+    await sembrarChatConMensaje();
 
     await assertSucceeds(
       setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mensajeConCita()),
@@ -1303,13 +1500,11 @@ describe('Citar mensajes: forma obligatoria', () => {
   });
 
   it('la cita sin id no pasa', async () => {
-    await sembrar(async (f) => {
-      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
-    });
+    await sembrarChatConMensaje();
 
     const mala = mensajeConCita();
 
-    mala.replyTo = { senderName: 'bob', snippet: 'Hola' };
+    mala.replyTo = { senderName: 'bob', texto: 'Hola' };
 
     await assertFails(
       setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
@@ -1317,9 +1512,7 @@ describe('Citar mensajes: forma obligatoria', () => {
   });
 
   it('la cita que no es un mapa no pasa', async () => {
-    await sembrar(async (f) => {
-      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
-    });
+    await sembrarChatConMensaje();
 
     const mala = mensajeConCita();
 
@@ -1330,17 +1523,131 @@ describe('Citar mensajes: forma obligatoria', () => {
     );
   });
 
-  it('un fragmento gigante no pasa', async () => {
-    await sembrar(async (f) => {
-      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
-    });
+  it('no se puede citar un mensaje que no existe', async () => {
+    await sembrarChatConMensaje();
 
     const mala = mensajeConCita();
 
-    mala.replyTo = { messageId: 'm0', senderName: 'bob', snippet: 'x'.repeat(500) };
+    mala.replyTo = { messageId: 'inventado', senderName: 'bob', texto: 'Hola' };
 
     await assertFails(
       setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('no se puede cambiar el autor del mensaje citado', async () => {
+    await sembrarChatConMensaje();
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = {
+      messageId: 'm0',
+      senderName: 'Administrador',
+      texto: 'Hola',
+    };
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('no se puede cambiar el texto del mensaje citado', async () => {
+    await sembrarChatConMensaje();
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = {
+      messageId: 'm0',
+      senderName: 'bob',
+      texto: 'x'.repeat(500),
+    };
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('una cita antigua con solo `snippet` ya no se puede escribir', async () => {
+    await sembrarChatConMensaje();
+
+    const mala = mensajeConCita();
+
+    mala.replyTo = { messageId: 'm0', senderName: 'bob', snippet: 'Hola' };
+
+    await assertFails(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), mala),
+    );
+  });
+
+  it('una cita de un mensaje largo guarda el texto completo', async () => {
+    const largo = 'x'.repeat(500);
+
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+      await setDoc(
+        doc(f, 'chats', 'g1', 'messages', 'm0'),
+        mensajeCitado({ body: largo }),
+      );
+    });
+
+    const buena = mensajeConCita();
+
+    buena.replyTo = { messageId: 'm0', senderName: 'bob', texto: largo };
+
+    await assertSucceeds(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), buena),
+    );
+  });
+
+  it('una foto se cita con el mismo texto canónico', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+      await setDoc(
+        doc(f, 'chats', 'g1', 'messages', 'm0'),
+        mensajeCitado({
+          body: '',
+          type: 'image',
+          imageUrl: 'https://example.com/foto.webp',
+        }),
+      );
+    });
+
+    const buena = mensajeConCita();
+
+    buena.replyTo = { messageId: 'm0', senderName: 'bob', texto: '[Foto]' };
+
+    await assertSucceeds(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), buena),
+    );
+  });
+
+  it('una encuesta se cita con su pregunta canónica', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB]));
+      await setDoc(
+        doc(f, 'chats', 'g1', 'messages', 'm0'),
+        mensajeCitado({
+          body: '',
+          type: 'poll',
+          poll: {
+            question: '¿Sí o no?',
+            options: { o1: 'Sí', o2: 'No' },
+            isClosed: false,
+          },
+        }),
+      );
+    });
+
+    const buena = mensajeConCita();
+
+    buena.replyTo = {
+      messageId: 'm0',
+      senderName: 'bob',
+      texto: '📊 ¿Sí o no?',
+    };
+
+    await assertSucceeds(
+      setDoc(doc(collection(db(ALICE), 'chats', 'g1', 'messages'), 'm1'), buena),
     );
   });
 

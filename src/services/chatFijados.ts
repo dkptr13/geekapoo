@@ -60,6 +60,12 @@ export interface ChatFijado {
   gifUrl?: string;
   /** Cuándo se escribió el mensaje original (ISO). */
   mensajeCreadoEn: string;
+  /**
+   * La misma fecha en milisegundos. Las reglas no pueden formatear un
+   * Timestamp, pero sí comparar este número con
+   * `createdAt.toMillis()` del mensaje real.
+   */
+  mensajeCreadoEnMs: number;
   /** Quién lo fijó. */
   fijadoPor: string;
   fijadoPorNombre: string;
@@ -114,6 +120,11 @@ export async function fijarMensaje(params: {
   const { chatId, msg, uid, nombre } = params;
   try {
     const resumen = resumenDe(msg);
+    // `msg.createdAt` ya viene como ISO desde `toIsoString`, así que
+    // `Date.parse` da los mismos milisegundos que el Timestamp que
+    // guarda Firestore. La regla lo contrasta con el mensaje real:
+    // si no coincide, el fijado se rechaza.
+    const creadoEnMs = Date.parse(msg.createdAt);
     await setDoc(doc(db, 'chats', chatId, FIJADOS, msg.id), {
       chatId,
       messageId: msg.id,
@@ -125,6 +136,7 @@ export async function fijarMensaje(params: {
       ...(resumen.imagenUrl ? { imagenUrl: resumen.imagenUrl } : {}),
       ...(resumen.gifUrl ? { gifUrl: resumen.gifUrl } : {}),
       mensajeCreadoEn: msg.createdAt,
+      mensajeCreadoEnMs: Number.isFinite(creadoEnMs) ? creadoEnMs : 0,
       fijadoPor: uid,
       fijadoPorNombre: nombre,
       fijadoEn: serverTimestamp(),
@@ -184,6 +196,8 @@ export function subscribeFijados(
             gifUrl: typeof data.gifUrl === 'string' ? data.gifUrl : undefined,
             mensajeCreadoEn:
               typeof data.mensajeCreadoEn === 'string' ? data.mensajeCreadoEn : '',
+            mensajeCreadoEnMs:
+              typeof data.mensajeCreadoEnMs === 'number' ? data.mensajeCreadoEnMs : 0,
             fijadoPor: typeof data.fijadoPor === 'string' ? data.fijadoPor : '',
             fijadoPorNombre:
               typeof data.fijadoPorNombre === 'string' ? data.fijadoPorNombre : 'Alguien',

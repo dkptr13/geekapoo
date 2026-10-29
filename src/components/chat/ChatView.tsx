@@ -48,7 +48,7 @@ import {
 
 import { textoDeNuevos } from '../../utils/chatLectura';
 import { puedeBorrarParaTodos } from '../../utils/chatBorrado';
-import { citaVisible, fragmentoParaCita } from '../../utils/chatCita';
+import { MAX_CITA, citaVisible, fragmentoParaCita, textoParaCita } from '../../utils/chatCita';
 import {
   editarMensajeChat,
   eliminarMensajeParaTodos,
@@ -1504,8 +1504,12 @@ export const ChatView: React.FC = () => {
     const respuesta = citaA
       ? {
           messageId: citaA.id,
-          senderName: senderNameOf(citaA),
-          snippet: fragmentoParaCita(citaA),
+          // El nombre guardado en el MENSAJE, no el que se ve ahora:
+          // la regla compara la cita con el documento real. Si la
+          // persona cambió de nombre después, la cita conserva el
+          // que tenía el mensaje citado.
+          senderName: citaA.senderName ?? '',
+          texto: textoParaCita(citaA),
         }
       : null;
 
@@ -3552,7 +3556,13 @@ export const ChatView: React.FC = () => {
                                 {msg.replyTo.senderName}
                               </p>
                               <p className="line-clamp-2 break-words text-[11px] leading-relaxed text-zinc-400">
-                                {citaVisible(msg.replyTo.snippet, citado?.deletedForEveryone)}
+                                {citaVisible(
+                                  (msg.replyTo.texto ?? msg.replyTo.snippet ?? '').slice(
+                                    0,
+                                    MAX_CITA,
+                                  ),
+                                  citado?.deletedForEveryone,
+                                )}
                               </p>
                             </div>
                           )}

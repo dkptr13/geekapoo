@@ -287,6 +287,7 @@ function fijado(chatId, messageId, autorId, fijadoPor, extra = {}) {
     texto: 'Hola',
     tipo: 'text',
     mensajeCreadoEn: '2026-01-01T00:00:00.000Z',
+    mensajeCreadoEnMs: Date.parse('2026-01-01T00:00:00.000Z'),
     fijadoPor,
     fijadoPorNombre: fijadoPor,
     fijadoEn: '2026-01-01T00:00:00.000Z',
@@ -304,7 +305,7 @@ function nuevaSolicitud(fromId, toId, extra = {}) {
     toName: toId,
     toAvatar: '',
     status: 'pending',
-    createdAt: '2026-01-01T00:00:00.000Z',
+    createdAt: serverTimestamp(),
     ...extra,
   };
 }
@@ -683,7 +684,7 @@ describe('crear chats, solicitudes e índice', () => {
   it('un baneado no puede crear una solicitud de chat', async () => {
     await assertFails(
       setDoc(
-        doc(db(BAN_REG), 'chatRequests', 'r-baneado'),
+        doc(db(BAN_REG), 'chatRequests', `direct_${BAN_REG}_${ALICE}`),
         nuevaSolicitud(BAN_REG, ALICE),
       ),
     );

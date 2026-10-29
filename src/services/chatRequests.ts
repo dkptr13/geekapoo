@@ -1,6 +1,8 @@
 import {
   collection,
+  deleteField,
   doc,
+  getDoc,
   onSnapshot,
   query,
   serverTimestamp,
@@ -142,6 +144,88 @@ function alreadyPending(
   );
 }
 
+// ────────────────────────────────────────────────────────
+// IDS DETERMINISTAS Y REAPERTURA
+// ────────────────────────────────────────────────────────
+//
+// El id lo calcula el cliente, pero las reglas lo vuelven a construir
+// con los campos del documento. Así no se puede inundar la bandeja
+// creando documentos nuevos: para el mismo par (o el mismo grupo y
+// persona) solo existe UNA ruta.
+//
+// Una solicitud rechazada no se puede repetir hasta que pasen 24 h.
+// Las canceladas se pueden reabrir enseguida; las aceptadas de grupo o
+// invitación, solo si la persona ya no es miembro (lo comprueban las
+// reglas contra el chat real).
+
+const COOLDOWN_RECHAZO_MS = 24 * 60 * 60 * 1000;
+
+function idDirecto(fromId: string, toId: string): string {
+  return `direct_${fromId}_${toId}`;
+}
+
+function idGrupo(groupId: string, fromId: string): string {
+  return `group_${groupId}_${fromId}`;
+}
+
+function idInvitacion(groupId: string, fromId: string, toId: string): string {
+  return `invite_${groupId}_${fromId}_${toId}`;
+}
+
+/** Milisegundos de una fecha que puede venir como Timestamp o texto. */
+function msDeFecha(valor: unknown): number {
+  if (typeof valor === 'string') return Date.parse(valor);
+  const fecha = valor as { toMillis?: () => number } | null;
+  if (fecha && typeof fecha.toMillis === 'function') return fecha.toMillis();
+  return 0;
+}
+
+/**
+ * Crea la solicitud o reabre la que ya existe en esa ruta.
+ *
+ * `setDoc` sin documento previo entra por la regla de creación; con
+ * documento previo, por la de actualización. En la reapertura solo se
+ * toca `status` y se limpian `respondedAt`/`respondedBy`: el id, el
+ * emisor, el destinatario y la fecha de creación no se reescriben.
+ */
+async function crearOReabrir(
+  ref: ReturnType<typeof doc>,
+  datos: DocumentData,
+): Promise<void> {
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, datos);
+    return;
+  }
+
+  const actual = snap.data();
+  const estado = typeof actual.status === 'string' ? actual.status : '';
+
+  if (estado === 'pending') {
+    throw new Error('Ya hay una solicitud pendiente.');
+  }
+
+  if (estado === 'accepted' && actual.type === 'direct') {
+    throw new Error('Ya tienes una conversación con esa persona.');
+  }
+
+  if (estado === 'rejected') {
+    const rechazadaEn = msDeFecha(actual.respondedAt);
+    const restante = rechazadaEn + COOLDOWN_RECHAZO_MS - Date.now();
+    if (restante > 0) {
+      const horas = Math.max(1, Math.ceil(restante / (60 * 60 * 1000)));
+      throw new Error(`Podrás volver a enviarla dentro de ${horas} h.`);
+    }
+  }
+
+  await updateDoc(ref, {
+    status: 'pending',
+    respondedAt: deleteField(),
+    respondedBy: deleteField(),
+  });
+}
+
 export async function requestDirectChat(
   from: Speaker,
   to: Speaker,
@@ -156,7 +240,7 @@ export async function requestDirectChat(
   }
 
   try {
-    await setDoc(doc(collection(db, CHAT_REQUESTS)), {
+    await crearOReabrir(doc(db, CHAT_REQUESTS, idDirecto(from.uid, to.uid)), {
       type: 'direct',
       fromId: from.uid,
       fromName: nameOf(from),
@@ -187,7 +271,7 @@ export async function requestGroupJoin(
   }
 
   try {
-    await setDoc(doc(collection(db, CHAT_REQUESTS)), {
+    await crearOReabrir(doc(db, CHAT_REQUESTS, idGrupo(group.id, from.uid)), {
       type: 'group',
       fromId: from.uid,
       fromName: nameOf(from),
@@ -226,7 +310,7 @@ export async function inviteToGroup(
   }
 
   try {
-    await setDoc(doc(collection(db, CHAT_REQUESTS)), {
+    await crearOReabrir(doc(db, CHAT_REQUESTS, idInvitacion(group.id, from.uid, to.uid)), {
       type: 'invite',
       fromId: from.uid,
       fromName: nameOf(from),
