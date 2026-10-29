@@ -569,11 +569,10 @@ describe('AUDITORÍA: hallazgos de reglas de Firestore', () => {
       );
     });
 
-    it('[P1 ABIERTO F4] se puede fabricar una cita de un mensaje inexistente', async () => {
-      // Pendiente P1: `replyTo` solo valida la forma, no que el
-      // mensaje citado exista. Cuando se cierre, invertir a
-      // assertFails.
-      await assertSucceeds(
+    it('[CORREGIDO F4] no se puede fabricar una cita de un mensaje inexistente', async () => {
+      // Antes bastaba con inventar el id y el texto. Ahora la regla
+      // lee el mensaje citado y compara autor y texto canónico.
+      await assertFails(
         addDoc(collection(db(BOB), 'chats', 'grupo-1', 'messages'), {
           senderId: BOB,
           senderName: 'bob',
@@ -582,7 +581,39 @@ describe('AUDITORÍA: hallazgos de reglas de Firestore', () => {
           replyTo: {
             messageId: 'mensaje-inexistente',
             senderName: 'Administrador',
-            snippet: 'Texto fabricado',
+            texto: 'Texto fabricado',
+          },
+        }),
+      );
+    });
+
+    it('[CORREGIDO F4] no se puede citar un mensaje real con otro texto', async () => {
+      await assertFails(
+        addDoc(collection(db(BOB), 'chats', 'grupo-1', 'messages'), {
+          senderId: BOB,
+          senderName: 'bob',
+          body: 'Cito con texto cambiado',
+          createdAt: serverTimestamp(),
+          replyTo: {
+            messageId: 'msg-1',
+            senderName: 'alice',
+            texto: 'Alice dijo algo que no dijo',
+          },
+        }),
+      );
+    });
+
+    it('CONTROL: una cita de un mensaje real se puede enviar', async () => {
+      await assertSucceeds(
+        addDoc(collection(db(BOB), 'chats', 'grupo-1', 'messages'), {
+          senderId: BOB,
+          senderName: 'bob',
+          body: 'Cito el mensaje real',
+          createdAt: serverTimestamp(),
+          replyTo: {
+            messageId: 'msg-1',
+            senderName: 'alice',
+            texto: 'Mensaje real de Alice',
           },
         }),
       );
@@ -621,17 +652,30 @@ describe('AUDITORÍA: hallazgos de reglas de Firestore', () => {
   // ==========================================================
 
   describe('G. solicitudes de chat', () => {
-    it('[P1 ABIERTO G1] se pueden inundar solicitudes y falsificar el remitente', async () => {
-      // Pendiente P1: sin id determinista ni límite de frecuencia,
-      // y con `fromName`/`fromAvatar` escritos por el cliente.
-      // Cuando se cierre, invertir a assertFails.
+    it('[CORREGIDO G1] no se puede falsificar el remitente de una solicitud', async () => {
+      await assertFails(
+        setDoc(doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`), {
+          type: 'direct',
+          fromId: BOB,
+          fromName: 'Soporte oficial de Geekapoo',
+          fromAvatar: 'https://example.com/falso.png',
+          toId: ALICE,
+          toName: 'alice',
+          toAvatar: '',
+          status: 'pending',
+          createdAt: serverTimestamp(),
+        }),
+      );
+    });
+
+    it('[CORREGIDO G1] no se pueden inundar solicitudes con ids arbitrarios', async () => {
       for (const id of ['spam-1', 'spam-2', 'spam-3']) {
-        await assertSucceeds(
+        await assertFails(
           setDoc(doc(db(BOB), 'chatRequests', id), {
             type: 'direct',
             fromId: BOB,
-            fromName: 'Soporte oficial de Geekapoo',
-            fromAvatar: 'https://example.com/falso.png',
+            fromName: 'bob',
+            fromAvatar: '',
             toId: ALICE,
             toName: 'alice',
             toAvatar: '',
@@ -642,9 +686,40 @@ describe('AUDITORÍA: hallazgos de reglas de Firestore', () => {
       }
     });
 
+    it('CONTROL: una solicitud legítima con id determinista e identidad real se envía', async () => {
+      await assertSucceeds(
+        setDoc(doc(db(BOB), 'chatRequests', `direct_${BOB}_${CAROL}`), {
+          type: 'direct',
+          fromId: BOB,
+          fromName: 'bob',
+          fromAvatar: '',
+          toId: CAROL,
+          toName: 'carol',
+          toAvatar: '',
+          status: 'pending',
+          createdAt: serverTimestamp(),
+        }),
+      );
+
+      // La misma pareja no puede tener una segunda ruta.
+      await assertFails(
+        setDoc(doc(db(BOB), 'chatRequests', 'spam-carol'), {
+          type: 'direct',
+          fromId: BOB,
+          fromName: 'bob',
+          fromAvatar: '',
+          toId: CAROL,
+          toName: 'carol',
+          toAvatar: '',
+          status: 'pending',
+          createdAt: serverTimestamp(),
+        }),
+      );
+    });
+
     it('CONTROL: no se puede suplantar a otra persona como remitente', async () => {
       await assertFails(
-        setDoc(doc(db(BOB), 'chatRequests', 'falsa'), {
+        setDoc(doc(db(BOB), 'chatRequests', `direct_${ALICE}_${CAROL}`), {
           type: 'direct',
           fromId: ALICE,
           fromName: 'alice',

@@ -5,7 +5,7 @@
 - **Commit de referencia (auditoría):** `64a68a7` (`seguridad(firestore): proteger contadores e implementar gestión de likes con funciones de servidor`)
 - **Rama de correcciones:** `seguridad/p0-auditoria`
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0 corregido y verificado en Firebase Emulator Suite.** Quedan tareas P1/P2 abiertas y rutas sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0 desplegado en producción (`cc35d84`). P1 (F4, G1 y fecha de los fijados) corregido y verificado en Firebase Emulator Suite, pendiente de revisión y despliegue.** Quedan residuales P1/P2 y rutas sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -13,18 +13,24 @@
 
 La auditoría inicial revisó `firestore.rules`, `functions/src/index.ts` y los servicios de `src/services`, y convirtió la revisión estática en pruebas ejecutables contra Firebase Emulator Suite. Esa primera pasada confirmó **19 casos vulnerables en reglas**, **9 callables de administración invocables por un moderador** y **farmeo de XP de extremo a extremo** con comentarios apuntando a objetivos inexistentes.
 
-Sobre la rama `seguridad/p0-auditoria` se aplicaron las correcciones P0 en reglas, Functions y el servicio de chats. Las pruebas de caracterización se invirtieron: los 17 casos P0 que antes usaban `assertSucceeds` ahora usan `assertFails` y actúan como regresión. Quedan **dos casos P1 abiertos** documentados con `assertSucceeds`:
+Sobre la rama `seguridad/p0-auditoria` se aplicaron las correcciones P0 en reglas, Functions y el servicio de chats. Esas correcciones se commitearon en `cc35d84` y se desplegaron en `geekapoo-7624d`. Las pruebas de caracterización se invirtieron: los 17 casos P0 que antes usaban `assertSucceeds` ahora usan `assertFails` y actúan como regresión.
 
-- **F4:** `replyTo` no comprueba que el mensaje citado exista.
-- **G1:** las solicitudes de chat no tienen id determinista, límite de frecuencia ni `fromName`/`fromAvatar` derivados del perfil.
+Después se corrigieron los P1 en el árbol de trabajo, **sin commit ni despliegue todavía**:
+
+- **F4:** `replyTo` ahora exige que el mensaje citado exista en el mismo chat y que autor y texto canónico coincidan exactamente.
+- **G1:** las solicitudes usan ids deterministas, `fromName`/`fromAvatar` se derivan del perfil, `createdAt` debe ser `request.time`, hay cooldown de 24 h tras un rechazo y una sola ruta por par/grupo-persona.
+- **Fecha de los fijados:** `mensajeCreadoEnMs` se contrasta con `createdAt.toMillis()` del mensaje real (o con el texto exacto en mensajes antiguos).
+
+Queda un residual P1: **no hay un límite global de solicitudes por emisor**. El id determinista impide crear varias rutas para el mismo par, pero una cuenta todavía puede escribir a muchos destinatarios distintos. Cerrarlo exige una callable o un libro mayor por usuario.
 
 ### Resultados finales
 
 | Prueba | Resultado |
 |---|---|
-| Reglas de la auditoría (28 casos) | **28 passing**, 0 failing; 17 P0 invertidos a `assertFails`, 2 P1 abiertos |
-| Suite completa de reglas (`npm run test:rules`) | **770 passing**, 0 failing |
-| Corrida focalizada de 12 archivos afectados | **444 passing**, 0 failing |
+| Reglas de la auditoría (32 casos) | **32 passing**, 0 failing; 17 regresiones P0 y 4 regresiones P1 (F4/G1) en `assertFails`, 11 controles |
+| Suite completa de reglas (`npm run test:rules`) | **791 passing**, 0 failing |
+| Corrida focalizada de 5 suites afectadas | **240 passing**, 0 failing |
+| Suite de fijados | Fecha real contrastada, milisegundo falso y campo omitido rechazados |
 | Callables post-P0 | **0 hallazgos, 14 controles correctos, 0 errores** |
 | Trigger de comentarios post-P0 | **3/3 rechazados**, XP 0 → 0, `commentsCreated = 0`, `bloqueado = true` |
 | `npm run test:logica` | Correcto |
@@ -44,16 +50,22 @@ Sobre la rama `seguridad/p0-auditoria` se aplicaron las correcciones P0 en regla
 8. Los hilos permitían `pinned` por el autor, tamaños sin revalidar y edición por baneados.
 9. `createdAt` era manipulable y alimentaba la medalla de veterano.
 
+### Riesgos cerrados en P1 (verificados en el emulador, pendientes de despliegue)
+
+1. **F4:** se podía fabricar una cita de un mensaje inexistente o atribuir a otra persona un texto que nunca escribió.
+2. **G1:** se podían inundar las solicitudes con ids arbitrarios y presentarse con un nombre o avatar falsos.
+3. **Fecha de los fijados:** `mensajeCreadoEn` no se contrastaba con el `createdAt` real del mensaje.
+
 ### Riesgos que siguen abiertos
 
-- **F4 (`replyTo`)** y **G1 (spam/suplantación en solicitudes)**.
-- **Fecha de los fijados:** `mensajeCreadoEn` todavía no se contrasta con el `createdAt` real del mensaje (impacto bajo).
+- **Rate limit global de solicitudes:** no hay un límite por emisor para escribir a muchas personas o grupos distintos. El id determinista solo impide duplicados contra el mismo destinatario.
+- **Cambio de dueño de un grupo:** una solicitud de grupo ya creada conserva el `toId` del dueño original; si el grupo se transfiere, una reapertura puede quedar apuntando a quien ya no lo administra. Es un borde de producto, no un bypass de permisos.
 - **Altas directas de club:** un dueño *activo* todavía puede añadir a alguien sin consentimiento; es un asunto de producto y de confianza en las estadísticas (P1), no ya un bypass de baneo.
 - **Estadísticas de club** calculadas desde documentos que el cliente puede escribir (L).
 - **Cobertura E2E incompleta:** canales, Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y flujos de aceptación/rechazo.
 - **Migración de datos** y **alineación de región** de las Functions.
 
-No se realizaron pruebas destructivas ni despliegues en producción. Todos los datos de prueba se crearon en proyectos `demo-*` del emulador.
+La auditoría no hizo pruebas destructivas contra producción. El P0 se desplegó después, con autorización; los P1 de este informe siguen sin desplegar. Todos los datos de las pruebas se crearon en proyectos `demo-*` del emulador.
 
 ---
 
@@ -78,10 +90,10 @@ No se realizaron pruebas destructivas ni despliegues en producción. Todos los d
 ### 2.3 Salvaguardas
 
 - Los scripts abortan si el proyecto no empieza por `demo-` o si falta `FIRESTORE_EMULATOR_HOST`.
-- No se ejecutó ningún despliegue.
-- No se probó nada contra `geekapoo-7624d`.
+- La revisión y las pruebas se hicieron íntegramente en emuladores; no se ejecutaron pruebas destructivas contra producción.
+- No se probó nada contra `geekapoo-7624d` durante la auditoría.
 - La sincronización de noticias del caso H9 escribió 168 documentos **en el emulador**, no en producción.
-- Los cambios P0 están **sin commitear, sin push y sin desplegar** a la espera de revisión.
+- El P0 se commitó en `cc35d84` y se desplegó en `geekapoo-7624d` con autorización. Los cambios P1 de este informe están **en el árbol de trabajo, sin commit, sin push y sin desplegar**.
 
 ---
 
@@ -89,11 +101,11 @@ No se realizaron pruebas destructivas ni despliegues en producción. Todos los d
 
 | Prueba | Comando | Resultado |
 |---|---|---|
-| Reglas de la auditoría | `npx firebase emulators:exec --only firestore --project demo-geekapoo-auditoria "npx mocha tests/auditoria/firestore.hallazgos.rules.test.cjs --timeout 60000"` | **28 passing**, 0 failing |
+| Reglas de la auditoría | `npx firebase emulators:exec --only firestore --project demo-geekapoo-auditoria "npx mocha tests/auditoria/firestore.hallazgos.rules.test.cjs --timeout 60000"` | **32 passing**, 0 failing |
 | Callables post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-callables.mjs"` | **0 hallazgos**, 14 controles OK, 0 errores |
 | Trigger de comentarios post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-triggers.mjs"` | **3/3 rechazados**; XP 0 → 0; `commentsCreated = 0`; `bloqueado = true` |
-| Suite completa de reglas | `npm run test:rules` | **770 passing**, 0 failing |
-| Corrida focalizada | 12 archivos de chat, clubes, canales, groupCodes, privacidad y sanciones | **444 passing**, 0 failing |
+| Suite completa de reglas | `npm run test:rules` | **791 passing**, 0 failing |
+| Corrida focalizada | 5 suites de chat, fijados, solicitudes, privacidad y groupCodes | **240 passing**, 0 failing |
 | TypeScript | `npm run lint` | Correcto |
 | Lógica | `npm run test:logica` | Correcto |
 | Build de Functions | `npm --prefix functions run build` | Correcto |
@@ -130,10 +142,10 @@ Escala usada:
 | C1/C3/C4 | Clubes: creación/edición por baneados y altas sin consentimiento | **Alto** | **Corregido P0** el bypass de baneo; altas directas P1 |
 | B | `createdAt` manipulable → medalla de veterano | **Medio** | **Corregido P0** |
 | D | Hilos: `pinned` por autor, tamaños sin revalidar, edición por baneados | **Medio** | **Corregido P0** |
-| G | Fijados con texto/autor falsos | **Medio** | **Corregido P0**; fecha del mensaje P1 |
-| K | Spam de solicitudes de chat y remitente falsificado | **Medio** | **P1 abierto** (G1) |
+| G | Fijados con texto/autor falsos | **Medio** | **Corregido P0**; fecha del mensaje **corregida P1** |
+| K | Spam de solicitudes de chat y remitente falsificado | **Medio** | **Corregido P1** (G1); rate limit global residual |
 | L | Estadísticas de club desde documentos del cliente | **Medio** | **P1 abierto** |
-| H | `replyTo` fabricado | **Bajo** | **P1 abierto** (F4) |
+| H | `replyTo` fabricado | **Bajo** | **Corregido P1** (F4) |
 | M | Canales de club gestionados por baneados | **Medio/Bajo** | **Corregido en reglas**; E2E pendiente |
 
 ---
@@ -330,7 +342,7 @@ function isModerator() {
 ### F. Un miembro del chat podía ocultar, limpiar o falsear el chat de otra persona
 
 **Severidad:** Alto  
-**Estado:** **corregido en P0** F1-F3; **F4 (`replyTo`) sigue abierto como P1**.
+**Estado:** **corregido en P0** F1-F3 y **en P1** F4.
 
 **Evidencia original:**
 
@@ -348,24 +360,34 @@ function isModerator() {
 
 **Verificación:** F1 (falsear la vista previa), F2 (ocultar/limpiar a Alice) y F3 (fijado con autor/texto falsos) fallan. La actualización legítima de la propia preferencia sigue pasando.
 
-#### F4. Citas (`replyTo`) fabricadas — P1 abierto
+#### F4. Citas (`replyTo`) fabricadas — corregido en P1
 
 **Severidad:** Bajo  
-**Estado:** abierto; la prueba sigue en `assertSucceeds`.
+**Estado:** **corregido y verificado en el emulador**; pendiente de despliegue.
 
-- `replyTo` solo se valida como mapa con `messageId`, `senderName` y `snippet` de tipo string y `snippet <= 200`.
-- No se comprueba que el mensaje citado exista ni que el autor o el fragmento coincidan.
+**Evidencia original:**
 
-**Impacto:** se puede citar un mensaje inexistente o atribuir a alguien una frase que no dijo.
+- `replyTo` solo se validaba como mapa con `messageId`, `senderName` y `snippet` de tipo string y `snippet <= 200`.
+- No se comprobaba que el mensaje citado existiera ni que el autor o el texto coincidieran.
 
-**Corrección propuesta:** exigir `exists(chats/{chatId}/messages/{replyTo.messageId})` y contrastar `senderName`/`snippet`, o crear la cita desde el servidor.
+**Impacto:** se podía citar un mensaje inexistente o atribuir a alguien una frase que no dijo.
+
+**Corrección aplicada:**
+
+- `citaCoincideConMensaje(chatId, cita)` lee `chats/{chatId}/messages/{cita.messageId}` y exige que exista.
+- Compara `senderName` con el autor real del mensaje y `texto` con el texto canónico completo.
+- El texto canónico replica `textoParaCita` del cliente: cuerpo sin espacios en los extremos o, si no hay, `[Foto]`, `GIF`, `Ubicación`, `📊 pregunta` o `🏆 título`.
+- Se guarda el texto **completo** (hasta 4.000 caracteres) porque las reglas no tienen `slice`/`substring` y no podrían validar un prefijo. El recorte a 120 caracteres es solo de la vista (`fragmentoParaCita`).
+- Solo se admiten `messageId`, `senderName` y `texto`; `snippet` queda como compatibilidad de lectura para citas antiguas y los mensajes nuevos ya no lo escriben.
+
+**Verificación:** citar un mensaje inexistente, cambiar el autor, cambiar el texto, escribir solo `snippet` o superar el tamaño fallan. Citar un mensaje real, un texto largo, una foto y una encuesta pasa. La regresión de auditoría F4 está en `assertFails` y el control positivo también pasa.
 
 ---
 
 ### G. Mensajes fijados con texto y autor falsos
 
 **Severidad:** Medio  
-**Estado:** **corregido en P0**; regresión F3 en `assertFails`. Queda un resto P1 en la fecha del mensaje.
+**Estado:** **corregido en P0** y **fecha corregida en P1**; regresión F3 en `assertFails`.
 
 **Evidencia original:**
 
@@ -376,20 +398,20 @@ function isModerator() {
 
 **Corrección aplicada:**
 
-- `fijadoCoincideConMensaje(chatId, messageId)` lee el mensaje real y compara `autorId`, `autorNombre`, `autorAvatar`, `texto`, `tipo` y la forma de `mensajeCreadoEn`.
+- `fijadoCoincideConMensaje(chatId, messageId)` lee el mensaje real y compara `autorId`, `autorNombre`, `autorAvatar`, `texto`, `tipo` y la fecha.
+- Si `createdAt` es un `Timestamp`, exige que `mensajeCreadoEnMs == createdAt.toMillis()` y que `mensajeCreadoEn` siga siendo un string acotado. Si `createdAt` es un string antiguo, exige `mensajeCreadoEn` exacto y un `mensajeCreadoEnMs` numérico.
+- El cliente (`chatFijados.ts`) calcula `mensajeCreadoEnMs` con `Date.parse(msg.createdAt)`, que coincide con los milisegundos del `Timestamp`.
 - El `texto` se guarda completo (hasta 4.000 caracteres, el máximo del mensaje) y se compara de forma exacta. Antes el cliente lo truncaba a 300 y la regla solo podía comprobar la longitud: un mensaje largo se podía fijar con otra frase.
 - La creación sigue exigiendo membresía, `isActive()`, permiso de fijado, `chatId`/`messageId` coherentes y `fijadoPor == request.auth.uid`.
 - `autorAvatar` se añadió a la forma validada y al cliente (`chatFijados.ts`).
 
-**Verificación:** F3 (fijado con `autorId: 'admin'` y texto inventado) falla. También falla fijar un mensaje largo con un resumen inventado, y pasa el fijado con el texto exacto. El fijado legítimo de un mensaje real sigue pasando.
-
-**Resto P1:** `mensajeCreadoEn` se valida como string acotado, pero todavía no se contrasta con el `createdAt` real del mensaje. La fecha que muestra el panel se puede falsear (impacto bajo). Cerrarlo requiere una callable de fijados o un campo numérico que la regla pueda comparar con el timestamp.
+**Verificación:** F3 (fijado con `autorId: 'admin'` y texto inventado) falla. También falla fijar un mensaje largo con un resumen inventado, un milisegundo falso o sin `mensajeCreadoEnMs`; pasa el fijado con el texto exacto y la fecha real. El fijado legítimo de un mensaje real sigue pasando.
 
 ---
 
 ### H. Citas (`replyTo`) fabricadas
 
-Ver **F4** en la sección anterior. Es el único hallazgo de chats que queda abierto en P1.
+Ver **F4** en la sección anterior. **Corregido en P1** y verificado; pendiente de despliegue.
 
 ---
 
@@ -443,24 +465,33 @@ Ver **F4** en la sección anterior. Es el único hallazgo de chats que queda abi
 
 ---
 
-### K. Spam de solicitudes de chat y remitente falsificado — P1 abierto
+### K. Spam de solicitudes de chat y remitente falsificado — corregido en P1
 
 **Severidad:** Medio  
-**Estado:** abierto; la prueba G1 sigue en `assertSucceeds`.
+**Estado:** **corregido y verificado en el emulador**; pendiente de despliegue. Queda un residual de rate limit global.
 
-**Evidencia:**
+**Evidencia original:**
 
-- El `create` de `chatRequests` no impone un id determinista ni un límite de frecuencia.
-- `fromName` y `fromAvatar` los escribe el cliente y solo se validan por tipo/tamaño; no se contrastan con `users/{fromId}`.
-- `acceptsChatRequests` sí valida que el destinatario exista, esté activo y acepte solicitudes (control correcto).
+- El `create` de `chatRequests` no imponía un id determinista ni un límite de frecuencia.
+- `fromName` y `fromAvatar` los escribía el cliente y solo se validaban por tipo/tamaño; no se contrastaban con `users/{fromId}`.
+- `acceptsChatRequests` sí validaba que el destinatario existiera, estuviera activo y aceptara solicitudes (control correcto).
 
-**Impacto:** un usuario puede inundar la bandeja de otro con solicitudes y presentarse como “Soporte oficial” o con el avatar que quiera.
+**Impacto:** un usuario podía inundar la bandeja de otro con solicitudes y presentarse como “Soporte oficial” o con el avatar que quisiera.
 
-**Corrección propuesta:**
+**Corrección aplicada:**
 
-- Id determinista por `(fromId, toId, type, groupId)` o límite de una solicitud pendiente por par.
-- Rate limit/cooldown por usuario.
-- Derivar `fromName` y `fromAvatar` del perfil real en una callable, o compararlos en la regla con `get(users/{fromId})`.
+- Ids deterministas: `direct_{fromId}_{toId}`, `group_{groupId}_{fromId}` e `invite_{groupId}_{fromId}_{toId}`. La regla reconstruye el id con los campos del documento, así que no se puede elegir una ruta nueva por intento.
+- `fromName`/`fromAvatar` se comparan con `users/{fromId}`. En solicitudes directas y en invitaciones también se comparan `toName`/`toAvatar` con el perfil del destinatario. En solicitudes de grupo se exige que `groupName` coincida con el nombre real del chat.
+- `createdAt == request.time`: la fecha la pone el servidor.
+- Una sola solicitud por par/grupo-persona. Se puede reabrir una cancelada; una rechazada, tras 24 h; una aceptada de grupo o invitación, solo si la persona ya no es miembro. La reapertura solo toca `status` y limpia `respondedAt`/`respondedBy`.
+- `src/services/chatRequests.ts` usa `crearOReabrir()` y aplica el mismo cooldown en el cliente para dar un error legible.
+
+**Verificación:** la regresión G1 de auditoría está en `assertFails`: nombre/avatar falsos, ids arbitrarios y suplantación de remitente fallan; una solicitud legítima con id determinista e identidad real pasa. La suite principal cubre además destinatario falso, `createdAt` falso, `groupName` falso, reapertura de canceladas, cooldown de 24 h, reapertura a las 25 h, grupos/invitaciones aceptados con y sin membresía, y el caso directo aceptado (no se reabre).
+
+**Residual P1:**
+
+- **Rate limit global por emisor:** el id determinista limita a una solicitud por destinatario, pero no impide escribir a muchos destinatarios o grupos distintos. Cerrarlo requiere una callable o un libro mayor por usuario; las reglas solas no pueden contar escrituras entre rutas.
+- **Cambio de dueño de un grupo:** una solicitud de grupo ya creada conserva el `toId` del dueño original. Si el grupo se transfiere, la reapertura puede quedar apuntando a quien ya no administra. No otorga permisos, pero conviene migrar o regenerar la solicitud al transferir.
 
 ---
 
@@ -522,44 +553,44 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 - **`acceptsChatRequests` valida al destinatario** (existencia, actividad y preferencia) antes de aceptar una solicitud.
 - **`concederMedalla` valida el catálogo del servidor**; no se pueden conceder medallas fuera de `MEDALLAS`.
 - **Likes:** el modelo `threads/{threadId}/likes/{uid}` y `comments/{commentId}/likes/{uid}` mantiene los contadores solo en el servidor.
-- **Fijados:** el autor, el avatar y el texto exacto se contrastan con el mensaje real (incluidos los mensajes largos).
+- **Fijados:** el autor, el avatar, el texto exacto y la fecha real se contrastan con el mensaje real (incluidos los mensajes largos).
+- **Citas:** el mensaje citado tiene que existir en el mismo chat, y autor y texto canónico tienen que coincidir exactamente.
+- **Solicitudes:** id determinista, identidad derivada del perfil, `createdAt` del servidor, una sola ruta por par y cooldown tras un rechazo.
 - **Vista previa de chats:** `lastMessage*` solo lo escribe el trigger, en transacción y comparando fechas.
-- **Regresión P0:** los 17 casos corregidos están invertidos a `assertFails` y ya no pueden volver a abrirse sin que falle la suite.
-- **La suite completa de reglas** (770 pruebas) sigue siendo la línea base y pasa tras los cambios.
+- **Regresión P0/P1:** los 17 casos P0 y los 4 casos P1 están invertidos a `assertFails` y ya no pueden volver a abrirse sin que falle la suite.
+- **La suite completa de reglas** (791 pruebas) sigue siendo la línea base y pasa tras los cambios.
 
 ---
 
 ## 6. Tareas pendientes
 
-### P1 — siguientes
+### P1 — residuales y siguientes
 
-1. **Citas (`replyTo`):** validar que `replyTo.messageId` exista y que el autor/fragmento coincidan (F4). Invertir la prueba a `assertFails`.
-2. **Solicitudes de chat:** id determinista o límite de una pendiente por par, rate limit y `fromName`/`fromAvatar` derivados del perfil (G1). Invertir la prueba.
-3. **Fecha de los fijados:** contrastar `mensajeCreadoEn` con el `createdAt` real del mensaje (resto de G). Requiere una callable de fijados o un campo numérico comparable en reglas.
-4. **Altas directas de club:** mover altas/bajas a una callable transaccional con consentimiento y hacer que `onClubMembersChanged` solo cuente altas del flujo servidor (C4/L).
-5. **Estadísticas de club:** no confiar en `ownerId`/`memberIds`/`createdBy` escritos por el cliente; probar las medallas afectadas (L).
-6. **Migración de datos:** limpiar `memberIds` de chats de club ya existentes, revisar `createdAt` sospechosos y recalcular medallas/estadísticas si procede.
-7. **Canales de club:** prueba E2E explícita con dueño baneado y con miembro baneado en la ruta `general` (M).
-8. **Cobertura E2E restante:** Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y flujos de aceptación/rechazo.
-9. **Bloqueos (`blocks`):** hoy es una barrera de cliente; si el producto quiere que bloquear impida solicitudes/mensajes, aplicarlo en reglas/callables.
-10. **Auditoría de acciones administrativas:** registrar en una colección inmutable quién ajusta XP, concede medallas, cambia configuración y banea/desbanea; alertar de picos.
+1. **Rate limit global de solicitudes:** añadir una callable transaccional o un libro mayor por usuario que limite cuántas solicitudes puede enviar por ventana, no solo una por destinatario (G1 residual).
+2. **Cambio de dueño de grupo:** al transferir un grupo, regenerar o invalidar las solicitudes de entrada pendientes para que no queden apuntando al dueño anterior (G1 residual).
+3. **Altas directas de club:** mover altas/bajas a una callable transaccional con consentimiento y hacer que `onClubMembersChanged` solo cuente altas del flujo servidor (C4/L).
+4. **Estadísticas de club:** no confiar en `ownerId`/`memberIds`/`createdBy` escritos por el cliente; probar las medallas afectadas (L).
+5. **Migración de datos:** limpiar `memberIds` de chats de club ya existentes, revisar `createdAt` sospechosos y recalcular medallas/estadísticas si procede.
+6. **Canales de club:** prueba E2E explícita con dueño baneado y con miembro baneado en la ruta `general` (M).
+7. **Cobertura E2E restante:** Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y flujos de aceptación/rechazo.
+8. **Bloqueos (`blocks`):** hoy es una barrera de cliente; si el producto quiere que bloquear impida solicitudes/mensajes, aplicarlo en reglas/callables.
+9. **Auditoría de acciones administrativas:** registrar en una colección inmutable quién ajusta XP, concede medallas, cambia configuración y banea/desbanea; alertar de picos.
 
 ### P2 — higiene y cobertura
 
-11. **Fijar la región de las Functions** de forma explícita y verificar que el emulador y producción coinciden (`us-central1` vs `europe-southwest1`).
-12. **Añadir pruebas de carga/abuso** para límites de tamaño y frecuencia (comentarios, solicitudes, chats).
-13. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
-14. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
+10. **Fijar la región de las Functions** de forma explícita y verificar que el emulador y producción coinciden (`us-central1` vs `europe-southwest1`).
+11. **Añadir pruebas de carga/abuso** para límites de tamaño y frecuencia (comentarios, solicitudes, chats).
+12. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
+13. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
 
 ### Orden de despliegue sugerido (cuando se apruebe)
 
 1. Funciones/callables con las nuevas comprobaciones (deben tolerar las reglas antiguas).
 2. Migración de datos: `createdAt`, miembros de clubes y chats, contadores/estadísticas.
-3. Reglas de Firestore endurecidas.
-4. Web con la interfaz y los flujos actualizados.
-5. Verificación en producción con cuentas de prueba controladas y monitorización.
+3. **Web y reglas P1 de forma coordinada.** El cliente nuevo escribe `replyTo.texto` y `mensajeCreadoEnMs`, y las reglas nuevas los exigen; las reglas antiguas rechazan esas escrituras y las nuevas rechazan las antiguas (`snippet`, fecha sin milisegundos, ids aleatorios de solicitud). Hay una ventana inevitable en la que las pestañas ya abiertas con el bundle anterior pueden fallar al citar, fijar o pedir entrada hasta que se recarguen. Los mensajes sin cita y el resto del chat no dependen de ese cambio.
+4. Verificación en producción con cuentas de prueba controladas y monitorización.
 
-No desplegar automáticamente. Las correcciones de reglas y Functions deben revisarse y aprobarse antes de tocar `geekapoo-7624d`.
+No desplegar automáticamente. Las correcciones de reglas y Functions deben revisarse y aprobarse antes de tocar `geekapoo-7624d`. El P0 ya está desplegado; los P1 de este informe no.
 
 ---
 
@@ -567,18 +598,22 @@ No desplegar automáticamente. Las correcciones de reglas y Functions deben revi
 
 | Archivo | Contenido |
 |---|---|
-| `firestore.rules` | Correcciones P0 de reglas: roles activos, `createdAt`, hilos, comentarios, chats, fijados, clubes, canales, sanciones y solicitudes |
+| `firestore.rules` | Correcciones P0 y P1: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes, canales, sanciones y solicitudes con id determinista e identidad derivada del perfil |
 | `functions/src/index.ts` | `exigirRol`/`exigirAdmin`/`exigirModerador`, jerarquía de baneos, objetivo real de comentarios, vista previa de chats y limpieza de chats de club |
-| `src/services/chats.ts` | Deja de escribir `lastMessage*` desde el cliente |
-| `src/services/chatFijados.ts` | Añade `autorAvatar` y guarda el texto completo para que la regla lo compare con el mensaje real |
-| `tests/auditoria/firestore.hallazgos.rules.test.cjs` | 28 pruebas de regresión: 17 P0 en `assertFails`, 9 controles y 2 P1 abiertos |
+| `src/services/chats.ts` | Deja de escribir `lastMessage*` desde el cliente; construye `replyTo.texto` completo |
+| `src/utils/chatCita.ts` | `textoParaCita()` canónico sin recortar y `fragmentoParaCita()` para la vista |
+| `src/services/chatFijados.ts` | Añade `autorAvatar`, guarda el texto completo y `mensajeCreadoEnMs` para contrastar la fecha |
+| `src/services/chatRequests.ts` | Ids deterministas, `crearOReabrir()`, cooldown local y limpieza de la respuesta al reabrir |
+| `src/components/chat/ChatView.tsx` | Construye la cita desde el mensaje real y pinta `texto` con recorte solo visual |
+| `src/types/index.ts` | `ChatReplyTo` con `texto` (canónico) y `snippet` (compatibilidad de lectura) |
+| `tests/auditoria/firestore.hallazgos.rules.test.cjs` | 32 pruebas de regresión: 17 P0 y 4 P1 en `assertFails`, 11 controles |
 | `scripts/auditoria-callables.mjs` | Verificación post-P0 de las 9 callables con token de moderador y 5 controles |
 | `scripts/auditoria-triggers.mjs` | Verificación E2E de que los comentarios con objetivo inexistente no pagan XP |
 | `docs/auditoria/resultados-callables.json` | Resultado estructurado de las callables |
 | `docs/auditoria/resultados-triggers.json` | Resultado estructurado del trigger de comentarios |
 | `firebase.json` | Emulador de Auth (puerto 9099) para las pruebas |
 
-Los cambios P0 están en la rama `seguridad/p0-auditoria`, **sin commitear, sin push y sin desplegar**. No se modificó producción.
+El P0 está en la rama `seguridad/p0-auditoria`, commitado en `cc35d84` y desplegado en `geekapoo-7624d`. Los cambios P1 están **en el árbol de trabajo, sin commit, sin push y sin desplegar**.
 
 ---
 
@@ -586,11 +621,11 @@ Los cambios P0 están en la rama `seguridad/p0-auditoria`, **sin commitear, sin 
 
 - **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, las callables revisadas y los servicios inventariados; quedan rutas de Storage, App Check, encuestas, tier lists, noticias, moderación de clubes y flujos de aceptación que no se probaron E2E.
 - **Las pruebas P0 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
-- **No se probó en producción.** Todos los resultados son del emulador; pueden existir diferencias de configuración, índices, reglas desplegadas o datos reales.
+- **No se probó en producción.** Todos los resultados son del emulador; pueden existir diferencias de configuración, índices, reglas desplegadas o datos reales. Del despliegue P0 solo se comprobó que Hosting servía el bundle nuevo y que las reglas estaban publicadas; no se hizo una pasada funcional completa en producción.
 - **El emulador sirve las Functions en `us-central1`**, mientras que `functions:list` muestra `europe-southwest1` en producción. La lógica probada es la misma, pero la diferencia de región debe resolverse.
 - **La sincronización de noticias del emulador** escribió 168 documentos en el proyecto demo; no se tocó la colección `news` de producción.
 - **No se evaluaron** vulnerabilidades de dependencias, XSS, CSP, configuración de Auth, correo o infraestructura. Este informe se limita a las capas indicadas.
 
 ---
 
-**Conclusión:** los P0 de la auditoría están corregidos y verificados en el emulador: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. **La aplicación todavía no puede declararse segura en su conjunto**: quedan F4, G1, las altas directas de club, las estadísticas de club y varias superficies sin E2E. Los cambios deben revisarse y aprobarse antes de commitear, desplegar o dar la auditoría por cerrada.
+**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos y verificados en el emulador, **pendientes de revisión y despliegue**. **La aplicación todavía no puede declararse segura en su conjunto**: quedan el rate limit global de solicitudes, las altas directas de club, las estadísticas de club, la migración de datos y varias superficies sin E2E. Los cambios P1 deben revisarse y aprobarse antes de commitear o desplegar.

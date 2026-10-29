@@ -839,6 +839,70 @@ service cloud.firestore {
              || ('tierList' in m);
     }
 
+    /**
+     * Texto canónico de un mensaje, sin recortar.
+     *
+     * Es la misma elección que `textoParaCita` en
+     * `src/utils/chatCita.ts`: primero el cuerpo (sin espacios en los
+     * extremos) y, si no hay, una descripción del adjunto. La cita
+     * guarda este texto COMPLETO porque las reglas no pueden recortar
+     * cadenas y necesitan compararlo exacto con el mensaje real.
+     *
+     * Los `is map` no son adorno: un documento antiguo podría tener
+     * `poll` o `tierList` con otra forma, y leer `.question` de algo
+     * que no es mapa sería un error de evaluación.
+     */
+    function textoCanonicoDeMensaje(m) {
+      let cuerpo = ('body' in m && m.body is string) ? m.body.trim() : '';
+      return cuerpo.size() > 0
+             ? cuerpo
+             : (('imageUrl' in m && m.imageUrl is string && m.imageUrl.size() > 0)
+                 ? '[Foto]'
+                 : (('gif' in m && m.gif is map)
+                     ? 'GIF'
+                     : (('location' in m && m.location is map)
+                         ? 'Ubicación'
+                         : (('poll' in m && m.poll is map)
+                             ? (('question' in m.poll
+                                 && m.poll.question is string
+                                 && m.poll.question.trim().size() > 0)
+                                 ? '📊 ' + m.poll.question.trim()
+                                 : '📊 Encuesta')
+                             : (('tierList' in m && m.tierList is map)
+                                 ? (('title' in m.tierList
+                                     && m.tierList.title is string
+                                     && m.tierList.title.trim().size() > 0)
+                                     ? '🏆 ' + m.tierList.title.trim()
+                                     : '🏆 Tier list')
+                                 : '')))));
+    }
+
+    /**
+     * La cita copia un mensaje REAL de ESTE chat.
+     *
+     * Antes `replyTo` solo se validaba como mapa con tres strings: se
+     * podía citar un mensaje que nunca existió, atribuírselo a un
+     * administrador y ponerle el texto que quisieras. Ahora se lee el
+     * mensaje citado y se comparan el autor y el texto canónico.
+     *
+     * Solo se admiten los tres campos nuevos. `snippet` era el
+     * recorte de la vista de las citas antiguas; ya no se escribe.
+     */
+    function citaCoincideConMensaje(chatId, cita) {
+      let m = get(/databases/$(database)/documents/chats/$(chatId)/messages/$(cita.messageId)).data;
+      let nombre = ('senderName' in m && m.senderName is string) ? m.senderName : '';
+
+      return cita.messageId is string
+             && cita.messageId.size() > 0
+             && cita.messageId.size() <= 100
+             && cita.keys().hasOnly(['messageId', 'senderName', 'texto'])
+             && cita.senderName is string
+             && cita.senderName == nombre
+             && cita.texto is string
+             && cita.texto.size() <= 4000
+             && cita.texto == textoCanonicoDeMensaje(m);
+    }
+
     // ======================================================
     // PRIVACIDAD DE LAS SOLICITUDES DE CONVERSACIÓN
     // ======================================================
@@ -939,6 +1003,62 @@ service cloud.firestore {
                     && perfil.profileVisibility == 'private')
                   && !(('allowChatRequests' in perfil)
                        && perfil.allowChatRequests == false)));
+    }
+
+    /**
+     * Nombre visible de un perfil, con la MISMA elección que `nameOf`
+     * en el cliente: `displayName || username`.
+     *
+     * `acceptsChatRequests` ya ha comprobado que el documento del
+     * destinatario existe antes de que se llame a esto. Para el
+     * emisor, `isActive()` garantiza su perfil.
+     */
+    function nombreDePerfil(uid) {
+      let p = get(/databases/$(database)/documents/users/$(uid)).data;
+      return (('displayName' in p
+               && p.displayName is string
+               && p.displayName.size() > 0)
+              ? p.displayName
+              : (('username' in p && p.username is string) ? p.username : ''));
+    }
+
+    /** Avatar del perfil, tal cual lo copia la solicitud. */
+    function avatarDePerfil(uid) {
+      let p = get(/databases/$(database)/documents/users/$(uid)).data;
+      return ('avatarUrl' in p && p.avatarUrl is string) ? p.avatarUrl : '';
+    }
+
+    /**
+     * Id determinista de una solicitud.
+     *
+     * Las reglas lo reconstruyen con los campos del documento. Sin
+     * esto, el cliente podía elegir un id nuevo por cada intento y
+     * llenar la bandeja del destinatario con documentos distintos.
+     */
+    function idDeSolicitudCorrecto(requestId) {
+      let d = request.resource.data;
+      return (d.type == 'direct'
+              && requestId == 'direct_' + d.fromId + '_' + d.toId)
+             || (d.type == 'group'
+                 && requestId == 'group_' + d.groupId + '_' + d.fromId)
+             || (d.type == 'invite'
+                 && requestId == 'invite_' + d.groupId + '_' + d.fromId + '_' + d.toId);
+    }
+
+    /**
+     * El nombre y el avatar de una solicitud salen del perfil real.
+     *
+     * Antes los escribía el cliente y solo se miraba que fueran
+     * strings: una solicitud se podía presentar como "Soporte
+     * oficial de Geekapoo" con el avatar que quisieras.
+     */
+    function nombreYAvatarCoinciden(uid, nombre, avatar) {
+      return nombre is string
+             && nombre.size() <= 60
+             && nombre == nombreDePerfil(uid)
+             && avatar is string
+             && avatar.size() <= 500
+             && avatar == avatarDePerfil(uid);
     }
 
     // ======================================================
@@ -1705,24 +1825,39 @@ service cloud.firestore {
                     && request.resource.data.toId is string
                     && request.resource.data.toId != request.auth.uid
                     && request.resource.data.status == 'pending'
+                    // La fecha la pone el servidor, no el cliente.
+                    && request.resource.data.createdAt == request.time
                     && request.resource.data.type in ['direct', 'group', 'invite']
-                    && request.resource.data.fromName is string
-                    && request.resource.data.fromName.size() <= 60
-                    && request.resource.data.fromAvatar is string
-                    && request.resource.data.fromAvatar.size() <= 500
+                    // Quién firma la solicitud sale de SU perfil, y el
+                    // destinatario del suyo. El cliente ya no elige
+                    // cómo se presenta.
+                    && nombreYAvatarCoinciden(
+                         request.auth.uid,
+                         request.resource.data.fromName,
+                         request.resource.data.fromAvatar)
                     && request.resource.data.keys().hasOnly(
                          ['type', 'fromId', 'fromName', 'fromAvatar',
                           'toId', 'toName', 'toAvatar',
                           'groupId', 'groupName', 'status', 'createdAt'])
+                    // El id se reconstruye con los campos del
+                    // documento: una sola ruta por par o por grupo y
+                    // persona.
+                    && idDeSolicitudCorrecto(requestId)
                     // El destinatario puede tener la privacidad en
                     // "privado" o con las solicitudes apagadas. Se
                     // comprueba contra SU documento, no contra el
                     // nuestro, para que no se pueda esquivar.
                     && acceptsChatRequests(request.resource.data.toId)
                     && (
-                      // Chat privado: no lleva grupo.
+                      // Chat privado: no lleva grupo y el nombre/foto
+                      // del destinatario también salen de su perfil.
                       (request.resource.data.type == 'direct'
-                        && !('groupId' in request.resource.data))
+                        && !('groupId' in request.resource.data)
+                        && !('groupName' in request.resource.data)
+                        && nombreYAvatarCoinciden(
+                             request.resource.data.toId,
+                             request.resource.data.toName,
+                             request.resource.data.toAvatar))
                       // Pedir entrar en un grupo: el destinatario
                       // tiene que ser su dueño, y quien pide no
                       // puede ser ya miembro.
@@ -1732,6 +1867,11 @@ service cloud.firestore {
                         && chatData(request.resource.data.groupId).type == 'group'
                         && request.resource.data.toId
                              == chatData(request.resource.data.groupId).ownerId
+                        && request.resource.data.groupName is string
+                        && request.resource.data.groupName
+                             == chatData(request.resource.data.groupId).name
+                        && !('toName' in request.resource.data)
+                        && !('toAvatar' in request.resource.data)
                         && !(request.auth.uid
                              in chatData(request.resource.data.groupId).memberIds))
                       // Invitación: solo la manda el dueño, y el
@@ -1742,8 +1882,15 @@ service cloud.firestore {
                         && chatData(request.resource.data.groupId).type == 'group'
                         && chatData(request.resource.data.groupId).ownerId
                              == request.auth.uid
+                        && request.resource.data.groupName is string
+                        && request.resource.data.groupName
+                             == chatData(request.resource.data.groupId).name
                         && !(request.resource.data.toId
-                             in chatData(request.resource.data.groupId).memberIds))
+                             in chatData(request.resource.data.groupId).memberIds)
+                        && nombreYAvatarCoinciden(
+                             request.resource.data.toId,
+                             request.resource.data.toName,
+                             request.resource.data.toAvatar))
                     );
 
       // El cliente solo puede CANCELAR (quien la envió) o
@@ -1777,6 +1924,53 @@ service cloud.firestore {
                         && request.resource.data.status == 'cancelled')
                       || (resource.data.toId == request.auth.uid
                         && request.resource.data.status == 'rejected')
+                    );
+
+      // Reabrir una solicitud que ya existe en su id determinista.
+      //
+      // No se puede crear otra ruta para el mismo par, así que la
+      // única forma de volver a pedirlo es reutilizar el documento:
+      //
+      //   · cancelada  → se puede reabrir enseguida;
+      //   · rechazada  → tras 24 h, para que rechazar sirva de algo;
+      //   · aceptada   → solo en grupo/invitación y solo si la
+      //                  persona ya no es miembro (si sigue dentro,
+      //                  no hay nada que pedir).
+      //
+      // Solo se tocan `status` y la limpieza de la respuesta. El id,
+      // el emisor, el destinatario y `createdAt` siguen intactos.
+      allow update: if isActive()
+                    && resource.data.fromId == request.auth.uid
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(
+                           ['status', 'respondedAt', 'respondedBy'])
+                    && request.resource.data.status == 'pending'
+                    && !('respondedAt' in request.resource.data)
+                    && !('respondedBy' in request.resource.data)
+                    && acceptsChatRequests(resource.data.toId)
+                    && (
+                      resource.data.status == 'cancelled'
+                      || (resource.data.status == 'rejected'
+                          && resource.data.respondedAt is timestamp
+                          && request.time
+                             >= resource.data.respondedAt
+                                + duration.value(24, 'h'))
+                      || (resource.data.status == 'accepted'
+                          && resource.data.type == 'group'
+                          && chatExiste(resource.data.groupId)
+                          && chatData(resource.data.groupId).type == 'group'
+                          && chatData(resource.data.groupId).ownerId
+                               == resource.data.toId
+                          && !(resource.data.fromId
+                               in chatData(resource.data.groupId).memberIds))
+                      || (resource.data.status == 'accepted'
+                          && resource.data.type == 'invite'
+                          && chatExiste(resource.data.groupId)
+                          && chatData(resource.data.groupId).type == 'group'
+                          && chatData(resource.data.groupId).ownerId
+                               == resource.data.fromId
+                          && !(resource.data.toId
+                               in chatData(resource.data.groupId).memberIds))
                     );
 
       allow delete: if isActive()
@@ -4259,8 +4453,11 @@ service cloud.firestore {
      * contrastan con el documento `messages/{messageId}`.
      *
      * `mensajeCreadoEn` se guarda como texto ISO y las reglas no
-     * pueden formatear un Timestamp, así que solo se valida su
-     * forma; el resto sí se compara.
+     * pueden formatear un Timestamp para compararlo. Por eso el
+     * cliente guarda además `mensajeCreadoEnMs`, que la regla sí
+     * puede contrastar con `createdAt.toMillis()`. En mensajes
+     * antiguos cuyo `createdAt` ya era texto, se compara el texto
+     * exacto (la regla no puede convertirlo a milisegundos).
      */
     function fijadoCoincideConMensaje(chatId, messageId) {
       let m = get(/databases/$(database)/documents/chats/$(chatId)/messages/$(messageId)).data;
@@ -4270,12 +4467,21 @@ service cloud.firestore {
                         ? m.senderName : '';
       let autorAvatar = ('senderAvatar' in m && m.senderAvatar is string)
                         ? m.senderAvatar : '';
+      let fechaOk = (m.createdAt is timestamp
+                     ? d.mensajeCreadoEnMs is number
+                       && d.mensajeCreadoEnMs == m.createdAt.toMillis()
+                       && d.mensajeCreadoEn is string
+                       && d.mensajeCreadoEn.size() <= 40
+                     : (m.createdAt is string
+                        ? d.mensajeCreadoEn == m.createdAt
+                          && d.mensajeCreadoEn.size() <= 40
+                          && d.mensajeCreadoEnMs is number
+                        : false));
 
       return d.autorId == m.senderId
              && d.autorNombre == autorNombre
              && d.autorAvatar == autorAvatar
-             && d.mensajeCreadoEn is string
-             && d.mensajeCreadoEn.size() <= 40
+             && fechaOk
              && (
                ('gif' in m
                 && m.gif is map
@@ -4650,16 +4856,17 @@ service cloud.firestore {
                       // acotados. El contenido vive en su documento.
                       && (!('tierList' in request.resource.data)
                           || tierRefValida(request.resource.data.tierList))
-                      // La cita es una foto fija del citado que escribe
-                      // el cliente: se exige forma (mapa con id, autor
-                      // y fragmento acotado) para que no sirva para
-                      // colar datos arbitrarios en el documento.
+                      // La cita es una foto fija del citado. Antes solo
+                      // se validaba la forma, así que se podía citar un
+                      // mensaje inexistente, atribuírselo a otro y
+                      // ponerle el texto que quisieras. Ahora se lee el
+                      // mensaje REAL de este chat y se comparan autor y
+                      // texto canónico completo.
                       && (!('replyTo' in request.resource.data)
                           || (request.resource.data.replyTo is map
                               && request.resource.data.replyTo.messageId is string
-                              && request.resource.data.replyTo.senderName is string
-                              && request.resource.data.replyTo.snippet is string
-                              && request.resource.data.replyTo.snippet.size() <= 200));
+                              && citaCoincideConMensaje(
+                                   chatId, request.resource.data.replyTo)));
 
         // Los mensajes solo los toca el servidor (borrado para
         // todos vía `eliminarMensajeParaTodos`, que comprueba

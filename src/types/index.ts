@@ -994,10 +994,19 @@ export interface LocationAttachment {
 export interface ChatReplyTo {
   /** Id del mensaje citado. */
   messageId: string;
-  /** Quién lo escribió, tal como se veía al citar. */
+  /** Quién lo escribió, tal como lo guarda el mensaje citado. */
   senderName: string;
-  /** Fragmento del contenido (o "[Foto]", "GIF", "Ubicación"). */
-  snippet: string;
+  /**
+   * Texto canónico completo del citado (o "[Foto]", "GIF",
+   * "Ubicación"). Es lo que comparan las reglas con el mensaje real,
+   * así que los mensajes nuevos lo guardan sin recortar.
+   */
+  texto?: string;
+  /**
+   * Recorte de la vista para las citas anteriores a `texto`.
+   * Solo se lee; los mensajes nuevos ya no lo escriben.
+   */
+  snippet?: string;
 }
 
 export interface ChatMessage {

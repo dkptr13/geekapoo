@@ -114,7 +114,7 @@ function solicitudDirecta(from, to) {
     toName: to,
     toAvatar: '',
     status: 'pending',
-    createdAt: '2026-01-01T00:00:00.000Z',
+    createdAt: serverTimestamp(),
   };
 }
 
@@ -364,7 +364,7 @@ describe('userPrivate', () => {
     );
     await assertFails(
       setDoc(
-        doc(collection(db(BOB), 'chatRequests')),
+        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
         solicitudDirecta(BOB, ALICE),
       ),
     );
@@ -380,7 +380,7 @@ describe('userPrivate', () => {
     );
     await assertFails(
       setDoc(
-        doc(collection(db(BOB), 'chatRequests')),
+        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
         solicitudDirecta(BOB, ALICE),
       ),
     );
@@ -396,7 +396,7 @@ describe('userPrivate', () => {
     );
     await assertSucceeds(
       setDoc(
-        doc(collection(db(BOB), 'chatRequests')),
+        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
         solicitudDirecta(BOB, ALICE),
       ),
     );
@@ -424,7 +424,7 @@ describe('userPrivate', () => {
 
     await assertFails(
       setDoc(
-        doc(collection(db(BOB), 'chatRequests')),
+        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
         solicitudDirecta(BOB, ALICE),
       ),
     );
@@ -452,7 +452,7 @@ describe('userPrivate', () => {
 
     await assertFails(
       setDoc(
-        doc(collection(db(BOB), 'chatRequests')),
+        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
         solicitudDirecta(BOB, ALICE),
       ),
     );
