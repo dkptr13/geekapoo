@@ -40,6 +40,7 @@ const {
   deleteDoc,
   getDoc,
   addDoc,
+  serverTimestamp,
 } = require('firebase/firestore');
 
 const fs = require('fs');
@@ -123,7 +124,9 @@ function perfilNuevo(uid, extra = {}) {
     role: 'user',
     privateProfile: false,
     activityHidden: false,
-    createdAt: '2026-01-01T00:00:00.000Z',
+    // La fecha de alta la pone el servidor: el cliente ya no
+    // puede inventarse la antigüedad (medalla de veterano).
+    createdAt: serverTimestamp(),
     lastSeen: 'En línea',
     bio: 'Comunidad geekapoo.com',
     ...extra,

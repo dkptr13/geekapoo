@@ -73,7 +73,9 @@ function usuario(uid, role = 'user') {
     role,
     privateProfile: false,
     activityHidden: false,
-    createdAt: '2026-01-01T00:00:00.000Z',
+    // Fecha de alta del servidor: `createdAt` ya no lo elige el
+    // cliente.
+    createdAt: serverTimestamp(),
   };
 }
 

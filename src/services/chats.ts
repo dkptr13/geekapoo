@@ -545,51 +545,13 @@ export async function sendChatMessage(
     createdAt: serverTimestamp(),
   });
 
-  // ── 2. La vista previa en la lista. Opcional. ────────
+  // ── 2. La vista previa en la lista. ──────────────────
   //
-  // Antes esto iba en un writeBatch junto al mensaje, pero
-  // separarlo cambia dos cosas importantes:
-  //
-  //  a) Si la actualización del chat la rechaza una regla, el
-  //     mensaje NO se pierde. Que un mensaje exista es lo
-  //     esencial; que se vea el texto en la lista lateral es
-  //     un extra que puede fallar sin arrastrar lo demás.
-  //
-  //  b) Evita dos escrituras sobre el MISMO documento dentro
-  //     del mismo lote, que es justo lo que dispara el
-  //     permission-denied: la marca de lectura usaba
-  //     notación de punto ("readAt.<uid>") y la regla
-  //     comprueba diff().affectedKeys().hasOnly([...]),
-  //     que con rutas anidadas devuelve la hoja
-  //     ("readAt.<uid>") y no el campo de primer nivel, así
-  //     que la comparación fallaba.
-  //
-  // El propio emisor no necesita marca de lectura: su propio
-  // mensaje nunca le aparece como sin leer, porque la lógica
-  // de "sin leer" ya ignora los chats cuyo último mensaje
-  // es tuyo.
-  try {
-    await updateDoc(doc(db, CHATS, chatId), {
-      // Sin texto pero con encuesta o tier list, la vista previa
-      // enseña de qué va: si no, la lista lateral diría
-      // "Conversación vacía" para un mensaje con contenido.
-      lastMessage:
-        text ||
-        (tier
-          ? `🏆 ${tier.title}`
-          : encuesta
-            ? `📊 ${encuesta.question}`
-            : ''),
-      lastMessageAt: serverTimestamp(),
-      lastMessageSenderId: sender.uid,
-    });
-  } catch (e) {
-    console.warn(
-      '[Chats] El mensaje se envió, pero no se pudo actualizar la vista previa ' +
-        'de la conversación. El texto y la hora seguirán apareciendo al recargar.',
-      e,
-    );
-  }
+  // La escribe el trigger `onChatMessageCreated` desde el mensaje
+  // real. Antes la movía este cliente en una segunda escritura, y
+  // eso obligaba a las reglas a dejarle tocar `lastMessage*`: con
+  // ese permiso, un miembro podía falsear el remitente o el texto
+  // para todos. El mensaje ya existe; la vista previa llega sola.
 }
 
 /**

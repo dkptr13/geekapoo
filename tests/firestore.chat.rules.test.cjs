@@ -143,7 +143,9 @@ function nuevoChat(dueno, miembros, extra = {}) {
     memberIds: miembros,
     hiddenFor: [],
     lastMessage: '',
-    lastMessageAt: '2026-01-01T00:00:00.000Z',
+    // El servidor es quien pone la fecha de la vista previa. El
+    // cliente ya no puede elegirla (F1).
+    lastMessageAt: serverTimestamp(),
     lastMessageSenderId: dueno,
     readAt: {},
     createdAt: '2026-01-01T00:00:00.000Z',

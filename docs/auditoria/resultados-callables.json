@@ -1,0 +1,76 @@
+{
+  "proyecto": "demo-geekapoo-auditoria",
+  "fecha": "2026-10-29T14:06:25.975Z",
+  "resultados": [
+    {
+      "caso": "CONTROL: usuario normal → ajustarXp",
+      "estado": "OK",
+      "detalle": "PERMISSION_DENIED"
+    },
+    {
+      "caso": "CONTROL: moderador baneado → ajustarXp",
+      "estado": "OK",
+      "detalle": "PERMISSION_DENIED"
+    },
+    {
+      "caso": "P0 H1: moderador → ajustarXp",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No tienes permiso para esto."
+    },
+    {
+      "caso": "P0 H2: moderador → concederMedalla",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No tienes permiso para esto."
+    },
+    {
+      "caso": "P0 H3: moderador → configurarGamificacion",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No tienes permiso para esto."
+    },
+    {
+      "caso": "P0 H4: moderador → recalcularUsuario",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No tienes permiso para esto."
+    },
+    {
+      "caso": "P0 H5: moderador → abrirChatDirecto",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No tienes permiso para esto."
+    },
+    {
+      "caso": "P0 H6: moderador → desbanearUsuario (objetivo admin)",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No puedes desbanear a un miembro del equipo."
+    },
+    {
+      "caso": "P0 H7: moderador → gestionarTriviaDiaria",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No tienes permiso para esto."
+    },
+    {
+      "caso": "P0 H8: moderador → sincronizarBaneos",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No tienes permiso para esto."
+    },
+    {
+      "caso": "P0 H9: moderador → sincronizarNoticias",
+      "estado": "OK",
+      "detalle": "el moderador recibió PERMISSION_DENIED: No tienes permiso para esto."
+    },
+    {
+      "caso": "CONTROL: moderador no puede banear a un admin",
+      "estado": "OK",
+      "detalle": "PERMISSION_DENIED"
+    },
+    {
+      "caso": "CONTROL: moderador no puede banear a otro moderador",
+      "estado": "OK",
+      "detalle": "PERMISSION_DENIED"
+    },
+    {
+      "caso": "CONTROL: admin → configurarGamificacion",
+      "estado": "OK",
+      "detalle": "cambió xpPorHito a 80"
+    }
+  ]
+}
