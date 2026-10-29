@@ -59,7 +59,12 @@ import { coleccion, escribir, str, num } from './firestore-rest.mjs';
 import { comoBuscarTvdb } from './busquedas-anime.mjs';
 import { capituloDe } from './emparejar-capitulo.mjs';
 import { limpiar } from './normalizar-titulo.mjs';
-import { temporadaEnTvdb, PELICULA_TVDB } from './temporadas-tvdb.mjs';
+import {
+  temporadaEnTvdb,
+  capituloEnTvdb,
+  PELICULA_TVDB,
+  SIN_TITULO_JAPONES,
+} from './temporadas-tvdb.mjs';
 
 
 const clave = process.env.TVDB_KEY;
@@ -183,6 +188,7 @@ for (const [animeId, prefijo] of prefijos) {
           numero: fila[0],
           japones: String(fila[2] ?? ''),
           espanol: String(fila[1] ?? ''),
+          fecha: String(fila[3] ?? ''),
           nombre,
         });
       }
@@ -387,7 +393,12 @@ for (const anime of animes) {
     if (k && !nuestrosPorTitulo.has(k)) nuestrosPorTitulo.set(k, f);
   }
 
-  if (!nuestrosPorTitulo.size) {
+  // Hay series cuyos ficheros de datos no traen el titulo japones (ver
+  // `SIN_TITULO_JAPONES`). En esas se empareja por temporada y numero, y
+  // para saber que la serie de TVDB es la buena se comparan las fechas.
+  const sinTitulos = !nuestrosPorTitulo.size;
+
+  if (sinTitulos && !SIN_TITULO_JAPONES.has(id)) {
     console.log(`${id}: los capitulos no tienen titulo japones`);
     continue;
   }
@@ -416,9 +427,22 @@ for (const anime of animes) {
       continue;
     }
 
-    const deTvdb = new Set(eps.map((e) => limpiar(e.name)));
+    let comunes;
 
-    const comunes = [...nuestrosPorTitulo.keys()].filter((t) => deTvdb.has(t)).length;
+    if (sinTitulos) {
+      // La serie se comprueba con las fechas: cuantos de nuestros
+      // episodios caen en un dia en que TVDB emitio uno de la serie.
+      // Se dejan fuera los especiales (S0), que repiten fechas.
+      const fechas = new Set(
+        eps.filter((e) => Number(e.seasonNumber) >= 1).map((e) => e.aired),
+      );
+
+      comunes = delCatalogo.filter((f) => f.fecha && fechas.has(f.fecha)).length;
+    } else {
+      const deTvdb = new Set(eps.map((e) => limpiar(e.name)));
+
+      comunes = [...nuestrosPorTitulo.keys()].filter((t) => deTvdb.has(t)).length;
+    }
 
     if (comunes > mejor) {
       mejor = comunes;
@@ -426,12 +450,14 @@ for (const anime of animes) {
     }
   }
 
-  const exigido = Math.ceil(nuestrosPorTitulo.size * MINIMO);
+  const total = sinTitulos ? delCatalogo.length : nuestrosPorTitulo.size;
+
+  const exigido = Math.ceil(total * MINIMO);
 
   if (!elegida || mejor < exigido) {
     console.log(
-      `${id}: ninguna serie de TVDB encaja (mejor ${mejor} de ${nuestrosPorTitulo.size} titulos, ` +
-        `hacen falta ${exigido})`,
+      `${id}: ninguna serie de TVDB encaja (mejor ${mejor} de ${total} ` +
+        `${sinTitulos ? 'fechas' : 'titulos'}, hacen falta ${exigido})`,
     );
     totalSinFuente++;
     continue;
@@ -439,7 +465,7 @@ for (const anime of animes) {
 
 console.log(
     `\n=== ${id}   TVDB ${elegida.serie.tvdb_id} "${elegida.serie.name}" ` +
-      `(${mejor}/${nuestrosPorTitulo.size} titulos)  ${elegida.capitulos.length} capitulos`,
+      `(${mejor}/${total} ${sinTitulos ? 'fechas' : 'titulos'})  ${elegida.capitulos.length} capitulos`,
   );
 
   // El emparejado de un capitulo va en `emparejar-capitulo.mjs`, que es
@@ -486,19 +512,29 @@ for (const f of necesidad) {
       // cuadran, si es que estan mal las temporadas o si es que la imagen
       // ya la tenia puesta otro.
       if (REHACER) {
-        const clave = limpiar(nuestro?.japones);
+        if (SIN_TITULO_JAPONES.has(id)) {
+          const d = capituloEnTvdb(id, Number(f.temporada), Number(f.numero));
 
-        const conTitulo = elegida.capitulos.filter((e) => limpiar(e.name) === clave);
+          console.log(
+            `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
+              `sin titulo japones, se busca S${d.temporada}E${d.numero}` +
+              ` y no hay imagen o ya la tiene otro`,
+          );
+        } else {
+          const clave = limpiar(nuestro?.japones);
 
-        console.log(
-          `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
-            `${(clave || '(sin titulo)').slice(0, 34).padEnd(36)}` +
-            `${conTitulo.length} con ese titulo en TVDB` +
-            (conTitulo.length
-              ? `, se busca S${temporadaEnTvdb(id, f.temporada)}E${f.numero}, y esta en ` +
-                `en ${[...new Set(conTitulo.map((c) => `S${c.seasonNumber}E${c.number}`))].join(' ')}`
-              : ''),
-        );
+          const conTitulo = elegida.capitulos.filter((e) => limpiar(e.name) === clave);
+
+          console.log(
+            `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
+              `${(clave || '(sin titulo)').slice(0, 34).padEnd(36)}` +
+              `${conTitulo.length} con ese titulo en TVDB` +
+              (conTitulo.length
+                ? `, se busca S${temporadaEnTvdb(id, f.temporada)}E${f.numero}, y esta en ` +
+                  `en ${[...new Set(conTitulo.map((c) => `S${c.seasonNumber}E${c.number}`))].join(' ')}`
+                : ''),
+          );
+        }
       }
 
       saltadas++;
@@ -512,7 +548,7 @@ for (const f of necesidad) {
 
     console.log(
       `  T${f.temporada} ${String(f.numero).padStart(3)}  ` +
-        `${limpiar(nuestro.japones).slice(0, 36).padEnd(38)}${r.url.slice(0, 82)}`,
+        `${(limpiar(nuestro.japones) || nuestro.espanol).slice(0, 36).padEnd(38)}${r.url.slice(0, 82)}`,
     );
 
     if (escribirEnBase) {

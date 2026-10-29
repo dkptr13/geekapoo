@@ -123,6 +123,20 @@ export const TEMPORADA_TVDB = {
   'fate-kaleid-liner-prisma-illya-2wei-herz': { 1: 3 },
   'fate-kaleid-liner-prisma-illya-3rei': { 1: 4 },
 
+  // Gintama: TVDB (79895) parte la serie por años y el catalogo por
+  // emision. La temporada 1 del catalogo son las cuatro primeras de
+  // TVDB (49 + 50 + 51 + 51 = 201); el resto coincide una a una. El
+  // reparto de la T1 esta en `TRAMO_TVDB`.
+  //
+  //   catalogo T1  (2006-2010)  TVDB S1..S4
+  //   catalogo T2  (2011)       TVDB S5
+  //   catalogo T3  (2012)       TVDB S6
+  //   catalogo T4  (2015)       TVDB S7
+  //   catalogo T5  (2017)       TVDB S8
+  //   catalogo T6  (2017)       TVDB S9
+  //   catalogo T7  (2018)       TVDB S10
+  'gintama': { 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10 },
+
   // Seishun Buta Yaro va en orden cronologico: series y peliculas
   // mezcladas. TVDB guarda las cuatro pelis en el cajon de la
   // temporada 0 (S0E6 a S0E9) y la serie universitaria como S2.
@@ -449,6 +463,45 @@ export const CAPITULO_TVDB = {
 };
 
 /**
+ * Temporadas del catalogo repartidas en varios tramos de TVDB.
+ *    TRAMO_TVDB[animeId][temporadaDelCatalogo] = [ {temporada, desde, hasta}, ... ]
+ *
+ * ── POR QUE NO BASTA `CAPITULO_TVDB` ────────────────────────────────
+ *
+ * `CAPITULO_TVDB` dice "esta temporada empieza en el episodio N de
+ * aquella", y sirve cuando la temporada del catalogo es un trozo de una
+ * sola temporada de TVDB. Gintama es el otro caso: su primera temporada
+ * en el catalogo son 201 episodios seguidos, y TVDB los reparte en
+ * cuatro temporadas por año (49, 50, 51 y 51).
+ *
+ * El numero de cada tramo es el del episodio de TVDB (desde y hasta
+ * incluidos). Los tramos van en orden: el episodio siguiente al ultimo
+ * del primero es el primero del segundo.
+ *
+ * ── COMO SE COMPRUEBA ───────────────────────────────────────────────
+ *
+ * La suma de los tramos tiene que dar el numero de episodios de la
+ * temporada del catalogo, y las fechas tienen que cuadrar. En Gintama
+ * cuadran 366 de los 367: 331 el mismo dia y 35 con un dia de
+ * diferencia, que es como IMDb y TVDB escriben la misma emision en
+ * husos distintos. El que queda (T1E85) tiene la fecha repetida en el
+ * catalogo por un error de IMDb; TVDB lo tiene una semana despues y el
+ * titulo confirma que es el mismo episodio.
+ *
+ * @type {Record<string, Record<number, Array<{temporada: number, desde: number, hasta: number}>>>}
+ */
+export const TRAMO_TVDB = {
+  gintama: {
+    1: [
+      { temporada: 1, desde: 1, hasta: 49 },
+      { temporada: 2, desde: 1, hasta: 50 },
+      { temporada: 3, desde: 1, hasta: 51 },
+      { temporada: 4, desde: 1, hasta: 51 },
+    ],
+  },
+};
+
+/**
  * La temporada de TVDB y el numero dentro de ella para un capitulo del
  * catalogo.
  *
@@ -468,6 +521,34 @@ export function capituloEnTvdb(animeId, temporada, numero) {
   // temporada 1" translated a S1E17, es otra cosa.
   if (numero % 1 !== 0) {
     return { temporada: 0, numero };
+  }
+
+  // Una temporada del catalogo que son varios tramos de TVDB. Va antes
+  // que los otros mapas porque los tramos ya dicen temporada y numero.
+  const tramos = TRAMO_TVDB[animeId]?.[temporada];
+
+  if (tramos) {
+    let base = 0;
+
+    for (const tramo of tramos) {
+      const largo = tramo.hasta - tramo.desde + 1;
+
+      if (numero <= base + largo) {
+        return {
+          temporada: tramo.temporada,
+          numero: tramo.desde + (numero - base - 1),
+        };
+      }
+
+      base += largo;
+    }
+
+    // Un episodio fuera de los tramos no deberia existir: el catalogo
+    // tiene que tener tantos como la suma. Se devuelve una posicion que
+    // no existe para que la comprobacion de posicion lo rechace.
+    const ultimo = tramos.at(-1);
+
+    return { temporada: ultimo.temporada, numero: ultimo.hasta + 1 };
   }
 
   const mapa = CAPITULO_TVDB[animeId]?.[temporada];
@@ -531,6 +612,33 @@ export const SIN_COMPROBAR_NUMERO = new Set([
   // de temporada.
   'hunter-x-hunter',
 ]);
+
+/**
+ * Series cuyos ficheros de datos no traen el titulo japones.
+ *
+ * ── POR QUE EXISTE ESTA LISTA ──────────────────────────────────────
+ *
+ * El emparejador busca por titulo japones porque es el dato que no se
+ * puede confundir. Gintama se dio de alta con los titulos traducidos y
+ * las fechas de IMDb, y la tercera columna de los ficheros (el japones)
+ * esta vacia en los 367 episodios. Sin titulo no hay nada que comparar,
+ * y el anime se quedaba sin miniaturas aunque TVDB las tuviera.
+ *
+ * ── QUE SE HACE EN SU LUGAR ────────────────────────────────────────
+ *
+ * Se usa la temporada y el numero, que estan mapeados a mano en
+ * `TEMPORADA_TVDB` y `TRAMO_TVDB`, y que en Gintama cuadran con TVDB
+ * episodio a episodio. No es una regla automatica que valga para
+ * cualquier serie: aqui se ha comprobado que el reparto es el mismo
+ * (49 + 50 + 51 + 51 = 201 episodios en la T1, y el resto temporada a
+ * temporada) y que las fechas coinciden.
+ *
+ * Si algun dia se rellenan los titulos japoneses de Gintama, esta lista
+ * deja de hacer falta: el emparejador usa el titulo en cuanto lo hay.
+ *
+ * @type {Set<string>}
+ */
+export const SIN_TITULO_JAPONES = new Set(['gintama']);
 
 /**
  * Las fichas del catalogo que son una pelicula suelta y su id en TVDB.
