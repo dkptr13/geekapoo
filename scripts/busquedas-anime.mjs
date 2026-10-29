@@ -221,6 +221,19 @@ export const BUSQUEDAS = {
  */
 export const BUSQUEDAS_TVDB = {
   'hunter-x-hunter': 'HUNTER×HUNTER',
+  // Las cuatro fichas de Prisma Illya (la serie, 2wei, 2wei Herz y
+  // 3rei) estan en la misma entrada de TVDB (269319). Buscar el titulo
+  // entero de cada una no siempre la devuelve, asi que se busca el
+  // nombre de la serie y el emparejador elige la temporada con
+  // `TEMPORADA_TVDB`.
+  'fate-kaleid-liner-prisma-illya': 'Fate/kaleid liner プリズマ☆イリヤ',
+  'fate-kaleid-liner-prisma-illya-2wei': 'Fate/kaleid liner プリズマ☆イリヤ',
+  'fate-kaleid-liner-prisma-illya-2wei-herz': 'Fate/kaleid liner プリズマ☆イリヤ',
+  'fate-kaleid-liner-prisma-illya-3rei': 'Fate/kaleid liner プリズマ☆イリヤ',
+  // TVDB (357492) solo tiene el titulo en japones; con el nombre en
+  // ingles la busqueda no devuelve nada.
+  'lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note':
+    'ロード・エルメロイⅡ世の事件簿 -魔眼蒐集列車 Grace note-',
   // TVDB guarda estas dos con el nombre en japones, y con el termino en
   // japones la busqueda devuelve la serie buena la primera.
   'overlord': 'オーバーロード',

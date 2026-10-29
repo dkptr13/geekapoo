@@ -44,7 +44,7 @@
 // y duplicar la normalizacion en dos sitios es como se desincronizan.
 
 import { limpiar, mismoTitulo } from './normalizar-titulo.mjs';
-import { capituloEnTvdb, SIN_COMPROBAR_NUMERO } from './temporadas-tvdb.mjs';
+import { capituloEnTvdb, SIN_COMPROBAR_NUMERO, tituloEnTvdb } from './temporadas-tvdb.mjs';
 
 /**
  * El capitulo de TVDB que corresponde a un capitulo del catalogo.
@@ -83,7 +83,16 @@ export function capituloDe({ animeId, nuestro, capitulos, usadas }) {
 
   // Puede haber mas de uno: el mismo titulo en dos capitulos distintos no
   // es raro en series con cortos.
-  const candidatos = capitulos.filter((e) => mismoTitulo(e.name, nuestro.japones));
+  //
+  // `tituloEnTvdb` devuelve el titulo traducido en los pocos casos en que
+  // TVDB lo escribe con otras palabras (ver `TITULO_TVDB`). La
+  // comprobacion de temporada y numero de mas abajo sigue siendo la
+  // misma: lo unico que cambia es el texto que se busca.
+  const alias = tituloEnTvdb(animeId, nuestro.japones);
+
+  const candidatos = alias
+    ? capitulos.filter((e) => limpiar(e.name) === alias)
+    : capitulos.filter((e) => mismoTitulo(e.name, nuestro.japones));
 
   if (!candidatos.length) return null;
 

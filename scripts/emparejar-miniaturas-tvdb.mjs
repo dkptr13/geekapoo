@@ -1,6 +1,6 @@
 // Rellena las miniaturas de capitulo desde TVDB.
 //    $env:TVDB_KEY='...'
-//    node scripts/emparejar-miniaturas-tvdb.mjs [--anime <id>] [--escribir]
+//    node scripts/emparejar-miniaturas-tvdb.mjs [--anime <id>[,<id>...]] [--escribir]
 //
 // ── POR QUE TVDB Y NO ANILIST ──────────────────────────────────────
 //
@@ -40,6 +40,14 @@
 // encontrada tengan el mismo titulo japones que los del catalogo. Si no
 // llega al minimo, es otra serie y se descarta con el motivo escrito.
 //
+// ── LAS PELICULAS ──────────────────────────────────────────────────
+//
+// Una pelicula no es una serie: TVDB la guarda aparte (`type=movie`),
+// sin lista de capitulos, y la busqueda de series no la devuelve. Esas
+// fichas estan en `PELICULA_TVDB`, con el id comprobado a mano, y la
+// miniatura es el fondo de la pelicula. Si no tiene fondo se usa el
+// poster, que la lista recorta.
+//
 // ── LA CLAVE ───────────────────────────────────────────────────────
 //
 // Se lee de la variable de entorno TVDB_KEY y no se escribe en ningun
@@ -51,7 +59,7 @@ import { coleccion, escribir, str, num } from './firestore-rest.mjs';
 import { comoBuscarTvdb } from './busquedas-anime.mjs';
 import { capituloDe } from './emparejar-capitulo.mjs';
 import { limpiar } from './normalizar-titulo.mjs';
-import { temporadaEnTvdb } from './temporadas-tvdb.mjs';
+import { temporadaEnTvdb, PELICULA_TVDB } from './temporadas-tvdb.mjs';
 
 
 const clave = process.env.TVDB_KEY;
@@ -63,7 +71,17 @@ if (!clave) {
 
 const args = process.argv.slice(2);
 const escribirEnBase = args.includes('--escribir');
-const soloAnime = args.includes('--anime') ? args[args.indexOf('--anime') + 1] : null;
+
+// `--anime` se puede repetir, y tambien admite una lista separada por
+// comas: al rellenar el catalogo entero interesa pasar las fichas de una
+// obra de golpe sin tocar las de otras.
+const soloAnime = new Set(
+  args
+    .flatMap((a, i) => (a === '--anime' ? (args[i + 1] ?? '').split(',') : []))
+    .map((a) => a.trim())
+    .filter(Boolean),
+);
+const filtrarAnime = soloAnime.size > 0;
 
 // Minimo de capitulos que tienen que coincidir por titulo japones para
 // dar por buena una serie de TVDB.
@@ -281,11 +299,77 @@ let totalSinFuente = 0;
 for (const anime of animes) {
   const id = anime.id;
 
-  if (soloAnime && id !== soloAnime) continue;
+  if (filtrarAnime && !soloAnime.has(id)) continue;
 
   const necesidad = sinImagen.get(id) ?? [];
 
   if (!necesidad.length) continue;
+
+  // ── Peliculas ─────────────────────────────────────────────────────
+  //
+  // Una ficha que es una pelicula no tiene serie en TVDB: esta en
+  // `PELICULA_TVDB`, con el id comprobado a mano. Se usa el fondo
+  // (1920x1080), que es lo que se ve bien en una lista de capitulos, y
+  // si no lo hay, el poster.
+  const idPelicula = PELICULA_TVDB[id];
+
+  if (idPelicula) {
+    let ficha;
+
+    try {
+      ficha = (await pedir(`/movies/${idPelicula}/extended`))?.data;
+    } catch (e) {
+      console.log(`${id}: no se pudo leer la pelicula ${idPelicula} (${e.message.slice(0, 70)})`);
+      totalSinFuente++;
+      continue;
+    }
+
+    const fondo = (ficha?.artworks ?? [])
+      .filter((a) => a.type === 15 && a.image)
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+
+    const url = fondo?.image || ficha?.image;
+
+    if (!url) {
+      console.log(`${id}: la pelicula ${idPelicula} no tiene imagen en TVDB`);
+      totalSinFuente++;
+      continue;
+    }
+
+    console.log(`\n=== ${id}   TVDB pelicula ${idPelicula} "${ficha.name}"`);
+
+    let puestas = 0;
+
+    for (const f of necesidad) {
+      // La ficha de una pelicula tiene un solo capitulo, el 1 de la
+      // temporada 1. Cualquier otra cosa es un dato raro y se avisa.
+      if (Number(f.temporada) !== 1 || Number(f.numero) !== 1) {
+        console.log(`  T${f.temporada} ${f.numero}  no es la pelicula, se deja sin miniatura`);
+        continue;
+      }
+
+      if (usadas.has(url)) {
+        console.log(`  T1   1  la imagen ya la tiene otro capitulo de otra ficha`);
+        continue;
+      }
+
+      console.log(`  T1   1  ${url.slice(0, 82)}`);
+
+      if (escribirEnBase) {
+        await escribir('episodes', f.id, { thumbnailUrl: { stringValue: url } }, [
+          'thumbnailUrl',
+        ]);
+      }
+
+      usadas.add(url);
+      puestas++;
+      totalNuevas++;
+    }
+
+    console.log(`  ${puestas} puestas`);
+
+    continue;
+  }
 
   const delCatalogo = porAnime.get(id);
 

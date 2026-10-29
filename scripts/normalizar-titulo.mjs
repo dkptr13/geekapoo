@@ -21,6 +21,21 @@
 // otra fuente de falsos negativos. Lo unico que se toca es lo que no
 // cambia el titulo: espacios, parentesis y signos.
 
+const ROMANOS = {
+  'Ⅰ': 'I',
+  'Ⅱ': 'II',
+  'Ⅲ': 'III',
+  'Ⅳ': 'IV',
+  'Ⅴ': 'V',
+  'Ⅵ': 'VI',
+  'Ⅶ': 'VII',
+  'Ⅷ': 'VIII',
+  'Ⅸ': 'IX',
+  'Ⅹ': 'X',
+  'Ⅺ': 'XI',
+  'Ⅻ': 'XII',
+};
+
 /**
  * Reduce un titulo a la forma en la que se compara.
  *
@@ -33,11 +48,21 @@ export function limpiar(s) {
   return s
     // Parentesis y demas signos de ancho completo a la mitad.
     .replace(/[（）［］｛｝]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+    // Los signos de puntuacion de ancho completo. TVDB escribe "誕生!
+    // 魔法少女!" y el fichero de datos "誕生！魔法少女！"; es el mismo
+    // signo. Lo mismo con el signo de multiplicar de "イリヤ×イリヤ",
+    // que el catalogo escribe con una x.
+    .replace(/！/g, '!')
+    .replace(/？/g, '?')
+    .replace(/[×✕]/g, 'x')
+    // Los numeros romanos de ancho completo. TVDB escribe
+    // "メソポタミアⅠ" y el catalogo "メソポタミアI".
+    .replace(/[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ]/g, (c) => ROMANOS[c] ?? c)
     .replace(/[－〜～―‐–—ー]/g, '-')
     .replace(/／/g, '/')
     .replace(/、/g, ',')
     .replace(/。/g, '.')
-    .replace(/・/g, '.')
+    .replace(/[・·]/g, '.')
     // Los corchetes 【】. TVDB los escribe siempre; el fichero de
     // datos los quita y pone un punto: 【三つ目の選択肢】 se guarda como
     // 三つ目の選択肢 con un punto delante, o como 三つ目の選択肢 a secas.
