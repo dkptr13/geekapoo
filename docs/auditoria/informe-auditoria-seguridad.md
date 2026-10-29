@@ -3,9 +3,10 @@
 - **Fecha:** 28-29 de octubre de 2026
 - **Proyecto Firebase:** `geekapoo-7624d`
 - **Commit de referencia (auditoría):** `64a68a7` (`seguridad(firestore): proteger contadores e implementar gestión de likes con funciones de servidor`)
-- **Rama de correcciones:** `seguridad/p0-auditoria`
+- **Correcciones:** P0 `cc35d84`; P1 `19a3912`
+- **Integración:** `main` en `b8f63c3` (PR #2); la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0 desplegado en producción (`cc35d84`). P1 (F4, G1 y fecha de los fijados) corregido y verificado en Firebase Emulator Suite, pendiente de revisión y despliegue.** Quedan residuales P1/P2 y rutas sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0 y P1 desplegados en producción.** P1 (F4, G1 y fecha de los fijados) verificado en Firebase Emulator Suite y publicado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. Quedan residuales P1/P2 y rutas sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -15,7 +16,7 @@ La auditoría inicial revisó `firestore.rules`, `functions/src/index.ts` y los 
 
 Sobre la rama `seguridad/p0-auditoria` se aplicaron las correcciones P0 en reglas, Functions y el servicio de chats. Esas correcciones se commitearon en `cc35d84` y se desplegaron en `geekapoo-7624d`. Las pruebas de caracterización se invirtieron: los 17 casos P0 que antes usaban `assertSucceeds` ahora usan `assertFails` y actúan como regresión.
 
-Después se corrigieron los P1 en el árbol de trabajo, **sin commit ni despliegue todavía**:
+Después se corrigieron los P1, se commitearon en `19a3912` y se desplegaron:
 
 - **F4:** `replyTo` ahora exige que el mensaje citado exista en el mismo chat y que autor y texto canónico coincidan exactamente.
 - **G1:** las solicitudes usan ids deterministas, `fromName`/`fromAvatar` se derivan del perfil, `createdAt` debe ser `request.time`, hay cooldown de 24 h tras un rechazo y una sola ruta por par/grupo-persona.
@@ -50,7 +51,7 @@ Queda un residual P1: **no hay un límite global de solicitudes por emisor**. El
 8. Los hilos permitían `pinned` por el autor, tamaños sin revalidar y edición por baneados.
 9. `createdAt` era manipulable y alimentaba la medalla de veterano.
 
-### Riesgos cerrados en P1 (verificados en el emulador, pendientes de despliegue)
+### Riesgos cerrados en P1 (verificados en el emulador y desplegados)
 
 1. **F4:** se podía fabricar una cita de un mensaje inexistente o atribuir a otra persona un texto que nunca escribió.
 2. **G1:** se podían inundar las solicitudes con ids arbitrarios y presentarse con un nombre o avatar falsos.
@@ -65,7 +66,7 @@ Queda un residual P1: **no hay un límite global de solicitudes por emisor**. El
 - **Cobertura E2E incompleta:** canales, Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y flujos de aceptación/rechazo.
 - **Migración de datos** y **alineación de región** de las Functions.
 
-La auditoría no hizo pruebas destructivas contra producción. El P0 se desplegó después, con autorización; los P1 de este informe siguen sin desplegar. Todos los datos de las pruebas se crearon en proyectos `demo-*` del emulador.
+La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se desplegaron después, con autorización. Todos los datos de las pruebas se crearon en proyectos `demo-*` del emulador.
 
 ---
 
@@ -93,7 +94,7 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 se despleg�
 - La revisión y las pruebas se hicieron íntegramente en emuladores; no se ejecutaron pruebas destructivas contra producción.
 - No se probó nada contra `geekapoo-7624d` durante la auditoría.
 - La sincronización de noticias del caso H9 escribió 168 documentos **en el emulador**, no en producción.
-- El P0 se commitó en `cc35d84` y se desplegó en `geekapoo-7624d` con autorización. Los cambios P1 de este informe están **en el árbol de trabajo, sin commit, sin push y sin desplegar**.
+- El P0 se commitó en `cc35d84` y se desplegó en `geekapoo-7624d` con autorización. El P1 se commitó en `19a3912`, se integró en `main` con `b8f63c3` (PR #2) y se desplegó (Hosting y reglas de Firestore).
 
 ---
 
@@ -363,7 +364,7 @@ function isModerator() {
 #### F4. Citas (`replyTo`) fabricadas — corregido en P1
 
 **Severidad:** Bajo  
-**Estado:** **corregido y verificado en el emulador**; pendiente de despliegue.
+**Estado:** **corregido, verificado en el emulador y desplegado**.
 
 **Evidencia original:**
 
@@ -411,7 +412,7 @@ function isModerator() {
 
 ### H. Citas (`replyTo`) fabricadas
 
-Ver **F4** en la sección anterior. **Corregido en P1** y verificado; pendiente de despliegue.
+Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado.
 
 ---
 
@@ -468,7 +469,7 @@ Ver **F4** en la sección anterior. **Corregido en P1** y verificado; pendiente 
 ### K. Spam de solicitudes de chat y remitente falsificado — corregido en P1
 
 **Severidad:** Medio  
-**Estado:** **corregido y verificado en el emulador**; pendiente de despliegue. Queda un residual de rate limit global.
+**Estado:** **corregido, verificado en el emulador y desplegado**. Queda un residual de rate limit global.
 
 **Evidencia original:**
 
@@ -583,14 +584,16 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 12. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
 13. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
 
-### Orden de despliegue sugerido (cuando se apruebe)
+### Despliegue realizado
 
-1. Funciones/callables con las nuevas comprobaciones (deben tolerar las reglas antiguas).
-2. Migración de datos: `createdAt`, miembros de clubes y chats, contadores/estadísticas.
-3. **Web y reglas P1 de forma coordinada.** El cliente nuevo escribe `replyTo.texto` y `mensajeCreadoEnMs`, y las reglas nuevas los exigen; las reglas antiguas rechazan esas escrituras y las nuevas rechazan las antiguas (`snippet`, fecha sin milisegundos, ids aleatorios de solicitud). Hay una ventana inevitable en la que las pestañas ya abiertas con el bundle anterior pueden fallar al citar, fijar o pedir entrada hasta que se recarguen. Los mensajes sin cita y el resto del chat no dependen de ese cambio.
-4. Verificación en producción con cuentas de prueba controladas y monitorización.
+1. P1 integrado en `main` mediante el PR #2 (`b8f63c3`), con `19a3912` como commit de corrección.
+2. Hosting publicado con el bundle P1 (`assets/index-DpFW21Z8.js`), que coincide con el build local.
+3. Reglas de Firestore publicadas: release `cloud.firestore` → ruleset `c5bb00c8-686a-403a-80e6-e775d580af61`, actualizado el 29-10-2026 a las 18:22:49 UTC. El ruleset contiene `citaCoincideConMensaje`, `idDeSolicitudCorrecto` y `mensajeCreadoEnMs`.
+4. Verificación: el bundle servido y el release de reglas se comprobaron contra producción; no se hizo una pasada funcional completa con cuentas reales.
 
-No desplegar automáticamente. Las correcciones de reglas y Functions deben revisarse y aprobarse antes de tocar `geekapoo-7624d`. El P0 ya está desplegado; los P1 de este informe no.
+No se desplegaron Functions, índices ni Storage para estos P1. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
+
+**Ventana de compatibilidad:** las pestañas ya abiertas con el bundle anterior pueden fallar al citar, fijar o pedir entrada hasta que se recarguen. Los mensajes sin cita y el resto del chat no dependen de ese cambio.
 
 ---
 
@@ -613,19 +616,19 @@ No desplegar automáticamente. Las correcciones de reglas y Functions deben revi
 | `docs/auditoria/resultados-triggers.json` | Resultado estructurado del trigger de comentarios |
 | `firebase.json` | Emulador de Auth (puerto 9099) para las pruebas |
 
-El P0 está en la rama `seguridad/p0-auditoria`, commitado en `cc35d84` y desplegado en `geekapoo-7624d`. Los cambios P1 están **en el árbol de trabajo, sin commit, sin push y sin desplegar**.
+El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
 ---
 
 ## 8. Limitaciones
 
 - **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, las callables revisadas y los servicios inventariados; quedan rutas de Storage, App Check, encuestas, tier lists, noticias, moderación de clubes y flujos de aceptación que no se probaron E2E.
-- **Las pruebas P0 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
-- **No se probó en producción.** Todos los resultados son del emulador; pueden existir diferencias de configuración, índices, reglas desplegadas o datos reales. Del despliegue P0 solo se comprobó que Hosting servía el bundle nuevo y que las reglas estaban publicadas; no se hizo una pasada funcional completa en producción.
+- **Las pruebas P0/P1 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
+- **No se probó en producción.** Todos los resultados son del emulador; pueden existir diferencias de configuración, índices, reglas desplegadas o datos reales. Del despliegue P0/P1 se comprobó que Hosting sirve el bundle P1 y que el release de reglas es el P1 (ruleset y marcadores); no se hizo una pasada funcional completa en producción con cuentas reales.
 - **El emulador sirve las Functions en `us-central1`**, mientras que `functions:list` muestra `europe-southwest1` en producción. La lógica probada es la misma, pero la diferencia de región debe resolverse.
 - **La sincronización de noticias del emulador** escribió 168 documentos en el proyecto demo; no se tocó la colección `news` de producción.
 - **No se evaluaron** vulnerabilidades de dependencias, XSS, CSP, configuración de Auth, correo o infraestructura. Este informe se limita a las capas indicadas.
 
 ---
 
-**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos y verificados en el emulador, **pendientes de revisión y despliegue**. **La aplicación todavía no puede declararse segura en su conjunto**: quedan el rate limit global de solicitudes, las altas directas de club, las estadísticas de club, la migración de datos y varias superficies sin E2E. Los cambios P1 deben revisarse y aprobarse antes de commitear o desplegar.
+**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. **La aplicación todavía no puede declararse segura en su conjunto**: quedan el rate limit global de solicitudes, el farmeo de XP con comentarios válidos, las altas directas de club, las estadísticas de club, la migración de datos y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
