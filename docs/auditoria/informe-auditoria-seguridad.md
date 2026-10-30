@@ -37,7 +37,7 @@ La evidencia está en la sección 4.N y en `docs/auditoria/resultados-residuales
 | Prueba | Resultado |
 |---|---|
 | Reglas de la auditoría (32 casos) | **32 passing**, 0 failing; 17 regresiones P0 y 4 regresiones P1 (F4/G1) en `assertFails`, 11 controles |
-| Suite completa de reglas (`npm run test:rules`) | **813 passing**, 0 failing (16 min) |
+| Suite completa de reglas (`npm run test:rules`) | **813 passing**, 0 failing (18 min) |
 | Corrida focalizada de chat | **102 passing**, 0 failing; incluye el bypass de lote del cupo |
 | Corrida focalizada de group-codes, privacidad y auditoría | **91 passing**, 0 failing |
 | E2E de residuales (`scripts/auditoria-residuales.mjs`) | **5/5 comprobaciones correctas**; cupo 10/11 y diario, traspaso y bloqueos |
@@ -112,7 +112,7 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 | Reglas de la auditoría | `npx firebase emulators:exec --only firestore --project demo-geekapoo-auditoria "npx mocha tests/auditoria/firestore.hallazgos.rules.test.cjs --timeout 60000"` | **32 passing**, 0 failing |
 | Callables post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-callables.mjs"` | **0 hallazgos**, 14 controles OK, 0 errores |
 | Trigger de comentarios post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-triggers.mjs"` | **3/3 rechazados**; XP 0 → 0; `commentsCreated = 0`; `bloqueado = true` |
-| Suite completa de reglas | `npm run test:rules` | **813 passing**, 0 failing (16 min) |
+| Suite completa de reglas | `npm run test:rules` | **813 passing**, 0 failing (18 min) |
 | Corrida focalizada de chat | `npx mocha tests/firestore.chat.rules.test.cjs` | **102 passing**, 0 failing |
 | Corrida focalizada de group-codes, privacidad y auditoría | `npx mocha` sobre las tres suites | **91 passing**, 0 failing |
 | Corrida focalizada de clubes | `npx mocha` sobre clubs, clubs-join, clubs-channels y club-moderacion | **167 passing**, 0 failing |
