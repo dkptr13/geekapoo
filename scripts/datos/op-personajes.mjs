@@ -36,7 +36,7 @@ export const PERSONAJES = [
   ['Sanji', '', 'main', 'サンジ', 'Hiroaki Hirata',
     'Cocinero del Going Merry. Pelea solo con las piernas porque necesita las manos para cocinar. Sueña con encontrar el All Blue, el mar donde se juntan todos los peces del mundo.'],
 
-  ['Buggy', '1', 'supporting', 'バギー', 'Shigeru Chiba',
+  ['Buggy', '1,6', 'supporting', 'バギー', 'Shigeru Chiba',
     'Pirata payaso que comió la Fruta de la Separación y puede dividir su cuerpo en trozos. Guarda un rencor enorme a Shanks y busca vengarse de Luffy.'],
 
   ['Alvida', '1', 'supporting', 'アルビダ', 'Youko Matsuoka',
@@ -57,7 +57,7 @@ export const PERSONAJES = [
   ['Jango', '1', 'supporting', 'ジャンゴ', 'Kazuki Yao',
     'Hipnotizador del capitán Kuro. Sus colgantes y su péndulo duermen a cualquiera, aunque a veces se hipnotiza a sí mismo por error.'],
 
-  ['Dracule Mihawk', '1', 'supporting', 'ジュラキュール・ミホーク', 'Takeshi Aono',
+  ['Dracule Mihawk', '1,6', 'supporting', 'ジュラキュール・ミホーク', 'Takeshi Aono',
     'El mejor espadachín del mundo, conocido como Ojos de Halcón. Derrota a Zoro sin esfuerzo y le deja vivo para que algún día vuelva a retarlo.'],
 
   ['Zeff', '1', 'supporting', 'ゼフ', 'Kouji Yada',
@@ -81,7 +81,7 @@ export const PERSONAJES = [
   ['Tashigi', '1,4', 'supporting', 'たしぎ', 'Junko Noda',
     'Sargento de la Marina y experta en katanas. Se parece muchísimo a Kuina, la amiga de la infancia de Zoro, y quiere recuperar las espadas famosas que están en malas manos.'],
 
-  ['Shanks', '1', 'supporting', 'シャンクス', 'Shuuichi Ikeda',
+  ['Shanks', '1,6', 'supporting', 'シャンクス', 'Shuuichi Ikeda',
     'Capitán de los Piratas Pelirrojos e ídolo de la infancia de Luffy. Le regaló su sombrero de paja y perdió un brazo para salvarlo de un rey marino.'],
 
   ['Dragon', '1', 'supporting', 'ドラゴン', 'Hidekatsu Shibata',
@@ -128,12 +128,12 @@ export const PERSONAJES = [
   ['Miss Valentine', '2', 'supporting', 'ミキータ', 'Fumiko Orikasa',
     'Compañera de Mr. 5. Comió la Fruta del Peso y cambia su peso a voluntad: puede flotar como una pluma o caer sobre su enemigo como una tonelada.'],
 
-  ['Nico Robin', '2,4,5', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
+  ['Nico Robin', '2,4,5,6,7', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
     'Vicepresidenta de Baroque Works, conocida como Miss All Sunday. Aparece en el barco de los sombrero de paja, les ofrece un eternal pose y demuestra que sabe demasiado sobre ellos. Tras la caída de Crocodile en Arabasta, se une a la tripulación.'],
 
   // ── TEMPORADA 3: la isla de Drum y Tony Tony Chopper ───────────────
 
-  ['Tony Tony Chopper', '3,4,5', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
+  ['Tony Tony Chopper', '3,4,5,6,7', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
     'Reno que comió la Fruta Humano-Humano y aprendió a hablar y a caminar como una persona. Quiere ser un médico capaz de curar cualquier enfermedad y se une a la tripulación en la isla de Drum.'],
 
   ['Kureha', '3', 'supporting', 'くれは', 'Masako Nozawa',
@@ -186,7 +186,7 @@ export const PERSONAJES = [
   ['Nefertari Cobra', '4', 'supporting', 'ネフェルタリ・コブラ', 'Iemasa Kayumi',
     'Rey de Arabasta y padre de Vivi. Confía en su pueblo y se niega a usar el Polvo de Baile, aunque la sequía le cueste el trono. Crocodile lo secuestra para que su plan parezca obra del rey.'],
 
-  ['Portgas D. Ace', '4', 'supporting', 'ポートガス・D・エース', 'Daisuke Sakaguchi',
+  ['Portgas D. Ace', '4,6', 'supporting', 'ポートガス・D・エース', 'Daisuke Sakaguchi',
     'Hermano mayor de Luffy y comandante de la segunda flota de los Piratas de Barbablanca. Comió la Fruta del Fuego. Busca a Barbanegra, que mató a un compañero suyo, y se cruza con la tripulación en Arabasta.'],
 
   ['Toto', '4', 'supporting', 'トト', 'Masaaki Tsukada',
@@ -202,4 +202,131 @@ export const PERSONAJES = [
 
   ['Whetton', '5', 'supporting', 'ウェットン', 'Jouji Nakata',
     'Pirata que asaltó la isla de Luluka hace cincuenta años y provocó que los Piratas Pumpkin acabaran atrapados en la Niebla Arcoíris. Ahora vuelve a por el tesoro que se esconde dentro.'],
+
+  // ── TEMPORADA 6: Jaya y Skypiea ───────────────────────────────────
+
+  ['Enel', '6', 'supporting', 'エネル', 'Toshiyuki Morikawa',
+    'Dios de Skypiea. Comió la Fruta del Rayo y puede convertirse en electricidad, leer los pensamientos con el mantra y lanzar rayos. Quiere destruir las islas del cielo y marcharse a Fairy Vearth.'],
+
+  ['Wyper', '6', 'supporting', 'ワイパー', 'Reiko Kiuchi',
+    'Líder de los guerreros shandia. Pelea con una bazuca de fuego y un Reject Dial, y quiere recuperar Upper Yard, la tierra que su pueblo perdió hace cuatrocientos años.'],
+
+  ['Conis', '6', 'supporting', 'コニス', 'Rieko Takahashi',
+    'Joven skypieana que recibe a la tripulación con su padre Pagaya. Les enseña las costumbres del cielo y los diales, y acaba ayudándolos contra Enel.'],
+
+  ['Pagaya', '6', 'supporting', 'パガヤ', 'Mahito Ooba',
+    'Padre de Conis y experto en diales. Recibe a los sombrero de paja en su casa y les explica cómo funcionan los diales, los waver y el mar de nubes.'],
+
+  ['Gan Fall', '6', 'supporting', 'ガン・フォール', 'Jouji Yanami',
+    'Antiguo Dios de Skypiea, conocido como el Caballero del Cielo. Monta a Pierre, su pájaro, y protege a la tripulación de los sacerdotes de Enel.'],
+
+  ['Aisa', '6', 'supporting', 'アイサ', 'Masami Suzuki',
+    'Niña shandia que puede usar el mantra para sentir a las personas. Acompaña a Luffy en su lucha contra Enel y le ayuda a encontrar al dios.'],
+
+  ['Ohm', '6', 'supporting', 'オーム', 'Eiji Takemoto',
+    'Sacerdote de Enel y maestro del Juicio de Hierro. Pelea con una espada de nube y entrena a animales feroces; se enfrenta a Zoro, Wyper y Gan Fall.'],
+
+  ['Satori', '6', 'supporting', 'サトリ', 'Yasuhiro Takato',
+    'Sacerdote de Enel y guardián del Juicio de las Esferas. Usa el mantra para anticipar los ataques y las esferas sorpresa para atrapar a sus enemigos.'],
+
+  ['Shura', '6', 'supporting', 'シュラ', 'Shinichirou Oota',
+    'Sacerdote de Enel y guardián del Juicio de la Cuerda. Ataca con un pájaro de fuego y cuerdas invisibles, y se enfrenta a Chopper y Gan Fall.'],
+
+  ['Gedatsu', '6', 'supporting', 'ゲダツ', 'Masaya Takatsuka',
+    'Sacerdote de Enel y guardián del Juicio del Pantano. Es torpe y despistado, y Chopper acaba derrotándolo en el bosque.'],
+
+  ['McKinley', '6', 'supporting', 'マッキンリー', 'Keiichi Sonobe',
+    'Jefe de los Berets Blancos, la policía de Skypiea. Intenta detener a los sombrero de paja por no pagar la entrada y luego organiza la evacuación de Angel Island.'],
+
+  ['Kamakiri', '6', 'supporting', 'カマキリ', 'Keisuke',
+    'Guerrero shandia del equipo de Wyper. Pelea con lanzas y forma parte del ataque a Upper Yard.'],
+
+  ['Braham', '6', 'supporting', 'ブラハム', 'Kenji Nomura',
+    'Guerrero shandia que lucha con pistolas y se mueve a gran velocidad. Se enfrenta a Zoro en el bosque y acaba derrotado.'],
+
+  ['Genbo', '6', 'supporting', 'ゲンボウ', 'Osamu Ryuutani',
+    'Guerrero shandia fornido que dispara cañones. Se enfrenta a Yama y a los soldados divinos durante la invasión de Upper Yard.'],
+
+  ['Raki', '6', 'supporting', 'ラキ', 'Michie Tomizawa',
+    'Guerrera shandia y prima de Aisa. Es capturada por los sacerdotes y rescatada por sus compañeros durante el ataque a Upper Yard.'],
+
+  ['Yama', '6', 'supporting', 'ヤマ', 'Hidenari Ugaki',
+    'Jefe de los soldados divinos de Enel. Pelea con un hacha enorme y se enfrenta a Robin en las ruinas de Shandora.'],
+
+  ['Mont Blanc Cricket', '6', 'supporting', 'モンブラン・クリケット', 'Takashi Taniguchi',
+    'Descendiente de Noland el Mentiroso y líder de la Alianza Saruyama. Lleva años buscando la ciudad de oro y ayuda a la tripulación a llegar a Skypiea.'],
+
+  ['Masira', '6', 'supporting', 'マシラ', 'Aruno Tahara',
+    'Pirata salvamento con aspecto de mono y hermano de Shoujou. Se dedica a recuperar barcos hundidos y ayuda a Cricket a preparar el Going Merry.'],
+
+  ['Shoujou', '6', 'supporting', 'ショウジョウ', 'Isamu Tanonaka',
+    'Pirata salvamento orangután y hermano de Masira. Forma parte de la Alianza Saruyama y ayuda a Cricket en la búsqueda de la ciudad de oro.'],
+
+  ['Bellamy', '6', 'supporting', 'ベラミー', 'Wataru Takagi',
+    'Pirata de Mock Town conocido como la Hiena. Comió la Fruta del Resorte y se burla de los sueños de los demás; Luffy lo derrota de un solo golpe.'],
+
+  ['Sarquiss', '6', 'supporting', 'サーキース', 'Yuuji Ueda',
+    'Primer oficial de Bellamy y su aliado más fiel. Pelea con una espada y participa en el ataque a la casa de Cricket.'],
+
+  ['Marshall D. Teach', '6', 'supporting', 'マーシャル・D・ティーチ', 'Akio Ootsuka',
+    'Pirata conocido como Barbanegra. Se cruza con Luffy en Mock Town y le anima a no abandonar sus sueños; busca una presa importante para entrar en los Siete Señores del Mar.'],
+
+  ['Van Augur', '6', 'supporting', 'ヴァン・オーガー', 'Masaya Takatsuka',
+    'Francotirador de los piratas de Barbanegra. Aparece en Mock Town y demuestra una puntería imposible.'],
+
+  ['Jesus Burgess', '6', 'supporting', 'ジーザス・バージェス', 'Tetsu Inada',
+    'Luchador enorme de los piratas de Barbanegra. Acompaña a su capitán en Jaya y se ríe del sueño de Skypiea.'],
+
+  ['Doc Q', '6', 'supporting', 'ドクQ', 'Naoya Uchida',
+    'Médico de los piratas de Barbanegra. Va en un caballo flaco y reparte manzanas explosivas a los que se cruzan con él.'],
+
+  ['Lafitte', '6', 'supporting', 'ラフィット', 'Taiki Matsuno',
+    'Navegante de los piratas de Barbanegra. Entra sin permiso en la reunión de los Señores del Mar y propone a Barbanegra como sustituto de Crocodile.'],
+
+  ['Mont Blanc Noland', '6', 'supporting', 'モンブラン・ノーランド', 'Houchuu Ootsuka',
+    'Explorador del Reino de Lvneel y antepasado de Cricket. Contó que en Jaya había una ciudad de oro y pasó a la historia como el Mentiroso.'],
+
+  ['Calgara', '6', 'supporting', 'カルガラ', 'Hidekatsu Shibata',
+    'Gran guerrero shandia y amigo de Noland. Defiende Shandora y promete a su amigo que volverán a encontrarse.'],
+
+  // ── TEMPORADA 7: G-8, Long Ring Long Land y Aokiji ────────────────
+
+  ['Jonathan', '7', 'supporting', 'ジョナサン', 'Nobuo Tanaka',
+    'Comandante de la base naval G-8. Es tranquilo y muy listo, y tiende trampas a la tripulación mientras intenta que no escape de Navarone.'],
+
+  ['Jessica', '7', 'supporting', 'ジェシカ', 'Kazue Ikura',
+    'Jefa de cocina de G-8 y esposa de Jonathan. Sanji se enamora de ella y le enseña a cocinar sin desperdiciar comida.'],
+
+  ['Kobato', '7', 'supporting', 'コバト先生', 'Akiko Hiramatsu',
+    'Médica pediátrica de G-8. No soporta la sangre, pero Chopper la ayuda a operar a los marines heridos.'],
+
+  ['Mekao', '7', 'supporting', 'メカオ', 'Keiichi Sonobe',
+    'Carpintero de G-8 y padre de Kobato. Reconoce el mal estado del Going Merry y ayuda a la tripulación a escapar.'],
+
+  ['Shepherd', '7', 'supporting', 'シェパード', 'Keiichi Nanba',
+    'Inspector de la Marina enviado a G-8. Acaba detenido por error y Usopp lo hace pasar por un compañero llamado Condoriano.'],
+
+  ['Drake', '7', 'supporting', 'ドレイク', 'Eiji Takemoto',
+    'Teniente de la base G-8 y hombre de confianza de Jonathan. Dirige las trampas contra los sombrero de paja.'],
+
+  ['Foxy', '7', 'supporting', 'フォクシー', 'Bin Shimada',
+    'Capitán de los piratas de Foxy, conocido como el Zorro Plateado. Comió la Fruta del Retraso y reta a Luffy a un Davy Back Fight.'],
+
+  ['Porche', '7', 'supporting', 'ポルチェ', 'Sara Nakayama',
+    'Navegante y compañera de Foxy. Participa en las pruebas del Davy Back Fight y ayuda a su capitán a hacer trampas.'],
+
+  ['Hamburg', '7', 'supporting', 'ハンバーグ', 'Hirohiko Kakegawa',
+    'Pirata forzudo de la tripulación de Foxy. Pelea en el Groggy Ring y en las demás pruebas del Davy Back.'],
+
+  ['Big Pan', '7', 'supporting', 'ビッグパン', 'Mahito Ooba',
+    'Pirata gigante con aspecto de pez de la banda de Foxy. Participa en el combate final contra los sombrero de paja.'],
+
+  ['Capote', '7', 'supporting', 'カポーティ', 'Hiroshi Tsuchida',
+    'Pirata de la banda de Foxy que pelea con una armadura de metal. Participa en las pruebas del Davy Back Fight.'],
+
+  ['Tonjit', '7', 'supporting', 'トンジット', 'Naoki Tatsuta',
+    'Nómada que vive en Long Ring Long Land con su caballo Sherry. Foxy y su banda lo atacan y la tripulación lo ayuda.'],
+
+  ['Aokiji', '7', 'supporting', 'クザン', 'Takehito Koyasu',
+    'Almirante de la Marina. Comió la Fruta del Hielo y puede congelar el mar y a sus enemigos; aparece al final de la temporada para advertir a la tripulación.'],
 ];

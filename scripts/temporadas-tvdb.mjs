@@ -139,12 +139,13 @@ export const TEMPORADA_TVDB = {
 
   // One Piece: la T1, la T2 y la T3 van a caballo entre varias temporadas
   // de TVDB y su reparto esta en `TRAMO_TVDB`. A partir de la T4 coinciden
-  // una a una: Arabasta es la S7 (39 capitulos) y el relleno de la S8
-  // (13 capitulos).
+  // una a una: Arabasta es la S7 (39 capitulos), el relleno la S8 (13) y
+  // Skypiea la S9 (52). La T7 vuelve a partirse y esta en `TRAMO_TVDB`.
   //
   //   catalogo T4  (2001-2002)  TVDB S7
   //   catalogo T5  (2002-2003)  TVDB S8
-  'one-piece': { 4: 7, 5: 8 },
+  //   catalogo T6  (2003-2004)  TVDB S9
+  'one-piece': { 4: 7, 5: 8, 6: 9 },
 
   // Seishun Buta Yaro va en orden cronologico: series y peliculas
   // mezcladas. TVDB guarda las cuatro pelis en el cajon de la
@@ -536,6 +537,16 @@ export const TRAMO_TVDB = {
       { temporada: 6, desde: 1, hasta: 8 },
     ],
     3: [{ temporada: 6, desde: 9, hasta: 22 }],
+    // La T7 son los 33 capitulos del 196 al 228. TVDB mete los treinta y
+    // uno primeros en su temporada 10 y los dos ultimos (la llegada de
+    // Aokiji) abren la temporada 11.
+    //
+    //   catalogo T7  (196-226)  TVDB S10E1..S10E31
+    //   catalogo T7  (227-228)  TVDB S11E1..S11E2
+    7: [
+      { temporada: 10, desde: 1, hasta: 31 },
+      { temporada: 11, desde: 1, hasta: 2 },
+    ],
   },
 };
 
@@ -824,6 +835,23 @@ export const TITULO_TVDB = {
     // capitulos.
     '緑の町エルマルとクンフージュゴン!': '緑の町のエルマルとクンフージュゴン！',
     'スパイダーズカフェに8時敵幹部集合': 'スパイダースカフェに8時敵幹部集合',
+    // La T6 anade once diferencias mas. TVDB alarga los titulos del 158 y
+    // el 165 con un signo de exclamacion que no esta en el original,
+    // escribe 心網 por 心綱 en el 160, desarrolla la lectura ゴッド de 神
+    // en el 167 y el 182, anade la lectura de 巨大豆蔓 en el 176, 191 y
+    // 194, y el subtitulo del 168, y escribe 捨て身 por 捨身 en el 169 y
+    // "vs" en minusculas en el 171. Las fechas y el orden coinciden.
+    'ラブリー通りの罠!全能なる神エネル': 'ラブリー通りの罠！全能なる神エネル！',
+    '生存率10%!心綱使いの神官サトリ!': '生存率10％！心網使いの神官サトリ！',
+    '天空の黄金郷ジャヤ!目指せ神の社': '天空の黄金郷ジャヤ！目指せ神の社！',
+    '神·エネル登場!!生き残りへの夜明曲': '神ゴッド・エネル登場！！生き残りへの夜明曲',
+    '牙むく大蛇!遂に始まる生き残り合戦': '牙むく大蛇！遂に始まる生き残り合戦(サバイバルゲーム)',
+    '捨身の排撃!!「戦鬼」ワイパーの覚悟': '捨て身の排撃リジェクト！「戦鬼」ワイパーの覚悟',
+    '唸る燃焼砲!!ルフィVS戦鬼ワイパー': '唸る燃焼砲！！ルフィvs戦鬼ワイパー',
+    '"巨大豆蔓"を登れ!!上層遺跡の死闘': '“巨大豆蔓”(ジィアントジャック)を登れ！！上層遺跡の死闘',
+    '遂に激突!海賊ルフィVS神·エネル!!': '遂に激突！海賊ルフィVS神ゴッド・エネル！！',
+    '巨大豆蔓を倒せ!脱出への最後の望み': '巨大豆蔓ジャイアントジャックを倒せ！脱出への最後の望み',
+    '我ここに至る!歴史の本文が紡ぐもの': '我ここに至る！歴史の本文ポーネグリフが紡ぐもの',
   },
 };
 

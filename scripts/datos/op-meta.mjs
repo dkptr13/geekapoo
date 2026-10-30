@@ -4,13 +4,15 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las cinco primeras temporadas:
+// De momento el catalogo tiene las siete primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
 //   T3   14 capitulos  (agosto - diciembre de 2001)
 //   T4   39 capitulos  (diciembre de 2001 - octubre de 2002)
 //   T5   13 capitulos  (noviembre de 2002 - febrero de 2003)
+//   T6   52 capitulos  (febrero de 2003 - junio de 2004)
+//   T7   33 capitulos  (junio de 2004 - marzo de 2005)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -65,18 +67,20 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las cinco primeras temporadas:
+ * De momento estan cargadas las siete primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
  *   T3   14  (agosto - diciembre de 2001)
  *   T4   39  (diciembre de 2001 - octubre de 2002)
  *   T5   13  (noviembre de 2002 - febrero de 2003)
+ *   T6   52  (febrero de 2003 - junio de 2004)
+ *   T7   33  (junio de 2004 - marzo de 2005)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 143;
+export const EPISODIOS_TOTAL = 228;
 
 /**
  * Donde se emite en Espana.
@@ -151,5 +155,29 @@ export const TEMPORADAS = [
       'los suenos de la tripulacion, la isla del viejo prestamista Zenny y la Niebla Arcoiris con los Piratas ' +
       'Pumpkin.',
     capitulos: 'T5',
+  },
+  {
+    numero: 6,
+    titulo: '',
+    anio: 2003,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Cincuenta y dos capitulos del 9 de febrero de 2003 al 13 de junio de 2004, en Toei Animation para Fuji TV. ' +
+      'Es la saga de la isla del cielo: la tripulacion llega a Jaya, sube a Skypiea por la Knock-Up Stream y ' +
+      'queda atrapada en la guerra entre skypieanos y shandia y en el juego de supervivencia del dios Enel.',
+    capitulos: 'T6',
+  },
+  {
+    numero: 7,
+    titulo: '',
+    anio: 2004,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Treinta y tres capitulos del 20 de junio de 2004 al 27 de marzo de 2005, en Toei Animation para Fuji TV. ' +
+      'La temporada empieza con el relleno de la base naval G-8, sigue con el Davy Back Fight contra los piratas ' +
+      'de Foxy y el relleno de los recuerdos robados, y acaba con la llegada del almirante Aokiji.',
+    capitulos: 'T7',
   },
 ];
