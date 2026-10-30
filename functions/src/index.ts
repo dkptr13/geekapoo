@@ -1272,9 +1272,12 @@ function idLibroDeLike(tipo: string, contenidoId: string, likerUid: string): str
 // recibe igual su XP: al trigger no le importa como llego el
 // documento.
 //
-// Se deja la region por defecto (la misma que usa Firestore)
-// porque ponerlos en otra anade latencia y coste sin ningun
-// beneficio aqui.
+// Los triggers de Firestore se fijan a la region donde ya estan
+// desplegados en produccion. Dejarlos en la region por defecto haria
+// que un despliegue crease duplicados en us-central1 y concediese XP
+// dos veces. Los callables siguen en us-central1, que es donde el
+// cliente los busca con getFunctions(app).
+const REGION_TRIGGERS = 'europe-southwest1';
 
 /**
  * Crear un hilo: +20 XP y una cuenta mas de hilos.
@@ -1284,7 +1287,7 @@ function idLibroDeLike(tipo: string, contenidoId: string, likerUid: string): str
  * panel sin desplegar.
  */
 export const onThreadCreated = onDocumentCreated(
-  `${THREADS}/{threadId}`,
+  { document: `${THREADS}/{threadId}`, region: REGION_TRIGGERS },
   async (event) => {
     const data = event.data?.data();
     if (!data) return;
@@ -1560,7 +1563,7 @@ async function contarComentarioEliminado(
  * conversacion de la comunidad, no de una serie.
  */
 export const onCommentCreated = onDocumentCreated(
-  `${COMMENTS}/{commentId}`,
+  { document: `${COMMENTS}/{commentId}`, region: REGION_TRIGGERS },
   async (event) => {
     const data = event.data?.data();
     if (!data) return;
@@ -1755,7 +1758,7 @@ export const onCommentCreated = onDocumentCreated(
  * desaparecer el documento.
  */
 export const onThreadDeleted = onDocumentDeleted(
-  `${THREADS}/{threadId}`,
+  { document: `${THREADS}/{threadId}`, region: REGION_TRIGGERS },
   async (event) => {
     const data = event.data?.data();
     if (!data) return;
@@ -1781,7 +1784,7 @@ export const onThreadDeleted = onDocumentDeleted(
  * dos es idempotente (libro del contador y libro de recompensas).
  */
 export const onCommentDeleted = onDocumentDeleted(
-  `${COMMENTS}/{commentId}`,
+  { document: `${COMMENTS}/{commentId}`, region: REGION_TRIGGERS },
   async (event) => {
     const data = event.data?.data();
     if (!data) return;
@@ -2106,7 +2109,7 @@ async function procesarCambioDeLike(
 }
 
 export const onThreadLikeChanged = onDocumentWritten(
-  `${THREADS}/{threadId}/${LIKES}/{uid}`,
+  { document: `${THREADS}/{threadId}/${LIKES}/{uid}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       await procesarCambioDeLike(
@@ -2123,7 +2126,7 @@ export const onThreadLikeChanged = onDocumentWritten(
 );
 
 export const onCommentLikeChanged = onDocumentWritten(
-  `${COMMENTS}/{commentId}/${LIKES}/{uid}`,
+  { document: `${COMMENTS}/{commentId}/${LIKES}/{uid}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       await procesarCambioDeLike(
@@ -2194,7 +2197,7 @@ async function retirarLikesDeContenido(
 // (`users/{uid}/notifications/{id}`), y `create()` hace que un
 // reintento del trigger no duplique el aviso.
 export const onChatMessageCreated = onDocumentCreated(
-  `${CHATS}/{chatId}/messages/{messageId}`,
+  { document: `${CHATS}/{chatId}/messages/{messageId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const data = event.data?.data();
@@ -3446,7 +3449,7 @@ export const cambiarVisibilidadCanal = onCall(async (request) => {
  * lo pone al día el servidor.
  */
 export const onChatMembersChanged = onDocumentUpdated(
-  `${CHATS}/{chatId}`,
+  { document: `${CHATS}/{chatId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const antes = event.data?.before.data();
@@ -3492,7 +3495,7 @@ export const onChatMembersChanged = onDocumentUpdated(
  * hace con el Admin SDK o si el cliente se queda a medias.
  */
 export const onChatOwnerChanged = onDocumentUpdated(
-  `${CHATS}/{chatId}`,
+  { document: `${CHATS}/{chatId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const antes = event.data?.before.data();
@@ -3879,7 +3882,7 @@ async function procesarReaccion(
  *     y la persona sigue teniendo la misma reacción.
  */
 export const onReactionChanged = onDocumentWritten(
-  `${REACTIONS}/{reactionId}`,
+  { document: `${REACTIONS}/{reactionId}`, region: REGION_TRIGGERS },
   async (event) => {
     const antes = event.data?.before.data() as ReactionDoc | undefined;
     const despues = event.data?.after.data() as ReactionDoc | undefined;
@@ -4082,7 +4085,7 @@ async function procesarVotoEncuesta(
 
 /** Cada voto nuevo o borrado actualiza el resumen de la encuesta. */
 export const onPollVotesChanged = onDocumentWritten(
-  `${THREADS}/{threadId}/${POLL_VOTES}/{voteId}`,
+  { document: `${THREADS}/{threadId}/${POLL_VOTES}/{voteId}`, region: REGION_TRIGGERS },
   async (event) => {
     const threadId = event.params['threadId'];
     const antes = event.data?.before.data() as PollVoteDoc | undefined;
@@ -4120,7 +4123,7 @@ export const onPollVotesChanged = onDocumentWritten(
  * y este cambio es de privacidad, no de gamificación.
  */
 export const onChatPollVotesChanged = onDocumentWritten(
-  `${CHATS}/{chatId}/messages/{messageId}/${POLL_VOTES}/{voteId}`,
+  { document: `${CHATS}/{chatId}/messages/{messageId}/${POLL_VOTES}/{voteId}`, region: REGION_TRIGGERS },
   async (event) => {
     const chatId = event.params['chatId'];
     const messageId = event.params['messageId'];
@@ -4243,7 +4246,7 @@ export const cerrarEncuestasVencidas = onSchedule('every 1 hours', async () => {
 // El aviso es al revés: solo se manda al SEGUIR. "X ya no te sigue"
 // no es información, es ruido.
 export const onFollowChanged = onDocumentWritten(
-  `${USERS}/{uid}/${FOLLOWING}/{targetUid}`,
+  { document: `${USERS}/{uid}/${FOLLOWING}/{targetUid}`, region: REGION_TRIGGERS },
   async (event) => {
     const antes = event.data?.before?.data();
     const despues = event.data?.after?.data();
@@ -4941,7 +4944,7 @@ export const configurarGamificacion = onCall(async (request) => {
 
 /** Crear un club: cuenta como creado y como unido (el dueño entra). */
 export const onClubCreated = onDocumentCreated(
-  `${CLUBS}/{clubId}`,
+  { document: `${CLUBS}/{clubId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const data = event.data?.data();
@@ -4964,7 +4967,7 @@ export const onClubCreated = onDocumentCreated(
  * pierde por irse, igual que con los seguidores.
  */
 export const onClubMembersChanged = onDocumentUpdated(
-  `${CLUBS}/{clubId}`,
+  { document: `${CLUBS}/{clubId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const antes = event.data?.before?.data();
@@ -5042,7 +5045,7 @@ export const onClubMembersChanged = onDocumentUpdated(
 
 /** Crear un canal en un club: cuenta para quien lo crea. */
 export const onChannelCreated = onDocumentCreated(
-  `${CLUBS}/{clubId}/${CHANNELS}/{channelId}`,
+  { document: `${CLUBS}/{clubId}/${CHANNELS}/{channelId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const data = event.data?.data();
@@ -5060,7 +5063,7 @@ export const onChannelCreated = onDocumentCreated(
 
 /** Escribir en un chat: la conversación cuenta para quien escribe. */
 export const onChatParticipado = onDocumentCreated(
-  `${CHATS}/{chatId}/messages/{messageId}`,
+  { document: `${CHATS}/{chatId}/messages/{messageId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const data = event.data?.data();
@@ -5088,7 +5091,7 @@ export const onChatParticipado = onDocumentCreated(
  * la sanción desde la notificación.
  */
 export const onClubSancionCreated = onDocumentCreated(
-  `${CLUBS}/{clubId}/sanciones/{sancionId}`,
+  { document: `${CLUBS}/{clubId}/sanciones/{sancionId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const data = event.data?.data();
@@ -5134,7 +5137,7 @@ export const onClubSancionCreated = onDocumentCreated(
 
 /** Crear una tier list: cuenta para su autor. */
 export const onTierListCreated = onDocumentCreated(
-  `${TIERLISTS}/{tierListId}`,
+  { document: `${TIERLISTS}/{tierListId}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const data = event.data?.data();
@@ -5159,7 +5162,7 @@ export const onTierListCreated = onDocumentCreated(
  * que coordinarse para inflarlo deja rastro por votante.
  */
 export const onTierListVoteChanged = onDocumentWritten(
-  `${TIERLISTS}/{tierListId}/votes/{uid}`,
+  { document: `${TIERLISTS}/{tierListId}/votes/{uid}`, region: REGION_TRIGGERS },
   async (event) => {
     try {
       const tierListId = event.params['tierListId'];
@@ -6285,7 +6288,7 @@ function puntosDeTrivia(correct: number): number {
  * falla a medio camino) no puede dar XP dos veces.
  */
 export const onTriviaResultCreated = onDocumentCreated(
-  `${TRIVIA_RESULTS}/{resultId}`,
+  { document: `${TRIVIA_RESULTS}/{resultId}`, region: REGION_TRIGGERS },
   async (event) => {
     const doc = event.data;
     if (!doc) return;
