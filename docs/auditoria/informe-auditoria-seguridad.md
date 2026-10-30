@@ -7,7 +7,7 @@
 - **Residuales 4.N:** commits `2c9ecd4` (reglas, cliente, Functions y pruebas) y `e2185b8` (región de los triggers); verificados en el emulador el 30-10-2026 y desplegados
 - **Integración:** `main` sincronizado con `origin/main`; código desplegado en `e2185b8`; la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-BruzyIzl.js`; el release `cloud.firestore` apunta al ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82` (152.460 bytes, 30-10-2026 22:51:21 UTC); y las Functions quedaron en **21 triggers en `europe-southwest1` + 22 callables/scheduled en `us-central1`**, sin duplicados. Los residuales están verificados en el emulador (**813 reglas + 102 de chat + 5/5 E2E**) y las altas/estadísticas de club también (**167 focalizadas + 5/5 E2E**). Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-CLuyPo_1.js`; el release `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de` (152.933 bytes, 30-10-2026 23:55:24 UTC) y `firebase.storage` al ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7` (11.644 bytes, 23:55:20 UTC). Las Functions siguen en **21 triggers en `europe-southwest1` + 22 callables/scheduled en `us-central1`**, 43 en total y sin duplicados. Verificado: **830 reglas + 105 de chat + 6/6 E2E de residuales**; altas/estadísticas de club **167 focalizadas + 7/7 E2E**; Storage y bloqueos en directos desplegados. App Check tiene inicialización opcional, pero **el enforcement sigue pendiente**. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -37,10 +37,10 @@ La evidencia está en la sección 4.N y en `docs/auditoria/resultados-residuales
 | Prueba | Resultado |
 |---|---|
 | Reglas de la auditoría (32 casos) | **32 passing**, 0 failing; 17 regresiones P0 y 4 regresiones P1 (F4/G1) en `assertFails`, 11 controles |
-| Suite completa de reglas (`npm run test:rules`) | **813 passing**, 0 failing (18 min) |
-| Corrida focalizada de chat | **102 passing**, 0 failing; incluye el bypass de lote del cupo |
+| Suite completa de reglas (`npm run test:rules`) | **830 passing**, 0 failing (15 min) |
+| Corrida focalizada de chat | **105 passing**, 0 failing; incluye el bypass de lote del cupo |
 | Corrida focalizada de group-codes, privacidad y auditoría | **91 passing**, 0 failing |
-| E2E de residuales (`scripts/auditoria-residuales.mjs`) | **5/5 comprobaciones correctas**; cupo 10/11 y diario, traspaso y bloqueos |
+| E2E de residuales (`scripts/auditoria-residuales.mjs`) | **6/6 comprobaciones correctas**; cupo 10/11 y diario, traspaso y bloqueos |
 | Suite de fijados | Fecha real contrastada, milisegundo falso y campo omitido rechazados |
 | Callables post-P0 | **0 hallazgos, 14 controles correctos, 0 errores** |
 | Trigger de comentarios post-P0 | **3/3 rechazados**, XP 0 → 0, `commentsCreated = 0`, `bloqueado = true` |
@@ -111,11 +111,15 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 | Reglas de la auditoría | `npx firebase emulators:exec --only firestore --project demo-geekapoo-auditoria "npx mocha tests/auditoria/firestore.hallazgos.rules.test.cjs --timeout 60000"` | **32 passing**, 0 failing |
 | Callables post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-callables.mjs"` | **0 hallazgos**, 14 controles OK, 0 errores |
 | Trigger de comentarios post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-triggers.mjs"` | **3/3 rechazados**; XP 0 → 0; `commentsCreated = 0`; `bloqueado = true` |
-| Suite completa de reglas | `npm run test:rules` | **813 passing**, 0 failing (18 min) |
-| Corrida focalizada de chat | `npx mocha tests/firestore.chat.rules.test.cjs` | **102 passing**, 0 failing |
+| Suite completa de reglas | `npm run test:rules` | **830 passing**, 0 failing (15 min) |
+| Corrida focalizada de chat | `npx mocha tests/firestore.chat.rules.test.cjs` | **105 passing**, 0 failing |
+| Corrida focalizada de Storage | `npx mocha tests/storage.rules.test.cjs` | **25 passing**, 0 failing |
+| Corrida focalizada de encuestas de chat | `npx mocha tests/firestore.chat-polls.rules.test.cjs` | **23 passing**, 0 failing |
+| Corrida focalizada de tier lists | `npx mocha tests/firestore.tierlists.rules.test.cjs` | **34 passing**, 0 failing |
+| Corrida focalizada de noticias | `npx mocha tests/firestore.noticias.rules.test.cjs` | **14 passing**, 0 failing |
 | Corrida focalizada de group-codes, privacidad y auditoría | `npx mocha` sobre las tres suites | **91 passing**, 0 failing |
 | Corrida focalizada de clubes | `npx mocha` sobre clubs, clubs-join, clubs-channels y club-moderacion | **167 passing**, 0 failing |
-| E2E de residuales | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-residuales.mjs"` | **5/5 comprobaciones correctas**, 0 errores |
+| E2E de residuales | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-residuales.mjs"` | **6/6 comprobaciones correctas**, 0 errores |
 | E2E de clubes | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-clubes.mjs"` | **7/7 comprobaciones correctas**, 0 errores |
 | Migración de clubes (simulación) | `node scripts/migrar-clubes.mjs --project geekapoo-7624d` | **2 clubes, 8 usuarios, 0 cambios, 0 fechas futuras** |
 | Migración de clubes (emulador) | Simulación + escritura sobre 2 chats de prueba | Simulación no escribe; escritura reconcilia `general` y `mods` |
@@ -123,8 +127,10 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 | Lógica | `npm run test:logica` | Correcto |
 | Build de Functions | `npm --prefix functions run build` | Correcto |
 | Build de la web | `npm run build` | Correcto |
-| Verificación de Hosting | `GET https://geekapoo-7624d.web.app` | Sirve `assets/index-BruzyIzl.js`, idéntico al build local |
-| Verificación de reglas | API `projects/geekapoo-7624d/releases/cloud.firestore` | Ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, 152.460 bytes, 0 comentarios, 22:51:21 UTC |
+| App Check | Build con `VITE_FIREBASE_APP_CHECK_KEY` vacía | Correcto; sin clave no se inicializa ni bloquea |
+| Verificación de Hosting | `GET https://geekapoo-7624d.web.app` | Sirve `assets/index-CLuyPo_1.js`, idéntico al build local |
+| Verificación de reglas Firestore | API `projects/geekapoo-7624d/releases/cloud.firestore` | Ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`, 152.933 bytes, 0 comentarios, 23:55:24 UTC |
+| Verificación de reglas Storage | API `projects/geekapoo-7624d/releases/firebase.storage` | Ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`, 11.644 bytes, 23:55:20 UTC |
 | Verificación de Functions | `firebase functions:list` + Cloud Functions API | **43 funciones**: 21 en `europe-southwest1` + 22 en `us-central1`, sin duplicados |
 
 > **Nota sobre los errores esperados:** en las pruebas negativas aparecen mensajes `evaluation error at L...` y «maximum of 1000 expressions» para operaciones que deben fallar. Son el resultado de evaluar reglas contra escrituras denegadas; no son fallos de la suite. Las pruebas que exigen éxito pasan y las que exigen `permission-denied` también.
@@ -165,6 +171,9 @@ Escala usada:
 | L | Estadísticas de club desde documentos del cliente | **Medio** | **Corregido, verificado y desplegado** |
 | H | `replyTo` fabricado | **Bajo** | **Corregido P1** (F4) |
 | M | Canales de club gestionados por baneados | **Medio/Bajo** | **Corregido, verificado y desplegado** |
+| S | Storage: rol espejo y baneos en imágenes de club | **Medio** | **Corregido, verificado y desplegado** |
+| B2 | El bloqueo no cortaba chats directos existentes | **Medio** | **Corregido, verificado y desplegado** |
+| AC | App Check sin configurar | **Cobertura** | Inicialización opcional; enforcement pendiente |
 
 ---
 
@@ -538,7 +547,7 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 - **Chats participados:** `onChatParticipado` sigue leyendo `senderId`, pero la regla de mensajes ya exige `senderId == request.auth.uid`; no hay atribución falsa posible.
 - **Pruebas:** 3 regresiones nuevas de altas en `tests/firestore.clubs.rules.test.cjs`, 1 de `createdBy` en canales, 2 en la suite de auditoría (C5/C6) y una E2E de 7 casos con medallas, solicitud aceptada, desbaneo y canales.
 
-**Verificación:** suite completa **813 passing**, focalizadas de clubes **167 passing** y E2E **7/7 comprobaciones correctas**. Desplegado: ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, bundle `index-BruzyIzl.js` y 43 Functions (21 Europa + 22 US).
+**Verificación:** suite completa **830 passing**, focalizadas de clubes **167 passing** y E2E **7/7 comprobaciones correctas**. Desplegado: ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, bundle `index-BruzyIzl.js` y 43 Functions (21 Europa + 22 US).
 
 ---
 
@@ -586,10 +595,10 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 **Verificación:**
 
-- `npm run test:rules`: **813 passing, 0 failing**.
-- `tests/firestore.chat.rules.test.cjs`: **102 passing, 0 failing**. Incluye el caso nuevo «dos solicitudes no pueden compartir un solo hueco».
+- `npm run test:rules`: **830 passing, 0 failing**.
+- `tests/firestore.chat.rules.test.cjs`: **105 passing, 0 failing**. Incluye el caso nuevo «dos solicitudes no pueden compartir un solo hueco» y los bloqueos en directos.
 - `tests/firestore.group-codes.rules.test.cjs` + `tests/firestore.privacidad-perfiles.rules.test.cjs` + `tests/auditoria/firestore.hallazgos.rules.test.cjs`: **91 passing, 0 failing**.
-- E2E `scripts/auditoria-residuales.mjs` con Firestore, Auth y Functions: **5/5 comprobaciones correctas**.
+- E2E `scripts/auditoria-residuales.mjs` con Firestore, Auth y Functions: **6/6 comprobaciones correctas**.
   - 11 comentarios: `xp=50`, `stats.commentsCreated=10`, `commentsCount=11`.
   - Cupo diario agotado: publica, `xp=0`, `stats.commentsCreated=0`.
   - Traspaso: solicitudes obsoletas borradas; histórica, de tercero y dirigida al dueño nuevo conservadas; índice actualizado.
@@ -637,6 +646,78 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 ---
 
+### P. Storage: imágenes de club y baneos — corregido
+
+**Severidad:** Medio
+
+**Estado:** **corregido, verificado y desplegado el 30-10-2026** (Storage ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`).
+
+**Evidencia:**
+
+- `esAdminDeClub()` comprobaba `members[uid].role`, un espejo que el equipo puede reescribir. La autoridad real está en `ownerId`/`moderatorIds`/`adminIds`.
+- `isAdmin()`/`isModerator()` de Storage no miraban el baneo, así que un admin o moderador baneado podía subir y borrar imágenes de `content/`.
+- El borrado de imágenes de chat, club y comunidad no comprobaba `!isBanned()` en la rama del miembro.
+
+**Impacto:** un moderador podía ascender a un miembro solo en el espejo y darle la carpeta de imágenes del club; un admin baneado conservaba la escritura del catálogo.
+
+**Corrección aplicada:**
+
+- `esAdminDeClub()` usa `ownerId`/`moderatorIds`/`adminIds` y exige pertenencia real y cuenta activa.
+- `isAdmin()`/`isModerator()` incorporan `!isBanned()`.
+- `esPropietarioDeClub()` exige `!isBanned()`; los borrados de chats y comunidad no permiten a un baneado por la rama del miembro.
+- Pruebas nuevas: moderador real sube, miembro con rol de espejo no, miembro normal no, carpeta inválida no, SVG no, admin baneado no sube ni borra, admin activo sí.
+
+**Verificación:** 25 pruebas de Storage en verde; el detalle está en la tabla de resultados.
+
+---
+
+### Q. App Check, encuestas, tier lists y noticias — revisado
+
+**Estado:** **encuestas, tier lists y noticias verificadas**; **App Check preparado pero no exigido**.
+
+**App Check:**
+
+- La web no inicializaba App Check. Ahora `src/lib/firebase.ts` lo inicializa **solo si existe `VITE_FIREBASE_APP_CHECK_KEY`**; sin clave no cambia nada y el build/emulador siguen funcionando.
+- El enforcement no se activa desde el código: hay que registrar la app, configurar reCAPTCHA v3 y activarlo en Firebase Console para Firestore, Storage y Functions. Mientras no se haga, **App Check no protege nada**.
+- No se pudo probar con una clave real en el emulador; queda como cobertura pendiente, no como control demostrado.
+
+**Encuestas:**
+
+- Los votos de hilo y de mensaje son documentos por uid, privados para el votante; los resúmenes (`pollStats`) los escribe solo el servidor.
+- Se comprueba que no se vota dos veces, que la opción existe, que no se vota cerrada/caducada y que cambiar de opción requiere permiso.
+- Se añadieron 4 pruebas del resumen de encuestas de chat: miembro lee, ajeno no, cliente no escribe y solo existe `summary`.
+
+**Tier lists:**
+
+- Un voto por uid, solo en niveles existentes, solo si la votación está activa y la tier es legible.
+- Se añadió la prueba de que los votos de una tier de club no se filtran a quien no es miembro.
+- **Limitación de privacidad:** los votos de una tier pública son legibles por quien puede ver la lista, porque el cliente cuenta los votos directamente. Si se quiere anonimato, habría que mover el recuento a un agregado del servidor.
+
+**Noticias:**
+
+- `news` no tiene ninguna rama de escritura: ni admin ni moderador pueden tocarla desde el navegador. La sincronización la hace la Cloud Function con Admin SDK y `sincronizarNoticias` exige admin.
+- La suite de noticias cubre lectura anónima, orden por `pubDate` y rechazo de creación/edición/borrado por todos los roles.
+
+---
+
+### R. Bloqueos en chats directos existentes — corregido
+
+**Severidad:** Medio
+
+**Estado:** **corregido, verificado y desplegado el 30-10-2026** (Firestore ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`).
+
+**Evidencia:** los bloqueos impedían crear o reabrir solicitudes, pero no enviar mensajes en un chat directo que ya existía. Quien bloqueaba seguía recibiendo mensajes de la otra persona.
+
+**Corrección aplicada:**
+
+- Nueva comprobación `bloqueoEnDirecto(chatId)` en la creación de mensajes: si el chat es `direct`, tiene dos miembros y hay bloqueo en cualquier sentido, ninguno de los dos puede enviar.
+- Los grupos y clubes no se ven afectados: bloquear a una persona no silencia la conversación de todos.
+- El bloqueo sigue impidiendo crear/reabrir solicitudes y se levanta al aceptar una solicitud directa, como antes.
+
+**Verificación:** 3 pruebas de reglas (ambos sentidos, desbloqueo y grupo intacto) y E2E **6/6**, que incluye un chat directo real: antes del bloqueo se escribe, después fallan ambos, al desbloquear vuelve a pasar y el grupo sigue funcionando.
+
+---
+
 ## 5. Controles que sí funcionan
 
 Estos casos se probaron y se comportaron correctamente. No compensan los riesgos abiertos, pero acotan el alcance:
@@ -655,10 +736,14 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 - **Solicitudes:** id determinista, identidad derivada del perfil, `createdAt` del servidor, una sola ruta por par y cooldown tras un rechazo.
 - **Cupo de solicitudes:** 20 por usuario cada 24 h con libro mayor y `ultimaSolicitudId`; varias solicitudes no pueden compartir un solo incremento (caso de regresión incluido).
 - **Techo de XP:** 10 comentarios por ventana de 10 min y 50 por día UTC; el comentario que excede el cupo se publica y cuenta, pero no paga.
-- **Bloqueos:** crear/reabrir y aceptar solicitudes respeta el bloqueo en ambos sentidos.
+- **Bloqueos:** crear/reabrir y aceptar solicitudes respeta el bloqueo en ambos sentidos; en un chat directo existente, ninguno de los dos puede escribir mientras el bloqueo siga. Los grupos no se silencian.
+- **Storage:** las imágenes de club se autorizan por `ownerId`/`moderatorIds`/`adminIds`, no por el rol espejo; un admin o moderador baneado no escribe en `content/` ni borra imágenes.
+- **Encuestas:** un voto por uid, privado; el resumen de las encuestas de chat solo lo escribe el servidor y solo lo lee un miembro.
+- **Tier lists:** un voto por uid y solo en niveles existentes; los votos de una tier de club no se filtran a quien no es miembro.
+- **Noticias:** `news` no tiene ninguna rama de escritura para el cliente; solo la Cloud Function la actualiza.
 - **Vista previa de chats:** `lastMessage*` solo lo escribe el trigger, en transacción y comparando fechas.
 - **Regresión P0/P1:** los 17 casos P0 y los 4 casos P1 están invertidos a `assertFails` y ya no pueden volver a abrirse sin que falle la suite.
-- **La suite completa de reglas** (813 pruebas) sigue siendo la línea base y pasa tras los cambios.
+- **La suite completa de reglas** (830 pruebas) sigue siendo la línea base y pasa tras los cambios.
 
 ---
 
@@ -666,10 +751,10 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 
 ### P1 — residuales y siguientes
 
-**Cerrados y desplegados (sección 4.N):** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. **Altas directas y estadísticas de club:** corregidas y desplegadas el 30-10-2026 (sección 4.L). **Migración de chats de club:** revisada en simulación, 0 cambios necesarios. **Canales con dueño/miembro baneado:** E2E 7/7 (sección 4.M).
+**Cerrados y desplegados (sección 4.N):** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. **Altas directas y estadísticas de club:** corregidas y desplegadas el 30-10-2026 (sección 4.L). **Migración de chats de club:** revisada en simulación, 0 cambios necesarios. **Canales con dueño/miembro baneado:** E2E 7/7 (sección 4.M). **Storage, encuestas, tier lists, noticias y bloqueos en chats directos:** revisados y desplegados el 30-10-2026 (secciones 4.P, 4.Q y 4.R).
 
-1. **Cobertura E2E restante:** Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y moderación de clubes.
-2. **Bloqueos (`blocks`):** ya cubren crear/reabrir y aceptar solicitudes; falta decidir si además deben impedir mensajes en un chat ya existente.
+1. **App Check:** registrar la app, configurar reCAPTCHA v3 y activar el enforcement en Firebase Console para Firestore, Storage y Functions. Sin clave y sin enforcement no protege nada.
+2. **Cobertura E2E restante:** `reports`/`notifications`, moderación de clubes y flujos de interfaz que aún no tienen prueba de extremo a extremo.
 3. **Auditoría de acciones administrativas:** registrar en una colección inmutable quién ajusta XP, concede medallas, cambia configuración y banea/desbanea; alertar de picos.
 
 ### P2 — higiene y cobertura
@@ -688,11 +773,12 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 6. Altas y estadísticas de club commiteadas en `4026f9c` y documentadas en `c44c0ff`.
 7. Functions de club desplegadas el 30-10-2026: `levantarSancionClub` creada en `us-central1`; `unirseClubPublico`, `responderSolicitudClub` y `onClubMembersChanged` actualizadas (22:50:42–22:50:53 UTC). Inventario final: **21 triggers en Europa + 22 callables/scheduled en US, 43 en total**, sin duplicados.
 8. Reglas y Hosting desplegados el 30-10-2026: release `cloud.firestore` → ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, 152.460 bytes, 22:51:21 UTC; Hosting sirve `assets/index-BruzyIzl.js`, idéntico al build local.
-9. Verificación: bundle servido, release de reglas e inventario de Functions comprobados contra producción; no se hizo una pasada funcional completa con cuentas reales.
+9. Storage y bloqueos desplegados el 30-10-2026: `cloud.firestore` → ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`, 152.933 bytes, 23:55:24 UTC; `firebase.storage` → ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`, 11.644 bytes, 23:55:20 UTC; Hosting sirve `assets/index-CLuyPo_1.js`.
+10. Verificación: bundle servido, releases de Firestore y Storage e inventario de Functions comprobados contra producción; no se hizo una pasada funcional completa con cuentas reales.
 
-No se desplegaron índices ni Storage. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
+No se desplegaron índices. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
-**Ventana de compatibilidad:** las pestañas ya abiertas con el bundle anterior pueden fallar al citar, fijar, pedir entrada o desbanear hasta que se recarguen. Las altas directas ya no se hacen desde el cliente; el bundle nuevo usa las callables. Los mensajes sin cita y el resto del chat no dependen de ese cambio.
+**Ventana de compatibilidad:** las pestañas ya abiertas con el bundle anterior pueden fallar al citar, fijar, pedir entrada, desbanear o escribir en un directo bloqueado hasta que se recarguen. Las altas directas ya no se hacen desde el cliente; el bundle nuevo usa las callables. Storage mantiene las URLs públicas de las imágenes.
 
 ---
 
@@ -700,7 +786,9 @@ No se desplegaron índices ni Storage. La rama `seguridad/p0-auditoria` se elimi
 
 | Archivo | Contenido |
 |---|---|
-| `firestore.rules` | Correcciones P0, P1 y residuales desplegados: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes con `sinAltasDeMiembros`, canales con `createdBy` atado, sanciones, solicitudes con id determinista e identidad derivada del perfil, `rateLimits` con ventana de 24 h y bloqueos en solicitudes |
+| `firestore.rules` | Correcciones P0, P1 y residuales desplegados: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes con `sinAltasDeMiembros`, canales con `createdBy` atado, sanciones, solicitudes con id determinista e identidad derivada del perfil, `rateLimits` con ventana de 24 h, bloqueos en solicitudes y bloqueos en chats directos |
+| `storage.rules` | Imágenes de club por `ownerId`/`moderatorIds`/`adminIds`, no por el rol espejo; admin/moderador baneado sin escritura en `content/`; borrados sin baneados |
+| `src/lib/firebase.ts` | Inicialización opcional de App Check con reCAPTCHA v3 si existe `VITE_FIREBASE_APP_CHECK_KEY` |
 | `functions/src/index.ts` | `exigirRol`/`exigirAdmin`/`exigirModerador`, jerarquía de baneos, objetivo real de comentarios, vista previa de chats, limpieza de chats de club, `reservarCupoComentario`, bloqueos en `responderSolicitudChat`, `onChatOwnerChanged`, `levantarSancionClub` y medallas de club concedidas desde `unirseClubPublico`/`responderSolicitudClub` |
 | `src/services/chats.ts` | Deja de escribir `lastMessage*` desde el cliente; construye `replyTo.texto` completo |
 | `src/utils/chatCita.ts` | `textoParaCita()` canónico sin recortar y `fragmentoParaCita()` para la vista |
@@ -711,32 +799,42 @@ No se desplegaron índices ni Storage. La rama `seguridad/p0-auditoria` se elimi
 | `src/types/index.ts` | `ChatReplyTo` con `texto` (canónico) y `snippet` (compatibilidad de lectura) |
 | `tests/auditoria/firestore.hallazgos.rules.test.cjs` | 34 pruebas de regresión: 17 P0 y 6 P1 en `assertFails`, 11 controles |
 | `tests/helpers/solicitudes.cjs` | Escritura de solicitudes + `rateLimits` en la misma transacción para las suites positivas |
-| `tests/firestore.chat.rules.test.cjs` | 102 pruebas de chat, incluido el bypass de lote del cupo |
+| `tests/firestore.chat.rules.test.cjs` | 105 pruebas de chat, incluidos el bypass de lote del cupo y los bloqueos en directos |
+| `tests/storage.rules.test.cjs` | 25 pruebas de Storage, incluidas las imágenes de club y el admin baneado |
+| `tests/firestore.chat-polls.rules.test.cjs` | 23 pruebas de encuestas de chat, incluido el resumen del servidor |
+| `tests/firestore.tierlists.rules.test.cjs` | 34 pruebas de tier lists, incluida la privacidad de votos de club |
+| `tests/firestore.noticias.rules.test.cjs` | 14 pruebas de noticias: lectura pública y escritura prohibida |
 | `tests/firestore.clubs.rules.test.cjs` + `tests/firestore.clubs-channels.rules.test.cjs` | Altas directas del dueño y auto-unión bloqueadas; `createdBy` del `general` atado al propietario |
 | `scripts/auditoria-callables.mjs` | Verificación post-P0 de las 9 callables con token de moderador y 5 controles |
 | `scripts/auditoria-triggers.mjs` | Verificación E2E de que los comentarios con objetivo inexistente no pagan XP |
-| `scripts/auditoria-residuales.mjs` | Verificación E2E del cupo de comentarios, traspaso de grupo y aceptación con bloqueos |
+| `scripts/auditoria-residuales.mjs` | Verificación E2E del cupo de comentarios, traspaso de grupo, aceptación con bloqueos y bloqueo en chat directo |
 | `scripts/auditoria-clubes.mjs` | Verificación E2E de altas por callable, altas directas rechazadas, medallas no inflables, desbaneo y canales con dueño/miembro baneado |
 | `scripts/migrar-clubes.mjs` | Simulación/escritura para reconciliar `memberIds` de chats de club; copia de seguridad local y guardas de producción |
 | `docs/auditoria/resultados-callables.json` | Resultado estructurado de las callables |
 | `docs/auditoria/resultados-triggers.json` | Resultado estructurado del trigger de comentarios |
-| `docs/auditoria/resultados-residuales.json` | Resultado estructurado de la E2E de residuales (5/5) |
+| `docs/auditoria/resultados-residuales.json` | Resultado estructurado de la E2E de residuales (6/6) |
 | `docs/auditoria/resultados-clubes.json` | Resultado estructurado de la E2E de clubes (7/7) |
 | `docs/auditoria/resultados-migracion-clubes.json` | Simulación sobre producción: 2 clubes, 8 usuarios, 0 cambios |
 | `scripts/build-reglas.mjs` | Genera `firestore.deploy.rules` sin comentarios para no superar el límite de 262.144 bytes del compilador |
 | `firebase.json` | Emulador de Auth (puerto 9099); reglas de Firestore generadas sin comentarios en el `predeploy` |
+| `.env.example` | Añade `VITE_FIREBASE_APP_CHECK_KEY`, vacía por defecto |
 
-El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado. Los residuales están en `2c9ecd4`, la región de los triggers en `e2185b8` y las altas/estadísticas de club en `4026f9c`; todo ello se publicó el 30-10-2026: Hosting sirve `assets/index-BruzyIzl.js` y el release `cloud.firestore` apunta al ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
+El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado. Los residuales están en `2c9ecd4`, la región de los triggers en `e2185b8` y las altas/estadísticas de club en `4026f9c`; todo ello se publicó el 30-10-2026: Hosting sirve `assets/index-CLuyPo_1.js`, `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de` y `firebase.storage` al ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
 Los residuales de la sección 4.N están **desplegados**: reglas y Hosting el 30-10-2026 (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`) y Functions (`onCommentCreated` y `onChatOwnerChanged` en `europe-southwest1`; `responderSolicitudChat` en `us-central1`). El inventario de producción quedó en 21 triggers europeos + 21 callables/scheduled en US, sin duplicados.
 
-Las correcciones de altas y estadísticas de club (sección 4.L) están **desplegadas**: Functions el 30-10-2026 (`levantarSancionClub` nueva; `unirseClubPublico`, `responderSolicitudClub` y `onClubMembersChanged` actualizadas) y reglas + Hosting (ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, bundle `index-BruzyIzl.js`). El inventario quedó en 43 Functions: 21 triggers europeos + 22 callables/scheduled en US, sin duplicados.
+Las correcciones de altas y estadísticas de club (sección 4.L) están **desplegadas**: Functions el 30-10-2026 (`levantarSancionClub` nueva; `unirseClubPublico`, `responderSolicitudClub` y `onClubMembersChanged` actualizadas) y reglas + Hosting. El inventario quedó en 43 Functions: 21 triggers europeos + 22 callables/scheduled en US, sin duplicados.
+
+Storage y los bloqueos en chats directos (secciones 4.P y 4.R) se desplegaron en el mismo lote: Storage ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7` y Firestore ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`.
 
 ---
 
 ## 8. Limitaciones
 
-- **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, las callables revisadas y los servicios inventariados; quedan rutas de Storage, App Check, encuestas, tier lists, noticias y moderación de clubes que no se probaron E2E.
+- **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, Storage, callables y servicios inventariados; quedan `reports`/`notifications`, flujos de interfaz y moderación de clubes sin E2E completa.
+- **App Check no está exigido.** La web solo lo inicializa si hay clave; el enforcement en Firebase Console sigue pendiente. Mientras tanto, no aporta protección real.
+- **Storage sirve las imágenes por URL pública** y los votos de una tier list pública son legibles por quien puede ver la lista. Son decisiones de producto documentadas; si se requiere privacidad, hay que pasar a URLs firmadas y a un agregado de votos en el servidor.
+- **Las correcciones de Storage y de bloqueos en directos están desplegadas.** Se publicaron el 30-10-2026; en producción solo se comprobaron los artefactos y el inventario, no cada flujo con datos reales.
 - **Las pruebas P0/P1 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
 - **No se probó funcionalmente en producción.** Todos los resultados de comportamiento son del emulador; pueden existir diferencias de configuración, índices o datos reales. Del despliegue se comprobaron el bundle servido, el release de reglas y el inventario de Functions, pero no se hizo una pasada completa con cuentas reales.
 - **Las correcciones de la sección 4.N están desplegadas.** Se verificaron en el emulador y se publicaron el 30-10-2026; en producción solo se comprobaron los artefactos y el inventario, no cada flujo con datos reales.
@@ -748,4 +846,4 @@ Las correcciones de altas y estadísticas de club (sección 4.L) están **desple
 
 ---
 
-**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**813 reglas, 102 de chat y 5/5 E2E**) y **desplegados el 30-10-2026**. Las altas directas y las estadísticas de club están corregidas y verificadas (**167 focalizadas y 7/7 E2E de clubes**) y **desplegadas** con el ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, el bundle `index-BruzyIzl.js` y 43 Functions (21 triggers europeos + 22 callables/scheduled en US). La migración de chats de club se revisó en simulación sobre producción (2 clubes, 8 usuarios, 0 cambios) y la E2E cubre canales con dueño y miembro baneados. **La aplicación todavía no puede declararse segura en su conjunto**: quedan los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
+**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**830 reglas, 105 de chat y 6/6 E2E**) y **desplegados el 30-10-2026**. Las altas directas y las estadísticas de club están corregidas y verificadas (**167 focalizadas y 7/7 E2E de clubes**) y **desplegadas**. Storage y los bloqueos en directos también: `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`, `firebase.storage` al `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`, Hosting sirve `index-CLuyPo_1.js` y hay 43 Functions (21 triggers europeos + 22 callables/scheduled en US). La migración de chats de club se revisó en simulación (2 clubes, 8 usuarios, 0 cambios) y la E2E cubre canales con dueño y miembro baneados. **App Check sigue sin enforcement**: solo se inicializa si se configura la clave. **La aplicación todavía no puede declararse segura en su conjunto**: quedan los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
