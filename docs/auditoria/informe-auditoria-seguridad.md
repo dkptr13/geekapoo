@@ -7,7 +7,7 @@
 - **Residuales 4.N:** commits `2c9ecd4` (reglas, cliente, Functions y pruebas) y `e2185b8` (región de los triggers); verificados en el emulador el 30-10-2026 y desplegados
 - **Integración:** `main` sincronizado con `origin/main`; código desplegado en `e2185b8`; la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-BfKM3yC0.js`; el release `cloud.firestore` apunta al ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c` (152.854 bytes, 30-10-2026 13:54:19 UTC); y las Functions quedaron en **21 triggers en `europe-southwest1` + 21 callables/scheduled en `us-central1`**, sin duplicados. Los residuales están verificados en el emulador (**813 reglas + 102 de chat + 5/5 E2E**). Las altas directas y las estadísticas de club están corregidas y verificadas (**167 focalizadas + 5/5 E2E**), pendientes de despliegue. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-BruzyIzl.js`; el release `cloud.firestore` apunta al ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82` (152.460 bytes, 30-10-2026 22:51:21 UTC); y las Functions quedaron en **21 triggers en `europe-southwest1` + 22 callables/scheduled en `us-central1`**, sin duplicados. Los residuales están verificados en el emulador (**813 reglas + 102 de chat + 5/5 E2E**) y las altas/estadísticas de club también (**167 focalizadas + 5/5 E2E**). Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -91,7 +91,7 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 
 - Firestore Emulator, Auth Emulator y Functions Emulator.
 - Proyecto de pruebas: `demo-geekapoo-auditoria`.
-- Funciones locales servidas por el emulador con la misma distribución que producción: los 21 triggers de Firestore en `europe-southwest1` y los callables/scheduled en `us-central1`. La región de los triggers se fijó en `e2185b8` para que un despliegue no cree duplicados.
+- Funciones locales servidas por el emulador con la misma distribución que producción: los 21 triggers de Firestore en `europe-southwest1` y los 22 callables/scheduled en `us-central1`. La región de los triggers se fijó en `e2185b8` para que un despliegue no cree duplicados.
 - Se añadió el emulador de Auth a `firebase.json` (puerto 9099) para poder probar las callables con tokens reales del emulador. Es un cambio de infraestructura de pruebas, sin efecto en producción.
 - El compilador de Firestore cuenta los comentarios y rechaza el conjunto si supera **262.144 bytes**. `firestore.rules` pasó de ese límite, así que `npm run rules:build` genera `firestore.deploy.rules` sin comentarios (152.854 bytes), conservando los números de línea. `firebase.json` apunta a ese artefacto y lo regenera en el `predeploy`; `npm run test:rules` también lo regenera antes de arrancar el emulador.
 
@@ -101,7 +101,7 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 - La revisión y las pruebas se hicieron íntegramente en emuladores; no se ejecutaron pruebas destructivas contra producción.
 - No se probó nada contra `geekapoo-7624d` durante la auditoría.
 - La sincronización de noticias del caso H9 escribió 168 documentos **en el emulador**, no en producción.
-- El P0 se commitó en `cc35d84` y se desplegó en `geekapoo-7624d` con autorización. El P1 se commitó en `19a3912`, se integró en `main` con `b8f63c3` (PR #2) y se desplegó. Los residuales (`2c9ecd4`) y la región de los triggers (`e2185b8`) se desplegaron el 30-10-2026 con autorización expresa.
+- El P0 se commitó en `cc35d84` y se desplegó en `geekapoo-7624d` con autorización. El P1 se commitó en `19a3912`, se integró en `main` con `b8f63c3` (PR #2) y se desplegó. Los residuales (`2c9ecd4`), la región de los triggers (`e2185b8`) y las altas/estadísticas de club (`4026f9c`) se desplegaron el 30-10-2026 con autorización expresa.
 
 ---
 
@@ -122,9 +122,9 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 | Lógica | `npm run test:logica` | Correcto |
 | Build de Functions | `npm --prefix functions run build` | Correcto |
 | Build de la web | `npm run build` | Correcto |
-| Verificación de Hosting | `GET https://geekapoo-7624d.web.app` | Sirve `assets/index-BfKM3yC0.js`, idéntico al build local |
-| Verificación de reglas | API `projects/geekapoo-7624d/releases/cloud.firestore` | Ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, 152.854 bytes, 0 comentarios, 13:54:19 UTC |
-| Verificación de Functions | `firebase functions:list` + Cloud Functions API | **42 funciones**: 21 en `europe-southwest1` + 21 en `us-central1`, sin duplicados |
+| Verificación de Hosting | `GET https://geekapoo-7624d.web.app` | Sirve `assets/index-BruzyIzl.js`, idéntico al build local |
+| Verificación de reglas | API `projects/geekapoo-7624d/releases/cloud.firestore` | Ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, 152.460 bytes, 0 comentarios, 22:51:21 UTC |
+| Verificación de Functions | `firebase functions:list` + Cloud Functions API | **43 funciones**: 21 en `europe-southwest1` + 22 en `us-central1`, sin duplicados |
 
 > **Nota sobre los errores esperados:** en las pruebas negativas aparecen mensajes `evaluation error at L...` y «maximum of 1000 expressions» para operaciones que deben fallar. Son el resultado de evaluar reglas contra escrituras denegadas; no son fallos de la suite. Las pruebas que exigen éxito pasan y las que exigen `permission-denied` también.
 
@@ -161,7 +161,7 @@ Escala usada:
 | D | Hilos: `pinned` por autor, tamaños sin revalidar, edición por baneados | **Medio** | **Corregido P0** |
 | G | Fijados con texto/autor falsos | **Medio** | **Corregido P0**; fecha del mensaje **corregida P1** |
 | K | Spam de solicitudes de chat y remitente falsificado | **Medio** | **Corregido P1** (G1); rate limit y traspaso desplegados (4.N) |
-| L | Estadísticas de club desde documentos del cliente | **Medio** | **Corregido y verificado en el emulador**; pendiente de despliegue |
+| L | Estadísticas de club desde documentos del cliente | **Medio** | **Corregido, verificado y desplegado** |
 | H | `replyTo` fabricado | **Bajo** | **Corregido P1** (F4) |
 | M | Canales de club gestionados por baneados | **Medio/Bajo** | **Corregido en reglas**; E2E pendiente |
 
@@ -278,7 +278,7 @@ function isModerator() {
 #### C3/C4. Un dueño baneado seguía editando el club y añadía miembros sin consentimiento
 
 **Severidad:** Alto  
-**Estado:** **corregido P0** el bypass de baneo; las altas directas de un dueño activo se cerraron en la sección 4.L (verificadas en el emulador, pendientes de despliegue).
+**Estado:** **corregido P0** el bypass de baneo; las altas directas de un dueño activo se cerraron en la sección 4.L y **se desplegaron el 30-10-2026**.
 
 **Evidencia original:**
 
@@ -513,10 +513,10 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 ---
 
-### L. Estadísticas de club desde documentos que controla el cliente — corregido y verificado
+### L. Estadísticas de club desde documentos que controla el cliente — corregido y desplegado
 
 **Severidad:** Medio  
-**Estado:** **corregido y verificado en Firebase Emulator Suite**; pendiente de despliegue.
+**Estado:** **corregido, verificado en Firebase Emulator Suite y desplegado el 30-10-2026**.
 
 **Evidencia:**
 
@@ -535,9 +535,9 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 - **Medalla solo desde el flujo servidor:** `onClubMembersChanged` ya no concede `clubesUnidos`; lo hacen las tres callables después de la transacción. Una escritura directa en `memberIds` (Admin SDK/consola) no paga medalla. `onClubCreated` sigue marcando al creador porque la creación exige `ownerId == request.auth.uid`, un único miembro y un chat coherente.
 - **Canales:** `onChannelCreated` confía en `createdBy`, pero la regla lo ata al usuario: alta normal `createdBy == request.auth.uid`; migración del `general` `createdBy == ownerId` del club. Así nadie infla la medalla de un tercero.
 - **Chats participados:** `onChatParticipado` sigue leyendo `senderId`, pero la regla de mensajes ya exige `senderId == request.auth.uid`; no hay atribución falsa posible.
-- **Pruebas:** 3 regresiones nuevas de altas en `tests/firestore.clubs.rules.test.cjs`, 1 de `createdBy` en canales, 2 en la suite de auditoría (C5/C6) y una E2E de 4 casos con medallas y desbaneo.
+- **Pruebas:** 3 regresiones nuevas de altas en `tests/firestore.clubs.rules.test.cjs`, 1 de `createdBy` en canales, 2 en la suite de auditoría (C5/C6) y una E2E de 5 casos con medallas, solicitud aceptada y desbaneo.
 
-**Verificación:** suite completa **813 passing**, focalizadas de clubes **167 passing** y E2E **5/5 comprobaciones correctas**.
+**Verificación:** suite completa **813 passing**, focalizadas de clubes **167 passing** y E2E **5/5 comprobaciones correctas**. Desplegado: ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, bundle `index-BruzyIzl.js` y 43 Functions (21 Europa + 22 US).
 
 ---
 
@@ -628,7 +628,7 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 
 ### P1 — residuales y siguientes
 
-**Cerrados y desplegados (sección 4.N):** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. **Altas directas y estadísticas de club:** corregidas y verificadas en el emulador (sección 4.L), pendientes de despliegue.
+**Cerrados y desplegados (sección 4.N):** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. **Altas directas y estadísticas de club:** corregidas y desplegadas el 30-10-2026 (sección 4.L).
 
 1. **Migración de datos:** limpiar `memberIds` de chats de club ya existentes, revisar `createdAt` sospechosos y recalcular medallas/estadísticas si procede.
 2. **Canales de club:** prueba E2E explícita con dueño baneado y con miembro baneado en la ruta `general` (M).
@@ -648,12 +648,15 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 2. Hosting P1 publicado con `assets/index-DpFW21Z8.js`; reglas P1: release `cloud.firestore` → ruleset `c5bb00c8-686a-403a-80e6-e775d580af61`, actualizado el 29-10-2026 a las 18:22:49 UTC.
 3. Residuales commiteados en `2c9ecd4` (reglas, cliente, Functions, pruebas y evidencia); región de los 21 triggers fijada en `e2185b8`.
 4. Reglas y Hosting desplegados el 30-10-2026: release `cloud.firestore` → ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, 152.854 bytes, 13:54:19 UTC; Hosting sirve `assets/index-BfKM3yC0.js`, idéntico al build local.
-5. Functions: `onCommentCreated` y `onChatOwnerChanged` actualizados en `europe-southwest1`; `responderSolicitudChat` en `us-central1` (13:57:48–13:57:58 UTC). Inventario final: 21 triggers en Europa + 21 callables/scheduled en US, 42 en total, sin duplicados.
-6. Verificación: bundle servido, release de reglas e inventario de Functions comprobados contra producción; no se hizo una pasada funcional completa con cuentas reales.
+5. Functions: `onCommentCreated` y `onChatOwnerChanged` actualizados en `europe-southwest1`; `responderSolicitudChat` en `us-central1` (13:57:48–13:57:58 UTC). Inventario: 21 triggers en Europa + 21 callables/scheduled en US, 42 en total, sin duplicados.
+6. Altas y estadísticas de club commiteadas en `4026f9c` y documentadas en `c44c0ff`.
+7. Functions de club desplegadas el 30-10-2026: `levantarSancionClub` creada en `us-central1`; `unirseClubPublico`, `responderSolicitudClub` y `onClubMembersChanged` actualizadas (22:50:42–22:50:53 UTC). Inventario final: **21 triggers en Europa + 22 callables/scheduled en US, 43 en total**, sin duplicados.
+8. Reglas y Hosting desplegados el 30-10-2026: release `cloud.firestore` → ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, 152.460 bytes, 22:51:21 UTC; Hosting sirve `assets/index-BruzyIzl.js`, idéntico al build local.
+9. Verificación: bundle servido, release de reglas e inventario de Functions comprobados contra producción; no se hizo una pasada funcional completa con cuentas reales.
 
 No se desplegaron índices ni Storage. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
-**Ventana de compatibilidad:** las pestañas ya abiertas con el bundle anterior pueden fallar al citar, fijar o pedir entrada hasta que se recarguen. Los mensajes sin cita y el resto del chat no dependen de ese cambio.
+**Ventana de compatibilidad:** las pestañas ya abiertas con el bundle anterior pueden fallar al citar, fijar, pedir entrada o desbanear hasta que se recarguen. Las altas directas ya no se hacen desde el cliente; el bundle nuevo usa las callables. Los mensajes sin cita y el resto del chat no dependen de ese cambio.
 
 ---
 
@@ -685,11 +688,11 @@ No se desplegaron índices ni Storage. La rama `seguridad/p0-auditoria` se elimi
 | `scripts/build-reglas.mjs` | Genera `firestore.deploy.rules` sin comentarios para no superar el límite de 262.144 bytes del compilador |
 | `firebase.json` | Emulador de Auth (puerto 9099); reglas de Firestore generadas sin comentarios en el `predeploy` |
 
-El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado. Los residuales están en `2c9ecd4` y la región de los triggers en `e2185b8`; todo ello se publicó el 30-10-2026: Hosting sirve `assets/index-BfKM3yC0.js` y el release `cloud.firestore` apunta al ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
+El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado. Los residuales están en `2c9ecd4`, la región de los triggers en `e2185b8` y las altas/estadísticas de club en `4026f9c`; todo ello se publicó el 30-10-2026: Hosting sirve `assets/index-BruzyIzl.js` y el release `cloud.firestore` apunta al ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
 Los residuales de la sección 4.N están **desplegados**: reglas y Hosting el 30-10-2026 (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`) y Functions (`onCommentCreated` y `onChatOwnerChanged` en `europe-southwest1`; `responderSolicitudChat` en `us-central1`). El inventario de producción quedó en 21 triggers europeos + 21 callables/scheduled en US, sin duplicados.
 
-Las correcciones de altas y estadísticas de club (sección 4.L) están **verificadas en el emulador pero aún no desplegadas**: cambian reglas, `functions/src/index.ts`, `src/services/clubModeracion.ts`, pruebas y E2E. Producción conserva las altas directas y el trigger antiguo hasta que se publique.
+Las correcciones de altas y estadísticas de club (sección 4.L) están **desplegadas**: Functions el 30-10-2026 (`levantarSancionClub` nueva; `unirseClubPublico`, `responderSolicitudClub` y `onClubMembersChanged` actualizadas) y reglas + Hosting (ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, bundle `index-BruzyIzl.js`). El inventario quedó en 43 Functions: 21 triggers europeos + 22 callables/scheduled en US, sin duplicados.
 
 ---
 
@@ -699,11 +702,11 @@ Las correcciones de altas y estadísticas de club (sección 4.L) están **verifi
 - **Las pruebas P0/P1 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
 - **No se probó funcionalmente en producción.** Todos los resultados de comportamiento son del emulador; pueden existir diferencias de configuración, índices o datos reales. Del despliegue se comprobaron el bundle servido, el release de reglas y el inventario de Functions, pero no se hizo una pasada completa con cuentas reales.
 - **Las correcciones de la sección 4.N están desplegadas.** Se verificaron en el emulador y se publicaron el 30-10-2026; en producción solo se comprobaron los artefactos y el inventario, no cada flujo con datos reales.
-- **Las altas y estadísticas de club (4.L) están verificadas pero no desplegadas.** Producción conserva la rama de auto-unión y el trigger antiguo hasta que se publiquen reglas, Functions y Hosting.
+- **Las altas y estadísticas de club (4.L) están desplegadas.** Se publicaron el 30-10-2026 junto con reglas y Hosting; en producción solo se comprobaron los artefactos y el inventario, no cada flujo con datos reales.
 - **La región de los triggers está fijada en `europe-southwest1`** y los callables siguen en `us-central1`, igual que en producción. El emulador usa la misma distribución tras el cambio.
 - **La sincronización de noticias del emulador** escribió 168 documentos en el proyecto demo; no se tocó la colección `news` de producción.
 - **No se evaluaron** vulnerabilidades de dependencias, XSS, CSP, configuración de Auth, correo o infraestructura. Este informe se limita a las capas indicadas.
 
 ---
 
-**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**813 reglas, 102 de chat y 5/5 E2E**) y **desplegados el 30-10-2026** (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`, 21 triggers europeos + 21 callables/scheduled en US). Las altas directas y las estadísticas de club están corregidas y verificadas en el emulador (**167 focalizadas y 5/5 E2E de clubes**), pendientes de despliegue. **La aplicación todavía no puede declararse segura en su conjunto**: quedan la migración de datos, los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
+**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**813 reglas, 102 de chat y 5/5 E2E**) y **desplegados el 30-10-2026**. Las altas directas y las estadísticas de club están corregidas y verificadas (**167 focalizadas y 5/5 E2E de clubes**) y **desplegadas** con el ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, el bundle `index-BruzyIzl.js` y 43 Functions (21 triggers europeos + 22 callables/scheduled en US). **La aplicación todavía no puede declararse segura en su conjunto**: quedan la migración de datos, los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
