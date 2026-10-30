@@ -69,7 +69,7 @@ export const PERSONAJES = [
   ['Arlong', '1', 'supporting', 'アーロン', 'Juurouta Kosugi',
     'Pirata hombre pez que domina la aldea de Cocoyashi. Cobra un tributo mensual a los aldeanos y obligó a Nami a dibujar mapas para él durante ocho años.'],
 
-  ['Hatchan', '1', 'supporting', 'はっちゃん', 'Toshiyuki Morikawa',
+  ['Hatchan', '1,11', 'supporting', 'はっちゃん', 'Toshiyuki Morikawa',
     'Hombre pez pulpo de seis brazos que lucha con tres pares de espadas. Forma parte de la tripulación de Arlong y se enfrenta a Zoro en Arlong Park.'],
 
   ['Nojiko', '1', 'supporting', 'ノジコ', 'Wakana Yamazaki',
@@ -128,12 +128,12 @@ export const PERSONAJES = [
   ['Miss Valentine', '2', 'supporting', 'ミキータ', 'Fumiko Orikasa',
     'Compañera de Mr. 5. Comió la Fruta del Peso y cambia su peso a voluntad: puede flotar como una pluma o caer sobre su enemigo como una tonelada.'],
 
-  ['Nico Robin', '2,4,5,6,7,8,9', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
+  ['Nico Robin', '2,4,5,6,7,8,9,10,11', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
     'Vicepresidenta de Baroque Works, conocida como Miss All Sunday. Aparece en el barco de los sombrero de paja, les ofrece un eternal pose y demuestra que sabe demasiado sobre ellos. Tras la caída de Crocodile en Arabasta, se une a la tripulación.'],
 
   // ── TEMPORADA 3: la isla de Drum y Tony Tony Chopper ───────────────
 
-  ['Tony Tony Chopper', '3,4,5,6,7,8,9', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
+  ['Tony Tony Chopper', '3,4,5,6,7,8,9,10,11', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
     'Reno que comió la Fruta Humano-Humano y aprendió a hablar y a caminar como una persona. Quiere ser un médico capaz de curar cualquier enfermedad y se une a la tripulación en la isla de Drum.'],
 
   ['Kureha', '3', 'supporting', 'くれは', 'Masako Nozawa',
@@ -309,7 +309,7 @@ export const PERSONAJES = [
   ['Drake', '7', 'supporting', 'ドレイク', 'Eiji Takemoto',
     'Teniente de la base G-8 y hombre de confianza de Jonathan. Dirige las trampas contra los sombrero de paja.'],
 
-  ['Foxy', '7', 'supporting', 'フォクシー', 'Bin Shimada',
+  ['Foxy', '7,11', 'supporting', 'フォクシー', 'Bin Shimada',
     'Capitán de los piratas de Foxy, conocido como el Zorro Plateado. Comió la Fruta del Retraso y reta a Luffy a un Davy Back Fight.'],
 
   ['Porche', '7', 'supporting', 'ポルチェ', 'Sara Nakayama',
@@ -416,7 +416,7 @@ export const PERSONAJES = [
   ['Tsuru', '6', 'supporting', 'つる中将', 'Minori Matsushima',
     'Vicealmirante de la Marina y vieja conocida de Garp y Sengoku. Participa en la reunión de los Señores del Mar.'],
 
-  ['Bartholomew Kuma', '6', 'supporting', 'バーソロミュー・くま', 'Hideyuki Hori',
+  ['Bartholomew Kuma', '6,10,11', 'supporting', 'バーソロミュー・くま', 'Hideyuki Hori',
     'Uno de los Siete Señores del Mar, con aspecto de oso y poderes desconocidos. Asiste a la reunión de Mary Geoise.'],
 
   ['Donquixote Doflamingo', '6', 'supporting', 'ドフラミンゴ・ドンキホーテ', 'Hideyuki Tanaka',
@@ -551,4 +551,89 @@ export const PERSONAJES = [
 
   ['Jiro', '9', 'supporting', 'ジロー', 'Miyu Irino',
     'Grumete de los Piratas del Fénix. Ayuda a Chopper a operar a Puzzle y se hace amigo de la tripulación.'],
+
+  // ── TEMPORADA 10: Thriller Bark ──────────────────────────────────
+
+  ['Brook', '10,11', 'main', 'ブルック', 'Choo',
+    'Esqueleto músico que comió la Fruta de la Resurrección y perdió su sombra en Thriller Bark. Fue capitán de los Piratas Rumbar y quiere volver a ver a la ballena Laboon.'],
+
+  ['Gecko Moria', '10', 'supporting', 'ゲッコー・モリア', 'Katsuhisa Houki',
+    'Uno de los Siete Señores del Mar y dueño de Thriller Bark. Comió la Fruta de la Sombra y roba las sombras de sus víctimas para animar zombis; quiere crear un ejército para el Nuevo Mundo.'],
+
+  ['Perona', '10', 'supporting', 'ぺローナ', 'Kumiko Nishihara',
+    'Princesa Fantasma de Thriller Bark y lugarteniente de Moria. Comió la Fruta del Fantasma y usa fantasmas negativos y explosivos; se enfrenta a Usopp.'],
+
+  ['Absalom', '10', 'supporting', 'アブサロム', 'Hiroaki Miura',
+    'Zombi invisible de Thriller Bark y lugarteniente de Moria. Comió la Fruta de la Transparencia y quiere casarse con Nami; Sanji lo derrota.'],
+
+  ['Hogback', '10', 'supporting', 'ドクトル・ホグバック', 'Hiroshi Iwasaki',
+    'Cirujano famoso de Thriller Bark que trabaja para Moria. Resucita cadáveres como zombis y experimenta con Victoria Cindry; Chopper lo detesta.'],
+
+  ['Ryuma', '10', 'supporting', '霜月リューマ', 'Choo',
+    'Samurái zombi de Thriller Bark que guarda la sombra de Brook. Pelea con Zoro y le entrega su espada Shusui al ser derrotado.'],
+
+  ['Oars', '10', 'supporting', 'オーズ', 'Mayumi Tanaka',
+    'Gigante legendario resucitado por Moria con la sombra de Luffy. Se comporta como Luffy y es el enemigo más fuerte de Thriller Bark.'],
+
+  ['Victoria Cindry', '10', 'supporting', 'ビクトリア・シンドリー', 'Houko Kuwashima',
+    'Actriz fallecida resucitada por Hogback como zombi. Sirve en su mansión y conserva un gesto de rebeldía contra su creador.'],
+
+  ['Hildon', '10', 'supporting', 'ヒルドン', 'Taiki Matsuno',
+    'Vampiro de Thriller Bark que guía a Nami, Usopp y Chopper hasta la mansión de Hogback. Es un servidor de Moria.'],
+
+  ['Lola', '10', 'supporting', 'ローラ', 'Aya Hisakawa',
+    'Capitana de los Piratas Rodantes y zombi con la sombra de una pirata. Se enamora de Absalom y ayuda a Nami y a Luffy contra Moria.'],
+
+  // ── TEMPORADA 11: Sabaody y las Supernovas ───────────────────────
+
+  ['Camie', '11', 'supporting', 'ケイミー', 'Haruna Ikezawa',
+    'Sirena que la tripulación rescata en el mar. Trabaja en una tienda de takoyaki con Pappagu y Hatchan y sueña con ser diseñadora.'],
+
+  ['Pappagu', '11', 'supporting', 'パッパグ', 'Kouzou Shioya',
+    'Estrella de mar y compañero de Camie. Habla por ella y la ayuda en la tienda; es el encargado de presentar a los sombrero de paja Sabaody.'],
+
+  ['Duval', '11', 'supporting', 'デュバル', 'Toshihiko Seki',
+    'Antiguo bandido que odia a Sanji porque su cartel de recompensa le arruinó la cara. Tras la paliza de Sanji se vuelve guapo y ayuda a la tripulación con los Rosy Life Riders.'],
+
+  ['Silvers Rayleigh', '11', 'supporting', 'シルバーズ・レイリー', 'Keiichi Sonobe',
+    'Primer oficial de los Piratas de Roger y el mecánico que puede recubrir barcos en Sabaody. Es uno de los hombres más fuertes del mundo y ayuda a Luffy.'],
+
+  ['Shakky', '11', 'supporting', 'シャクヤク', 'Hiromi Tsuru',
+    'Dueña del bar de Sabaody y vieja conocida de Rayleigh. Informa a la tripulación de las Supernovas y de los peligros del archipiélago.'],
+
+  ['Eustass Kid', '11', 'supporting', 'ユースタス・キッド', 'Daisuke Namikawa',
+    'Capitán de los Piratas de Kid y una de las once Supernovas. Comió la Fruta del Imán y tiene una recompensa enorme; rival de Luffy.'],
+
+  ['Killer', '11', 'supporting', 'キラー', 'Kenji Hamada',
+    'Mano derecha de Eustass Kid y una de las Supernovas. Lleva una máscara y pelea con cuchillas giratorias.'],
+
+  ['Trafalgar Law', '11', 'supporting', 'トラファルガー・ロー', 'Hiroshi Kamiya',
+    'Capitán de los Piratas Heart y una de las Supernovas. Comió la Fruta de la Operación y se alía con Luffy en Sabaody.'],
+
+  ['Jewelry Bonney', '11', 'supporting', 'ジュエリー・ボニー', 'Reiko Kiuchi',
+    'Capitana de los Piratas de Bonney y una de las Supernovas. Comió la Fruta de la Edad y tiene un apetito enorme.'],
+
+  ['X Drake', '11', 'supporting', 'Ｘ・ドレーク', 'Eiji Takemoto',
+    'Capitán de los Piratas Drake y una de las Supernovas. Antiguo marine y usuario de una Fruta Zoan de dinosaurio.'],
+
+  ['Basil Hawkins', '11', 'supporting', 'バジル・ホーキンス', 'Shigenori Souya',
+    'Capitán de los Piratas de Hawkins y una de las Supernovas. Usa cartas y muñecos de paja para desviar el daño.'],
+
+  ['Urouge', '11', 'supporting', 'ウルージ', 'Taiten Kusunoki',
+    'Capitán de los Piratas del Monje y una de las Supernovas. Un gigante que convierte el daño recibido en fuerza.'],
+
+  ['Capone Bege', '11', 'supporting', 'カポネ・ベッジ', 'Naoki Tatsuta',
+    'Capitán de los Piratas de Fuego y una de las Supernovas. Comió la Fruta del Castillo y guarda un ejército dentro de su cuerpo.'],
+
+  ['Scratchmen Apoo', '11', 'supporting', 'スクラッチメン・アプー', 'Mitsuaki Madono',
+    'Capitán de los Piratas del Sonido y una de las Supernovas. Convierte su cuerpo en instrumentos y ataca con música.'],
+
+  ['Kizaru', '11', 'supporting', 'ボルサリーノ', 'Unshou Ishizuka',
+    'Almirante de la Marina. Comió la Fruta de la Luz y se mueve a la velocidad de la luz; llega a Sabaody para detener a los sombrero de paja.'],
+
+  ['Sentomaru', '11', 'supporting', '戦桃丸', 'Kazue Ikura',
+    'Capitán de la unidad científica de la Marina y guardaespaldas de Vegapunk. Lleva un hacha enorme y dirige a los Pacifistas en Sabaody.'],
+
+  ['Saint Charloss', '11', 'supporting', 'チャルロス聖', 'Chafuurin',
+    'Dragón Celestial y uno de los nobles de Mary Geoise. Dispara a un esclavo y a Hatchan, y Luffy lo golpea en la subasta.'],
 ];

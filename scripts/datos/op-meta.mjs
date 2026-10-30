@@ -4,7 +4,7 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las nueve primeras temporadas:
+// De momento el catalogo tiene las once primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
@@ -15,6 +15,8 @@
 //   T7   33 capitulos  (junio de 2004 - marzo de 2005)
 //   T8   35 capitulos  (abril de 2005 - abril de 2006)
 //   T9   73 capitulos  (mayo de 2006 - diciembre de 2007)
+//   T10  45 capitulos  (enero - diciembre de 2008)
+//   T11  26 capitulos  (diciembre de 2008 - junio de 2009)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -69,7 +71,7 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las nueve primeras temporadas:
+ * De momento estan cargadas las once primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
@@ -80,11 +82,13 @@ export const RATING_SERIE = 9.0;
  *   T7   33  (junio de 2004 - marzo de 2005)
  *   T8   35  (abril de 2005 - abril de 2006)
  *   T9   73  (mayo de 2006 - diciembre de 2007)
+ *   T10  45  (enero - diciembre de 2008)
+ *   T11  26  (diciembre de 2008 - junio de 2009)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 336;
+export const EPISODIOS_TOTAL = 407;
 
 /**
  * Donde se emite en Espana.
@@ -207,5 +211,29 @@ export const TEMPORADAS = [
       'La tripulacion asalta Enies Lobby para rescatar a Robin, se despide del Going Merry y estrena el Thousand ' +
       'Sunny con Franky a bordo. Despues llegan el relleno de los Piratas del Fenix y los especiales de Chopperman.',
     capitulos: 'T9',
+  },
+  {
+    numero: 10,
+    titulo: '',
+    anio: 2008,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Cuarenta y cinco capitulos del 6 de enero al 14 de diciembre de 2008, en Toei Animation para Fuji TV. ' +
+      'Es la saga de Thriller Bark: la tripulacion llega al barco-isla de Gecko Moria, pierde las sombras, ' +
+      'conoce al esqueleto Brook y se enfrenta a los zombis, al gigante Oars y al tirano Kuma.',
+    capitulos: 'T10',
+  },
+  {
+    numero: 11,
+    titulo: '',
+    anio: 2008,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Veintiseis capitulos del 21 de diciembre de 2008 al 28 de junio de 2009, en Toei Animation para Fuji TV. ' +
+      'Tras el relleno de Spa Island y Foxy, la tripulacion llega al archipielago Sabaody, conoce a Camie y a las ' +
+      'Supernovas y se enfrenta a los Dragones Celestiales; Kizaru, Sentomaru y Kuma acaban dispersandola.',
+    capitulos: 'T11',
   },
 ];

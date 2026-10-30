@@ -562,6 +562,16 @@ export const TRAMO_TVDB = {
       { temporada: 11, desde: 38, hasta: 99 },
       { temporada: 12, desde: 1, hasta: 11 },
     ],
+    // La T10 son los 45 capitulos del 337 al 381, que en TVDB son el resto
+    // de la temporada 12 (detras de los once de la T9).
+    //
+    //   catalogo T10  (337-381)  TVDB S12E12..S12E56
+    10: [{ temporada: 12, desde: 12, hasta: 56 }],
+    // La T11 son los 26 capitulos del 382 al 407, los primeros de la
+    // temporada 13 de TVDB (Sabaody y el principio de Amazon Lily).
+    //
+    //   catalogo T11  (382-407)  TVDB S13E1..S13E26
+    11: [{ temporada: 13, desde: 1, hasta: 26 }],
   },
 };
 
@@ -897,6 +907,25 @@ export const TITULO_TVDB = {
     '最凶の能力! エースを襲う黒ひげの闇!': '最凶の能力！エースを襲う黒ひげの闇',
     'アツアツ超決戦! ルフィvs灼熱のドン': 'アツアツ超決戦！ルフィVS灼熱のドン',
     '出動チョッパーマン！守れ渚のＴＶ局': '出動チョッパーマン！守れ渚のTV局',
+    // La T10 y la T11 anaden catorce mas. TVDB desarrolla lecturas (8),
+    // cambia palabras (9, 20, 22 y 25), escribe 現われた (10), mete なら
+    // (20), 怒り (22) y と (44), se come una "さ" en el 22 de la T11 y
+    // una "暴" en el 10, y alterna signos y espacios en el resto. Las
+    // fechas y el orden coinciden.
+    'ゾンビ歌の饗宴! 夜討ちの鐘は闇の音': 'ゾンビ歌（ソング）の饗宴！夜討ちの鐘は闇の音',
+    '動物いっぱい? ペローナの不思議の庭': '動物いっぱい？ペローナの不思議な庭',
+    '消える麦わら一味! 現れた謎の剣士!': '消える麦わら一味!　現われた謎の剣士！',
+    'ウソップ最強? ネガティブは任せとけ': 'ウソップ最強？ネガティブなら任せとけ',
+    '炎の騎士サンジ!! 蹴り潰せ偽りの挙式': '炎の騎士サンジ！！蹴り潰せ怒りの挙式',
+    '屋根に舞う斬撃!! 決着ゾロVSリューマ': '屋根に舞う斬撃！決着ゾロVSリューマ',
+    '敵はルフィ!! 最強ゾンビ対麦わらの一味': '敵はルフィ！！最強ゾンビ対麦わら一味',
+    'ビンクスの酒 過去と現在をつなぐ唄': 'ビンクスの酒　過去と現在とをつなぐ唄',
+    'お宝大争奪戦! 崩壊! スパアイランド号': 'お宝大争奪戦　崩壊！スパアイランド号',
+    '魚人島を目指して上陸 シャボンディ諸島': '魚人島目指して上陸　シャボンディ諸島',
+    '暴虐! シャボンディの支配者天竜人': '虐！シャボンディの支配者・天竜人',
+    'さらなる強敵現る! 鉞かついだ戦桃丸': 'らなる強敵現る！鉞かついだ戦桃丸',
+    '大将黄猿の猛攻 麦わら一味絶体絶命!': '大将黄猿の猛攻　麦わら一味絶体絶命',
+    '時代劇特別編 ルフィ親分再び見参': '時代劇特別編　ルフィ親分ふたたび見参',
   },
 };
 
