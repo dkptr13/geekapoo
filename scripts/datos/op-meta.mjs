@@ -4,7 +4,7 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las siete primeras temporadas:
+// De momento el catalogo tiene las nueve primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
@@ -13,6 +13,8 @@
 //   T5   13 capitulos  (noviembre de 2002 - febrero de 2003)
 //   T6   52 capitulos  (febrero de 2003 - junio de 2004)
 //   T7   33 capitulos  (junio de 2004 - marzo de 2005)
+//   T8   35 capitulos  (abril de 2005 - abril de 2006)
+//   T9   73 capitulos  (mayo de 2006 - diciembre de 2007)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -67,7 +69,7 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las siete primeras temporadas:
+ * De momento estan cargadas las nueve primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
@@ -76,11 +78,13 @@ export const RATING_SERIE = 9.0;
  *   T5   13  (noviembre de 2002 - febrero de 2003)
  *   T6   52  (febrero de 2003 - junio de 2004)
  *   T7   33  (junio de 2004 - marzo de 2005)
+ *   T8   35  (abril de 2005 - abril de 2006)
+ *   T9   73  (mayo de 2006 - diciembre de 2007)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 228;
+export const EPISODIOS_TOTAL = 336;
 
 /**
  * Donde se emite en Espana.
@@ -179,5 +183,29 @@ export const TEMPORADAS = [
       'La temporada empieza con el relleno de la base naval G-8, sigue con el Davy Back Fight contra los piratas ' +
       'de Foxy y el relleno de los recuerdos robados, y acaba con la llegada del almirante Aokiji.',
     capitulos: 'T7',
+  },
+  {
+    numero: 8,
+    titulo: '',
+    anio: 2005,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Treinta y cinco capitulos del 17 de abril de 2005 al 30 de abril de 2006, en Toei Animation para Fuji TV. ' +
+      'La tripulacion llega a Water Seven, la ciudad de los carpinteros: el Going Merry se declara irreparable, ' +
+      'Usopp deja el grupo y CP9 se lleva a Robin tras revelarse como la organizacion del Gobierno Mundial.',
+    capitulos: 'T8',
+  },
+  {
+    numero: 9,
+    titulo: '',
+    anio: 2006,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Setenta y tres capitulos del 21 de mayo de 2006 al 23 de diciembre de 2007, en Toei Animation para Fuji TV. ' +
+      'La tripulacion asalta Enies Lobby para rescatar a Robin, se despide del Going Merry y estrena el Thousand ' +
+      'Sunny con Franky a bordo. Despues llegan el relleno de los Piratas del Fenix y los especiales de Chopperman.',
+    capitulos: 'T9',
   },
 ];

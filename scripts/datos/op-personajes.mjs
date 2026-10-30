@@ -128,12 +128,12 @@ export const PERSONAJES = [
   ['Miss Valentine', '2', 'supporting', 'ミキータ', 'Fumiko Orikasa',
     'Compañera de Mr. 5. Comió la Fruta del Peso y cambia su peso a voluntad: puede flotar como una pluma o caer sobre su enemigo como una tonelada.'],
 
-  ['Nico Robin', '2,4,5,6,7', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
+  ['Nico Robin', '2,4,5,6,7,8,9', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
     'Vicepresidenta de Baroque Works, conocida como Miss All Sunday. Aparece en el barco de los sombrero de paja, les ofrece un eternal pose y demuestra que sabe demasiado sobre ellos. Tras la caída de Crocodile en Arabasta, se une a la tripulación.'],
 
   // ── TEMPORADA 3: la isla de Drum y Tony Tony Chopper ───────────────
 
-  ['Tony Tony Chopper', '3,4,5,6,7', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
+  ['Tony Tony Chopper', '3,4,5,6,7,8,9', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
     'Reno que comió la Fruta Humano-Humano y aprendió a hablar y a caminar como una persona. Quiere ser un médico capaz de curar cualquier enfermedad y se une a la tripulación en la isla de Drum.'],
 
   ['Kureha', '3', 'supporting', 'くれは', 'Masako Nozawa',
@@ -329,4 +329,226 @@ export const PERSONAJES = [
 
   ['Aokiji', '7', 'supporting', 'クザン', 'Takehito Koyasu',
     'Almirante de la Marina. Comió la Fruta del Hielo y puede congelar el mar y a sus enemigos; aparece al final de la temporada para advertir a la tripulación.'],
+
+  // ── REPARTO QUE FALTABA DE LAS TEMPORADAS 1 A 7 ──────────────────
+
+  ['Kuina', '1', 'supporting', 'くいな', 'Machiko Toyoshima',
+    'Amiga de la infancia de Zoro y su rival en el dojo. Soñaba con ser la mejor espadachina del mundo, pero murió al caer por unas escaleras; Zoro heredó su espada y su promesa.'],
+
+  ['Gin', '1', 'supporting', 'ギン', 'Kenichi Ono',
+    'Comandante de la flota de Don Krieg, conocido como Gin el Demonio. Respeta a Sanji por haberle dado de comer y se rebela contra su capitán.'],
+
+  ['Pearl', '1', 'supporting', 'パール', 'Hiroyuki Kawamoto',
+    'Guerrero de la armadura de hierro de Don Krieg. Pelea con escudos metálicos y es famoso por su cobardía y su fuerza.'],
+
+  ['Fullbody', '1', 'supporting', 'フルボディ', 'Hideo Ishikawa',
+    'Sargento de la Marina que presume de su cargo y de su peinado. Se enfrenta a Sanji en el Baratie y acaba humillado.'],
+
+  ['Johnny', '1', 'supporting', 'ジョニー', 'Masaya Takatsuka',
+    'Cazarrecompensas y amigo de Yosaku. Acompaña a Zoro y a la tripulación durante un tiempo y admira al espadachín.'],
+
+  ['Yosaku', '1', 'supporting', 'ヨサク', 'Yasuhiko Tokuyama',
+    'Cazarrecompensas y compañero de Johnny. Se une un tiempo a la tripulación y ayuda a Zoro en su búsqueda.'],
+
+  ['Genzo', '1', 'supporting', 'ゲンゾウ', 'Kouzou Shioya',
+    'Policía de la aldea de Cocoyashi y amigo de Bell-mère. Cuida de Nami y Nojiko y guarda un gran cariño a las dos hermanas.'],
+
+  ['Bell-mère', '1', 'supporting', 'ベルメール', 'Noriko Hidaka',
+    'Madre adoptiva de Nami y Nojiko. Exmarine que las crió en Cocoyashi y murió defendiéndolas de Arlong.'],
+
+  ['Nezumi', '1', 'supporting', 'ネズミ', 'Tamotsu Nishiwaki',
+    'Capitán de la Marina en Cocoyashi, corrupto y aliado de Arlong. Traiciona a Nami y a su aldea.'],
+
+  ['Mohji', '1', 'supporting', 'モージ', 'Shigenori Souya',
+    'Domador de bestias de la tripulación de Buggy. Pelea junto a su león Richie y es uno de los primeros enemigos de Luffy.'],
+
+  ['Cabaji', '1', 'supporting', 'カバジ', 'Moriya Endou',
+    'Malabarista y espadachín de la tripulación de Buggy. Se enfrenta a Zoro en la aldea de Orange.'],
+
+  ['Kaya', '1', 'supporting', 'カヤ', 'Mariko Kouda',
+    'Joven rica de la aldea de Syrup y amiga de Usopp. Está enferma por culpa de Kuro, que planea matarla para heredar su fortuna.'],
+
+  ['Sham', '1', 'supporting', 'シャム', 'Masaya Onosaka',
+    'Hipnotizador de los Gatos Negros y hermano de Buchi. Pelea con guantes de acero y ayuda a Kuro en su plan.'],
+
+  ['Buchi', '1', 'supporting', 'ブチ', 'Yasuhiro Takato',
+    'Luchador de los Gatos Negros y hermano de Sham. Pelea con garras de acero y se enfrenta a Zoro.'],
+
+  ['Kuroobi', '1', 'supporting', 'クロオビ', 'Hisao Egawa',
+    'Oficial de los piratas de Arlong. Pelea con karate de hombre pez y se enfrenta a Sanji.'],
+
+  ['Chew', '1', 'supporting', 'チュウ', 'Masaya Onosaka',
+    'Oficial de los piratas de Arlong que dispara agua por la boca. Se enfrenta a Usopp.'],
+
+  ['Boodle', '1', 'supporting', 'ブードル', 'Jouji Yanami',
+    'Alcalde de la aldea de Orange. Defiende su pueblo de Buggy y ayuda a Luffy.'],
+
+  ['Merry', '1', 'supporting', 'メリー', 'Jin Domon',
+    'Mayordomo de la familia de Kaya y constructor del Going Merry. Murió antes de la historia y el barco lleva su nombre.'],
+
+  ['Terracotta', '4', 'supporting', 'テラコッタ', 'Keiichi Sonobe',
+    'Ama de llaves del palacio de Arabasta y esposa de Igaram. Cuida de Vivi y de la familia real durante la guerra.'],
+
+  ['Mr. 7', '4', 'supporting', 'ミズター・セブン', 'Keisuke',
+    'Agente de Baroque Works y pareja de Miss Father\'s Day. Custodia la bomba de Alubarna y se enfrenta a Vivi.'],
+
+  ['Miss Father\'s Day', '4', 'supporting', 'ミス・ファーザーズデー', 'Tomoko Naka',
+    'Agente de Baroque Works y pareja de Mr. 7. Ayuda a custodiar la bomba de la torre del reloj.'],
+
+  ['Lapanui', '5', 'supporting', 'ラパヌイ・パスクア', 'Keiichi Sonobe',
+    'Líder de los Piratas Pumpkin, atrapados en la Niebla Arcoíris desde hace cincuenta años. Desconfía de Henzo hasta que descubre la verdad.'],
+
+  ['Ian', '5', 'supporting', 'イアン', 'Masaya Takatsuka',
+    'Capitán de asalto de los piratas de Wetton. Quedó atrapado en la Niebla Arcoíris con los Piratas Pumpkin y escapa con vida para reunirse con su capitán.'],
+
+  ['Hotori y Kotori', '6', 'supporting', 'ホトリとコトリ', 'Yasuhiro Takato',
+    'Hermanos gemelos de Satori y tenientes de los soldados divinos de Enel. Usan diales y el mantra para vengar a su hermano, pero Nami y Gan Fall los derrotan.'],
+
+  ['Baskerville', '9', 'supporting', 'バスカビル', 'Mahito Ooba',
+    'Jefe de justicia de Enies Lobby, en realidad tres hombres que fingen ser un solo cuerpo de tres cabezas. Manda a los jurados y a la guardia contra los intrusos.'],
+
+  ['Puzzle', '9', 'supporting', 'パズール', 'Kishou Taniyama',
+    'Capitán de los Piratas del Fénix y viejo pirata del Nuevo Mundo. Está gravemente herido cuando la tripulación lo encuentra y recupera la confianza para luchar contra los Accino.'],
+
+  ['Sengoku', '6', 'supporting', 'センゴク', 'Takkou Ishimori',
+    'Almirante de flota de la Marina y estratega del Gobierno Mundial. Dirige la reunión de los Señores del Mar en la que se discute el sustituto de Crocodile.'],
+
+  ['Tsuru', '6', 'supporting', 'つる中将', 'Minori Matsushima',
+    'Vicealmirante de la Marina y vieja conocida de Garp y Sengoku. Participa en la reunión de los Señores del Mar.'],
+
+  ['Bartholomew Kuma', '6', 'supporting', 'バーソロミュー・くま', 'Hideyuki Hori',
+    'Uno de los Siete Señores del Mar, con aspecto de oso y poderes desconocidos. Asiste a la reunión de Mary Geoise.'],
+
+  ['Donquixote Doflamingo', '6', 'supporting', 'ドフラミンゴ・ドンキホーテ', 'Hideyuki Tanaka',
+    'Uno de los Siete Señores del Mar, conocido como el Joker. Asiste a la reunión de Mary Geoise y se burla de la Marina.'],
+
+  ['Edward Newgate', '6', 'supporting', 'エドワード・ニューゲート', 'Kinryuu Arimoto',
+    'Capitán de los Piratas de Barbablanca y uno de los Cuatro Emperadores. Recibe a Shanks y se niega a detener a Ace.'],
+
+  ['Marco', '6', 'supporting', 'マルコ', 'Masakazu Morita',
+    'Comandante de la primera flota de Barbablanca. Tiene el pelo rubio y una fruta que le permite regenerarse.'],
+
+  ['Jozu', '6', 'supporting', 'ジョズ', 'Takashi Nagasako',
+    'Comandante de la tercera flota de Barbablanca. Es enorme y fuerte, y protege a su capitán.'],
+
+  ['Rockstar', '6', 'supporting', 'ロックスター', 'Daisuke Gouri',
+    'Pirata novato de los Piratas Pelirrojos. Lleva un mensaje de Shanks a Barbablanca y es rechazado.'],
+
+  // ── TEMPORADA 8: Water Seven y CP9 ───────────────────────────────
+
+  ['Franky', '8,9', 'main', 'フランキー', 'Kazuki Yao',
+    'Cyborg y carpintero de Water Seven, antiguo aprendiz de Tom. Construye el Thousand Sunny y se une a la tripulación como carpintero.'],
+
+  ['Iceberg', '8,9', 'supporting', 'アイスバーグ', 'Shinichirou Miki',
+    'Alcalde de Water Seven y líder de Galley-La. Fue aprendiz de Tom y guarda los planos de Pluton.'],
+
+  ['Paulie', '8,9', 'supporting', 'パウリ', 'Takahiro Yoshimizu',
+    'Capataz de Galley-La y experto en cuerdas. Ayuda a la tripulación y se enfrenta a la Familia Franky.'],
+
+  ['Kaku', '8,9', 'supporting', 'カク', 'Ryoutarou Okiayu',
+    'Carpintero de Galley-La que en realidad es un agente de CP9. Comió la Fruta de la Jirafa y pelea con Zoro.'],
+
+  ['Rob Lucci', '8,9', 'supporting', 'ロブ・ルッチ', 'Tomokazu Seki',
+    'Agente de CP9 y asesino del Gobierno. Comió la Fruta del Leopardo y es el rival final de Luffy en Enies Lobby.'],
+
+  ['Kalifa', '8,9', 'supporting', 'カリファ', 'Naomi Shindou',
+    'Agente de CP9 que se infiltra como secretaria de Iceberg. Comió la Fruta de la Burbuja y pelea con Nami.'],
+
+  ['Blueno', '8,9', 'supporting', 'ブルーノ', 'Seiji Sasaki',
+    'Agente de CP9 con la Fruta de la Puerta. Secuestra a Robin y se enfrenta a Luffy.'],
+
+  ['Jabra', '8,9', 'supporting', 'ジャブラ', 'Masaya Takatsuka',
+    'Agente de CP9 con la Fruta del Lobo. Pelea con Sanji y es el único que puede moverse usando el Iron Body.'],
+
+  ['Kumadori', '8,9', 'supporting', 'クマドリ', 'Hiroaki Yoshida',
+    'Agente de CP9 con el pelo largo y una técnica de control del cuerpo. Pelea con Chopper y es derrotado por su forma monstruosa.'],
+
+  ['Fukurou', '8,9', 'supporting', 'フクロウ', 'Kumiko Watanabe',
+    'Agente de CP9, delgado y hablador, con una boca que no puede cerrar. Pelea con Franky.'],
+
+  ['Spandam', '8,9', 'supporting', 'スパンダム', 'Masaya Onosaka',
+    'Jefe de CP9 e hijo de Spandine. Ambicioso y cobarde, ordena el Buster Call sobre Enies Lobby.'],
+
+  ['Tom', '8', 'supporting', 'トム', 'Yasuo Muramatsu',
+    'Legendario carpintero de Water Seven y maestro de Franky e Iceberg. Construyó el tren marino y el barco de Gol D. Roger.'],
+
+  ['Kokoro', '8,9', 'supporting', 'ココロ', 'Ako Mayama',
+    'Jefa de la estación de Water Seven y abuela de Chimney. En realidad es una sirena y ayuda a la tripulación a escapar.'],
+
+  ['Chimney', '8,9', 'supporting', 'チムニー', 'Chiwa Saitou',
+    'Niña hiperactiva de Water Seven y nieta de Kokoro. Acompaña a la tripulación con su gato Gonbe.'],
+
+  ['Gonbe', '8,9', 'supporting', 'ゴンベ', 'Akemi Okamura',
+    'Gato con aspecto de conejo que acompaña a Chimney. Es un compañero fiel y algo glotón.'],
+
+  ['Yokozuna', '8,9', 'supporting', 'ヨコヅナ', 'Masaya Takatsuka',
+    'Rana gigante que entrena contra el tren marino. Ayuda a la tripulación a llegar a Enies Lobby.'],
+
+  ['Tilestone', '8,9', 'supporting', 'タイルストン', 'Tetsu Inada',
+    'Carpintero de Galley-La y maestro del hacha. Ayuda a la alianza en Enies Lobby.'],
+
+  ['Peepley Lulu', '8,9', 'supporting', 'ピープリー･ルル', 'Shinichirou Oota',
+    'Carpintero de Galley-La y experto en cuerdas. Participa en el asalto a Enies Lobby.'],
+
+  ['Mozu', '8,9', 'supporting', 'モズ', 'Miki Fukui',
+    'Carpintera de Galley-La y hermana de Kiwi. Pelea con un martillo y ayuda en Enies Lobby.'],
+
+  ['Kiwi', '8,9', 'supporting', 'キウイ', 'Yuka Shioyama',
+    'Carpintera de Galley-La y hermana de Mozu. Pelea con un martillo y ayuda en Enies Lobby.'],
+
+  ['Zambai', '8,9', 'supporting', 'ザンバイ', 'Kouichi Nagano',
+    'Líder de la Familia Franky y viejo amigo de Franky. Organiza a los suyos para ayudar a la tripulación.'],
+
+  ['Nero', '8', 'supporting', 'ネロ', 'Hidenobu Kiuchi',
+    'Agente de CP9 conocido como la Comadreja. Pelea con Franky en el tren marino.'],
+
+  ['T-Bone', '8', 'supporting', 'Ｔボーン', 'Tomomichi Nishimura',
+    'Capitán de la Marina conocido como el Cortabarcos. Se enfrenta a Zoro en el tren marino.'],
+
+  ['Wanze', '8', 'supporting', 'ワンゼ', 'Yasuhiro Takato',
+    'Agente del Gobierno y cocinero que pelea con Ramen Kenpo. Se enfrenta a Sanji en el tren marino.'],
+
+  // ── TEMPORADA 9: Enies Lobby, Ohara y los Accino ─────────────────
+
+  ['Oimo', '9', 'supporting', 'オイモ', 'Hiroshi Okamoto',
+    'Gigante que custodia la segunda puerta de Enies Lobby. Cree que Dorry y Brogy están presos y se rebela al saber la verdad.'],
+
+  ['Kashi', '9', 'supporting', 'カーシー', 'Kouhei Fukuhara',
+    'Gigante que custodia la segunda puerta de Enies Lobby junto a Oimo. También se une a la alianza.'],
+
+  ['Spandine', '9', 'supporting', 'スパンダイン', 'Masaya Onosaka',
+    'Padre de Spandam y antiguo jefe de CP9. Ordenó el Buster Call sobre Ohara veinte años atrás.'],
+
+  ['Jaguar D. Saul', '9', 'supporting', 'ハグワール･D･サウロ', 'Takeshi Kusao',
+    'Vicealmirante gigante que abandonó la Marina y se hizo amigo de Robin en Ohara. Muere protegiéndola del Buster Call.'],
+
+  ['Nico Olvia', '9', 'supporting', 'ニコ・オルビア', 'Yuriko Yamaguchi',
+    'Arqueóloga de Ohara y madre de Robin. Vuelve a la isla para advertir a sus colegas del ataque del Gobierno.'],
+
+  ['Clover', '9', 'supporting', 'クローバー', 'Kouichi Kitamura',
+    'Profesor y líder de los arqueólogos de Ohara. Muere por investigar el siglo vacío.'],
+
+  ['Don Accino', '9', 'supporting', 'ドン・アッチーノ', 'Tomomichi Nishimura',
+    'Capitán de la familia Accino y usuario de la Fruta del Calor. Caza a los sombrero de paja para cobrar su recompensa.'],
+
+  ['Hockera', '9', 'supporting', 'ホッケラ・アッチーノ', 'Takuma Suzuki',
+    'Miembro de la familia Accino que usa un traje térmico. Pelea contra Franky en el mar helado.'],
+
+  ['Salchow', '9', 'supporting', 'サルコー・アッチーノ', 'Katsuyuki Konishi',
+    'Miembro de la familia Accino y esposo de Arbell. Pelea contra Sanji y Usopp.'],
+
+  ['Brindo', '9', 'supporting', 'ブリンド・アッチーノ', 'Kouichi Toochika',
+    'Miembro de la familia Accino que forma un imán con su hermano Canpacino. Pelea contra Luffy.'],
+
+  ['Arbell', '9', 'supporting', 'アルベル・アッチーノ', 'Yuuko Nagashima',
+    'Miembro de la familia Accino y hermana de Lil. Pelea con un látigo y ayuda a su familia.'],
+
+  ['Lil', '9', 'supporting', 'リル・アッチーノ', 'Katsue Miwa',
+    'Miembro de la familia Accino que controla peces voladores. Se hace amiga de Robin.'],
+
+  ['Canpacino', '9', 'supporting', 'カンパチーノ・アッチーノ', 'Taiki Matsuno',
+    'Miembro de la familia Accino y hermano de Brindo. Forma un imán con él y pelea contra Puzzle.'],
+
+  ['Jiro', '9', 'supporting', 'ジロー', 'Miyu Irino',
+    'Grumete de los Piratas del Fénix. Ayuda a Chopper a operar a Puzzle y se hace amigo de la tripulación.'],
 ];
