@@ -499,6 +499,21 @@ export const TRAMO_TVDB = {
       { temporada: 4, desde: 1, hasta: 51 },
     ],
   },
+  // One Piece: TVDB (81797) parte la serie por anos y el catalogo por
+  // sagas. La primera temporada del catalogo son 61 capitulos seguidos
+  // (el East Blue), que en TVDB son las temporadas 1 a 4 enteras y el
+  // primer capitulo de la 5.
+  //
+  //   catalogo T1  (1999-2001)  TVDB S1 (8) + S2 (22) + S3 (17) + S4 (13) + S5E1
+  'one-piece': {
+    1: [
+      { temporada: 1, desde: 1, hasta: 8 },
+      { temporada: 2, desde: 1, hasta: 22 },
+      { temporada: 3, desde: 1, hasta: 17 },
+      { temporada: 4, desde: 1, hasta: 13 },
+      { temporada: 5, desde: 1, hasta: 1 },
+    ],
+  },
 };
 
 /**
@@ -752,6 +767,30 @@ export const TITULO_TVDB = {
   },
   'lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note': {
     '魔眼蒐集列車1/6 旅立ちの汽笛と第一の殺人': '魔眼蒐集列車1/6 汽笛と第一の殺人',
+  },
+  // One Piece: TVDB (81797) escribe quince titulos con otra puntuacion
+  // (signos de ancho completo, "vs" en mayusculas o en minusculas, el
+  // punto medio distinto) y con cuatro erratas claras: 非常 por 非情 en
+  // el 27, 死闘 por 決闘 en el 29, 終り por 終わり en el 43 y el 48, y
+  // あぁ por ああ en el 47. En el 55 se ha comido el primer kanji
+  // (跡の生物 en vez de 奇跡の生物). Las fechas de los quince coinciden
+  // con las del catalogo, asi que son el mismo capitulo.
+  'one-piece': {
+    'モーガンVSルフィ!謎の美少女は誰?': 'モーガンVSルフィ！謎の美少女は誰？？',
+    '壮絶決闘!剣豪ゾロvs曲芸のカバジ!': '壮絶決闘！ 剣豪ゾロVS曲芸のカバジ！',
+    '冷徹非情の鬼人·海賊艦隊総隊長ギン': '冷徹非常の鬼人・海賊艦隊総隊長ギン',
+    '決闘の決着!腹にくくった1本の槍!': '死闘の決着！腹にくくった一本の槍！',
+    '東の海最悪の男!魚人海賊アーロン!': '東の海最悪の男！魚人海賊アーロン',
+    'ウソップ死す!?ルフィ上陸はまだ?': 'ウソップ死す?!ルフィ上陸はまだ？',
+    'ルフィ立つ!裏切られた約束の結末': 'ルフィ立つ！裏切られた約束の結末！',
+    'ルフィ大ピンチ!魚人VSルフィ海賊団': 'ルフィ大ピンチ！魚人vsルフィ海賊団',
+    'ルフィ水没!ゾロVSタコのはっちゃん': 'ルフィ水没！ゾロvsタコのはっちゃん',
+    '魚人帝国の終り!ナミは俺の仲間だ!': '魚人帝国の終わり！ナミは俺の仲間だ！',
+    'お待ちかね!ああ復活のバギー船長': 'お待ちかね！あぁ復活のバギー船長！',
+    '始まりと終わりの町·ローグタウン上陸': '始まりと終りの町・ローグタウン上陸',
+    '奇跡の生物!アピスの秘密と伝説の島': '跡の生物！アピスの秘密と伝説の島',
+    '廃虚の決闘!緊迫のゾロVSエリック': '廃墟の決闘！緊迫のゾロ対エリック！',
+    '大空を舞うもの!甦る千年の伝説': '大空を舞うもの！蘇る千年の伝説！',
   },
 };
 

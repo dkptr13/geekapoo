@@ -150,6 +150,9 @@ const FICHAS = {
   },
   'fate-strange-fake': { id: 'ts394931', titulo: 'Fate/strange Fake', anio: 2024 },
   'fate-zero': { id: 'ts11151', titulo: 'Fate/Zero', anio: 2011 },
+  // JustWatch la tiene como la serie de 1999 (objectId 529703). La de
+  // 2023 es otra ficha (255424) y no se toca.
+  'one-piece': { id: 'ts529703', titulo: 'One Piece', anio: 1999 },
   'lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note': {
     id: 'ts86890',
     titulo: "Lord El-Melloi II's Case Files {Rail Zeppelin} Grace note",

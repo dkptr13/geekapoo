@@ -190,6 +190,9 @@ export const BUSQUEDAS = {
   'code-geass-lelouch-of-the-re-surrection': 'Code Geass: Lelouch of the Re;surrection',
   'code-geass-lelouch-of-the-rebellion-iii-glorification': 'Code Geass: Lelouch of the Rebellion III - Glorification',
   'gintama': '銀魂',
+  // TVDB (81797) guarda la serie con el titulo en japones. Buscarla por
+  // "One Piece" devuelve primero la de imagen real de 2023.
+  'one-piece': 'ワンピース',
   'arifureta-from-commonplace-to-world-s-strongest': 'Arifureta Shokugyou de Sekai Saikyou',
   'code-geass-lelouch-of-the-rebellion': 'Code Geass: Lelouch of the Rebellion',
   'code-geass-lelouch-of-the-rebellion-ii-transgression': 'Code Geass: Lelouch of the Rebellion II - Transgression',

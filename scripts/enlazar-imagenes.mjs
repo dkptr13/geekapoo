@@ -194,6 +194,7 @@ const ANIMES = [
   { id: 'code-geass-lelouch-of-the-re-surrection', buscar: 'Code Geass: Lelouch of the Re;surrection' },
   { id: 'arifureta-from-commonplace-to-world-s-strongest', buscar: 'Arifureta Shokugyou de Sekai Saikyou' },
   { id: 'gintama', buscar: 'Gintama' },
+  { id: 'one-piece', buscar: 'One Piece', anilist: 21 },
   { id: 'dr-stone', buscar: 'Dr. Stone' },
   { id: 'gleipnir', buscar: 'Gleipnir' },
   { id: 'king-s-game', buscar: "King's Game" },
