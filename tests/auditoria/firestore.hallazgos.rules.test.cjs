@@ -417,6 +417,42 @@ describe('AUDITORÍA: hallazgos de reglas de Firestore', () => {
         }),
       );
     });
+
+    it('[CORREGIDO C5] el dueño ACTIVO tampoco añade desde el cliente', async () => {
+      // El P1 que quedaba: C4 solo cubría al dueño baneado. Un
+      // dueño activo podía seguir metiendo a alguien sin
+      // consentimiento y regalarle la medalla de club unido.
+      await assertFails(
+        updateDoc(doc(db(BOB), 'clubs', 'club-salida'), {
+          memberIds: [BOB, ALICE, CAROL],
+          members: {
+            [BOB]: { role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+            [ALICE]: { role: 'member', joinedAt: '2026-01-01T00:00:00.000Z' },
+            [CAROL]: { role: 'member', joinedAt: '2026-01-02T00:00:00.000Z' },
+          },
+          memberCount: 3,
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    });
+
+    it('[CORREGIDO C6] un club público no se auto-une desde el cliente', async () => {
+      // La entrada la hace `unirseClubPublico`: ficha y chats en
+      // una transacción. Sin esta prueba, volver a abrir la rama
+      // de auto-unión no rompería la suite.
+      await assertFails(
+        updateDoc(doc(db(CAROL), 'clubs', 'club-salida'), {
+          memberIds: [BOB, ALICE, CAROL],
+          members: {
+            [BOB]: { role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+            [ALICE]: { role: 'member', joinedAt: '2026-01-01T00:00:00.000Z' },
+            [CAROL]: { role: 'member', joinedAt: '2026-01-02T00:00:00.000Z' },
+          },
+          memberCount: 3,
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    });
   });
 
   // ==========================================================

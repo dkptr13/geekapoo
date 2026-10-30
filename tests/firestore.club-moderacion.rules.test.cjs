@@ -723,7 +723,7 @@ describe('Sanciones: levantarlas', () => {
     await assertSucceeds(batch.commit());
   });
 
-  it('desbanear devuelve a la persona al club con el LOTE completo', async () => {
+  it('desbanear NO se puede hacer desde el cliente: lo hace la callable', async () => {
     await sembrar(async (f) => {
       // La persona está baneada: fuera de memberIds, sin ficha.
       await updateDoc(doc(f, 'clubs', 'club-prueba'), {
@@ -756,7 +756,7 @@ describe('Sanciones: levantarlas', () => {
       memberCount: 6,
       updatedAt: serverTimestamp(),
     });
-    await assertSucceeds(batch.commit());
+    await assertFails(batch.commit());
   });
 
   it('un moderador NO puede levantar la de otro moderador sin permiso', async () => {

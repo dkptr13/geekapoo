@@ -1,93 +1,4 @@
 /**
-});
-  });
-// ------------------------------------------------------------
-// ENTRAR EN CLUB P�BLICO (sin solicitud)
-// ------------------------------------------------------------
-
-describe('Entrar en un club p�blico (auto-unirse)', () => {
-  const slug = 'club-publico-test';
-
-  beforeEach(async () => {
-    await sembrar(async (f) => {
-      await setDoc(doc(f, 'clubs', slug), nuevoClub(DUENO, {
-        slug,
-        name: 'Club P�blico',
-        accessType: 'public',
-        moderatorIds: [],
-      }));
-      await setDoc(
-        doc(f, 'chats', 'chat-club-1'),
-        nuevoChatClub(DUENO, [DUENO], slug),
-      );
-    });
-  });
-
-  it('un usuario puede a�adirse a s� mismo en la ficha del club', async () => {
-    await assertSucceeds(
-      updateDoc(doc(db(ALICE), 'clubs', slug), {
-        memberIds: [DUENO, ALICE],
-        members: {
-          [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
-          [ALICE]: { uid: ALICE, role: 'member', joinedAt: '2026-01-01T00:00:00.000Z' },
-        },
-        memberCount: 2,
-        updatedAt: serverTimestamp(),
-      }),
-    );
-  });
-
-  it('y tambi�n en el chat del club (memberIds + hiddenFor)', async () => {
-    await assertSucceeds(
-      updateDoc(doc(db(ALICE), 'chats', 'chat-club-1'), {
-        memberIds: [DUENO, ALICE],
-        hiddenFor: [],
-      }),
-    );
-  });
-
-  it('pero NO en un club privado (accessType == private)', async () => {
-    await sembrar(async (f) => {
-      await updateDoc(doc(f, 'clubs', slug), { accessType: 'private' });
-    });
-
-    await assertFails(
-      updateDoc(doc(db(ALICE), 'clubs', slug), {
-        memberIds: [DUENO, ALICE],
-        members: {
-          [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
-          [ALICE]: { uid: ALICE, role: 'member', joinedAt: '2026-01-01T00:00:00.000Z' },
-        },
-        memberCount: 2,
-        updatedAt: serverTimestamp(),
-      }),
-    );
-  });
-
-  it('ni en un club por solicitud (accessType == request)', async () => {
-    await sembrar(async (f) => {
-      await updateDoc(doc(f, 'clubs', slug), { accessType: 'request' });
-    });
-
-    await assertFails(
-      updateDoc(doc(db(ALICE), 'clubs', slug), {
-        memberIds: [DUENO, ALICE],
-        members: {
-          [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
-          [ALICE]: { uid: ALICE, role: 'member', joinedAt: '2026-01-01T00:00:00.000Z' },
-        },
-        memberCount: 2,
-        updatedAt: serverTimestamp(),
-      }),
-    );
-  });
-});
-
-// ------------------------------------------------------------
-// QUE NO SE HAYA ROTO NADA DE ANTES
-// ------------------------------------------------------------
-});
-/**
  * Pruebas de las reglas de los CLUBES.
  *
  * Va aparte porque las reglas de clubes son un bloque nuevo, y
@@ -775,6 +686,66 @@ describe('Miembros y roles de un club', () => {
       updateDoc(doc(db(MOD), 'clubs', 'club-de-frieren'), conMiembros({
         [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
         [CARA]: { uid: CARA, role: 'member', joinedAt: '2026-01-03T00:00:00.000Z' },
+      })),
+    );
+  });
+
+  // ── Altas directas ───────────────────────────────────
+  // Las altas solo las hacen `unirseClubPublico`,
+  // `responderSolicitudClub` y `levantarSancionClub`. Si el
+  // propietario pudiera añadir desde el navegador, la persona
+  // entraría sin consentimiento y la medalla de club unido se
+  // dispararía sin una acción real.
+  it('el propietario NO puede dar de alta a nadie desde el cliente', async () => {
+    await assertFails(
+      updateDoc(doc(db(DUENO), 'clubs', 'club-de-frieren'), conMiembros({
+        [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+        [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+        [CARA]: { uid: CARA, role: 'member', joinedAt: '2026-01-03T00:00:00.000Z' },
+        [ALICE]: { uid: ALICE, role: 'member', joinedAt: '2026-01-04T00:00:00.000Z' },
+      })),
+    );
+  });
+
+  it('un admin no puede colar a alguien mientras expulsa a otro', async () => {
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        adminIds: [ALICE],
+        permisos: { adminExpulsa: true },
+        memberIds: [DUENO, MOD, CARA, ALICE],
+        members: {
+          [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+          [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+          [CARA]: { uid: CARA, role: 'member', joinedAt: '2026-01-03T00:00:00.000Z' },
+          [ALICE]: { uid: ALICE, role: 'admin', joinedAt: '2026-01-04T00:00:00.000Z' },
+        },
+        memberCount: 4,
+      });
+    });
+
+    // Quita a CARA y mete a BOB en la misma escritura: el tamaño
+    // baja en uno, pero hay una alta encubierta.
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'clubs', 'club-de-frieren'), conMiembros({
+        [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+        [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+        [ALICE]: { uid: ALICE, role: 'admin', joinedAt: '2026-01-04T00:00:00.000Z' },
+        [BOB]: { uid: BOB, role: 'member', joinedAt: '2026-01-05T00:00:00.000Z' },
+      })),
+    );
+  });
+
+  it('un club público ya no se auto-une desde el cliente', async () => {
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), { accessType: 'public' });
+    });
+
+    await assertFails(
+      updateDoc(doc(db(ALICE), 'clubs', 'club-de-frieren'), conMiembros({
+        [DUENO]: { uid: DUENO, role: 'owner', joinedAt: '2026-01-01T00:00:00.000Z' },
+        [MOD]: { uid: MOD, role: 'moderator', joinedAt: '2026-01-02T00:00:00.000Z' },
+        [CARA]: { uid: CARA, role: 'member', joinedAt: '2026-01-03T00:00:00.000Z' },
+        [ALICE]: { uid: ALICE, role: 'member', joinedAt: '2026-01-04T00:00:00.000Z' },
       })),
     );
   });

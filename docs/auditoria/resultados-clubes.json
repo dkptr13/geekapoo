@@ -1,0 +1,31 @@
+{
+  "proyecto": "demo-geekapoo-auditoria",
+  "fecha": "2026-10-30T22:48:42.361Z",
+  "resultados": [
+    {
+      "caso": "Alta pública por callable",
+      "estado": "OK",
+      "detalle": "miembro=true, chat=true, medalla=true"
+    },
+    {
+      "caso": "Solicitud aceptada por callable",
+      "estado": "OK",
+      "detalle": "miembro=true, chat=true, solicitud=accepted, medalla=true"
+    },
+    {
+      "caso": "Altas directas rechazadas (dueño y auto-unión)",
+      "estado": "OK",
+      "detalle": "dueño=true, auto-unión=true, sigue fuera=true, medalla=false"
+    },
+    {
+      "caso": "Una escritura directa en memberIds no concede la medalla",
+      "estado": "OK",
+      "detalle": "medalla=false"
+    },
+    {
+      "caso": "Desbaneo por callable",
+      "estado": "OK",
+      "detalle": "ajeno rechazado=true, vuelve=true, rol=moderator, chat=true, mods=true, sanción borrada=true, historial=true, medalla=true"
+    }
+  ]
+}

@@ -3697,6 +3697,30 @@ service cloud.firestore {
                       in request.resource.data.members.keys());
     }
 
+    /**
+     * El cliente NO puede dar de alta a nadie en el club.
+     *
+     * Las altas pasan por `unirseClubPublico` o
+     * `responderSolicitudClub`, que usan el Admin SDK y escriben la
+     * ficha y los chats en una transacción. Si el propietario o un
+     * moderador pudieran añadir desde el navegador, la persona
+     * entraría sin consentimiento y el trigger de estadísticas le
+     * daría la medalla de "club unido" sin haber hecho nada.
+     *
+     * La comprobación es de SUBCONJUNTO: la lista y el mapa nuevos
+     * solo pueden conservar claves que ya estaban. Quitar gente
+     * sigue permitido; añadirla, no.
+     */
+    function sinAltasDeMiembros() {
+      return resource.data.memberIds is list
+             && request.resource.data.memberIds is list
+             && resource.data.members is map
+             && request.resource.data.members is map
+             && resource.data.memberIds.hasAll(request.resource.data.memberIds)
+             && resource.data.members.keys()
+                  .hasAll(request.resource.data.members.keys());
+    }
+
     match /clubs/{clubId} {
       // ── Lectura ─────────────────────────────────────
       // Los clubes públicos y por solicitud son legibles
@@ -3817,7 +3841,10 @@ service cloud.firestore {
                                 'rules', 'accessType', 'members', 'memberIds',
                                 'memberCount', 'moderatorIds', 'adminIds',
                                 'ownerId', 'permisos', 'updatedAt'])
-                        && duenoSigueDentro())
+                        && duenoSigueDentro()
+                        && sinAltasDeMiembros()
+                        && request.resource.data.memberCount
+                             == request.resource.data.memberIds.size())
                     // El ASPECTO del club, para un admin con el
                     // permiso 'adminEditaAspecto' concedido. Solo
                     // eso: ni los roles, ni los miembros, ni la
@@ -3847,6 +3874,9 @@ service cloud.firestore {
                                ['members', 'memberIds', 'memberCount', 'updatedAt'])
                         && soloAJenos()
                         && duenoSigueDentro()
+                        && sinAltasDeMiembros()
+                        && request.resource.data.memberCount
+                             == request.resource.data.memberIds.size()
                         && ((request.resource.data.memberIds.size()
                                   == resource.data.memberIds.size()
                               && request.resource.data.memberIds.hasAll(resource.data.memberIds)
@@ -3889,38 +3919,11 @@ service cloud.firestore {
                     && request.resource.data.diff(resource.data)
                          .affectedKeys().hasOnly(['members', 'memberIds', 'memberCount', 'updatedAt']);
 
-      // Entrar en un club PÚBLICO: añadirse a sí mismo sin pasar
-      // por solicitud. Exactamente una persona más, y soy yo.
-      //
-      // Solo para clubes con accessType == 'public'. Las
-      // claves permitidas son las mismas que en «salir».
-      //
-      // El `hasAll` va de NUEVO hacia VIEJO (los que ya estaban
-      // siguen intactos): al revés (viejo contiene a nuevo) no
-      // podría cumplirse nunca al entrar alguien, y la rama
-      // quedaba muerta con «permission-denied» en cada «Unirme».
-      allow update: if isActive()
-                    && clubExiste(clubId)
-                    && resource.data.accessType == 'public'
-                    && !(request.auth.uid in resource.data.memberIds)
-                    // Con un baneo vigente NO se puede reincorporar.
-                    // La caducidad la decide `request.time`, así que
-                    // al terminar el baneo el acceso vuelve solo, sin
-                    // que nadie tenga que borrar nada a mano.
-                    && !sancionado(clubId, request.auth.uid)
-                    && request.auth.uid in request.resource.data.memberIds
-                    && request.resource.data.memberIds.size()
-                         == resource.data.memberIds.size() + 1
-                    && !(request.auth.uid in resource.data.members.keys())
-                    && request.resource.data.members.size()
-                         == resource.data.members.size() + 1
-                    && request.auth.uid in request.resource.data.members.keys()
-                    && request.resource.data.members[request.auth.uid].role == 'member'
-                    && request.resource.data.members[request.auth.uid].uid == request.auth.uid
-                    && request.resource.data.members.values()
-                         .hasAll(resource.data.members.values())
-                    && request.resource.data.diff(resource.data)
-                         .affectedKeys().hasOnly(['members', 'memberIds', 'memberCount', 'updatedAt']);
+      // Entrar en un club PÚBLICO ya NO se hace desde el cliente.
+      // Lo hace `unirseClubPublico`, que añade a la persona al club
+      // y a todos sus chats en una sola transacción. Si el cliente
+      // pudiera tocar `memberIds`, entraría sin pasar por los chats
+      // (y el trigger de estadísticas le contaría el club).
 
       // ── Borrado ─────────────────────────────────────
       // Solo el propietario (o un admin global). Borrar un
@@ -4232,7 +4235,12 @@ service cloud.firestore {
                       && request.resource.data.visibility == 'all'
                       && request.resource.data.spoiler == false
                       && request.resource.data.order is number
-                      && request.resource.data.createdBy is string;
+                      // El `general` migrado reutiliza el chat del
+                      // propietario y la medalla se la lleva él. Si
+                      // cualquier miembro pudiera poner otro uid,
+                      // inflaría las estadísticas de un tercero.
+                      && request.resource.data.createdBy
+                           == clubData(clubId).ownerId;
 
         // Editar: nombre, descripción, visibilidad, spoilers y
         // orden. El `id`, el `clubId`, el `chatId`, el creador y

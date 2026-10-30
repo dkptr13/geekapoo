@@ -3029,6 +3029,8 @@ export const responderSolicitudClub = onCall(async (request) => {
     return { id: d.id, visibility: datos.visibility, chatId: datos.chatId };
   });
 
+  let miembroAceptado = '';
+
   await db.runTransaction(async (tx) => {
     const clubSnap = await tx.get(clubRef);
     const solicitudSnap = await tx.get(solicitudRef);
@@ -3164,7 +3166,218 @@ export const responderSolicitudClub = onCall(async (request) => {
       respondedAt: FieldValue.serverTimestamp(),
       respondedBy: uid,
     });
+    miembroAceptado = fromId;
   });
+
+  // La medalla de club unido se concede desde el flujo servidor,
+  // no desde `onClubMembersChanged`: una escritura directa en
+  // `memberIds` no debe poder inflar las estadísticas.
+  if (miembroAceptado) {
+    try {
+      await marcarMapa(miembroAceptado, { clubesUnidos: clubId });
+    } catch (e) {
+      logger.error('No se pudo marcar el club como unido', {
+        clubId,
+        uid: miembroAceptado,
+        error: e,
+      });
+    }
+  }
+
+  return { ok: true };
+});
+
+/**
+ * Levanta una sanción de club desde el servidor.
+ *
+ * Las reglas ya no permiten que el cliente vuelva a meter a un
+ * baneado en `memberIds`: las altas solo las hacen los flujos
+ * servidor. Por eso el desbaneo también vive aquí. Borra la sanción
+ * vigente, devuelve a la persona con su rol anterior y la mete otra
+ * vez en los chats que le correspondan, todo en una transacción.
+ *
+ * Replica la jerarquía de `puedeLevantar`: nadie levanta lo de un
+ * rango superior; a igual rango, un moderador necesita
+ * `moderadorLevanta` y un admin `adminLevanta` (encendido por
+ * defecto).
+ */
+export const levantarSancionClub = onCall(async (request) => {
+  const actorUid = await exigirActivo(request.auth);
+  const clubId = texto(request.data?.clubId, 100);
+  const objetivoUid = texto(request.data?.objetivoUid, 200);
+  const motivoRetirada = texto(request.data?.motivoRetirada, 200);
+
+  if (!clubId || !objetivoUid) {
+    throw new HttpsError('invalid-argument', 'Falta el club o la persona.');
+  }
+
+  const actorSnap = await db.doc(`${USERS}/${actorUid}`).get();
+  const actorNombre = nombreDePerfil(actorSnap.data());
+
+  const clubRef = db.doc(`${CLUBS}/${clubId}`);
+  const sancionRef = db.doc(`${CLUBS}/${clubId}/sancion/${objetivoUid}`);
+  const canalesSnap = await db.collection(`${CLUBS}/${clubId}/${CHANNELS}`).get();
+  const canales = canalesSnap.docs.map((d) => {
+    const datos = d.data() as Record<string, unknown>;
+    return { visibility: datos.visibility, chatId: datos.chatId };
+  });
+
+  let reincorporado = false;
+
+  await db.runTransaction(async (tx) => {
+    const clubSnap = await tx.get(clubRef);
+    const sancionSnap = await tx.get(sancionRef);
+    if (!clubSnap.exists) {
+      throw new HttpsError('not-found', 'Ese club ya no existe.');
+    }
+    if (!sancionSnap.exists) {
+      throw new HttpsError('failed-precondition', 'Esa persona no tiene ninguna sanción.');
+    }
+
+    const club = clubSnap.data() ?? {};
+    const sancion = sancionSnap.data() ?? {};
+    if (!sancionDeClubActiva(sancion, Date.now())) {
+      throw new HttpsError('failed-precondition', 'Esa sanción ya no está activa.');
+    }
+
+    const tipo =
+      sancion.tipo === 'baneo'
+        ? 'baneo'
+        : sancion.tipo === 'silencio'
+          ? 'silencio'
+          : '';
+    if (!tipo) {
+      throw new HttpsError('failed-precondition', 'Esa sanción no se puede levantar.');
+    }
+
+    const miembrosClub = listaDeUids(club.memberIds);
+    if (!miembrosClub.includes(actorUid)) {
+      throw new HttpsError(
+        'permission-denied',
+        'Solo el equipo del club puede levantar sanciones.',
+      );
+    }
+
+    const rangoDe = (uid: string): string => {
+      if (club.ownerId === uid) return 'owner';
+      if (Array.isArray(club.moderatorIds) && club.moderatorIds.includes(uid)) {
+        return 'moderator';
+      }
+      if (Array.isArray(club.adminIds) && club.adminIds.includes(uid)) {
+        return 'admin';
+      }
+      return 'member';
+    };
+    const peso = (rango: string): number =>
+      rango === 'owner' ? 3 : rango === 'admin' ? 2 : rango === 'moderator' ? 1 : 0;
+
+    const rangoActor = rangoDe(actorUid);
+    const rangoAplicada = ['owner', 'admin', 'moderator', 'member'].includes(
+      String(sancion.aplicadaPorRango),
+    )
+      ? String(sancion.aplicadaPorRango)
+      : 'member';
+    const permisos = (club.permisos ?? {}) as Record<string, unknown>;
+    const puedeLevantar =
+      rangoActor !== 'member' &&
+      (sancion.aplicadaPor === actorUid ||
+        peso(rangoActor) > peso(rangoAplicada) ||
+        (peso(rangoActor) === peso(rangoAplicada) &&
+          ((rangoActor === 'moderator' && permisos.moderadorLevanta === true) ||
+            (rangoActor === 'admin' && permisos.adminLevanta !== false))));
+
+    if (!puedeLevantar) {
+      throw new HttpsError('permission-denied', 'No puedes levantar esta sanción.');
+    }
+
+    const miembros = { ...((club.members ?? {}) as Record<string, unknown>) };
+    const rolPrevio = ['owner', 'admin', 'moderator', 'member'].includes(
+      String(sancion.rolPrevio),
+    )
+      ? String(sancion.rolPrevio)
+      : 'member';
+
+    if (tipo === 'baneo' && !miembros[objetivoUid]) {
+      miembros[objetivoUid] = {
+        uid: objetivoUid,
+        role: rolPrevio,
+        joinedAt: new Date().toISOString(),
+      };
+      reincorporado = true;
+    }
+    if (tipo === 'silencio' && miembros[objetivoUid]) {
+      const ficha = { ...(miembros[objetivoUid] as Record<string, unknown>) };
+      delete ficha.mutedUntil;
+      miembros[objetivoUid] = ficha;
+    }
+
+    const ids =
+      tipo === 'baneo' ? unicos([...miembrosClub, objetivoUid]) : miembrosClub;
+
+    const chats = unicos([
+      typeof club.chatId === 'string' ? club.chatId : '',
+      ...canales
+        .filter(
+          (c) =>
+            typeof c.chatId === 'string' &&
+            (c.visibility === 'all' ||
+              (c.visibility === 'mods' && rolPrevio !== 'member')),
+        )
+        .map((c) => c.chatId as string),
+    ]).filter((id) => id.length > 0);
+
+    const chatsSnap = await Promise.all(
+      chats.map((id) => tx.get(db.doc(`${CHATS}/${id}`))),
+    );
+
+    tx.update(clubRef, {
+      members: miembros,
+      memberIds: ids,
+      memberCount: ids.length,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    tx.delete(sancionRef);
+    tx.set(db.collection(`${CLUBS}/${clubId}/sanciones`).doc(), {
+      clubId,
+      accion: 'retirada',
+      tipo,
+      objetivoUid,
+      objetivoNombre:
+        typeof sancion.objetivoNombre === 'string' ? sancion.objetivoNombre : '',
+      aplicadoSobreId: sancionSnap.id,
+      motivo: motivoRetirada || 'Sin motivo indicado.',
+      inicio: sancion.inicio ?? FieldValue.serverTimestamp(),
+      fin: sancion.fin ?? null,
+      permanente: false,
+      aplicadaPor: actorUid,
+      aplicadaPorNombre: actorNombre,
+      aplicadaPorRango: rangoActor,
+      retirada: true,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    if (tipo === 'baneo') {
+      chatsSnap.forEach((chatSnap) => {
+        if (!chatSnap.exists) return;
+        tx.update(chatSnap.ref, {
+          memberIds: FieldValue.arrayUnion(objetivoUid),
+          hiddenFor: FieldValue.arrayRemove(objetivoUid),
+        });
+      });
+    }
+  });
+
+  if (reincorporado) {
+    try {
+      await marcarMapa(objetivoUid, { clubesUnidos: clubId });
+    } catch (e) {
+      logger.error('No se pudo marcar el club como unido al desbanear', {
+        clubId,
+        uid: objetivoUid,
+        error: e,
+      });
+    }
+  }
 
   return { ok: true };
 });
@@ -3258,6 +3471,16 @@ export const unirseClubPublico = onCall(async (request) => {
       });
     });
   });
+
+  // La medalla se concede aquí, no en `onClubMembersChanged`: así
+  // una escritura directa en `memberIds` no puede inflar las
+  // estadísticas. `marcarMapa` es idempotente, aunque la persona ya
+  // estuviera dentro.
+  try {
+    await marcarMapa(uid, { clubesUnidos: clubId });
+  } catch (e) {
+    logger.error('No se pudo marcar el club como unido', { clubId, uid, error: e });
+  }
 
   return { ok: true };
 });
@@ -4960,11 +5183,13 @@ export const onClubCreated = onDocumentCreated(
 );
 
 /**
- * Entrar o salir de un club: solo suman los que ENTRAN.
+ * Limpieza de chats al salir o ser expulsado de un club.
  *
- * Se comparan los `memberIds` de antes y después, y se marca a
- * cada miembro nuevo. Salir no resta nada: la medalla no se
- * pierde por irse, igual que con los seguidores.
+ * Las medallas de `clubesUnidos` NO se conceden aquí: las dan
+ * `unirseClubPublico`, `responderSolicitudClub` y
+ * `levantarSancionClub`, que son los únicos flujos que pueden
+ * añadir miembros. Este trigger se queda con la parte que no
+ * puede hacer el cliente: quitar al que sale de todos los chats.
  */
 export const onClubMembersChanged = onDocumentUpdated(
   { document: `${CLUBS}/{clubId}`, region: REGION_TRIGGERS },
@@ -4982,14 +5207,6 @@ export const onClubMembersChanged = onDocumentUpdated(
         (m): m is string => typeof m === 'string',
       );
       const clubId = event.params['clubId'];
-      for (const uid of son) {
-        if (eran.has(uid)) continue;
-        try {
-          await marcarMapa(uid, { clubesUnidos: clubId });
-        } catch (e) {
-          logger.error('Fallo marcando miembro de club', { clubId, uid, error: e });
-        }
-      }
 
       // ── Limpieza de chats al salir o ser expulsado ──────
       //

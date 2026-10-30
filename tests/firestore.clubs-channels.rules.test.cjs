@@ -408,6 +408,28 @@ describe('Migración del canal general', () => {
     );
   });
 
+  it('pero NO atribuyéndolo a otra persona', async () => {
+    // `createdBy` alimenta la medalla de canales creados. Si un
+    // miembro pudiera poner el uid de un tercero, le inflaría las
+    // estadísticas sin que hubiera hecho nada.
+    await assertFails(
+      setDoc(doc(db(BOB), 'clubs', 'club-de-frieren', 'channels', 'general'), {
+        id: 'general',
+        clubId: 'club-de-frieren',
+        chatId: 'chat-club-1',
+        name: 'General',
+        description: 'Conversación general del club.',
+        type: 'text',
+        visibility: 'all',
+        spoiler: false,
+        order: 0,
+        createdBy: BOB,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
   it('pero NO apuntando a otro chat', async () => {
     await assertFails(
       setDoc(doc(db(BOB), 'clubs', 'club-de-frieren', 'channels', 'general'), {

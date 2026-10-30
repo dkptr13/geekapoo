@@ -1,7 +1,6 @@
 import {
   addDoc,
   collection,
-  deleteDoc,
   doc,
   getDoc,
   onSnapshot,
@@ -12,8 +11,9 @@ import {
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 
-import { db } from '../lib/firebase';
+import { db, functions } from '../lib/firebase';
 import { CLUBS } from './clubs';
 import { toIsoString } from './firestoreUtils';
 import {
@@ -31,7 +31,6 @@ import type {
   ClubModeracionEvento,
   ClubPermisos,
   ClubRango,
-  ClubRole,
   ClubSancion,
   SancionTipo,
 } from '../types';
@@ -290,7 +289,7 @@ export async function levantarSancion(params: {
   objetivoNombre: string;
   motivoRetirada?: string;
 }): Promise<{ ok: boolean; error?: string }> {
-  const { club, actorUid, actorNombre, objetivoUid, objetivoNombre } = params;
+  const { club, actorUid, objetivoUid } = params;
 
   const refActiva = doc(db, CLUBS, club.id, SANCION_ACTIVA, objetivoUid);
   const snap = await getDoc(refActiva);
@@ -303,78 +302,16 @@ export async function levantarSancion(params: {
     return { ok: false, error: 'Esa sanción ya no está activa.' };
   }
 
-  const motivo = (params.motivoRetirada ?? '').trim().slice(0, 200);
-  const rangoActor = rangoEnClub(club, actorUid) ?? 'member';
-
   try {
-    const batch = writeBatch(db);
-    batch.delete(refActiva);
-
-    const miembros = { ...(club.members ?? {}) };
-
-    if (vigente.tipo === 'baneo') {
-      // El baneo SACÓ a la persona del club, así que al
-      // desbanearla hay que devolverla: si no, se quedaba fuera
-      // para siempre y el baneo era una expulsión sin vuelta atrás.
-      // Vuelve con el cargo que tenía antes, no con el que le
-      // toque por defecto.
-      const rolPrevio =
-        (snap.data().rolPrevio as ClubRole | undefined) ?? 'member';
-      if (!miembros[objetivoUid]) {
-        miembros[objetivoUid] = {
-          uid: objetivoUid,
-          role: rolPrevio,
-          joinedAt: new Date().toISOString(),
-        };
-      }
-    } else if (miembros[objetivoUid]) {
-      // Un silencio no saca a nadie del club: solo se limpia la
-      // marca para que pueda escribir otra vez.
-      const { mutedUntil: _fuera, ...resto } = miembros[objetivoUid];
-      miembros[objetivoUid] = resto;
-    }
-
-    // `memberIds` es la lista espejo que leen las reglas, así que
-    // va en la misma escritura que `members`.
-    const memberIdsAntes = (await getDoc(doc(db, CLUBS, club.id))).data()?.memberIds;
-    const memberIds = Array.isArray(memberIdsAntes)
-      ? memberIdsAntes
-      : Object.keys(miembros);
-    if (vigente.tipo === 'baneo' && !memberIds.includes(objetivoUid)) {
-      memberIds.push(objetivoUid);
-    }
-
-    batch.update(doc(db, CLUBS, club.id), {
-      members: miembros,
-      memberIds,
-      memberCount: Object.keys(miembros).length,
-      updatedAt: serverTimestamp(),
-    });
-
-    // La entrada del historial va con id automático. `doc()` con
-    // una ruta de COLECCIÓN (clubs/{id}/sanciones) no vale:
-    // `doc()` necesita una ruta de documento, y una de colección
-    // son 3 segmentos impares. Para eso está `collection()`:
-    // `doc(collection(...))` genera el id.
-    batch.set(doc(collection(db, CLUBS, club.id, SANCIONES)), {
+    // El desbaneo vuelve a meter a la persona en el club, y las
+    // reglas ya no permiten altas desde el cliente. La transacción
+    // (sanción, ficha y chats) la hace la Cloud Function.
+    const llamar = httpsCallable(functions, 'levantarSancionClub');
+    await llamar({
       clubId: club.id,
-      accion: 'retirada',
-      tipo: vigente.tipo,
       objetivoUid,
-      objetivoNombre,
-      aplicadoSobreId: vigente.id,
-      motivo: motivo || 'Sin motivo indicado.',
-      inicio: vigente.inicio,
-      fin: vigente.fin,
-      permanente: false,
-      aplicadaPor: actorUid,
-      aplicadaPorNombre: actorNombre,
-      aplicadaPorRango: rangoActor,
-      retirada: true,
-      createdAt: serverTimestamp(),
+      motivoRetirada: (params.motivoRetirada ?? '').trim().slice(0, 200),
     });
-
-    await batch.commit();
     return { ok: true };
   } catch (e: unknown) {
     return {
