@@ -1,6 +1,6 @@
 {
   "proyecto": "demo-geekapoo-auditoria",
-  "fecha": "2026-10-30T22:48:42.361Z",
+  "fecha": "2026-10-30T22:57:08.146Z",
   "resultados": [
     {
       "caso": "Alta pública por callable",
@@ -26,6 +26,16 @@
       "caso": "Desbaneo por callable",
       "estado": "OK",
       "detalle": "ajeno rechazado=true, vuelve=true, rol=moderator, chat=true, mods=true, sanción borrada=true, historial=true, medalla=true"
+    },
+    {
+      "caso": "Dueño baneado no gestiona canales",
+      "estado": "OK",
+      "detalle": "crear=true, editar=true, borrar=true, al desbanear=true"
+    },
+    {
+      "caso": "Miembro sancionado no escribe en general",
+      "estado": "OK",
+      "detalle": "sancionado=true, al levantar=true"
     }
   ]
 }

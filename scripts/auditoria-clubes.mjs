@@ -11,6 +11,8 @@
  *      concede la medalla: ya no la da `onClubMembersChanged`.
  *   4. El desbaneo pasa por `levantarSancionClub`, que devuelve a la
  *      persona con su rol y la mete otra vez en sus chats.
+ *   5. Un dueño baneado no crea, edita ni borra canales; un miembro
+ *      sancionado no escribe en el canal `general`.
  *
  * Salvaguardas: solo proyecto demo-* y emuladores. No toca producción.
  *
@@ -29,10 +31,14 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import {
+  addDoc,
+  collection,
   connectFirestoreEmulator,
+  deleteDoc,
   doc,
   getFirestore,
   serverTimestamp,
+  setDoc,
   updateDoc,
 } from 'firebase/firestore';
 
@@ -507,6 +513,181 @@ async function verificarDesbaneo(owner, mod, outsider) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// 5. CANALES CON DUEÑO BANEADO Y MIEMBRO SANCIONADO
+// ═══════════════════════════════════════════════════════════
+
+function permisoDenegado(error) {
+  return String(error?.code ?? '').includes('permission-denied');
+}
+
+async function verificarCanalesBaneados(owner, miembro) {
+  const clubId = 'club-canales-auditoria';
+  const chatId = 'chat-canales-auditoria';
+  const chatNuevoId = 'chat-canal-nuevo';
+  await sembrarClub({ id: clubId, ownerUid: owner.uid, chatId });
+
+  const miembros = {
+    [owner.uid]: {
+      uid: owner.uid,
+      role: 'owner',
+      joinedAt: '2026-01-01T00:00:00.000Z',
+    },
+    [miembro.uid]: {
+      uid: miembro.uid,
+      role: 'member',
+      joinedAt: '2026-01-02T00:00:00.000Z',
+    },
+  };
+  await dbAdmin.doc(`clubs/${clubId}`).update({
+    memberIds: [owner.uid, miembro.uid],
+    members: miembros,
+    memberCount: 2,
+  });
+  await dbAdmin.doc(`chats/${chatId}`).update({
+    memberIds: [owner.uid, miembro.uid],
+    channelId: 'general',
+  });
+  await dbAdmin.doc(`clubs/${clubId}/channels/general`).set({
+    id: 'general',
+    clubId,
+    chatId,
+    name: 'General',
+    description: 'Canal general del club.',
+    type: 'text',
+    visibility: 'all',
+    spoiler: false,
+    order: 0,
+    createdBy: owner.uid,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
+  await dbAdmin.doc(`chats/${chatNuevoId}`).set({
+    type: 'club',
+    name: 'Nuevo',
+    slug: clubId,
+    channelId: 'nuevo',
+    ownerId: owner.uid,
+    memberIds: [owner.uid, miembro.uid],
+    hiddenFor: [],
+    lastMessage: '',
+    lastMessageAt: '2026-01-01T00:00:00.000Z',
+    lastMessageSenderId: owner.uid,
+    readAt: {},
+    createdAt: '2026-01-01T00:00:00.000Z',
+  });
+
+  // ── Dueño baneado globalmente ──────────────────────────
+  await dbAdmin.doc(`users/${owner.uid}`).update({ isBanned: true });
+  const { db: dbDueno } = await clienteDe(owner, 'auditoria-canales-dueno');
+
+  const canalNuevo = {
+    id: 'nuevo',
+    clubId,
+    chatId: chatNuevoId,
+    name: 'Nuevo',
+    description: '',
+    type: 'text',
+    visibility: 'all',
+    spoiler: false,
+    order: 1,
+    createdBy: owner.uid,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  let crearRechazado = false;
+  let editarRechazado = false;
+  let borrarRechazado = false;
+  try {
+    await setDoc(doc(dbDueno, 'clubs', clubId, 'channels', 'nuevo'), canalNuevo);
+  } catch (e) {
+    crearRechazado = permisoDenegado(e);
+  }
+  try {
+    await updateDoc(doc(dbDueno, 'clubs', clubId, 'channels', 'general'), {
+      name: 'Cambiado por un baneado',
+    });
+  } catch (e) {
+    editarRechazado = permisoDenegado(e);
+  }
+  try {
+    await deleteDoc(doc(dbDueno, 'clubs', clubId, 'channels', 'general'));
+  } catch (e) {
+    borrarRechazado = permisoDenegado(e);
+  }
+
+  await dbAdmin.doc(`users/${owner.uid}`).update({ isBanned: false });
+  let duenoActivoPuede = false;
+  try {
+    await updateDoc(doc(dbDueno, 'clubs', clubId, 'channels', 'general'), {
+      name: 'General',
+    });
+    duenoActivoPuede = true;
+  } catch {
+    duenoActivoPuede = false;
+  }
+
+  registrar(
+    'Dueño baneado no gestiona canales',
+    crearRechazado && editarRechazado && borrarRechazado && duenoActivoPuede
+      ? 'OK'
+      : 'ERROR',
+    `crear=${crearRechazado}, editar=${editarRechazado}, borrar=${borrarRechazado}, al desbanear=${duenoActivoPuede}`,
+  );
+
+  // ── Miembro sancionado en el canal general ─────────────
+  await dbAdmin.doc(`clubs/${clubId}/sancion/${miembro.uid}`).set({
+    clubId,
+    tipo: 'silencio',
+    objetivoUid: miembro.uid,
+    objetivoNombre: 'miembro sancionado',
+    motivo: 'Prueba E2E de canal general',
+    inicio: FieldValue.serverTimestamp(),
+    expira: admin.firestore.Timestamp.fromMillis(Date.now() + 3_600_000),
+    permanente: false,
+    aplicadaPor: owner.uid,
+    aplicadaPorNombre: 'dueño',
+    aplicadaPorRango: 'owner',
+  });
+
+  const { db: dbMiembro } = await clienteDe(miembro, 'auditoria-canales-miembro');
+  const mensaje = {
+    chatId,
+    senderId: miembro.uid,
+    senderName: 'miembro',
+    senderAvatar: '',
+    body: 'Mensaje en el general',
+    type: 'text',
+    createdAt: serverTimestamp(),
+  };
+
+  let escribirRechazado = false;
+  try {
+    await addDoc(collection(dbMiembro, 'chats', chatId, 'messages'), mensaje);
+  } catch (e) {
+    escribirRechazado = permisoDenegado(e);
+  }
+
+  await dbAdmin.doc(`clubs/${clubId}/sancion/${miembro.uid}`).delete();
+  let escribirPermitido = false;
+  try {
+    await addDoc(collection(dbMiembro, 'chats', chatId, 'messages'), {
+      ...mensaje,
+      body: 'Mensaje tras levantar el silencio',
+    });
+    escribirPermitido = true;
+  } catch {
+    escribirPermitido = false;
+  }
+
+  registrar(
+    'Miembro sancionado no escribe en general',
+    escribirRechazado && escribirPermitido ? 'OK' : 'ERROR',
+    `sancionado=${escribirRechazado}, al levantar=${escribirPermitido}`,
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // EJECUCIÓN
 // ═══════════════════════════════════════════════════════════
 
@@ -529,6 +710,7 @@ async function main() {
   await verificarAltasDirectas(owner, outsider);
   await verificarEstadisticaNoInflable(owner, fantasma);
   await verificarDesbaneo(owner, mod, outsider);
+  await verificarCanalesBaneados(owner, miembro);
 
   const errores = resultados.filter((r) => r.estado !== 'OK').length;
   fs.writeFileSync(
