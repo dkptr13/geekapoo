@@ -49,4 +49,21 @@ export const TAGS = {
   'Dalton': ['Guardia de Drum', 'Fruta del Bisonte', 'Leal'],
   'Chess': ['Sirviente de Wapol', 'Arquero', 'Chessmarimo'],
   'Kuromarimo': ['Sirviente de Wapol', 'Electricidad', 'Chessmarimo'],
+
+  'Crocodile': ['Baroque Works', 'Fruta de la Arena', 'Shichibukai'],
+  'Mr. 1': ['Baroque Works', 'Fruta del Dado', 'Cuerpo de acero'],
+  'Miss Doublefinger': ['Baroque Works', 'Fruta de la Espina', 'Tornado Tempo'],
+  'Mr. 2': ['Baroque Works', 'Fruta de la Copia', 'Ballet Kenpo'],
+  'Mr. 4': ['Baroque Works', 'Bate explosivo', 'Bazuca perro'],
+  'Miss Merry Christmas': ['Baroque Works', 'Fruta del Topo', 'Topo'],
+  'Pell': ['Guardia real', 'Fruta del Halcón', 'Sacrificio'],
+  'Chaka': ['Guardia real', 'Fruta del Chacal', 'Alubarna'],
+  'Koza': ['Ejército rebelde', 'Yuba', 'Amigo de Vivi'],
+  'Nefertari Cobra': ['Rey de Arabasta', 'Nefertari', 'Poneglyph'],
+  'Portgas D. Ace': ['Hermano de Luffy', 'Fruta del Fuego', 'Barbablanca'],
+  'Toto': ['Yuba', 'Padre de Koza', 'Desierto'],
+
+  'Zenny': ['Prestamista', 'Cabras', 'Pirata anciano'],
+  'Henzo': ['Científico', 'Niebla Arcoíris', 'Piratas Pumpkin'],
+  'Whetton': ['Pirata', 'Niebla Arcoíris', 'Antagonista'],
 };

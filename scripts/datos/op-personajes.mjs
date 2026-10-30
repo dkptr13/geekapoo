@@ -75,10 +75,10 @@ export const PERSONAJES = [
   ['Nojiko', '1', 'supporting', 'ノジコ', 'Wakana Yamazaki',
     'Hermana mayor adoptiva de Nami. Cuida de los tangerinos de Bell-mère y cuenta a los sombrero de paja la verdad sobre el pasado de su hermana.'],
 
-  ['Smoker', '1,2,3', 'supporting', 'スモーカー', 'Mahito Ooba',
+  ['Smoker', '1,2,3,4', 'supporting', 'スモーカー', 'Mahito Ooba',
     'Capitán de la Marina en Loguetown. Comió la Fruta del Humo y puede convertirse en niebla. Persigue a Luffy sin descanso porque nunca deja escapar a un pirata.'],
 
-  ['Tashigi', '1', 'supporting', 'たしぎ', 'Junko Noda',
+  ['Tashigi', '1,4', 'supporting', 'たしぎ', 'Junko Noda',
     'Sargento de la Marina y experta en katanas. Se parece muchísimo a Kuina, la amiga de la infancia de Zoro, y quiere recuperar las espadas famosas que están en malas manos.'],
 
   ['Shanks', '1', 'supporting', 'シャンクス', 'Shuuichi Ikeda',
@@ -95,13 +95,13 @@ export const PERSONAJES = [
   ['Crocus', '2', 'supporting', 'クロッカス', 'Gorou Naya',
     'Médico y farero de Reverse Mountain. Cuida de Laboon desde hace años y vive dentro de la ballena, donde ha pintado un cielo para que no esté sola. Fue médico de la tripulación de Gol D. Roger.'],
 
-  ['Nefertari Vivi', '2,3', 'supporting', 'ネフェルタリ・ビビ', 'Misa Watanabe',
+  ['Nefertari Vivi', '2,3,4', 'supporting', 'ネフェルタリ・ビビ', 'Misa Watanabe',
     'Princesa de Arabasta. Se infiltró en Baroque Works como Miss Wednesday para descubrir quién dirige la organización, y acaba viajando con los sombrero de paja para que la lleven de vuelta a su país.'],
 
-  ['Igaram', '2', 'supporting', 'イガラム', 'Keiichi Sonobe',
+  ['Igaram', '2,4', 'supporting', 'イガラム', 'Keiichi Sonobe',
     'Capitán de la guardia real de Arabasta. Se hace pasar por Mr. 8 para proteger a la princesa Vivi y lleva pistolas escondidas en el pelo. Se sacrifica para que ella pueda escapar de Whisky Peak.'],
 
-  ['Karoo', '2,3', 'supporting', 'カルー', 'Hiroaki Hirata',
+  ['Karoo', '2,3,4', 'supporting', 'カルー', 'Hiroaki Hirata',
     'Pato veloz y compañero de Vivi. Corre más que un caballo y lleva a dos personas en la espalda. Sigue a la princesa a todas partes y ayuda a la tripulación en Little Garden.'],
 
   ['Mr. 9', '2', 'supporting', 'Mr.9', 'Yasuhiro Takato',
@@ -116,7 +116,7 @@ export const PERSONAJES = [
   ['Brogy', '2', 'supporting', 'ブロギー', 'Tetsu Inada',
     'Guerrero gigante de Elbaf y rival de Dorry. Pelea con un hacha enorme y mantiene con su compatriota un duelo de cien años que los dos consideran un honor.'],
 
-  ['Mr. 3', '2', 'supporting', 'ギャルディーノ', 'Nobuyuki Hiyama',
+  ['Mr. 3', '2,4', 'supporting', 'ギャルディーノ', 'Nobuyuki Hiyama',
     'Agente de Baroque Works que comió la Fruta de la Cera. Es un estratega frío que prefiere las trampas al combate y que atrapa a Nami y a Zoro en un pedestal de cera en Little Garden.'],
 
   ['Miss Goldenweek', '2', 'supporting', 'マリアンヌ', 'Akiko Nakagawa',
@@ -128,12 +128,12 @@ export const PERSONAJES = [
   ['Miss Valentine', '2', 'supporting', 'ミキータ', 'Fumiko Orikasa',
     'Compañera de Mr. 5. Comió la Fruta del Peso y cambia su peso a voluntad: puede flotar como una pluma o caer sobre su enemigo como una tonelada.'],
 
-  ['Nico Robin', '2', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
-    'Vicepresidenta de Baroque Works, conocida como Miss All Sunday. Aparece en el barco de los sombrero de paja, les ofrece un eternal pose y demuestra que sabe demasiado sobre ellos.'],
+  ['Nico Robin', '2,4,5', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
+    'Vicepresidenta de Baroque Works, conocida como Miss All Sunday. Aparece en el barco de los sombrero de paja, les ofrece un eternal pose y demuestra que sabe demasiado sobre ellos. Tras la caída de Crocodile en Arabasta, se une a la tripulación.'],
 
   // ── TEMPORADA 3: la isla de Drum y Tony Tony Chopper ───────────────
 
-  ['Tony Tony Chopper', '3', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
+  ['Tony Tony Chopper', '3,4,5', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
     'Reno que comió la Fruta Humano-Humano y aprendió a hablar y a caminar como una persona. Quiere ser un médico capaz de curar cualquier enfermedad y se une a la tripulación en la isla de Drum.'],
 
   ['Kureha', '3', 'supporting', 'くれは', 'Masako Nozawa',
@@ -153,4 +153,53 @@ export const PERSONAJES = [
 
   ['Kuromarimo', '3', 'supporting', 'クロマーリモ', 'Kenji Nomura',
     'El otro sirviente de Wapol. Pelea con la electricidad estática que saca de su pelo y se une a Chess para formar Chessmarimo, el guerrero que se enfrenta a Chopper.'],
+
+  // ── TEMPORADA 4: Arabasta y Baroque Works ─────────────────────────
+
+  ['Crocodile', '4', 'supporting', 'クロコダイル', 'Ryuuzaburou Ootomo',
+    'Uno de los Siete Señores del Mar y jefe secreto de Baroque Works, conocido como Mr. 0. Comió la Fruta de la Arena y puede secar cualquier cosa que toque. Quiere hacerse con el reino de Arabasta para encontrar el arma ancestral Pluton.'],
+
+  ['Mr. 1', '4', 'supporting', 'ダズ・ボーネス', 'Tetsu Inada',
+    'Agente de élite de Baroque Works y pareja de Miss Doublefinger. Comió la Fruta del Dado y puede convertir cualquier parte de su cuerpo en una cuchilla de acero. Es frío y silencioso, y se enfrenta a Zoro en Alubarna.'],
+
+  ['Miss Doublefinger', '4', 'supporting', 'ザラ', 'Ako Mayama',
+    'Agente de élite de Baroque Works y pareja de Mr. 1. Comió la Fruta de la Espina y puede sacar púas de todo el cuerpo. Se enfrenta a Nami, que estrena el Clima Táctil.'],
+
+  ['Mr. 2', '3,4', 'supporting', 'ベンサム', 'Kazuki Yao',
+    'Agente de Baroque Works que comió la Fruta de la Copia: toca una cara con la mano derecha y adopta el aspecto de esa persona. Es un bailarín extravagante que se hace amigo de Luffy y acaba ayudando a la tripulación a escapar de Arabasta.'],
+
+  ['Mr. 4', '4', 'supporting', 'ベーブ', 'Masaya Takatsuka',
+    'Agente de Baroque Works, lento y fortachón. Bate bolas explosivas con un bate de béisbol y su perro Lasso, que comió la Fruta del Perro, le sirve de bazuca. Pelea junto a Miss Merry Christmas contra Usopp y Chopper.'],
+
+  ['Miss Merry Christmas', '4', 'supporting', 'ミス・メリークリスマス', 'Mami Kingetsu',
+    'Agente de Baroque Works y pareja de Mr. 4. Comió la Fruta del Topo y cava túneles a gran velocidad. Es pequeña, habladora y muy dura, y se enfrenta a Usopp y Chopper en Alubarna.'],
+
+  ['Pell', '4', 'supporting', 'ペル', 'Kenji Nojima',
+    'Guerrero de la guardia real de Arabasta y uno de los dos guardianes del reino. Comió la Fruta del Halcón y puede volar. Se lleva la bomba de Crocodile al cielo para salvar Alubarna.'],
+
+  ['Chaka', '4', 'supporting', 'チャカ', 'Kihachiro Uemura',
+    'Guerrero de la guardia real de Arabasta y hermano de armas de Pell. Comió la Fruta del Chacal. Defiende el palacio de Alubarna y ayuda a Vivi a frenar a los rebeldes.'],
+
+  ['Koza', '4', 'supporting', 'コーザ', 'Takeshi Kusao',
+    'Líder del ejército rebelde de Arabasta y amigo de la infancia de Vivi. De niño fundó el Clan de la Arena; la sequía y las maniobras de Crocodile lo llevan a levantarse contra el rey.'],
+
+  ['Nefertari Cobra', '4', 'supporting', 'ネフェルタリ・コブラ', 'Iemasa Kayumi',
+    'Rey de Arabasta y padre de Vivi. Confía en su pueblo y se niega a usar el Polvo de Baile, aunque la sequía le cueste el trono. Crocodile lo secuestra para que su plan parezca obra del rey.'],
+
+  ['Portgas D. Ace', '4', 'supporting', 'ポートガス・D・エース', 'Daisuke Sakaguchi',
+    'Hermano mayor de Luffy y comandante de la segunda flota de los Piratas de Barbablanca. Comió la Fruta del Fuego. Busca a Barbanegra, que mató a un compañero suyo, y se cruza con la tripulación en Arabasta.'],
+
+  ['Toto', '4', 'supporting', 'トト', 'Masaaki Tsukada',
+    'Padre de Koza y anciano de Yuba. Se queda en el pueblo enterrado por la arena porque espera que vuelva a manar agua, y confía en que el rey no ha abandonado a su pueblo.'],
+
+  // ── TEMPORADA 5: las historias originales ─────────────────────────
+
+  ['Zenny', '5', 'supporting', 'ゼニィ', 'Osamu Saka',
+    'Viejo prestamista que vive con sus cabras en una isla a la que solo se llega por corrientes peligrosas. Lleva veinte años construyendo un barco pirata en la montaña y dice que sus cabras son su verdadero tesoro.'],
+
+  ['Henzo', '5', 'supporting', 'ヘンゾ', 'Choo',
+    'Científico de la isla de Luluka que lleva cincuenta años buscando la Niebla Arcoíris. De joven formó parte de los Piratas Pumpkin y quiere rescatar a sus compañeros, atrapados en la niebla.'],
+
+  ['Whetton', '5', 'supporting', 'ウェットン', 'Jouji Nakata',
+    'Pirata que asaltó la isla de Luluka hace cincuenta años y provocó que los Piratas Pumpkin acabaran atrapados en la Niebla Arcoíris. Ahora vuelve a por el tesoro que se esconde dentro.'],
 ];

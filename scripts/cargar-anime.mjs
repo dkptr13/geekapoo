@@ -171,8 +171,19 @@ const v = {
  * se enlazaron los diez y la recarga del arreglo de numeracion los
  * dejo a cadena vacia, con lo que la wiki enseño la portada de la
  * serie en las cinco temporadas.
+ *
+ * `posterFocus` y `bannerFocus` tambien se quedan fuera: los mueve el
+ * editor de imagen y, si se recargan desde el fichero, cualquier
+ * `--actualizar` devuelve el encuadre al centro y se pierde el ajuste.
  */
-const CAMPOS_DE_FUERA = ['imageUrl', 'thumbnailUrl', 'posterUrl', 'bannerUrl'];
+const CAMPOS_DE_FUERA = [
+  'imageUrl',
+  'thumbnailUrl',
+  'posterUrl',
+  'bannerUrl',
+  'posterFocus',
+  'bannerFocus',
+];
 
 /**
  * Escribe un documento si no existe, o lo actualiza con `--actualizar`.

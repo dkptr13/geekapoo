@@ -4,11 +4,13 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las tres primeras temporadas:
+// De momento el catalogo tiene las cinco primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
 //   T3   14 capitulos  (agosto - diciembre de 2001)
+//   T4   39 capitulos  (diciembre de 2001 - octubre de 2002)
+//   T5   13 capitulos  (noviembre de 2002 - febrero de 2003)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -63,16 +65,18 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las tres primeras temporadas:
+ * De momento estan cargadas las cinco primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
  *   T3   14  (agosto - diciembre de 2001)
+ *   T4   39  (diciembre de 2001 - octubre de 2002)
+ *   T5   13  (noviembre de 2002 - febrero de 2003)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 91;
+export const EPISODIOS_TOTAL = 143;
 
 /**
  * Donde se emite en Espana.
@@ -121,5 +125,31 @@ export const TEMPORADAS = [
       'Nami enferma y la tripulacion busca un medico en la isla de Drum, gobernada por el tirano Wapol. ' +
       'Alli conocen a la doctora Kureha y al reno Tony Tony Chopper, que acaba unido a la tripulacion.',
     capitulos: 'T3',
+  },
+  {
+    numero: 4,
+    titulo: '',
+    anio: 2002,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Treinta y nueve capitulos del 16 de diciembre de 2001 al 27 de octubre de 2002, en Toei Animation para Fuji TV. ' +
+      'Es la saga de Arabasta: la tripulacion llega al reino desertico de Vivi y descubre que Crocodile y Baroque ' +
+      'Works estan detras de la sequia y de la guerra civil. Para detener el golpe de estado se enfrenta a los ' +
+      'agentes de elite, y Nico Robin acaba unida a la tripulacion.',
+    capitulos: 'T4',
+  },
+  {
+    numero: 5,
+    titulo: '',
+    anio: 2002,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Trece capitulos del 3 de noviembre de 2002 al 2 de febrero de 2003, en Toei Animation para Fuji TV. ' +
+      'Es la temporada mas corta de la serie y la unica enteramente de relleno: cinco historias sueltas sobre ' +
+      'los suenos de la tripulacion, la isla del viejo prestamista Zenny y la Niebla Arcoiris con los Piratas ' +
+      'Pumpkin.',
+    capitulos: 'T5',
   },
 ];

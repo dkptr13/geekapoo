@@ -137,6 +137,15 @@ export const TEMPORADA_TVDB = {
   //   catalogo T7  (2018)       TVDB S10
   'gintama': { 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10 },
 
+  // One Piece: la T1, la T2 y la T3 van a caballo entre varias temporadas
+  // de TVDB y su reparto esta en `TRAMO_TVDB`. A partir de la T4 coinciden
+  // una a una: Arabasta es la S7 (39 capitulos) y el relleno de la S8
+  // (13 capitulos).
+  //
+  //   catalogo T4  (2001-2002)  TVDB S7
+  //   catalogo T5  (2002-2003)  TVDB S8
+  'one-piece': { 4: 7, 5: 8 },
+
   // Seishun Buta Yaro va en orden cronologico: series y peliculas
   // mezcladas. TVDB guarda las cuatro pelis en el cajon de la
   // temporada 0 (S0E6 a S0E9) y la serie universitaria como S2.
@@ -809,6 +818,12 @@ export const TITULO_TVDB = {
     // ブロキー donde el catalogo pone ブロギー. Es el mismo capitulo (la
     // fecha y el numero coinciden), solo cambia una letra del nombre.
     'ブロギー勝利の号泣! エルバフの決着': 'ブロキー勝利の号泣！エルバフの決着',
+    // La T4 y la T5 anaden dos diferencias mas, las dos erratas de TVDB:
+    // pone una "の" de mas en el 96 y escribe スパイダース por スパイダーズ
+    // en el 103. Las fechas y el orden coinciden, asi que son los mismos
+    // capitulos.
+    '緑の町エルマルとクンフージュゴン!': '緑の町のエルマルとクンフージュゴン！',
+    'スパイダーズカフェに8時敵幹部集合': 'スパイダースカフェに8時敵幹部集合',
   },
 };
 
