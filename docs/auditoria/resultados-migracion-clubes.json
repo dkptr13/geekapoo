@@ -1,0 +1,22 @@
+{
+  "proyecto": "geekapoo-7624d",
+  "fecha": "2026-10-30T23:01:29.851Z",
+  "modo": "simulacion",
+  "clubes": 2,
+  "usuarios": 8,
+  "chatsConCambios": 0,
+  "chatsAplicados": 0,
+  "clubesInconsistentes": 0,
+  "conflictos": 0,
+  "chatsInexistentes": 0,
+  "chatsNoClub": 0,
+  "fechasFuturas": 0,
+  "detalle": {
+    "chats": [],
+    "clubesInconsistentes": [],
+    "conflictos": [],
+    "chatsInexistentes": [],
+    "chatsNoClub": [],
+    "fechasFuturas": []
+  }
+}

@@ -16,6 +16,9 @@ functions/lib/
 # supera el limite de 256 KiB; se regenera antes de cada despliegue.
 firestore.deploy.rules
 
+# Copias locales de migraciones de datos (contienen uids reales).
+docs/auditoria/backups/
+
 # Cache local del emulador y del CLI (la crea `npm run test:rules`).
 .firebase/
 
