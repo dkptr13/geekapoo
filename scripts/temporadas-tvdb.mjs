@@ -513,6 +513,20 @@ export const TRAMO_TVDB = {
       { temporada: 4, desde: 1, hasta: 13 },
       { temporada: 5, desde: 1, hasta: 1 },
     ],
+    // La T2 son los 16 capitulos del 62 al 77. TVDB los tiene a caballo
+    // entre la temporada 5 (le quedan ocho huecos despues del 61) y la
+    // 6. La T3 son los 14 del 78 al 91, todos seguidos en la 6.
+    //
+    //   catalogo T2  (62-77)  TVDB S5E2..S5E9 + S6E1..S6E8
+    //   catalogo T3  (78-91)  TVDB S6E9..S6E22
+    //
+    // El 92, que abre la S7 de TVDB, es el especial de Arabasta y va con
+    // la cuarta temporada del catalogo.
+    2: [
+      { temporada: 5, desde: 2, hasta: 9 },
+      { temporada: 6, desde: 1, hasta: 8 },
+    ],
+    3: [{ temporada: 6, desde: 9, hasta: 22 }],
   },
 };
 
@@ -791,6 +805,10 @@ export const TITULO_TVDB = {
     '奇跡の生物!アピスの秘密と伝説の島': '跡の生物！アピスの秘密と伝説の島',
     '廃虚の決闘!緊迫のゾロVSエリック': '廃墟の決闘！緊迫のゾロ対エリック！',
     '大空を舞うもの!甦る千年の伝説': '大空を舞うもの！蘇る千年の伝説！',
+    // El 73 es el unico de la T2 y la T3 que TVDB escribe distinto: pone
+    // ブロキー donde el catalogo pone ブロギー. Es el mismo capitulo (la
+    // fecha y el numero coinciden), solo cambia una letra del nombre.
+    'ブロギー勝利の号泣! エルバフの決着': 'ブロキー勝利の号泣！エルバフの決着',
   },
 };
 

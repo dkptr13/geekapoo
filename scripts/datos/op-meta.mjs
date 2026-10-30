@@ -4,9 +4,13 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene la primera temporada: los 61 capitulos
-// del East Blue, del 20 de octubre de 1999 al 14 de marzo de 2001. Las
-// demas temporadas se iran anadiendo por tandas.
+// De momento el catalogo tiene las tres primeras temporadas:
+//
+//   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
+//   T2   16 capitulos  (marzo - agosto de 2001)
+//   T3   14 capitulos  (agosto - diciembre de 2001)
+//
+// Las demas temporadas se iran anadiendo por tandas.
 //
 // Ficha de AniList: 21 (la serie entera, en emision, sin total de
 // capitulos). TVDB: serie 81797, que reparte los capitulos por anos.
@@ -59,14 +63,16 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento solo esta cargada la primera temporada:
+ * De momento estan cargadas las tres primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
+ *   T2   16  (marzo - agosto de 2001)
+ *   T3   14  (agosto - diciembre de 2001)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 61;
+export const EPISODIOS_TOTAL = 91;
 
 /**
  * Donde se emite en Espana.
@@ -87,9 +93,33 @@ export const TEMPORADAS = [
     estado: 'Finalizado',
     estudio: 'Toei Animation',
     synopsis:
-      'Sesenta y un capitulos del 20 de octubre de 1999 al 14 de marzo de 2001, en Toei Animation para Fuji TV. ' +
+      'Sesenta y un capitulos del 20 de octubre de 1999 al 7 de marzo de 2001, en Toei Animation para Fuji TV. ' +
       'Es la saga del East Blue: Luffy sale de su aldea, conoce a Zoro, Nami, Usopp y Sanji y recorre el mar ' +
       'hasta la entrada de la Gran Ruta Maritima, donde le esperan Arlong y el recuerdo de Shanks.',
     capitulos: 'T1',
+  },
+  {
+    numero: 2,
+    titulo: '',
+    anio: 2001,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Dieciseis capitulos del 21 de marzo al 19 de agosto de 2001, en Toei Animation para Fuji TV. ' +
+      'La tripulacion entra en la Gran Ruta Maritima, conoce a la ballena Laboon y a Crocus, cruza Whisky ' +
+      'Peak y Little Garden y se enfrenta a los agentes de Baroque Works, que persiguen a la princesa Vivi.',
+    capitulos: 'T2',
+  },
+  {
+    numero: 3,
+    titulo: '',
+    anio: 2001,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Catorce capitulos del 26 de agosto al 9 de diciembre de 2001, en Toei Animation para Fuji TV. ' +
+      'Nami enferma y la tripulacion busca un medico en la isla de Drum, gobernada por el tirano Wapol. ' +
+      'Alli conocen a la doctora Kureha y al reno Tony Tony Chopper, que acaba unido a la tripulacion.',
+    capitulos: 'T3',
   },
 ];
