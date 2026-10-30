@@ -243,7 +243,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           : animesVisibles.length > 0;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
       {/* ==================================================
           LA CHICA, A LA IZQUIERDA
       ==================================================
@@ -252,7 +252,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           la página, no un panel. Con el borde y el degradado
           parecía un recuadro más del panel, y tapaba hueco
           además de Dani. */}
-      <aside className="lg:col-span-4 xl:col-span-3">
+      <aside className="min-w-0 lg:col-span-4 xl:col-span-3">
         <div className="lg:sticky lg:top-20">
           <div className="relative flex justify-center">
             <img
@@ -299,7 +299,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
       ==================================================
           Todo lo demás va a su derecha, porque la ilustración se
           queda a la izquierda occupying su sitio. */}
-      <div className="space-y-8 lg:col-span-8 xl:col-span-9">
+      <div className="min-w-0 space-y-8 lg:col-span-8 xl:col-span-9">
       {/* ==================================================
           CATEGORÍAS
       ==================================================

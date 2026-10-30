@@ -327,7 +327,16 @@ const {
         ================================================== */}
 
         {currentTab === 'inicio' && (
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
+          /* `grid-cols-1` no es decorativo: sin una plantilla explícita,
+             en móvil la columna implícita se dimensiona con el
+             min-content de su contenido. Una encuesta con una opción
+             larga (el texto va con `truncate`) pedía 508px y arrastraba
+             toda la página a scroll horizontal: las tarjetas se cortaban
+             por la derecha y la cabecera dejaba de cubrir el ancho.
+             `grid-cols-1` usa minmax(0, 1fr), así que la columna mide
+             el ancho disponible y el texto largo se recorta dentro de
+             su tarjeta, no de la página. */
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
 
             {/* FEED CENTRAL.
                 En pantallas muy anchas pasa a 9/12 para que el
@@ -337,7 +346,7 @@ const {
 
                 Sin scroll propio: forma parte de la página, así
                 que se desplaza con ella. */}
-            <div className="lg:col-span-8 2xl:col-span-9">
+            <div className="min-w-0 lg:col-span-8 2xl:col-span-9">
 
               <HomeFeed
                 selectedCategoryFilter={
@@ -380,7 +389,7 @@ const {
                 porque sticky se limita a la altura de su
                 contenedor: pegado al <aside>, que es justo lo
                 que hay que mover, no tenía recorrido. */}
-            <div className="lg:sticky lg:top-20 lg:col-span-4 lg:h-[calc(100dvh-6rem)] 2xl:col-span-3">
+            <div className="min-w-0 lg:sticky lg:top-20 lg:col-span-4 lg:h-[calc(100dvh-6rem)] 2xl:col-span-3">
 
               <Sidebar
                 onSelectCategory={

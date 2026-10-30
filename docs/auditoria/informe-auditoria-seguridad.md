@@ -4,10 +4,10 @@
 - **Proyecto Firebase:** `geekapoo-7624d`
 - **Commit de referencia (auditoría):** `64a68a7` (`seguridad(firestore): proteger contadores e implementar gestión de likes con funciones de servidor`)
 - **Correcciones:** P0 `cc35d84`; P1 `19a3912`
-- **Residuales 4.N:** sin commit (árbol de trabajo); verificados en emulador el 30-10-2026
-- **Integración:** `main` en `b8f63c3` (PR #2); la rama `seguridad/p0-auditoria` se eliminó después del merge
+- **Residuales 4.N:** commit `2c9ecd4`; verificados en emulador el 30-10-2026 y pendientes de despliegue
+- **Integración:** `main` en `2c9ecd4`; la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0 y P1 desplegados en producción.** P1 (F4, G1 y fecha de los fijados) verificado en Firebase Emulator Suite y publicado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. Los residuales de G1 (rate limit global y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos y verificados en local (**809 reglas + 102 de chat + 5/5 E2E**), pero **no se han commiteado ni desplegado**. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0 y P1 desplegados en producción.** P1 (F4, G1 y fecha de los fijados) verificado en Firebase Emulator Suite y publicado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. Los residuales de G1 (rate limit global y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en local (**809 reglas + 102 de chat + 5/5 E2E**) y **commiteados en `2c9ecd4`**, pero **aún no desplegados**. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -96,6 +96,7 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 - Proyecto de pruebas: `demo-geekapoo-auditoria`.
 - Funciones locales servidas por el emulador en `us-central1`; en producción `firebase functions:list` las muestra en `europe-southwest1`. La lógica es la misma, pero conviene fijar la región de forma explícita para que el emulador y producción no diverjan.
 - Se añadió el emulador de Auth a `firebase.json` (puerto 9099) para poder probar las callables con tokens reales del emulador. Es un cambio de infraestructura de pruebas, sin efecto en producción.
+- El compilador de Firestore cuenta los comentarios y rechaza el conjunto si supera **262.144 bytes**. `firestore.rules` pasó de ese límite, así que `npm run rules:build` genera `firestore.deploy.rules` sin comentarios (152.854 bytes), conservando los números de línea. `firebase.json` apunta a ese artefacto y lo regenera en el `predeploy`; `npm run test:rules` también lo regenera antes de arrancar el emulador.
 
 ### 2.3 Salvaguardas
 
@@ -557,7 +558,7 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 ### N. Residuales de G1, farmeo de XP y bloqueos — cerrados en local, sin desplegar
 
 **Severidad:** Medio  
-**Estado:** **corregido y verificado en Firebase Emulator Suite**; **no commiteado ni desplegado**. Producción conserva el comportamiento anterior hasta que se publique.
+**Estado:** **corregido y verificado en Firebase Emulator Suite**; **commiteado en `2c9ecd4`, pendiente de despliegue**. Producción conserva el comportamiento anterior hasta que se publique.
 
 **Evidencia original:**
 
@@ -642,7 +643,7 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 2. Hosting publicado con el bundle P1 (`assets/index-DpFW21Z8.js`), que coincide con el build local.
 3. Reglas de Firestore publicadas: release `cloud.firestore` → ruleset `c5bb00c8-686a-403a-80e6-e775d580af61`, actualizado el 29-10-2026 a las 18:22:49 UTC. El ruleset contiene `citaCoincideConMensaje`, `idDeSolicitudCorrecto` y `mensajeCreadoEnMs`.
 4. Verificación: el bundle servido y el release de reglas se comprobaron contra producción; no se hizo una pasada funcional completa con cuentas reales.
-5. **Los cambios de la sección 4.N no están desplegados.** No hay commit ni release: producción sigue sin rate limit global, sin limpieza de solicitudes al transferir un grupo, sin techo de XP por comentarios y con los bloqueos solo en el cliente. Publicarlos requiere una autorización expresa.
+5. **Los cambios de la sección 4.N no están desplegados.** Están commiteados en `2c9ecd4`, pero no hay release: producción sigue sin rate limit global, sin limpieza de solicitudes al transferir un grupo, sin techo de XP por comentarios y con los bloqueos solo en el cliente. Publicarlos requiere una autorización expresa.
 
 No se desplegaron Functions, índices ni Storage para estos P1. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
@@ -671,11 +672,12 @@ No se desplegaron Functions, índices ni Storage para estos P1. La rama `segurid
 | `docs/auditoria/resultados-callables.json` | Resultado estructurado de las callables |
 | `docs/auditoria/resultados-triggers.json` | Resultado estructurado del trigger de comentarios |
 | `docs/auditoria/resultados-residuales.json` | Resultado estructurado de la E2E de residuales (5/5) |
+| `scripts/build-reglas.mjs` | Genera `firestore.deploy.rules` sin comentarios para no superar el límite de 262.144 bytes del compilador |
 | `firebase.json` | Emulador de Auth (puerto 9099) para las pruebas |
 
 El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
-Los residuales de la sección 4.N están **en el árbol de trabajo, sin commit**: `firestore.rules`, `functions/src/index.ts`, `src/services/chatRequests.ts`, las suites de pruebas y los scripts. No se publicaron reglas, Functions ni Hosting para ellos.
+Los residuales de la sección 4.N están **commiteados en `2c9ecd4`**: `firestore.rules`, `functions/src/index.ts`, `src/services/chatRequests.ts`, las suites de pruebas y los scripts. No se publicaron reglas, Functions ni Hosting para ellos. El commit incluye la región de los triggers sin fijar en el código, así que desplegar Functions tal cual sigue bloqueado.
 
 ---
 
@@ -684,7 +686,7 @@ Los residuales de la sección 4.N están **en el árbol de trabajo, sin commit**
 - **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, las callables revisadas y los servicios inventariados; quedan rutas de Storage, App Check, encuestas, tier lists, noticias y moderación de clubes que no se probaron E2E.
 - **Las pruebas P0/P1 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
 - **No se probó en producción.** Todos los resultados son del emulador; pueden existir diferencias de configuración, índices, reglas desplegadas o datos reales. Del despliegue P0/P1 se comprobó que Hosting sirve el bundle P1 y que el release de reglas es el P1 (ruleset y marcadores); no se hizo una pasada funcional completa en producción con cuentas reales.
-- **Las correcciones de la sección 4.N solo existen en local.** Están verificadas en el emulador, pero no se han commiteado ni desplegado: producción sigue con el comportamiento anterior.
+- **Las correcciones de la sección 4.N están commiteadas en `2c9ecd4`, pero no desplegadas.** Están verificadas en el emulador; producción sigue con el comportamiento anterior.
 - **El emulador sirve las Functions en `us-central1`**, mientras que `functions:list` muestra `europe-southwest1` en producción. La lógica probada es la misma, pero la diferencia de región debe resolverse.
 - **La sincronización de noticias del emulador** escribió 168 documentos en el proyecto demo; no se tocó la colección `news` de producción.
 - **No se evaluaron** vulnerabilidades de dependencias, XSS, CSP, configuración de Auth, correo o infraestructura. Este informe se limita a las capas indicadas.

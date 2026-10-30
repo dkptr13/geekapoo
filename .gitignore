@@ -11,6 +11,11 @@ _DS_Store
 # (functions/src), lo que genera tsc no.
 functions/lib/
 
+# Reglas sin comentarios que genera scripts/build-reglas.mjs. El
+# compilador de Firestore cuenta los comentarios y firestore.rules
+# supera el limite de 256 KiB; se regenera antes de cada despliegue.
+firestore.deploy.rules
+
 # Cache local del emulador y del CLI (la crea `npm run test:rules`).
 .firebase/
 

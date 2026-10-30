@@ -380,15 +380,15 @@ export default function Navbar({
 
           {/* Nombre.
 
-              A 320px la cabecera lleva el logo, el avatar y el
-              botón del menú, y con el nombre a text-xl la fila se
-              pasaba de largo: "geekapoo.com" mide unos 145px a ese
-              tamaño y solo quedaban unos 135. Con text-lg cabe
-              entero, y a partir de sm (640px) ya no hay nada que
-              apretar y vuelve a su tamaño. */}
+              A 320px la cabecera lleva el logo, la campana, el
+              avatar y el botón del menú. Con el nombre completo
+              "geekapoo.com" la fila no cabe y el botón del menú se
+              sale por la derecha. Por debajo de 360px se queda solo
+              "geekapoo"; en cuanto hay sitio vuelve el ".com". A
+              partir de sm (640px) el nombre recupera su tamaño. */}
           <div>
             <span className="text-lg font-black tracking-tight text-white transition-colors group-hover:text-violet-300 sm:text-xl">
-              geekapoo<span className="text-violet-300">.com</span>
+              geekapoo<span className="hidden text-violet-300 min-[360px]:inline">.com</span>
             </span>
           </div>
 

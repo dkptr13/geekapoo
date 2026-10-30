@@ -866,8 +866,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
         // En pantallas anchas la ficha técnica pasa a 1/4 y el
         // contenido a 3/4. Con 1/3 la columna de datos quedaba
         // desproporcionada al ensanchar el contenedor.
-        <div className="grid gap-6 animate-in fade-in duration-200 lg:grid-cols-12">
-          <div className="lg:col-span-8 2xl:col-span-9 space-y-6">
+        <div className="grid grid-cols-1 gap-6 animate-in fade-in duration-200 lg:grid-cols-12">
+          <div className="min-w-0 lg:col-span-8 2xl:col-span-9 space-y-6">
             {/* Sinopsis */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-6">
               <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2">
@@ -919,7 +919,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
           {/* Ficha técnica lateral. Con la rejilla de 12
               columnas queda en 1/4 en pantallas anchas. */}
-          <div className="lg:col-span-4 2xl:col-span-3 space-y-6">
+          <div className="min-w-0 lg:col-span-4 2xl:col-span-3 space-y-6">
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-6 space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                 Ficha Técnica
