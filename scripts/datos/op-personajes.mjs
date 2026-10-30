@@ -36,10 +36,10 @@ export const PERSONAJES = [
   ['Sanji', '', 'main', 'サンジ', 'Hiroaki Hirata',
     'Cocinero del Going Merry. Pelea solo con las piernas porque necesita las manos para cocinar. Sueña con encontrar el All Blue, el mar donde se juntan todos los peces del mundo.'],
 
-  ['Buggy', '1,6', 'supporting', 'バギー', 'Shigeru Chiba',
+  ['Buggy', '1,6,13', 'supporting', 'バギー', 'Shigeru Chiba',
     'Pirata payaso que comió la Fruta de la Separación y puede dividir su cuerpo en trozos. Guarda un rencor enorme a Shanks y busca vengarse de Luffy.'],
 
-  ['Alvida', '1', 'supporting', 'アルビダ', 'Youko Matsuoka',
+  ['Alvida', '1,13', 'supporting', 'アルビダ', 'Youko Matsuoka',
     'Capitana pirata que esclavizó a Koby y se enfrentó a Luffy al principio del viaje. Su maza y su carácter la hacen temible, aunque acaba lanzada por los aires.'],
 
   ['Koby', '1,2', 'supporting', 'コビー', 'Mika Doi',
@@ -116,7 +116,7 @@ export const PERSONAJES = [
   ['Brogy', '2', 'supporting', 'ブロギー', 'Tetsu Inada',
     'Guerrero gigante de Elbaf y rival de Dorry. Pelea con un hacha enorme y mantiene con su compatriota un duelo de cien años que los dos consideran un honor.'],
 
-  ['Mr. 3', '2,4', 'supporting', 'ギャルディーノ', 'Nobuyuki Hiyama',
+  ['Mr. 3', '2,4,13', 'supporting', 'ギャルディーノ', 'Nobuyuki Hiyama',
     'Agente de Baroque Works que comió la Fruta de la Cera. Es un estratega frío que prefiere las trampas al combate y que atrapa a Nami y a Zoro en un pedestal de cera en Little Garden.'],
 
   ['Miss Goldenweek', '2', 'supporting', 'マリアンヌ', 'Akiko Nakagawa',
@@ -128,12 +128,12 @@ export const PERSONAJES = [
   ['Miss Valentine', '2', 'supporting', 'ミキータ', 'Fumiko Orikasa',
     'Compañera de Mr. 5. Comió la Fruta del Peso y cambia su peso a voluntad: puede flotar como una pluma o caer sobre su enemigo como una tonelada.'],
 
-  ['Nico Robin', '2,4,5,6,7,8,9,10,11', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
+  ['Nico Robin', '2,4,5,6,7,8,9,10,11,12,13', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
     'Vicepresidenta de Baroque Works, conocida como Miss All Sunday. Aparece en el barco de los sombrero de paja, les ofrece un eternal pose y demuestra que sabe demasiado sobre ellos. Tras la caída de Crocodile en Arabasta, se une a la tripulación.'],
 
   // ── TEMPORADA 3: la isla de Drum y Tony Tony Chopper ───────────────
 
-  ['Tony Tony Chopper', '3,4,5,6,7,8,9,10,11', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
+  ['Tony Tony Chopper', '3,4,5,6,7,8,9,10,11,12,13', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
     'Reno que comió la Fruta Humano-Humano y aprendió a hablar y a caminar como una persona. Quiere ser un médico capaz de curar cualquier enfermedad y se une a la tripulación en la isla de Drum.'],
 
   ['Kureha', '3', 'supporting', 'くれは', 'Masako Nozawa',
@@ -156,16 +156,16 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 4: Arabasta y Baroque Works ─────────────────────────
 
-  ['Crocodile', '4', 'supporting', 'クロコダイル', 'Ryuuzaburou Ootomo',
+  ['Crocodile', '4,13', 'supporting', 'クロコダイル', 'Ryuuzaburou Ootomo',
     'Uno de los Siete Señores del Mar y jefe secreto de Baroque Works, conocido como Mr. 0. Comió la Fruta de la Arena y puede secar cualquier cosa que toque. Quiere hacerse con el reino de Arabasta para encontrar el arma ancestral Pluton.'],
 
-  ['Mr. 1', '4', 'supporting', 'ダズ・ボーネス', 'Tetsu Inada',
+  ['Mr. 1', '4,13', 'supporting', 'ダズ・ボーネス', 'Tetsu Inada',
     'Agente de élite de Baroque Works y pareja de Miss Doublefinger. Comió la Fruta del Dado y puede convertir cualquier parte de su cuerpo en una cuchilla de acero. Es frío y silencioso, y se enfrenta a Zoro en Alubarna.'],
 
   ['Miss Doublefinger', '4', 'supporting', 'ザラ', 'Ako Mayama',
     'Agente de élite de Baroque Works y pareja de Mr. 1. Comió la Fruta de la Espina y puede sacar púas de todo el cuerpo. Se enfrenta a Nami, que estrena el Clima Táctil.'],
 
-  ['Mr. 2', '3,4', 'supporting', 'ベンサム', 'Kazuki Yao',
+  ['Mr. 2', '3,4,13', 'supporting', 'ベンサム', 'Kazuki Yao',
     'Agente de Baroque Works que comió la Fruta de la Copia: toca una cara con la mano derecha y adopta el aspecto de esa persona. Es un bailarín extravagante que se hace amigo de Luffy y acaba ayudando a la tripulación a escapar de Arabasta.'],
 
   ['Mr. 4', '4', 'supporting', 'ベーブ', 'Masaya Takatsuka',
@@ -636,4 +636,56 @@ export const PERSONAJES = [
 
   ['Saint Charloss', '11', 'supporting', 'チャルロス聖', 'Chafuurin',
     'Dragón Celestial y uno de los nobles de Mary Geoise. Dispara a un esclavo y a Hatchan, y Luffy lo golpea en la subasta.'],
+
+  // ── TEMPORADA 12: Amazon Lily ───────────────────────────────────
+
+  ['Boa Hancock', '12,13', 'supporting', 'ボア・ハンコック', 'Kotono Mitsuishi',
+    'Emperatriz de Amazon Lily y una de los Siete Señores del Mar, conocida como la Princesa Serpiente. Comió la Fruta del Amor y convierte en piedra a quien se enamora de ella; ayuda a Luffy a llegar a Impel Down.'],
+
+  ['Boa Sandersonia', '12', 'supporting', 'ボア・サンダーソニア', 'Chiwa Saitou',
+    'Segunda de las hermanas Gorgona y gobernante de Amazon Lily. Comió la Fruta de la Serpiente y pelea con haki; fue esclava de los Dragones Celestiales.'],
+
+  ['Boa Marigold', '12', 'supporting', 'ボア・マリーゴールド', 'Kimiko Saitou',
+    'Tercera de las hermanas Gorgona. Comió la Fruta de la Serpiente y usa veneno y fuego; comparte con sus hermanas el pasado de esclavitud.'],
+
+  ['Margaret', '12', 'supporting', 'マーガレット', 'Masumi Asano',
+    'Guerrera de Amazon Lily que encuentra a Luffy y lo cuida. Es convertida en piedra por Hancock y luego liberada; se hace amiga de Luffy.'],
+
+  ['Momonga', '12', 'supporting', 'モモンガ', 'Shinichirou Oota',
+    'Vicealmirante de la Marina que va a Amazon Lily a llamar a Hancock. Es uno de los oficiales que participan en la guerra contra Barbablanca.'],
+
+  // ── TEMPORADA 13: Impel Down ────────────────────────────────────
+
+  ['Magellan', '13', 'supporting', 'マゼラン', 'Mitsuaki Hoshino',
+    'Alcaide de Impel Down. Comió la Fruta del Veneno y puede envenenar todo lo que toca; es el enemigo más peligroso de la prisión.'],
+
+  ['Hannyabal', '13', 'supporting', 'ハンニャバル', 'Tetsuo Gotou',
+    'Vicealcaide de Impel Down, ambicioso y cómico. Sueña con ser alcaide y se enfrenta a Luffy para defender la prisión.'],
+
+  ['Domino', '13', 'supporting', 'ドミノ', 'Naomi Shindou',
+    'Guardia de Impel Down que registra a Hancock. Es petrificada por ella para que Luffy pueda escapar.'],
+
+  ['Saldeath', '13', 'supporting', 'サルデス', 'Kazuya Nakai',
+    'Jefe de los guardias de Impel Down. Usa una red de kairoseki y dirige a los Blugori contra Luffy.'],
+
+  ['Sadie', '13', 'supporting', 'サディちゃん', 'Yuka Koyama',
+    'Jefa de los guardias demonio de Impel Down. Pelea con un látigo y se enfrenta a Ivankov y a los presos.'],
+
+  ['Shiryu', '13', 'supporting', 'シリュウ', 'Takayuki Sugou',
+    'Antiguo jefe de los guardias de Impel Down, encarcelado en el nivel 6. Magellan lo libera para detener a Barbanegra y acaba uniéndose a él.'],
+
+  ['Inazuma', '13', 'supporting', 'イナズマ', 'Kenji Hamada',
+    'Comandante del Ejército Revolucionario y mano derecha de Ivankov. Comió la Fruta de las Tijeras y puede cortar el suelo y el espacio.'],
+
+  ['Emporio Ivankov', '13', 'supporting', 'エンポリオ・イワンコフ', 'Mitsuo Iwata',
+    'Reina del Reino Kamabakka y comandante del Ejército Revolucionario. Comió la Fruta de las Hormonas y cura a Luffy en el nivel 5.5 de Impel Down.'],
+
+  ['Jimbei', '13', 'supporting', 'ジンベエ', 'Daisuke Gouri',
+    'Tiburón ballena y uno de los Siete Señores del Mar, conocido como el Caballero del Mar. Está preso en Impel Down por negarse a luchar contra Barbablanca y se une a Luffy.'],
+
+  ['Shiki', '13', 'supporting', 'シキ', 'Naoto Takenaka',
+    'El León Dorado, legendario pirata que escapó de Impel Down hace veinte años. Es el villano de la película Strong World y aparece en el especial de la temporada.'],
+
+  ['Yoko', '13', 'supporting', 'ヨーコ', 'Mari Yaguchi',
+    'Niña que vive en la isla del especial de Strong World y cuida del escarabajo Boss. Ayuda a los sombrero de paja contra los Piratas Amigo.'],
 ];

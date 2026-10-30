@@ -4,7 +4,7 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las once primeras temporadas:
+// De momento el catalogo tiene las trece primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
@@ -17,6 +17,8 @@
 //   T9   73 capitulos  (mayo de 2006 - diciembre de 2007)
 //   T10  45 capitulos  (enero - diciembre de 2008)
 //   T11  26 capitulos  (diciembre de 2008 - junio de 2009)
+//   T12  14 capitulos  (julio - octubre de 2009)
+//   T13  35 capitulos  (octubre de 2009 - junio de 2010)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -71,7 +73,7 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las once primeras temporadas:
+ * De momento estan cargadas las trece primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
@@ -84,11 +86,13 @@ export const RATING_SERIE = 9.0;
  *   T9   73  (mayo de 2006 - diciembre de 2007)
  *   T10  45  (enero - diciembre de 2008)
  *   T11  26  (diciembre de 2008 - junio de 2009)
+ *   T12  14  (julio - octubre de 2009)
+ *   T13  35  (octubre de 2009 - junio de 2010)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 407;
+export const EPISODIOS_TOTAL = 456;
 
 /**
  * Donde se emite en Espana.
@@ -235,5 +239,29 @@ export const TEMPORADAS = [
       'Tras el relleno de Spa Island y Foxy, la tripulacion llega al archipielago Sabaody, conoce a Camie y a las ' +
       'Supernovas y se enfrenta a los Dragones Celestiales; Kizaru, Sentomaru y Kuma acaban dispersandola.',
     capitulos: 'T11',
+  },
+  {
+    numero: 12,
+    titulo: '',
+    anio: 2009,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Catorce capitulos del 5 de julio al 11 de octubre de 2009, en Toei Animation para Fuji TV. ' +
+      'Es la saga de Amazon Lily: Luffy aparece solo en la isla de las mujeres, conoce a Boa Hancock y a las ' +
+      'hermanas serpiente, y decide escapar para rescatar a Ace de Impel Down.',
+    capitulos: 'T12',
+  },
+  {
+    numero: 13,
+    titulo: '',
+    anio: 2009,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Treinta y cinco capitulos del 18 de octubre de 2009 al 20 de junio de 2010, en Toei Animation para Fuji TV. ' +
+      'Es la saga de Impel Down: Luffy se infiltra en la gran prision para rescatar a Ace, se reencuentra con ' +
+      'Buggy, Mr. 2, Crocodile y Jimbei, y presencia la llegada de Barbanegra.',
+    capitulos: 'T13',
   },
 ];

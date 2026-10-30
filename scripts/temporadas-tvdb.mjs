@@ -572,6 +572,16 @@ export const TRAMO_TVDB = {
     //
     //   catalogo T11  (382-407)  TVDB S13E1..S13E26
     11: [{ temporada: 13, desde: 1, hasta: 26 }],
+    // La T12 son los 14 capitulos del 408 al 421, que en TVDB son los
+    // siguientes de la temporada 13 (Amazon Lily).
+    //
+    //   catalogo T12  (408-421)  TVDB S13E27..S13E40
+    12: [{ temporada: 13, desde: 27, hasta: 40 }],
+    // La T13 son los 35 capitulos del 422 al 456, todos seguidos en la
+    // temporada 13 de TVDB (Impel Down y el especial de Strong World).
+    //
+    //   catalogo T13  (422-456)  TVDB S13E41..S13E75
+    13: [{ temporada: 13, desde: 41, hasta: 75 }],
   },
 };
 
@@ -926,6 +936,25 @@ export const TITULO_TVDB = {
     'さらなる強敵現る! 鉞かついだ戦桃丸': 'らなる強敵現る！鉞かついだ戦桃丸',
     '大将黄猿の猛攻 麦わら一味絶体絶命!': '大将黄猿の猛攻　麦わら一味絶体絶命',
     '時代劇特別編 ルフィ親分再び見参': '時代劇特別編　ルフィ親分ふたたび見参',
+    // La T12 y la T13 anaden catorce mas. TVDB mete "たち" en los titulos
+    // de los compañeros (2, 12, 13, 14 de la T12), escribe 忌わしき (8),
+    // separa 毒人間・マゼラン (4), cambia "vs" por "VS" y ひげ por ヒゲ
+    // (8 y 26 de la T13), alterna LV y signos (10, 17, 18, 21, 23 y 29) y
+    // escribe 巨大な (35). Son las mismas fechas y el mismo orden.
+    '急げ! 仲間のもとへ 女ヶ島の冒険': '急げ！仲間たちのもとへ　女ヶ島の冒険',
+    'ハンコックの告白 姉妹の忌まわしき過去': 'ハンコックの告白　姉妹の忌わしき過去',
+    '仲間達の行方 巨鳥の島と桃色の楽園!': '仲間たちの行方　巨鳥の島と桃色の楽園！',
+    '仲間達の行方 島をつなぐ橋と食人植物': '仲間たちの行方　島をつなぐ橋と食人植物',
+    '仲間達の行方 ネガティブ王女と悪魔王': '仲間たちの行方　ネガティブ王女と悪魔王',
+    '監獄最強の男! 毒人間マゼラン登場': '監獄最強の男！毒人間・マゼラン登場',
+    '映画連動特別編 決戦! ルフィVSラルゴ': '映画連動特別編 決戦！ルフィvsラルゴ',
+    '牢番長サルデスの罠　LV.3飢餓地獄': '牢番長サルデスの罠 LV3・飢餓地獄',
+    '地獄に楽園! インペルダウン LV5.5': '地獄に楽園 インペルダウンLV5.5',
+    'ルフィ治療開始! イワさん奇跡の能力': 'ルフィ治療開始 イワさん奇跡の能力!!',
+    'エース護送開始 最下層ＬＶ６の攻防!': 'エース護送開始 最下層LV6の攻防！',
+    'さらなる混乱! 黒ひげ・ティーチ襲来!': 'さらなる混乱！黒ひげ・ティーチ襲来',
+    '怒りのJETピストル　ルフィvs黒ヒゲ': '怒りのJETピストル ルフィVS黒ひげ',
+    '脱獄チーム絶体絶命 禁じ手"毒の巨兵"': '脱獄チーム絶体絶命 禁じ手“毒の巨兵”',
   },
 };
 

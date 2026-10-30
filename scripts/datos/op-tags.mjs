@@ -213,4 +213,22 @@ export const TAGS = {
   'Kizaru': ['Almirante', 'Fruta de la Luz', 'Antagonista'],
   'Sentomaru': ['Marina', 'Pacifistas', 'Hacha'],
   'Saint Charloss': ['Dragón Celestial', 'Noble', 'Antagonista'],
+
+  'Boa Hancock': ['Shichibukai', 'Fruta del Amor', 'Amazon Lily'],
+  'Boa Sandersonia': ['Amazon Lily', 'Fruta de la Serpiente', 'Haki'],
+  'Boa Marigold': ['Amazon Lily', 'Fruta de la Serpiente', 'Veneno'],
+  'Margaret': ['Amazon Lily', 'Guerrera', 'Amiga'],
+  'Momonga': ['Marina', 'Vicealmirante', 'Guerra'],
+
+  'Magellan': ['Impel Down', 'Fruta del Veneno', 'Antagonista'],
+  'Hannyabal': ['Impel Down', 'Vicealcaide', 'Ambición'],
+  'Domino': ['Impel Down', 'Guardia', 'Hancock'],
+  'Saldeath': ['Impel Down', 'Guardias', 'Kairoseki'],
+  'Sadie': ['Impel Down', 'Látigo', 'Antagonista'],
+  'Shiryu': ['Impel Down', 'Espadachín', 'Barbanegra'],
+  'Inazuma': ['Revolucionario', 'Fruta de las Tijeras', 'Ivankov'],
+  'Emporio Ivankov': ['Revolucionario', 'Fruta de las Hormonas', 'Kamabakka'],
+  'Jimbei': ['Shichibukai', 'Hombre pez', 'Impel Down'],
+  'Shiki': ['León Dorado', 'Strong World', 'Antagonista'],
+  'Yoko': ['Strong World', 'Niña', 'Aliada'],
 };
