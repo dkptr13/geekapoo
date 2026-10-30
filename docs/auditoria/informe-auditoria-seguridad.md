@@ -4,10 +4,10 @@
 - **Proyecto Firebase:** `geekapoo-7624d`
 - **Commit de referencia (auditoría):** `64a68a7` (`seguridad(firestore): proteger contadores e implementar gestión de likes con funciones de servidor`)
 - **Correcciones:** P0 `cc35d84`; P1 `19a3912`
-- **Residuales 4.N:** commit `2c9ecd4`; verificados en emulador el 30-10-2026 y pendientes de despliegue
-- **Integración:** `main` en `2c9ecd4`; la rama `seguridad/p0-auditoria` se eliminó después del merge
+- **Residuales 4.N:** commits `2c9ecd4` (reglas, cliente, Functions y pruebas) y `e2185b8` (región de los triggers); verificados en el emulador el 30-10-2026 y desplegados
+- **Integración:** `main` en `e2185b8`; la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0 y P1 desplegados en producción.** P1 (F4, G1 y fecha de los fijados) verificado en Firebase Emulator Suite y publicado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. Los residuales de G1 (rate limit global y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en local (**809 reglas + 102 de chat + 5/5 E2E**) y **commiteados en `2c9ecd4`**, pero **aún no desplegados**. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-BfKM3yC0.js`; el release `cloud.firestore` apunta al ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c` (152.854 bytes, 30-10-2026 13:54:19 UTC); y las Functions quedaron en **21 triggers en `europe-southwest1` + 21 callables/scheduled en `us-central1`**, sin duplicados. Los residuales están verificados en el emulador (**809 reglas + 102 de chat + 5/5 E2E**). Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -23,7 +23,7 @@ Después se corrigieron los P1, se commitearon en `19a3912` y se desplegaron:
 - **G1:** las solicitudes usan ids deterministas, `fromName`/`fromAvatar` se derivan del perfil, `createdAt` debe ser `request.time`, hay cooldown de 24 h tras un rechazo y una sola ruta por par/grupo-persona.
 - **Fecha de los fijados:** `mensajeCreadoEnMs` se contrasta con `createdAt.toMillis()` del mensaje real (o con el texto exacto en mensajes antiguos).
 
-Los residuales de G1 ya están cerrados **en el árbol de trabajo local**, pendientes de commit y despliegue:
+Los residuales de G1 están cerrados, verificados y **desplegados** desde el 30-10-2026:
 
 - **Rate limit global:** libro mayor `rateLimits/{uid}` con 20 solicitudes por usuario cada 24 h. Se escribe en la misma transacción que la solicitud y la regla exige, con `getAfter()`, que `ultimaSolicitudId` sea el id exacto de la solicitud creada o reabierta, de modo que un incremento no puede cubrir varias.
 - **Cambio de dueño de grupo:** `onChatOwnerChanged` borra las solicitudes pendientes dirigidas al dueño anterior y las invitaciones firmadas por él, conserva las históricas, las de terceros y las ya dirigidas al dueño nuevo, y repara el índice `groupCodes`.
@@ -69,11 +69,10 @@ La evidencia está en la sección 4.N y en `docs/auditoria/resultados-residuales
 
 ### Riesgos que siguen abiertos
 
-- **Residuales corregidos en local, sin desplegar:** rate limit global, traspaso de grupo, techo de XP por comentarios y bloqueos en solicitudes (sección 4.N). Hasta que se desplieguen, producción conserva el comportamiento anterior.
 - **Altas directas de club:** un dueño *activo* todavía puede añadir a alguien sin consentimiento; es un asunto de producto y de confianza en las estadísticas (P1), no ya un bypass de baneo.
 - **Estadísticas de club** calculadas desde documentos que el cliente puede escribir (L).
 - **Cobertura E2E incompleta:** canales, Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y moderación de clubes.
-- **Migración de datos** y **alineación de región** de las Functions.
+- **Migración de datos.**
 
 La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se desplegaron después, con autorización. Todos los datos de las pruebas se crearon en proyectos `demo-*` del emulador.
 
@@ -94,7 +93,7 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 
 - Firestore Emulator, Auth Emulator y Functions Emulator.
 - Proyecto de pruebas: `demo-geekapoo-auditoria`.
-- Funciones locales servidas por el emulador en `us-central1`; en producción `firebase functions:list` las muestra en `europe-southwest1`. La lógica es la misma, pero conviene fijar la región de forma explícita para que el emulador y producción no diverjan.
+- Funciones locales servidas por el emulador con la misma distribución que producción: los 21 triggers de Firestore en `europe-southwest1` y los callables/scheduled en `us-central1`. La región de los triggers se fijó en `e2185b8` para que un despliegue no cree duplicados.
 - Se añadió el emulador de Auth a `firebase.json` (puerto 9099) para poder probar las callables con tokens reales del emulador. Es un cambio de infraestructura de pruebas, sin efecto en producción.
 - El compilador de Firestore cuenta los comentarios y rechaza el conjunto si supera **262.144 bytes**. `firestore.rules` pasó de ese límite, así que `npm run rules:build` genera `firestore.deploy.rules` sin comentarios (152.854 bytes), conservando los números de línea. `firebase.json` apunta a ese artefacto y lo regenera en el `predeploy`; `npm run test:rules` también lo regenera antes de arrancar el emulador.
 
@@ -104,7 +103,7 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 - La revisión y las pruebas se hicieron íntegramente en emuladores; no se ejecutaron pruebas destructivas contra producción.
 - No se probó nada contra `geekapoo-7624d` durante la auditoría.
 - La sincronización de noticias del caso H9 escribió 168 documentos **en el emulador**, no en producción.
-- El P0 se commitó en `cc35d84` y se desplegó en `geekapoo-7624d` con autorización. El P1 se commitó en `19a3912`, se integró en `main` con `b8f63c3` (PR #2) y se desplegó (Hosting y reglas de Firestore).
+- El P0 se commitó en `cc35d84` y se desplegó en `geekapoo-7624d` con autorización. El P1 se commitó en `19a3912`, se integró en `main` con `b8f63c3` (PR #2) y se desplegó. Los residuales (`2c9ecd4`) y la región de los triggers (`e2185b8`) se desplegaron el 30-10-2026 con autorización expresa.
 
 ---
 
@@ -123,6 +122,9 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 | Lógica | `npm run test:logica` | Correcto |
 | Build de Functions | `npm --prefix functions run build` | Correcto |
 | Build de la web | `npm run build` | Correcto |
+| Verificación de Hosting | `GET https://geekapoo-7624d.web.app` | Sirve `assets/index-BfKM3yC0.js`, idéntico al build local |
+| Verificación de reglas | API `projects/geekapoo-7624d/releases/cloud.firestore` | Ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, 152.854 bytes, 0 comentarios, 13:54:19 UTC |
+| Verificación de Functions | `firebase functions:list` + Cloud Functions API | **42 funciones**: 21 en `europe-southwest1` + 21 en `us-central1`, sin duplicados |
 
 > **Nota sobre los errores esperados:** en las pruebas negativas aparecen mensajes `evaluation error at L...` y «maximum of 1000 expressions» para operaciones que deben fallar. Son el resultado de evaluar reglas contra escrituras denegadas; no son fallos de la suite. Las pruebas que exigen éxito pasan y las que exigen `permission-denied` también.
 
@@ -151,13 +153,13 @@ Escala usada:
 | C2 | Salir de un club conserva el acceso a su chat | **Alto** | **Corregido P0**; migración de chats pendiente |
 | I | Un moderador ejecuta callables de panel admin-only | **Alto** | **Corregido P0** (9 funciones) |
 | J | `desbanearUsuario` no aplica jerarquía | **Alto** | **Corregido P0** |
-| E | Comentarios a objetivos inexistentes pagan XP | **Alto** | **Corregido P0**; techo de XP en local (4.N) |
+| E | Comentarios a objetivos inexistentes pagan XP | **Alto** | **Corregido P0**; techo de XP desplegado (4.N) |
 | F | Un miembro oculta/limpia/falsea el chat de otro | **Alto** | **Corregido P0** (F1-F3) |
 | C1/C3/C4 | Clubes: creación/edición por baneados y altas sin consentimiento | **Alto** | **Corregido P0** el bypass de baneo; altas directas P1 |
 | B | `createdAt` manipulable → medalla de veterano | **Medio** | **Corregido P0** |
 | D | Hilos: `pinned` por autor, tamaños sin revalidar, edición por baneados | **Medio** | **Corregido P0** |
 | G | Fijados con texto/autor falsos | **Medio** | **Corregido P0**; fecha del mensaje **corregida P1** |
-| K | Spam de solicitudes de chat y remitente falsificado | **Medio** | **Corregido P1** (G1); rate limit y traspaso en local (4.N) |
+| K | Spam de solicitudes de chat y remitente falsificado | **Medio** | **Corregido P1** (G1); rate limit y traspaso desplegados (4.N) |
 | L | Estadísticas de club desde documentos del cliente | **Medio** | **P1 abierto** |
 | H | `replyTo` fabricado | **Bajo** | **Corregido P1** (F4) |
 | M | Canales de club gestionados por baneados | **Medio/Bajo** | **Corregido en reglas**; E2E pendiente |
@@ -349,7 +351,7 @@ function isModerator() {
 
 **Verificación:** E1 (editar a 6.000 caracteres) y E2 (crear con objetivo inventado) fallan. La prueba E2E post-P0 intenta tres comentarios y los tres son rechazados; XP sigue en 0, `commentsCreated` en 0 y `bloqueado = true`.
 
-**Residual (cerrado en local, sin desplegar):** el techo de recompensas por comentario válido está en la sección 4.N: 10 por ventana de 10 minutos y 50 por día UTC, con reserva idempotente por `commentId`. El comentario que excede el cupo se publica y cuenta, pero no paga.
+**Residual (cerrado y desplegado el 30-10-2026):** el techo de recompensas por comentario válido está en la sección 4.N: 10 por ventana de 10 minutos y 50 por día UTC, con reserva idempotente por `commentId`. El comentario que excede el cupo se publica y cuenta, pero no paga.
 
 ---
 
@@ -482,7 +484,7 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 ### K. Spam de solicitudes de chat y remitente falsificado — corregido en P1
 
 **Severidad:** Medio  
-**Estado:** **corregido, verificado en el emulador y desplegado**. Los residuales de rate limit global y traspaso de grupo están cerrados en local (sección 4.N), pendientes de commit y despliegue.
+**Estado:** **corregido, verificado en el emulador y desplegado**. Los residuales de rate limit global y traspaso de grupo están cerrados y desplegados (sección 4.N).
 
 **Evidencia original:**
 
@@ -502,7 +504,7 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 **Verificación:** la regresión G1 de auditoría está en `assertFails`: nombre/avatar falsos, ids arbitrarios y suplantación de remitente fallan; una solicitud legítima con id determinista e identidad real pasa. La suite principal cubre además destinatario falso, `createdAt` falso, `groupName` falso, reapertura de canceladas, cooldown de 24 h, reapertura a las 25 h, grupos/invitaciones aceptados con y sin membresía, y el caso directo aceptado (no se reabre).
 
-**Residuales (cerrados en local, sin desplegar):**
+**Residuales (cerrados y desplegados el 30-10-2026):**
 
 - **Rate limit global por emisor:** libro mayor `rateLimits/{uid}` con 20 solicitudes cada 24 h. La solicitud y el contador se escriben en la misma transacción; la regla usa `getAfter()` y `ultimaSolicitudId == request.resource.id` para impedir que un único incremento cubra varias solicitudes. Una ventana caducada solo se reinicia con `count == 1` y `windowStart == request.time`.
 - **Cambio de dueño de un grupo:** `onChatOwnerChanged` borra las solicitudes pendientes dirigidas al dueño anterior y las invitaciones firmadas por él, conserva las históricas, las de terceros y las ya dirigidas al dueño nuevo, y repara `groupCodes`.
@@ -555,10 +557,10 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 ---
 
-### N. Residuales de G1, farmeo de XP y bloqueos — cerrados en local, sin desplegar
+### N. Residuales de G1, farmeo de XP y bloqueos — corregidos y desplegados
 
 **Severidad:** Medio  
-**Estado:** **corregido y verificado en Firebase Emulator Suite**; **commiteado en `2c9ecd4`, pendiente de despliegue**. Producción conserva el comportamiento anterior hasta que se publique.
+**Estado:** **corregido, verificado en Firebase Emulator Suite y desplegado el 30-10-2026** (`2c9ecd4`, con la región de los triggers en `e2185b8`).
 
 **Evidencia original:**
 
@@ -620,7 +622,7 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 
 ### P1 — residuales y siguientes
 
-**Cerrados en local (sección 4.N), pendientes de commit y despliegue:** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. No quedan como trabajo de diseño, solo como trabajo de publicación.
+**Cerrados y desplegados (sección 4.N):** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. No quedan como trabajo de diseño ni de publicación.
 
 1. **Altas directas de club:** mover altas/bajas a una callable transaccional con consentimiento y hacer que `onClubMembersChanged` solo cuente altas del flujo servidor (C4/L).
 2. **Estadísticas de club:** no confiar en `ownerId`/`memberIds`/`createdBy` escritos por el cliente; probar las medallas afectadas (L).
@@ -632,20 +634,20 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 
 ### P2 — higiene y cobertura
 
-8. **Fijar la región de las Functions** de forma explícita y verificar que el emulador y producción coinciden (`us-central1` vs `europe-southwest1`).
-9. **Añadir pruebas de carga/abuso** para límites de tamaño y frecuencia (comentarios, solicitudes, chats).
-10. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
-11. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
+8. **Añadir pruebas de carga/abuso** para límites de tamaño y frecuencia (comentarios, solicitudes, chats).
+9. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
+10. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
 
 ### Despliegue realizado
 
 1. P1 integrado en `main` mediante el PR #2 (`b8f63c3`), con `19a3912` como commit de corrección.
-2. Hosting publicado con el bundle P1 (`assets/index-DpFW21Z8.js`), que coincide con el build local.
-3. Reglas de Firestore publicadas: release `cloud.firestore` → ruleset `c5bb00c8-686a-403a-80e6-e775d580af61`, actualizado el 29-10-2026 a las 18:22:49 UTC. El ruleset contiene `citaCoincideConMensaje`, `idDeSolicitudCorrecto` y `mensajeCreadoEnMs`.
-4. Verificación: el bundle servido y el release de reglas se comprobaron contra producción; no se hizo una pasada funcional completa con cuentas reales.
-5. **Los cambios de la sección 4.N no están desplegados.** Están commiteados en `2c9ecd4`, pero no hay release: producción sigue sin rate limit global, sin limpieza de solicitudes al transferir un grupo, sin techo de XP por comentarios y con los bloqueos solo en el cliente. Publicarlos requiere una autorización expresa.
+2. Hosting P1 publicado con `assets/index-DpFW21Z8.js`; reglas P1: release `cloud.firestore` → ruleset `c5bb00c8-686a-403a-80e6-e775d580af61`, actualizado el 29-10-2026 a las 18:22:49 UTC.
+3. Residuales commiteados en `2c9ecd4` (reglas, cliente, Functions, pruebas y evidencia); región de los 21 triggers fijada en `e2185b8`.
+4. Reglas y Hosting desplegados el 30-10-2026: release `cloud.firestore` → ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, 152.854 bytes, 13:54:19 UTC; Hosting sirve `assets/index-BfKM3yC0.js`, idéntico al build local.
+5. Functions: `onCommentCreated` y `onChatOwnerChanged` actualizados en `europe-southwest1`; `responderSolicitudChat` en `us-central1` (13:57:48–13:57:58 UTC). Inventario final: 21 triggers en Europa + 21 callables/scheduled en US, 42 en total, sin duplicados.
+6. Verificación: bundle servido, release de reglas e inventario de Functions comprobados contra producción; no se hizo una pasada funcional completa con cuentas reales.
 
-No se desplegaron Functions, índices ni Storage para estos P1. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
+No se desplegaron índices ni Storage. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
 **Ventana de compatibilidad:** las pestañas ya abiertas con el bundle anterior pueden fallar al citar, fijar o pedir entrada hasta que se recarguen. Los mensajes sin cita y el resto del chat no dependen de ese cambio.
 
@@ -655,7 +657,7 @@ No se desplegaron Functions, índices ni Storage para estos P1. La rama `segurid
 
 | Archivo | Contenido |
 |---|---|
-| `firestore.rules` | Correcciones P0, P1 y residuales locales: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes, canales, sanciones, solicitudes con id determinista e identidad derivada del perfil, `rateLimits` con ventana de 24 h y bloqueos en solicitudes |
+| `firestore.rules` | Correcciones P0, P1 y residuales desplegados: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes, canales, sanciones, solicitudes con id determinista e identidad derivada del perfil, `rateLimits` con ventana de 24 h y bloqueos en solicitudes |
 | `functions/src/index.ts` | `exigirRol`/`exigirAdmin`/`exigirModerador`, jerarquía de baneos, objetivo real de comentarios, vista previa de chats, limpieza de chats de club, `reservarCupoComentario`, bloqueos en `responderSolicitudChat` y `onChatOwnerChanged` |
 | `src/services/chats.ts` | Deja de escribir `lastMessage*` desde el cliente; construye `replyTo.texto` completo |
 | `src/utils/chatCita.ts` | `textoParaCita()` canónico sin recortar y `fragmentoParaCita()` para la vista |
@@ -673,11 +675,11 @@ No se desplegaron Functions, índices ni Storage para estos P1. La rama `segurid
 | `docs/auditoria/resultados-triggers.json` | Resultado estructurado del trigger de comentarios |
 | `docs/auditoria/resultados-residuales.json` | Resultado estructurado de la E2E de residuales (5/5) |
 | `scripts/build-reglas.mjs` | Genera `firestore.deploy.rules` sin comentarios para no superar el límite de 262.144 bytes del compilador |
-| `firebase.json` | Emulador de Auth (puerto 9099) para las pruebas |
+| `firebase.json` | Emulador de Auth (puerto 9099); reglas de Firestore generadas sin comentarios en el `predeploy` |
 
-El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
+El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado. Los residuales están en `2c9ecd4` y la región de los triggers en `e2185b8`; todo ello se publicó el 30-10-2026: Hosting sirve `assets/index-BfKM3yC0.js` y el release `cloud.firestore` apunta al ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
-Los residuales de la sección 4.N están **commiteados en `2c9ecd4`**: `firestore.rules`, `functions/src/index.ts`, `src/services/chatRequests.ts`, las suites de pruebas y los scripts. No se publicaron reglas, Functions ni Hosting para ellos. El commit incluye la región de los triggers sin fijar en el código, así que desplegar Functions tal cual sigue bloqueado.
+Los residuales de la sección 4.N están **desplegados**: reglas y Hosting el 30-10-2026 (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`) y Functions (`onCommentCreated` y `onChatOwnerChanged` en `europe-southwest1`; `responderSolicitudChat` en `us-central1`). El inventario de producción quedó en 21 triggers europeos + 21 callables/scheduled en US, sin duplicados.
 
 ---
 
@@ -685,12 +687,12 @@ Los residuales de la sección 4.N están **commiteados en `2c9ecd4`**: `firestor
 
 - **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, las callables revisadas y los servicios inventariados; quedan rutas de Storage, App Check, encuestas, tier lists, noticias y moderación de clubes que no se probaron E2E.
 - **Las pruebas P0/P1 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
-- **No se probó en producción.** Todos los resultados son del emulador; pueden existir diferencias de configuración, índices, reglas desplegadas o datos reales. Del despliegue P0/P1 se comprobó que Hosting sirve el bundle P1 y que el release de reglas es el P1 (ruleset y marcadores); no se hizo una pasada funcional completa en producción con cuentas reales.
-- **Las correcciones de la sección 4.N están commiteadas en `2c9ecd4`, pero no desplegadas.** Están verificadas en el emulador; producción sigue con el comportamiento anterior.
-- **El emulador sirve las Functions en `us-central1`**, mientras que `functions:list` muestra `europe-southwest1` en producción. La lógica probada es la misma, pero la diferencia de región debe resolverse.
+- **No se probó funcionalmente en producción.** Todos los resultados de comportamiento son del emulador; pueden existir diferencias de configuración, índices o datos reales. Del despliegue se comprobaron el bundle servido, el release de reglas y el inventario de Functions, pero no se hizo una pasada completa con cuentas reales.
+- **Las correcciones de la sección 4.N están desplegadas.** Se verificaron en el emulador y se publicaron el 30-10-2026; en producción solo se comprobaron los artefactos y el inventario, no cada flujo con datos reales.
+- **La región de los triggers está fijada en `europe-southwest1`** y los callables siguen en `us-central1`, igual que en producción. El emulador usa la misma distribución tras el cambio.
 - **La sincronización de noticias del emulador** escribió 168 documentos en el proyecto demo; no se tocó la colección `news` de producción.
 - **No se evaluaron** vulnerabilidades de dependencias, XSS, CSP, configuración de Auth, correo o infraestructura. Este informe se limita a las capas indicadas.
 
 ---
 
-**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos y verificados en local (**809 reglas, 102 de chat y 5/5 E2E**), pero **no están commiteados ni desplegados**. **La aplicación todavía no puede declararse segura en su conjunto**: quedan las altas directas de club, las estadísticas de club, la migración de datos, los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
+**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**809 reglas, 102 de chat y 5/5 E2E**) y **desplegados el 30-10-2026** (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`, 21 triggers europeos + 21 callables/scheduled en US). **La aplicación todavía no puede declararse segura en su conjunto**: quedan las altas directas de club, las estadísticas de club, la migración de datos, los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
