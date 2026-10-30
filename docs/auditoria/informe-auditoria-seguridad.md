@@ -7,7 +7,7 @@
 - **Residuales 4.N:** commits `2c9ecd4` (reglas, cliente, Functions y pruebas) y `e2185b8` (región de los triggers); verificados en el emulador el 30-10-2026 y desplegados
 - **Integración:** `main` sincronizado con `origin/main`; código desplegado en `e2185b8`; la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-BfKM3yC0.js`; el release `cloud.firestore` apunta al ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c` (152.854 bytes, 30-10-2026 13:54:19 UTC); y las Functions quedaron en **21 triggers en `europe-southwest1` + 21 callables/scheduled en `us-central1`**, sin duplicados. Los residuales están verificados en el emulador (**809 reglas + 102 de chat + 5/5 E2E**). Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-BfKM3yC0.js`; el release `cloud.firestore` apunta al ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c` (152.854 bytes, 30-10-2026 13:54:19 UTC); y las Functions quedaron en **21 triggers en `europe-southwest1` + 21 callables/scheduled en `us-central1`**, sin duplicados. Los residuales están verificados en el emulador (**813 reglas + 102 de chat + 5/5 E2E**). Las altas directas y las estadísticas de club están corregidas y verificadas (**167 focalizadas + 5/5 E2E**), pendientes de despliegue. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -37,7 +37,7 @@ La evidencia está en la sección 4.N y en `docs/auditoria/resultados-residuales
 | Prueba | Resultado |
 |---|---|
 | Reglas de la auditoría (32 casos) | **32 passing**, 0 failing; 17 regresiones P0 y 4 regresiones P1 (F4/G1) en `assertFails`, 11 controles |
-| Suite completa de reglas (`npm run test:rules`) | **809 passing**, 0 failing (16 min) |
+| Suite completa de reglas (`npm run test:rules`) | **813 passing**, 0 failing (16 min) |
 | Corrida focalizada de chat | **102 passing**, 0 failing; incluye el bypass de lote del cupo |
 | Corrida focalizada de group-codes, privacidad y auditoría | **91 passing**, 0 failing |
 | E2E de residuales (`scripts/auditoria-residuales.mjs`) | **5/5 comprobaciones correctas**; cupo 10/11 y diario, traspaso y bloqueos |
@@ -69,8 +69,6 @@ La evidencia está en la sección 4.N y en `docs/auditoria/resultados-residuales
 
 ### Riesgos que siguen abiertos
 
-- **Altas directas de club:** un dueño *activo* todavía puede añadir a alguien sin consentimiento; es un asunto de producto y de confianza en las estadísticas (P1), no ya un bypass de baneo.
-- **Estadísticas de club** calculadas desde documentos que el cliente puede escribir (L).
 - **Cobertura E2E incompleta:** canales, Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y moderación de clubes.
 - **Migración de datos.**
 
@@ -114,10 +112,12 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 | Reglas de la auditoría | `npx firebase emulators:exec --only firestore --project demo-geekapoo-auditoria "npx mocha tests/auditoria/firestore.hallazgos.rules.test.cjs --timeout 60000"` | **32 passing**, 0 failing |
 | Callables post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-callables.mjs"` | **0 hallazgos**, 14 controles OK, 0 errores |
 | Trigger de comentarios post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-triggers.mjs"` | **3/3 rechazados**; XP 0 → 0; `commentsCreated = 0`; `bloqueado = true` |
-| Suite completa de reglas | `npm run test:rules` | **809 passing**, 0 failing (16 min) |
+| Suite completa de reglas | `npm run test:rules` | **813 passing**, 0 failing (16 min) |
 | Corrida focalizada de chat | `npx mocha tests/firestore.chat.rules.test.cjs` | **102 passing**, 0 failing |
 | Corrida focalizada de group-codes, privacidad y auditoría | `npx mocha` sobre las tres suites | **91 passing**, 0 failing |
+| Corrida focalizada de clubes | `npx mocha` sobre clubs, clubs-join, clubs-channels y club-moderacion | **167 passing**, 0 failing |
 | E2E de residuales | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-residuales.mjs"` | **5/5 comprobaciones correctas**, 0 errores |
+| E2E de clubes | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-clubes.mjs"` | **5/5 comprobaciones correctas**, 0 errores |
 | TypeScript | `npm run lint` | Correcto |
 | Lógica | `npm run test:logica` | Correcto |
 | Build de Functions | `npm --prefix functions run build` | Correcto |
@@ -133,6 +133,7 @@ Archivos de resultados:
 - `docs/auditoria/resultados-callables.json`
 - `docs/auditoria/resultados-triggers.json`
 - `docs/auditoria/resultados-residuales.json`
+- `docs/auditoria/resultados-clubes.json`
 
 ---
 
@@ -160,7 +161,7 @@ Escala usada:
 | D | Hilos: `pinned` por autor, tamaños sin revalidar, edición por baneados | **Medio** | **Corregido P0** |
 | G | Fijados con texto/autor falsos | **Medio** | **Corregido P0**; fecha del mensaje **corregida P1** |
 | K | Spam de solicitudes de chat y remitente falsificado | **Medio** | **Corregido P1** (G1); rate limit y traspaso desplegados (4.N) |
-| L | Estadísticas de club desde documentos del cliente | **Medio** | **P1 abierto** |
+| L | Estadísticas de club desde documentos del cliente | **Medio** | **Corregido y verificado en el emulador**; pendiente de despliegue |
 | H | `replyTo` fabricado | **Bajo** | **Corregido P1** (F4) |
 | M | Canales de club gestionados por baneados | **Medio/Bajo** | **Corregido en reglas**; E2E pendiente |
 
@@ -277,7 +278,7 @@ function isModerator() {
 #### C3/C4. Un dueño baneado seguía editando el club y añadía miembros sin consentimiento
 
 **Severidad:** Alto  
-**Estado:** **corregido P0** el bypass de baneo; las altas directas de un dueño activo quedan como P1 de producto/estadísticas.
+**Estado:** **corregido P0** el bypass de baneo; las altas directas de un dueño activo se cerraron en la sección 4.L (verificadas en el emulador, pendientes de despliegue).
 
 **Evidencia original:**
 
@@ -512,10 +513,10 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 ---
 
-### L. Estadísticas de club desde documentos que controla el cliente — P1 abierto
+### L. Estadísticas de club desde documentos que controla el cliente — corregido y verificado
 
 **Severidad:** Medio  
-**Estado:** estático; pendiente de reproducción E2E.
+**Estado:** **corregido y verificado en Firebase Emulator Suite**; pendiente de despliegue.
 
 **Evidencia:**
 
@@ -527,11 +528,16 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 **Impacto:** inflación de estadísticas y medallas sin acciones reales. C4 ya no permite el bypass por un dueño baneado, pero un dueño activo todavía puede añadir a alguien directamente y el trigger lo contará como “unido”.
 
-**Corrección propuesta:**
+**Corrección aplicada:**
 
-- Que los triggers de estadísticas solo se disparen desde flujos servidor (callables/transacciones), no desde documentos que el cliente pueda escribir libremente.
-- Validar `createdBy == request.auth.uid` y que el canal/club exista y sea coherente.
-- Añadir pruebas E2E de las medallas afectadas.
+- **Altas solo por servidor:** las reglas de `clubs/{clubId}` exigen `sinAltasDeMiembros()`. El propietario, un admin y el propio usuario ya no pueden añadir a nadie desde el cliente; la rama de auto-unión pública se eliminó. Las altas pasan por `unirseClubPublico`, `responderSolicitudClub` o `levantarSancionClub`.
+- **Desbaneo por callable:** como el desbaneo vuelve a meter a la persona en el club, se movió a `levantarSancionClub`, que replica la jerarquía de `puedeLevantar`, restaura el rol previo y la reincorpora a sus chats en una transacción.
+- **Medalla solo desde el flujo servidor:** `onClubMembersChanged` ya no concede `clubesUnidos`; lo hacen las tres callables después de la transacción. Una escritura directa en `memberIds` (Admin SDK/consola) no paga medalla. `onClubCreated` sigue marcando al creador porque la creación exige `ownerId == request.auth.uid`, un único miembro y un chat coherente.
+- **Canales:** `onChannelCreated` confía en `createdBy`, pero la regla lo ata al usuario: alta normal `createdBy == request.auth.uid`; migración del `general` `createdBy == ownerId` del club. Así nadie infla la medalla de un tercero.
+- **Chats participados:** `onChatParticipado` sigue leyendo `senderId`, pero la regla de mensajes ya exige `senderId == request.auth.uid`; no hay atribución falsa posible.
+- **Pruebas:** 3 regresiones nuevas de altas en `tests/firestore.clubs.rules.test.cjs`, 1 de `createdBy` en canales, 2 en la suite de auditoría (C5/C6) y una E2E de 4 casos con medallas y desbaneo.
+
+**Verificación:** suite completa **813 passing**, focalizadas de clubes **167 passing** y E2E **5/5 comprobaciones correctas**.
 
 ---
 
@@ -579,7 +585,7 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 **Verificación:**
 
-- `npm run test:rules`: **809 passing, 0 failing**.
+- `npm run test:rules`: **813 passing, 0 failing**.
 - `tests/firestore.chat.rules.test.cjs`: **102 passing, 0 failing**. Incluye el caso nuevo «dos solicitudes no pueden compartir un solo hueco».
 - `tests/firestore.group-codes.rules.test.cjs` + `tests/firestore.privacidad-perfiles.rules.test.cjs` + `tests/auditoria/firestore.hallazgos.rules.test.cjs`: **91 passing, 0 failing**.
 - E2E `scripts/auditoria-residuales.mjs` con Firestore, Auth y Functions: **5/5 comprobaciones correctas**.
@@ -614,7 +620,7 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 - **Bloqueos:** crear/reabrir y aceptar solicitudes respeta el bloqueo en ambos sentidos.
 - **Vista previa de chats:** `lastMessage*` solo lo escribe el trigger, en transacción y comparando fechas.
 - **Regresión P0/P1:** los 17 casos P0 y los 4 casos P1 están invertidos a `assertFails` y ya no pueden volver a abrirse sin que falle la suite.
-- **La suite completa de reglas** (809 pruebas) sigue siendo la línea base y pasa tras los cambios.
+- **La suite completa de reglas** (813 pruebas) sigue siendo la línea base y pasa tras los cambios.
 
 ---
 
@@ -622,21 +628,19 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 
 ### P1 — residuales y siguientes
 
-**Cerrados y desplegados (sección 4.N):** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. No quedan como trabajo de diseño ni de publicación.
+**Cerrados y desplegados (sección 4.N):** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. **Altas directas y estadísticas de club:** corregidas y verificadas en el emulador (sección 4.L), pendientes de despliegue.
 
-1. **Altas directas de club:** mover altas/bajas a una callable transaccional con consentimiento y hacer que `onClubMembersChanged` solo cuente altas del flujo servidor (C4/L).
-2. **Estadísticas de club:** no confiar en `ownerId`/`memberIds`/`createdBy` escritos por el cliente; probar las medallas afectadas (L).
-3. **Migración de datos:** limpiar `memberIds` de chats de club ya existentes, revisar `createdAt` sospechosos y recalcular medallas/estadísticas si procede.
-4. **Canales de club:** prueba E2E explícita con dueño baneado y con miembro baneado en la ruta `general` (M).
-5. **Cobertura E2E restante:** Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y moderación de clubes.
-6. **Bloqueos (`blocks`):** ya cubren crear/reabrir y aceptar solicitudes; falta decidir si además deben impedir mensajes en un chat ya existente.
-7. **Auditoría de acciones administrativas:** registrar en una colección inmutable quién ajusta XP, concede medallas, cambia configuración y banea/desbanea; alertar de picos.
+1. **Migración de datos:** limpiar `memberIds` de chats de club ya existentes, revisar `createdAt` sospechosos y recalcular medallas/estadísticas si procede.
+2. **Canales de club:** prueba E2E explícita con dueño baneado y con miembro baneado en la ruta `general` (M).
+3. **Cobertura E2E restante:** Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y moderación de clubes.
+4. **Bloqueos (`blocks`):** ya cubren crear/reabrir y aceptar solicitudes; falta decidir si además deben impedir mensajes en un chat ya existente.
+5. **Auditoría de acciones administrativas:** registrar en una colección inmutable quién ajusta XP, concede medallas, cambia configuración y banea/desbanea; alertar de picos.
 
 ### P2 — higiene y cobertura
 
-8. **Añadir pruebas de carga/abuso** para límites de tamaño y frecuencia (comentarios, solicitudes, chats).
-9. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
-10. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
+6. **Añadir pruebas de carga/abuso** para límites de tamaño y frecuencia (comentarios, solicitudes, chats).
+7. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
+8. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
 
 ### Despliegue realizado
 
@@ -657,29 +661,35 @@ No se desplegaron índices ni Storage. La rama `seguridad/p0-auditoria` se elimi
 
 | Archivo | Contenido |
 |---|---|
-| `firestore.rules` | Correcciones P0, P1 y residuales desplegados: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes, canales, sanciones, solicitudes con id determinista e identidad derivada del perfil, `rateLimits` con ventana de 24 h y bloqueos en solicitudes |
-| `functions/src/index.ts` | `exigirRol`/`exigirAdmin`/`exigirModerador`, jerarquía de baneos, objetivo real de comentarios, vista previa de chats, limpieza de chats de club, `reservarCupoComentario`, bloqueos en `responderSolicitudChat` y `onChatOwnerChanged` |
+| `firestore.rules` | Correcciones P0, P1 y residuales desplegados: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes con `sinAltasDeMiembros`, canales con `createdBy` atado, sanciones, solicitudes con id determinista e identidad derivada del perfil, `rateLimits` con ventana de 24 h y bloqueos en solicitudes |
+| `functions/src/index.ts` | `exigirRol`/`exigirAdmin`/`exigirModerador`, jerarquía de baneos, objetivo real de comentarios, vista previa de chats, limpieza de chats de club, `reservarCupoComentario`, bloqueos en `responderSolicitudChat`, `onChatOwnerChanged`, `levantarSancionClub` y medallas de club concedidas desde `unirseClubPublico`/`responderSolicitudClub` |
 | `src/services/chats.ts` | Deja de escribir `lastMessage*` desde el cliente; construye `replyTo.texto` completo |
 | `src/utils/chatCita.ts` | `textoParaCita()` canónico sin recortar y `fragmentoParaCita()` para la vista |
 | `src/services/chatFijados.ts` | Añade `autorAvatar`, guarda el texto completo y `mensajeCreadoEnMs` para contrastar la fecha |
 | `src/services/chatRequests.ts` | Ids deterministas, `crearOReabrir()` transaccional con `rateLimits`, cooldown local y limpieza de la respuesta al reabrir |
+| `src/services/clubModeracion.ts` | El desbaneo llama a `levantarSancionClub`; la transacción de ficha y chats ya no la hace el cliente |
 | `src/components/chat/ChatView.tsx` | Construye la cita desde el mensaje real y pinta `texto` con recorte solo visual |
 | `src/types/index.ts` | `ChatReplyTo` con `texto` (canónico) y `snippet` (compatibilidad de lectura) |
-| `tests/auditoria/firestore.hallazgos.rules.test.cjs` | 32 pruebas de regresión: 17 P0 y 4 P1 en `assertFails`, 11 controles |
+| `tests/auditoria/firestore.hallazgos.rules.test.cjs` | 34 pruebas de regresión: 17 P0 y 6 P1 en `assertFails`, 11 controles |
 | `tests/helpers/solicitudes.cjs` | Escritura de solicitudes + `rateLimits` en la misma transacción para las suites positivas |
 | `tests/firestore.chat.rules.test.cjs` | 102 pruebas de chat, incluido el bypass de lote del cupo |
+| `tests/firestore.clubs.rules.test.cjs` + `tests/firestore.clubs-channels.rules.test.cjs` | Altas directas del dueño y auto-unión bloqueadas; `createdBy` del `general` atado al propietario |
 | `scripts/auditoria-callables.mjs` | Verificación post-P0 de las 9 callables con token de moderador y 5 controles |
 | `scripts/auditoria-triggers.mjs` | Verificación E2E de que los comentarios con objetivo inexistente no pagan XP |
 | `scripts/auditoria-residuales.mjs` | Verificación E2E del cupo de comentarios, traspaso de grupo y aceptación con bloqueos |
+| `scripts/auditoria-clubes.mjs` | Verificación E2E de altas por callable, altas directas rechazadas, medallas no inflables y desbaneo |
 | `docs/auditoria/resultados-callables.json` | Resultado estructurado de las callables |
 | `docs/auditoria/resultados-triggers.json` | Resultado estructurado del trigger de comentarios |
 | `docs/auditoria/resultados-residuales.json` | Resultado estructurado de la E2E de residuales (5/5) |
+| `docs/auditoria/resultados-clubes.json` | Resultado estructurado de la E2E de clubes (5/5) |
 | `scripts/build-reglas.mjs` | Genera `firestore.deploy.rules` sin comentarios para no superar el límite de 262.144 bytes del compilador |
 | `firebase.json` | Emulador de Auth (puerto 9099); reglas de Firestore generadas sin comentarios en el `predeploy` |
 
 El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado. Los residuales están en `2c9ecd4` y la región de los triggers en `e2185b8`; todo ello se publicó el 30-10-2026: Hosting sirve `assets/index-BfKM3yC0.js` y el release `cloud.firestore` apunta al ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
 Los residuales de la sección 4.N están **desplegados**: reglas y Hosting el 30-10-2026 (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`) y Functions (`onCommentCreated` y `onChatOwnerChanged` en `europe-southwest1`; `responderSolicitudChat` en `us-central1`). El inventario de producción quedó en 21 triggers europeos + 21 callables/scheduled en US, sin duplicados.
+
+Las correcciones de altas y estadísticas de club (sección 4.L) están **verificadas en el emulador pero aún no desplegadas**: cambian reglas, `functions/src/index.ts`, `src/services/clubModeracion.ts`, pruebas y E2E. Producción conserva las altas directas y el trigger antiguo hasta que se publique.
 
 ---
 
@@ -689,10 +699,11 @@ Los residuales de la sección 4.N están **desplegados**: reglas y Hosting el 30
 - **Las pruebas P0/P1 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
 - **No se probó funcionalmente en producción.** Todos los resultados de comportamiento son del emulador; pueden existir diferencias de configuración, índices o datos reales. Del despliegue se comprobaron el bundle servido, el release de reglas y el inventario de Functions, pero no se hizo una pasada completa con cuentas reales.
 - **Las correcciones de la sección 4.N están desplegadas.** Se verificaron en el emulador y se publicaron el 30-10-2026; en producción solo se comprobaron los artefactos y el inventario, no cada flujo con datos reales.
+- **Las altas y estadísticas de club (4.L) están verificadas pero no desplegadas.** Producción conserva la rama de auto-unión y el trigger antiguo hasta que se publiquen reglas, Functions y Hosting.
 - **La región de los triggers está fijada en `europe-southwest1`** y los callables siguen en `us-central1`, igual que en producción. El emulador usa la misma distribución tras el cambio.
 - **La sincronización de noticias del emulador** escribió 168 documentos en el proyecto demo; no se tocó la colección `news` de producción.
 - **No se evaluaron** vulnerabilidades de dependencias, XSS, CSP, configuración de Auth, correo o infraestructura. Este informe se limita a las capas indicadas.
 
 ---
 
-**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**809 reglas, 102 de chat y 5/5 E2E**) y **desplegados el 30-10-2026** (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`, 21 triggers europeos + 21 callables/scheduled en US). **La aplicación todavía no puede declararse segura en su conjunto**: quedan las altas directas de club, las estadísticas de club, la migración de datos, los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
+**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**813 reglas, 102 de chat y 5/5 E2E**) y **desplegados el 30-10-2026** (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`, 21 triggers europeos + 21 callables/scheduled en US). Las altas directas y las estadísticas de club están corregidas y verificadas en el emulador (**167 focalizadas y 5/5 E2E de clubes**), pendientes de despliegue. **La aplicación todavía no puede declararse segura en su conjunto**: quedan la migración de datos, los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
