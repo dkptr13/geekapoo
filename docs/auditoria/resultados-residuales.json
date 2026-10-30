@@ -1,6 +1,6 @@
 {
   "proyecto": "demo-geekapoo-auditoria",
-  "fecha": "2026-10-30T13:56:27.450Z",
+  "fecha": "2026-10-30T23:14:24.165Z",
   "resultados": [
     {
       "caso": "Cupo: 10 comentarios pagan, el 11 no",
@@ -15,7 +15,7 @@
     {
       "caso": "Traspaso: el trigger limpia y repara",
       "estado": "OK",
-      "detalle": "solicitudes obsoletas borradas; histórica=true, de tercero=true, al nuevo=true, índice.ownerId=MdixH3f5wA9M2mrW9GbqYdznIXEY"
+      "detalle": "solicitudes obsoletas borradas; histórica=true, de tercero=true, al nuevo=true, índice.ownerId=JgA30GwucntEEstuGmVLyOOJsKiw"
     },
     {
       "caso": "Bloqueo del emisor: aceptar se rechaza",
@@ -25,7 +25,12 @@
     {
       "caso": "Bloqueo de la receptora: aceptar desbloquea y crea el chat",
       "estado": "OK",
-      "detalle": "200; chatId=gKfzrc0SDqyoy15oWFgx, solicitud=accepted, bloqueo=false, miembros=2"
+      "detalle": "200; chatId=yFFinYTTlCUFChtAXWgs, solicitud=accepted, bloqueo=false, miembros=2"
+    },
+    {
+      "caso": "Bloqueo en chat directo existente",
+      "estado": "OK",
+      "detalle": "bloqueado=true, bloqueador=true, al desbloquear=true, grupo=true"
     }
   ]
 }

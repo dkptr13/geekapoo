@@ -1978,4 +1978,61 @@ describe('Bloqueos y solicitudes de chat', () => {
       ),
     );
   });
+
+  // ── Bloqueos en chats que ya existen ──────────────────
+  const enviar = (cliente, chatId, uid) =>
+    setDoc(doc(collection(cliente, 'chats', chatId, 'messages')), {
+      chatId,
+      senderId: uid,
+      senderName: uid,
+      senderAvatar: '',
+      body: 'Mensaje de prueba',
+      type: 'text',
+      createdAt: serverTimestamp(),
+    });
+
+  it('en un directo existente, el bloqueo corta los mensajes en ambos sentidos', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'd1'), nuevoChat(ALICE, [ALICE, BOB], {
+        type: 'direct',
+      }));
+    });
+
+    // Antes del bloqueo se puede escribir.
+    await assertSucceeds(enviar(db(ALICE), 'd1', ALICE));
+
+    await bloquear(ALICE, BOB);
+
+    // Ni quien bloqueó ni quien fue bloqueado pueden seguir la
+    // conversación por la puerta del cliente.
+    await assertFails(enviar(db(BOB), 'd1', BOB));
+    await assertFails(enviar(db(ALICE), 'd1', ALICE));
+
+    await sembrar(async (f) => {
+      await deleteDoc(doc(f, 'users', ALICE, 'blocked', BOB));
+    });
+    await assertSucceeds(enviar(db(BOB), 'd1', BOB));
+  });
+
+  it('el bloqueo NO silencia un grupo con más gente', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE, BOB, CARA]));
+    });
+
+    await bloquear(ALICE, BOB);
+
+    await assertSucceeds(enviar(db(BOB), 'g1', BOB));
+  });
+
+  it('bloquear a una persona no corta otros directos', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'd-cara'), nuevoChat(ALICE, [ALICE, CARA], {
+        type: 'direct',
+      }));
+    });
+
+    await bloquear(ALICE, BOB);
+
+    await assertSucceeds(enviar(db(ALICE), 'd-cara', ALICE));
+  });
 });

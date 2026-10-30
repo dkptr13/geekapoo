@@ -22,6 +22,12 @@
  *      · si el receptor bloqueó al emisor, aceptar funciona y quita
  *        el bloqueo (es la forma explícita de desbloquear).
  *
+ *   4. BLOQUEO EN UN CHAT DIRECTO YA EXISTENTE
+ *      · antes del bloqueo se puede escribir;
+ *      · con el bloqueo, ni el bloqueado ni el bloqueador escriben;
+ *      · al desbloquear vuelve a funcionar;
+ *      · un grupo con la misma pareja sigue funcionando.
+ *
  * Salvaguardas: solo proyecto demo-* y emuladores. No despliega nada
  * ni toca producción.
  *
@@ -585,6 +591,103 @@ async function verificarAceptacionConBloqueos() {
   );
 }
 
+// ═══════════════════════════════════════════════════════════
+// 4. BLOQUEO EN UN CHAT DIRECTO YA EXISTENTE
+// ═══════════════════════════════════════════════════════════
+
+async function verificarBloqueoEnChatDirecto() {
+  const alice = await signUp(`bloqueo-chat-a-${Date.now()}@auditoria.test`);
+  const bob = await signUp(`bloqueo-chat-b-${Date.now()}@auditoria.test`);
+  await sembrarUsuario(alice);
+  await sembrarUsuario(bob);
+
+  const { db: dbAlice } = await clienteDe(alice, 'auditoria-bloqueo-chat-a');
+  const { db: dbBob } = await clienteDe(bob, 'auditoria-bloqueo-chat-b');
+
+  const chatId = 'chat-bloqueo-directo';
+  const camposChat = {
+    name: 'Chat de auditoría',
+    avatar: '',
+    ownerId: alice.uid,
+    memberIds: [alice.uid, bob.uid],
+    hiddenFor: [],
+    lastMessage: '',
+    lastMessageAt: '2026-01-01T00:00:00.000Z',
+    lastMessageSenderId: alice.uid,
+    readAt: {},
+    createdAt: '2026-01-01T00:00:00.000Z',
+  };
+  await dbAdmin.doc(`chats/${chatId}`).set({ ...camposChat, type: 'direct' });
+
+  const enviar = (db, uid, idChat = chatId) =>
+    addDoc(collection(db, 'chats', idChat, 'messages'), {
+      chatId: idChat,
+      senderId: uid,
+      senderName: 'auditoría',
+      senderAvatar: '',
+      body: 'Mensaje de prueba',
+      type: 'text',
+      createdAt: serverTimestamp(),
+    });
+
+  // Antes del bloqueo, Bob puede escribir.
+  await enviar(dbBob, bob.uid);
+
+  await dbAdmin.doc(`users/${alice.uid}/blocked/${bob.uid}`).set({
+    blockedAt: FieldValue.serverTimestamp(),
+  });
+
+  let bobRechazado = false;
+  try {
+    await enviar(dbBob, bob.uid);
+  } catch (e) {
+    bobRechazado = String(e?.code ?? '').includes('permission-denied');
+  }
+
+  let aliceRechazado = false;
+  try {
+    await enviar(dbAlice, alice.uid);
+  } catch (e) {
+    aliceRechazado = String(e?.code ?? '').includes('permission-denied');
+  }
+
+  await dbAdmin.doc(`users/${alice.uid}/blocked/${bob.uid}`).delete();
+  let bobPermitido = false;
+  try {
+    await enviar(dbBob, bob.uid);
+    bobPermitido = true;
+  } catch {
+    bobPermitido = false;
+  }
+
+  // Un grupo con la misma pareja no debe quedar silenciado.
+  const grupoId = 'chat-bloqueo-grupo';
+  await dbAdmin.doc(`chats/${grupoId}`).set({
+    ...camposChat,
+    type: 'group',
+    name: 'Grupo de auditoría',
+  });
+  await dbAdmin.doc(`users/${alice.uid}/blocked/${bob.uid}`).set({
+    blockedAt: FieldValue.serverTimestamp(),
+  });
+  let grupoPermitido = false;
+  try {
+    await enviar(dbBob, bob.uid, grupoId);
+    grupoPermitido = true;
+  } catch {
+    grupoPermitido = false;
+  }
+
+  registrar(
+    'Bloqueo en chat directo existente',
+    bobRechazado && aliceRechazado && bobPermitido && grupoPermitido
+      ? 'OK'
+      : 'ERROR',
+    `bloqueado=${bobRechazado}, bloqueador=${aliceRechazado}, ` +
+      `al desbloquear=${bobPermitido}, grupo=${grupoPermitido}`,
+  );
+}
+
 async function main() {
   console.log(`Proyecto de emulador: ${PROJECT}`);
   console.log(`Firestore: ${process.env.FIRESTORE_EMULATOR_HOST}`);
@@ -592,6 +695,7 @@ async function main() {
   await verificarCupoComentarios();
   await verificarTraspasoGrupo();
   await verificarAceptacionConBloqueos();
+  await verificarBloqueoEnChatDirecto();
 
   const salida = {
     proyecto: PROJECT,

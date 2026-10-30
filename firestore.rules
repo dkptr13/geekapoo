@@ -1082,6 +1082,27 @@ service cloud.firestore {
     }
 
     /**
+     * Un chat DIRECTO entre dos personas donde una bloqueó a la otra.
+     *
+     * Los bloqueos ya impedían crear o reabrir solicitudes; faltaba
+     * el chat que ya existía. En un directo, si hay bloqueo en
+     * cualquier sentido, ninguno de los dos puede enviar mensajes
+     * nuevos. En grupos y clubes no se aplica: bloquear a una persona
+     * no debe silenciar la conversación de todos.
+     */
+    function bloqueoEnDirecto(chatId) {
+      let c = chatData(chatId);
+      return c.type == 'direct'
+             && c.memberIds is list
+             && c.memberIds.size() == 2
+             && request.auth.uid in c.memberIds
+             && hayBloqueoCon(
+                  c.memberIds[0] == request.auth.uid
+                    ? c.memberIds[1]
+                    : c.memberIds[0]);
+    }
+
+    /**
      * ¿Esta transacción consume un hueco del cupo de solicitudes?
      *
      * El cupo es un libro mayor (`rateLimits/{uid}`) con una ventana
@@ -4978,6 +4999,7 @@ service cloud.firestore {
         allow create: if isChatMember(chatId)
                       && isActive()
                       && puedeEscribirEnChat(chatId)
+                      && !bloqueoEnDirecto(chatId)
                       && request.resource.data.senderId == request.auth.uid
                       && request.resource.data.body is string
                       && request.resource.data.body.size() <= 4000

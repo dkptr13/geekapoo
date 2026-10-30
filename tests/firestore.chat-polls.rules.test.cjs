@@ -446,3 +446,63 @@ describe('Cerrar la encuesta de un mensaje', () => {
     );
   });
 });
+
+// ── RESUMEN DE LA ENCUESTA ─────────────────────────────
+
+describe('Resumen de la encuesta', () => {
+  beforeEach(async () => {
+    await sembrar(async (f) => {
+      // Este describe vive fuera del bloque principal del archivo,
+      // así que necesita su propio chat y mensaje.
+      await setDoc(doc(f, 'chats', 'chat-1'), {
+        type: 'group',
+        name: 'Grupo de prueba',
+        avatar: '',
+        code: 'GRP-AAAA-BBBB',
+        ownerId: ALICE,
+        memberIds: [ALICE, BOB],
+        hiddenFor: [],
+        lastMessage: '',
+        lastMessageAt: '2026-01-01T00:00:00.000Z',
+        lastMessageSenderId: ALICE,
+        readAt: {},
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+      await setDoc(
+        doc(f, 'chats', 'chat-1', 'messages', 'm1'),
+        mensajeConEncuesta(ALICE, encuestaBase()),
+      );
+      await setDoc(
+        doc(f, 'chats', 'chat-1', 'messages', 'm1', 'pollStats', 'summary'),
+        { total: 1, counts: { o1: 1, o2: 0 } },
+      );
+    });
+  });
+
+  it('un miembro lee el resumen', async () => {
+    await assertSucceeds(
+      getDoc(doc(db(BOB), 'chats', 'chat-1', 'messages', 'm1', 'pollStats', 'summary')),
+    );
+  });
+
+  it('quien no es miembro no lo lee', async () => {
+    await assertFails(
+      getDoc(doc(db(CARA), 'chats', 'chat-1', 'messages', 'm1', 'pollStats', 'summary')),
+    );
+  });
+
+  it('el cliente no puede escribirlo', async () => {
+    await assertFails(
+      setDoc(doc(db(BOB), 'chats', 'chat-1', 'messages', 'm1', 'pollStats', 'summary'), {
+        total: 99,
+        counts: { o1: 99 },
+      }),
+    );
+  });
+
+  it('solo se puede pedir el documento "summary"', async () => {
+    await assertFails(
+      getDoc(doc(db(BOB), 'chats', 'chat-1', 'messages', 'm1', 'pollStats', 'otro')),
+    );
+  });
+});

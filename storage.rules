@@ -27,11 +27,11 @@ service firebase.storage {
     }
 
     function isAdmin() {
-      return myRole() == 'admin';
+      return myRole() == 'admin' && !isBanned();
     }
 
     function isModerator() {
-      return myRole() == 'admin' || myRole() == 'moderator';
+      return (myRole() == 'admin' || myRole() == 'moderator') && !isBanned();
     }
 
     // El baneo se consulta en DOS sitios, igual que en
@@ -134,7 +134,8 @@ service firebase.storage {
       allow write: if isSignedIn()
                    && request.auth.uid == uid
                    && esImagenSegura();
-      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isSignedIn()
+                   && ((request.auth.uid == uid && !isBanned()) || isAdmin());
     }
 
     // Imagenes de los hilos y comentarios de la comunidad.
@@ -151,7 +152,8 @@ service firebase.storage {
                    && request.auth.uid == uid
                    && !isBanned()
                    && esImagenSegura();
-      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isSignedIn()
+                   && ((request.auth.uid == uid && !isBanned()) || isAdmin());
     }
 
     // Imagenes de los chats: la foto del grupo y las fotos de los
@@ -174,7 +176,8 @@ service firebase.storage {
                    && !isBanned()
                    && esImagenSegura()
                    && isChatMember(chatId);
-      allow delete: if isSignedIn() && (isChatMember(chatId) || isAdmin());
+      allow delete: if isSignedIn()
+                   && ((isChatMember(chatId) && !isBanned()) || isAdmin());
     }
 
     // Imagenes de los clubes: portada (banner) e icono.
@@ -194,16 +197,36 @@ service firebase.storage {
     // portada sin que un moderador pueda dejar el club sin
     // ninguna imagen.
     function esAdminDeClub(slug) {
+      // La autoridad sale de `ownerId`/`moderatorIds`/`adminIds`, no
+      // de `members[uid].role`. Ese mapa es un espejo que el equipo
+      // puede editar y no concede permisos en Firestore; si Storage
+      // lo mirara, un moderador podría ascender a un miembro solo en
+      // el espejo y darle la carpeta de imágenes del club.
       return isSignedIn()
+        && !isBanned()
         && firestore.exists(/databases/(default)/documents/clubs/$(slug))
+        && firestore.get(/databases/(default)/documents/clubs/$(slug)).data.memberIds is list
         && request.auth.uid in
              firestore.get(/databases/(default)/documents/clubs/$(slug)).data.memberIds
-        && firestore.get(/databases/(default)/documents/clubs/$(slug))
-               .data.members[request.auth.uid].role in ['moderator', 'owner'];
+        && (firestore.get(/databases/(default)/documents/clubs/$(slug)).data.ownerId
+              == request.auth.uid
+            || ('moderatorIds' in firestore.get(/databases/(default)/documents/clubs/$(slug)).data
+                && firestore.get(/databases/(default)/documents/clubs/$(slug))
+                  .data.moderatorIds is list
+                && request.auth.uid in
+                   firestore.get(/databases/(default)/documents/clubs/$(slug))
+                     .data.moderatorIds)
+            || ('adminIds' in firestore.get(/databases/(default)/documents/clubs/$(slug)).data
+                && firestore.get(/databases/(default)/documents/clubs/$(slug))
+                  .data.adminIds is list
+                && request.auth.uid in
+                   firestore.get(/databases/(default)/documents/clubs/$(slug))
+                     .data.adminIds));
     }
 
     function esPropietarioDeClub(slug) {
       return isSignedIn()
+        && !isBanned()
         && firestore.exists(/databases/(default)/documents/clubs/$(slug))
         && firestore.get(/databases/(default)/documents/clubs/$(slug)).data.ownerId
              == request.auth.uid;

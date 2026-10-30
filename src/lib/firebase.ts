@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import {
   getAuth,
   GithubAuthProvider,
@@ -18,6 +19,20 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// App Check es opcional: solo se inicializa si hay una clave de
+// reCAPTCHA v3 en el entorno. Así el build y el emulador siguen
+// funcionando sin ella, y activarlo es una decisión de despliegue
+// (clave + enforcement en Firebase Console), no un cambio de código.
+// Sin clave, App Check NO protege nada: las reglas y las Functions
+// siguen siendo la única barrera.
+const appCheckKey = import.meta.env.VITE_FIREBASE_APP_CHECK_KEY;
+if (appCheckKey) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(appCheckKey),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);

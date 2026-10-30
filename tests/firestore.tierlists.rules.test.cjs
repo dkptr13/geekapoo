@@ -449,6 +449,32 @@ describe('Votar el nivel favorito', () => {
       }),
     );
   });
+
+  it('los votos de una tier de club no se filtran fuera del club', async () => {
+    await sembrarClubConMiembros();
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'tierlists', 'priv'), {
+        ...nuevaTier(DUENO),
+        visibility: 'club',
+        clubId: 'club-x',
+      });
+      await setDoc(doc(f, 'tierlists', 'priv', 'votes', BOB), {
+        userId: BOB,
+        tierId: 't1',
+        createdAt: '2026-01-02T00:00:00.000Z',
+      });
+    });
+
+    // Un miembro del club sí puede leer los votos de su tier.
+    await assertSucceeds(
+      getDocs(collection(db(BOB), 'tierlists', 'priv', 'votes')),
+    );
+
+    // Un ajeno no: ni siquiera la lista de votos.
+    await assertFails(
+      getDocs(collection(db(ALICE), 'tierlists', 'priv', 'votes')),
+    );
+  });
 });
 
 // ── ADJUNTAR EN HILOS ────────────────────────────────

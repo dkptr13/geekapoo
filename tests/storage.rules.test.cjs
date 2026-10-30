@@ -51,6 +51,10 @@ const CARA = 'carla'; // cuenta normal que NO está en ningún chat
 const BANEADO = 'baneado';
 const BANEADO_REGISTRO = 'baneado-registro';
 const DESBANEADO = 'desbaneado';
+const MOD = 'moderador';
+const MIRROR = 'espejo';
+const ADMIN = 'admin';
+const ADMIN_BANEADO = 'admin-baneado';
 
 /** Un PNG de 1x1, porque lo que se comprueba son las reglas. */
 const PNG = Buffer.from(
@@ -156,6 +160,54 @@ describe('reglas de Storage', () => {
       await setDoc(doc(f, 'users', ALICE), { displayName: 'alice' });
       await setDoc(doc(f, 'users', BOB), { displayName: 'bob' });
       await setDoc(doc(f, 'users', CARA), { displayName: 'carla' });
+
+      // Equipo del club para probar la carpeta de imágenes. MIRROR
+      // tiene role:'moderator' en el espejo `members`, pero NO está
+      // en `moderatorIds`: no debe poder subir.
+      await setDoc(doc(f, 'users', MOD), { displayName: 'moderador' });
+      await setDoc(doc(f, 'users', MIRROR), { displayName: 'espejo' });
+      await setDoc(doc(f, 'users', ADMIN), {
+        displayName: 'admin',
+        role: 'admin',
+      });
+      await setDoc(doc(f, 'users', ADMIN_BANEADO), {
+        displayName: 'admin baneado',
+        role: 'admin',
+        isBanned: true,
+      });
+      await setDoc(doc(f, 'clubs', 'club1'), {
+        slug: 'club1',
+        name: 'Club de prueba',
+        description: 'Club para probar Storage',
+        ownerId: ALICE,
+        moderatorIds: [MOD],
+        adminIds: [ADMIN],
+        memberIds: [ALICE, MOD, CARA, MIRROR, ADMIN],
+        members: {
+          [ALICE]: { uid: ALICE, role: 'owner' },
+          [MOD]: { uid: MOD, role: 'moderator' },
+          [CARA]: { uid: CARA, role: 'member' },
+          [MIRROR]: { uid: MIRROR, role: 'moderator' },
+          [ADMIN]: { uid: ADMIN, role: 'admin' },
+        },
+        memberCount: 5,
+        chatId: 'chat-club-storage',
+      });
+      // Club antiguo sin `moderatorIds` ni `adminIds`: las reglas no
+      // deben fallar al evaluar esas claves ausentes.
+      await setDoc(doc(f, 'clubs', 'club-legacy'), {
+        slug: 'club-legacy',
+        name: 'Club antiguo',
+        description: 'Club sin arrays de equipo',
+        ownerId: ALICE,
+        memberIds: [ALICE, CARA],
+        members: {
+          [ALICE]: { uid: ALICE, role: 'owner' },
+          [CARA]: { uid: CARA, role: 'member' },
+        },
+        memberCount: 2,
+        chatId: 'chat-legacy',
+      });
 
       // Baneos: uno con la bandera visible y otro SOLO con el
       // registro duradero (su perfil dice isBanned:false, como
@@ -288,6 +340,86 @@ describe('reglas de Storage', () => {
     it('un baneo levantado (activo:false) deja subir otra vez', async () => {
       await assertSucceeds(
         subir(DESBANEADO, `community/${DESBANEADO}/1700000000.jpg`),
+      );
+    });
+  });
+
+  // ── IMÁGENES DE CLUB ───────────────────────────────────
+  describe('carpeta clubs/', () => {
+    it('el propietario sube la portada y puede borrarla', async () => {
+      await assertSucceeds(
+        subir(ALICE, 'clubs/club1/portada/1700000000-portada.jpg'),
+      );
+      await assertSucceeds(
+        deleteObject(
+          ref(
+            testEnv.authenticatedContext(ALICE).storage(),
+            'clubs/club1/portada/1700000000-portada.jpg',
+          ),
+        ),
+      );
+    });
+
+    it('un moderador de verdad (moderatorIds) también sube', async () => {
+      await assertSucceeds(
+        subir(MOD, 'clubs/club1/portada/1700000000-mod.jpg'),
+      );
+    });
+
+    it('un miembro NO sube aunque su rol del espejo diga moderator', async () => {
+      // El espejo `members[uid].role` lo puede reescribir el equipo;
+      // la autoridad está en `moderatorIds`. Si Storage mirara el
+      // espejo, un moderador podría ascender a un miembro solo ahí y
+      // darle la carpeta de imágenes del club.
+      await assertFails(
+        subir(MIRROR, 'clubs/club1/portada/1700000000-espejo.jpg'),
+      );
+    });
+
+    it('un miembro normal tampoco sube', async () => {
+      await assertFails(
+        subir(CARA, 'clubs/club1/portada/1700000000-cara.jpg'),
+      );
+    });
+
+    it('solo se puede escribir en portada/ o icono/', async () => {
+      await assertFails(
+        subir(ALICE, 'clubs/club1/otra/1700000000.jpg'),
+      );
+    });
+
+    it('un SVG no pasa aunque sea image/svg+xml', async () => {
+      await assertFails(
+        subir(ALICE, 'clubs/club1/portada/1700000000.svg', PNG, 'image/svg+xml'),
+      );
+    });
+
+    it('un admin baneado no sube al catálogo ni borra la portada', async () => {
+      await assertFails(subir(ADMIN_BANEADO, 'content/anime/portada.jpg'));
+
+      await assertSucceeds(
+        subir(ALICE, 'clubs/club1/portada/1700000000-vieja.jpg'),
+      );
+      await assertFails(
+        deleteObject(
+          ref(
+            testEnv.authenticatedContext(ADMIN_BANEADO).storage(),
+            'clubs/club1/portada/1700000000-vieja.jpg',
+          ),
+        ),
+      );
+    });
+
+    it('un admin activo sí sube al catálogo', async () => {
+      await assertSucceeds(subir(ADMIN, 'content/anime/portada.jpg'));
+    });
+
+    it('un club antiguo sin moderatorIds/adminIds deja subir al dueño', async () => {
+      await assertSucceeds(
+        subir(ALICE, 'clubs/club-legacy/portada/1700000000-legacy.jpg'),
+      );
+      await assertFails(
+        subir(CARA, 'clubs/club-legacy/portada/1700000000-cara.jpg'),
       );
     });
   });
