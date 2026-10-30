@@ -5,7 +5,7 @@
 - **Commit de referencia (auditoría):** `64a68a7` (`seguridad(firestore): proteger contadores e implementar gestión de likes con funciones de servidor`)
 - **Correcciones:** P0 `cc35d84`; P1 `19a3912`
 - **Residuales 4.N:** commits `2c9ecd4` (reglas, cliente, Functions y pruebas) y `e2185b8` (región de los triggers); verificados en el emulador el 30-10-2026 y desplegados
-- **Integración:** `main` en `e2185b8`; la rama `seguridad/p0-auditoria` se eliminó después del merge
+- **Integración:** `main` sincronizado con `origin/main`; código desplegado en `e2185b8`; la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
 - **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-BfKM3yC0.js`; el release `cloud.firestore` apunta al ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c` (152.854 bytes, 30-10-2026 13:54:19 UTC); y las Functions quedaron en **21 triggers en `europe-southwest1` + 21 callables/scheduled en `us-central1`**, sin duplicados. Los residuales están verificados en el emulador (**809 reglas + 102 de chat + 5/5 E2E**). Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
