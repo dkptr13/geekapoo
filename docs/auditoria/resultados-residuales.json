@@ -1,0 +1,31 @@
+{
+  "proyecto": "demo-geekapoo-auditoria",
+  "fecha": "2026-10-30T13:01:53.821Z",
+  "resultados": [
+    {
+      "caso": "Cupo: 10 comentarios pagan, el 11 no",
+      "estado": "OK",
+      "detalle": "xp=50 (esperado 50), stats.commentsCreated=10 (esperado 10), commentsCount=11 (esperado 11), comentarios=11"
+    },
+    {
+      "caso": "Cupo diario agotado: publica pero no cobra",
+      "estado": "OK",
+      "detalle": "xp=0 (esperado 0), stats.commentsCreated=0 (esperado 0)"
+    },
+    {
+      "caso": "Traspaso: el trigger limpia y repara",
+      "estado": "OK",
+      "detalle": "solicitudes obsoletas borradas; histórica=true, de tercero=true, al nuevo=true, índice.ownerId=sld4zX73JSpwWHl4BskeVISWdtCk"
+    },
+    {
+      "caso": "Bloqueo del emisor: aceptar se rechaza",
+      "estado": "OK",
+      "detalle": "400 (FAILED_PRECONDITION); solicitud=pending, chat=ninguno, bloqueo=true"
+    },
+    {
+      "caso": "Bloqueo de la receptora: aceptar desbloquea y crea el chat",
+      "estado": "OK",
+      "detalle": "200; chatId=DREn1Y2DZFNUrpbXseLw, solicitud=accepted, bloqueo=false, miembros=2"
+    }
+  ]
+}

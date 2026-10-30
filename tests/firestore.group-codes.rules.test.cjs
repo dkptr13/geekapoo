@@ -33,6 +33,7 @@ const {
   updateDoc,
   where,
 } = require('firebase/firestore');
+const { guardarSolicitud } = require('./helpers/solicitudes.cjs');
 
 const fs = require('fs');
 const path = require('path');
@@ -327,9 +328,12 @@ describe('groupCodes: consultar la invitación', () => {
   });
 
   it('el camino autorizado sigue siendo pedir entrada al dueño', async () => {
+    const cara = db(CARA);
     await assertSucceeds(
-      setDoc(
-        doc(db(CARA), 'chatRequests', `group_${GRUPO}_${CARA}`),
+      guardarSolicitud(
+        cara,
+        CARA,
+        doc(cara, 'chatRequests', `group_${GRUPO}_${CARA}`),
         solicitudGrupo(CARA, ALICE, GRUPO, {
           groupName: 'Grupo de Alice',
         }),

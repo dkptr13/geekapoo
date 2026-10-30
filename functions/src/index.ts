@@ -1366,6 +1366,93 @@ function refDelContadorDeComentarios(
   return db.doc(`${coleccion}/${targetId}`);
 }
 
+// ======================================================
+// CUPO DE COMENTARIOS RECOMPENSADOS
+// ======================================================
+//
+// Un comentario válido sigue contando en el contador público del
+// hilo o del anime, pero su recompensa (XP y `stats.commentsCreated`)
+// tiene un techo. Sin él, escribir cien comentarios en el mismo hilo
+// pagaba cien veces y la clasificación se podía inflar sin límite.
+//
+// Dos ventanas a la vez:
+//
+//   · 10 comentarios recompensados cada 10 minutos (frena una
+//     ráfaga puntual);
+//   · 50 cada día UTC (frena el goteo constante).
+//
+// El comentario que se pasa del cupo NO se borra ni se oculta ni
+// deja de contar en el objetivo: solo deja de pagar XP y de sumar a
+// las estadísticas personales. La reserva es idempotente por
+// `commentId`, porque los triggers se entregan "al menos una vez".
+const COMENTARIOS_RECOMPENSADOS_POR_TRAMO = 10;
+const TRAMO_COMENTARIOS_MS = 10 * 60 * 1000;
+const COMENTARIOS_RECOMPENSADOS_POR_DIA = 50;
+
+interface ResultadoCupoComentarios {
+  permitido: boolean;
+  repetido: boolean;
+}
+
+async function reservarCupoComentario(
+  uid: string,
+  commentId: string,
+): Promise<ResultadoCupoComentarios> {
+  const cuotaRef = db.doc(`commentQuotas/${uid}`);
+  const reservaRef = db.doc(`commentQuotas/${uid}/reservas/${commentId}`);
+
+  const ahora = Date.now();
+  const tramo = Math.floor(ahora / TRAMO_COMENTARIOS_MS);
+  const dia = new Date(ahora).toISOString().slice(0, 10);
+
+  return db.runTransaction(async (tx) => {
+    const [cuotaSnap, reservaSnap] = await Promise.all([
+      tx.get(cuotaRef),
+      tx.get(reservaRef),
+    ]);
+
+    // Reintento del mismo comentario: el cupo ya se consumió.
+    if (reservaSnap.exists) {
+      return { permitido: true, repetido: true };
+    }
+
+    const datos = cuotaSnap.data() ?? {};
+    const tramoAntes = num(datos.tramo);
+    const diaAntes = typeof datos.dia === 'string' ? datos.dia : '';
+    const cuentaTramo = tramoAntes === tramo ? num(datos.cuentaTramo) : 0;
+    const cuentaDia = diaAntes === dia ? num(datos.cuentaDia) : 0;
+
+    if (
+      cuentaTramo >= COMENTARIOS_RECOMPENSADOS_POR_TRAMO ||
+      cuentaDia >= COMENTARIOS_RECOMPENSADOS_POR_DIA
+    ) {
+      return { permitido: false, repetido: false };
+    }
+
+    tx.set(
+      cuotaRef,
+      {
+        tramo,
+        dia,
+        cuentaTramo: cuentaTramo + 1,
+        cuentaDia: cuentaDia + 1,
+        actualizadoAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    tx.set(reservaRef, {
+      commentId,
+      uid,
+      tramo,
+      dia,
+      at: FieldValue.serverTimestamp(),
+    });
+
+    return { permitido: true, repetido: false };
+  });
+}
+
 async function contarComentarioCreado(
   commentId: string,
   targetType: string | undefined,
@@ -1520,27 +1607,40 @@ export const onCommentCreated = onDocumentCreated(
     // de "Critico de Temporada" (que habla de concreto).
     const esDebate = targetType === 'thread';
 
-    try {
-      await concederConHitos(
-        authorId,
-        `comment_created_${commentId}`,
-        {
-          reason: 'comment_created',
-          sourceId: commentId,
-          actorId: null,
-          nota: esDebate ? 'Comentario en un debate' : `Comentario en ${targetType ?? 'contenido'}`,
-          animeId,
-        },
-        {
-          commentsCreated: 1,
-          ...(esDebate ? { commentsInThreads: 1 } : {}),
-        },
-      );
-    } catch (e) {
-      logger.error('Fallo concediendo XP por comentario nuevo', {
+    // El cupo se reserva SIEMPRE antes de pagar. Si la reserva
+    // falla, el trigger se reintenta (la cuenta del objetivo ya es
+    // idempotente): es preferible perder una recompensa a pagarla
+    // sin límite.
+    const cupo = await reservarCupoComentario(authorId, commentId);
+
+    if (!cupo.permitido) {
+      logger.info('Comentario sin recompensa por cupo', {
         commentId,
-        error: e,
+        authorId,
       });
+    } else {
+      try {
+        await concederConHitos(
+          authorId,
+          `comment_created_${commentId}`,
+          {
+            reason: 'comment_created',
+            sourceId: commentId,
+            actorId: null,
+            nota: esDebate ? 'Comentario en un debate' : `Comentario en ${targetType ?? 'contenido'}`,
+            animeId,
+          },
+          {
+            commentsCreated: 1,
+            ...(esDebate ? { commentsInThreads: 1 } : {}),
+          },
+        );
+      } catch (e) {
+        logger.error('Fallo concediendo XP por comentario nuevo', {
+          commentId,
+          error: e,
+        });
+      }
     }
 
     // ── Avisos ───────────────────────────────────────────
@@ -2698,6 +2798,25 @@ export const responderSolicitudChat = onCall(async (request) => {
         );
       }
 
+      // Un bloqueo pendiente puede haber aparecido después de que se
+      // enviara la solicitud. Si el EMISOR te bloqueó, ya no quiere
+      // hablar contigo: aceptar crearía un chat que no podría usar.
+      // Si quien bloqueó fuiste TÚ, aceptar es una forma explícita
+      // de desbloquear (y el chat nace utilizable).
+      const bloqueoMio = await tx.get(
+        db.doc(`${USERS}/${uid}/blocked/${fromId}`),
+      );
+      const bloqueoSuyo = await tx.get(
+        db.doc(`${USERS}/${fromId}/blocked/${uid}`),
+      );
+
+      if (bloqueoSuyo.exists) {
+        throw new HttpsError(
+          'failed-precondition',
+          'Esa persona ya no quiere recibir mensajes.',
+        );
+      }
+
       const perfilSnap = await tx.get(db.doc(`${USERS}/${fromId}`));
       const restriccionSnap = await tx.get(
         db.doc(`${ACCOUNT_RESTRICTIONS}/${fromId}`),
@@ -2732,6 +2851,13 @@ export const responderSolicitudChat = onCall(async (request) => {
         readAt: { [uid]: FieldValue.serverTimestamp() },
         createdAt: FieldValue.serverTimestamp(),
       });
+
+      // Aceptar la solicitud de alguien a quien tenías bloqueado
+      // deshace el bloqueo: es la forma que tiene la interfaz de
+      // decir "vale, hablemos otra vez".
+      if (bloqueoMio.exists) {
+        tx.delete(bloqueoMio.ref);
+      }
 
       tx.update(solicitudRef, {
         status: 'accepted',
@@ -2784,6 +2910,25 @@ export const responderSolicitudChat = onCall(async (request) => {
     const nuevoMiembro = tipo === 'group' ? fromId : uid;
     if (nuevoMiembro === chat.ownerId) {
       throw new HttpsError('failed-precondition', 'Esa persona ya es del grupo.');
+    }
+
+    // Un bloqueo en cualquier sentido impide aceptar la entrada o la
+    // invitación. La otra parte es siempre `fromId`: en una entrada
+    // es quien la pidió y en una invitación es el dueño que la
+    // mandó. No se desbloquea automáticamente: para un grupo, lo
+    // normal es rechazar y que decidan los dos.
+    const bloqueoMio = await tx.get(
+      db.doc(`${USERS}/${uid}/blocked/${fromId}`),
+    );
+    const bloqueoSuyo = await tx.get(
+      db.doc(`${USERS}/${fromId}/blocked/${uid}`),
+    );
+
+    if (bloqueoMio.exists || bloqueoSuyo.exists) {
+      throw new HttpsError(
+        'failed-precondition',
+        'Hay un bloqueo entre vosotros. Desbloquead para poder entrar en el grupo.',
+      );
     }
 
     const perfilSnap = await tx.get(db.doc(`${USERS}/${nuevoMiembro}`));
@@ -3325,6 +3470,84 @@ export const onChatMembersChanged = onDocumentUpdated(
       await ref.update({ memberCount: miembrosDespues.length });
     } catch (e) {
       logger.error('No se pudo actualizar el contador del grupo', {
+        chatId: event.params.chatId,
+        error: e,
+      });
+    }
+  },
+);
+
+/**
+ * Al cambiar el dueño de un grupo, las solicitudes pendientes que
+ * apuntaban al dueño anterior dejan de ser válidas.
+ *
+ * El cliente (`transferGroupOwnership`) ya actualiza `ownerId` y el
+ * índice del código, pero olvidaba las solicitudes: una entrada
+ * `group_...` seguía dirigida al dueño viejo, y una invitación
+ * `invite_...` seguía firmada por él. Las reglas ya no dejan que el
+ * dueño nuevo las acepte (comprueban al dueño real), así que se
+ * quedaban pendientes para siempre y ensuciaban la bandeja.
+ *
+ * Se borran en el servidor para que valga también si el traspaso se
+ * hace con el Admin SDK o si el cliente se queda a medias.
+ */
+export const onChatOwnerChanged = onDocumentUpdated(
+  `${CHATS}/{chatId}`,
+  async (event) => {
+    try {
+      const antes = event.data?.before.data();
+      const despues = event.data?.after.data();
+      if (!despues || despues.type !== 'group') return;
+
+      const anterior = typeof antes?.ownerId === 'string' ? antes.ownerId : '';
+      const nuevo = typeof despues.ownerId === 'string' ? despues.ownerId : '';
+      if (!anterior || !nuevo || anterior === nuevo) return;
+
+      const chatId = event.params.chatId;
+
+      // Una sola consulta por campo (`groupId`) para no depender de
+      // índices compuestos: tipo, estado y emisor se filtran en
+      // memoria. Las solicitudes de un grupo son pocas.
+      const solicitudes = await db
+        .collection('chatRequests')
+        .where('groupId', '==', chatId)
+        .get();
+
+      const obsoletas = solicitudes.docs.filter((d) => {
+        const datos = d.data();
+        if (datos.status !== 'pending') return false;
+        // Solo las que apuntaban al dueño anterior. Una solicitud de
+        // grupo creada justo después del traspaso ya va dirigida al
+        // dueño nuevo y debe sobrevivir a esta limpieza.
+        if (datos.type === 'group') return datos.toId === anterior;
+        return datos.type === 'invite' && datos.fromId === anterior;
+      });
+
+      for (let i = 0; i < obsoletas.length; i += 400) {
+        const lote = db.batch();
+        obsoletas.slice(i, i + 400).forEach((d) => lote.delete(d.ref));
+        await lote.commit();
+      }
+
+      // El índice de invitación guarda quién es el dueño. El cliente
+      // lo actualiza al traspasar, pero es best-effort: aquí se
+      // repara aunque se haya quedado a medias.
+      const codigo = typeof despues.code === 'string' ? despues.code : '';
+      if (!codigo) return;
+
+      const indiceRef = db.doc(`groupCodes/${codigo}`);
+      const indiceSnap = await indiceRef.get();
+      if (!indiceSnap.exists || indiceSnap.data()?.groupId !== chatId) return;
+
+      const perfil = await db.doc(`${USERS}/${nuevo}`).get();
+      const nombre = nombreDePerfil(perfil.data());
+      const indice = indiceSnap.data() ?? {};
+
+      if (indice.ownerId === nuevo && indice.ownerName === nombre) return;
+
+      await indiceRef.update({ ownerId: nuevo, ownerName: nombre });
+    } catch (e) {
+      logger.error('No se pudieron limpiar las solicitudes del grupo traspasado', {
         chatId: event.params.chatId,
         error: e,
       });

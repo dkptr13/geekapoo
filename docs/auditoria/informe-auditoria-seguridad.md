@@ -1,12 +1,13 @@
 # Auditoría de seguridad de Geekapoo
 
-- **Fecha:** 28-29 de octubre de 2026
+- **Fecha:** 28-30 de octubre de 2026
 - **Proyecto Firebase:** `geekapoo-7624d`
 - **Commit de referencia (auditoría):** `64a68a7` (`seguridad(firestore): proteger contadores e implementar gestión de likes con funciones de servidor`)
 - **Correcciones:** P0 `cc35d84`; P1 `19a3912`
+- **Residuales 4.N:** sin commit (árbol de trabajo); verificados en emulador el 30-10-2026
 - **Integración:** `main` en `b8f63c3` (PR #2); la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0 y P1 desplegados en producción.** P1 (F4, G1 y fecha de los fijados) verificado en Firebase Emulator Suite y publicado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. Quedan residuales P1/P2 y rutas sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0 y P1 desplegados en producción.** P1 (F4, G1 y fecha de los fijados) verificado en Firebase Emulator Suite y publicado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. Los residuales de G1 (rate limit global y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos y verificados en local (**809 reglas + 102 de chat + 5/5 E2E**), pero **no se han commiteado ni desplegado**. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -22,15 +23,24 @@ Después se corrigieron los P1, se commitearon en `19a3912` y se desplegaron:
 - **G1:** las solicitudes usan ids deterministas, `fromName`/`fromAvatar` se derivan del perfil, `createdAt` debe ser `request.time`, hay cooldown de 24 h tras un rechazo y una sola ruta por par/grupo-persona.
 - **Fecha de los fijados:** `mensajeCreadoEnMs` se contrasta con `createdAt.toMillis()` del mensaje real (o con el texto exacto en mensajes antiguos).
 
-Queda un residual P1: **no hay un límite global de solicitudes por emisor**. El id determinista impide crear varias rutas para el mismo par, pero una cuenta todavía puede escribir a muchos destinatarios distintos. Cerrarlo exige una callable o un libro mayor por usuario.
+Los residuales de G1 ya están cerrados **en el árbol de trabajo local**, pendientes de commit y despliegue:
+
+- **Rate limit global:** libro mayor `rateLimits/{uid}` con 20 solicitudes por usuario cada 24 h. Se escribe en la misma transacción que la solicitud y la regla exige, con `getAfter()`, que `ultimaSolicitudId` sea el id exacto de la solicitud creada o reabierta, de modo que un incremento no puede cubrir varias.
+- **Cambio de dueño de grupo:** `onChatOwnerChanged` borra las solicitudes pendientes dirigidas al dueño anterior y las invitaciones firmadas por él, conserva las históricas, las de terceros y las ya dirigidas al dueño nuevo, y repara el índice `groupCodes`.
+- **Farmeo de XP con comentarios válidos:** se pagan como máximo 10 comentarios por ventana de 10 minutos y 50 por día UTC. El comentario que excede el cupo se sigue publicando y cuenta en `commentsCount`, pero no paga XP ni suma a `stats.commentsCreated`.
+- **Bloqueos:** crear o reabrir una solicitud y aceptarla respetan los bloqueos en ambos sentidos; si quien bloqueó es el receptor, aceptar desbloquea.
+
+La evidencia está en la sección 4.N y en `docs/auditoria/resultados-residuales.json`.
 
 ### Resultados finales
 
 | Prueba | Resultado |
 |---|---|
 | Reglas de la auditoría (32 casos) | **32 passing**, 0 failing; 17 regresiones P0 y 4 regresiones P1 (F4/G1) en `assertFails`, 11 controles |
-| Suite completa de reglas (`npm run test:rules`) | **791 passing**, 0 failing |
-| Corrida focalizada de 5 suites afectadas | **240 passing**, 0 failing |
+| Suite completa de reglas (`npm run test:rules`) | **809 passing**, 0 failing (16 min) |
+| Corrida focalizada de chat | **102 passing**, 0 failing; incluye el bypass de lote del cupo |
+| Corrida focalizada de group-codes, privacidad y auditoría | **91 passing**, 0 failing |
+| E2E de residuales (`scripts/auditoria-residuales.mjs`) | **5/5 comprobaciones correctas**; cupo 10/11 y diario, traspaso y bloqueos |
 | Suite de fijados | Fecha real contrastada, milisegundo falso y campo omitido rechazados |
 | Callables post-P0 | **0 hallazgos, 14 controles correctos, 0 errores** |
 | Trigger de comentarios post-P0 | **3/3 rechazados**, XP 0 → 0, `commentsCreated = 0`, `bloqueado = true` |
@@ -59,11 +69,10 @@ Queda un residual P1: **no hay un límite global de solicitudes por emisor**. El
 
 ### Riesgos que siguen abiertos
 
-- **Rate limit global de solicitudes:** no hay un límite por emisor para escribir a muchas personas o grupos distintos. El id determinista solo impide duplicados contra el mismo destinatario.
-- **Cambio de dueño de un grupo:** una solicitud de grupo ya creada conserva el `toId` del dueño original; si el grupo se transfiere, una reapertura puede quedar apuntando a quien ya no lo administra. Es un borde de producto, no un bypass de permisos.
+- **Residuales corregidos en local, sin desplegar:** rate limit global, traspaso de grupo, techo de XP por comentarios y bloqueos en solicitudes (sección 4.N). Hasta que se desplieguen, producción conserva el comportamiento anterior.
 - **Altas directas de club:** un dueño *activo* todavía puede añadir a alguien sin consentimiento; es un asunto de producto y de confianza en las estadísticas (P1), no ya un bypass de baneo.
 - **Estadísticas de club** calculadas desde documentos que el cliente puede escribir (L).
-- **Cobertura E2E incompleta:** canales, Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y flujos de aceptación/rechazo.
+- **Cobertura E2E incompleta:** canales, Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y moderación de clubes.
 - **Migración de datos** y **alineación de región** de las Functions.
 
 La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se desplegaron después, con autorización. Todos los datos de las pruebas se crearon en proyectos `demo-*` del emulador.
@@ -105,8 +114,10 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 | Reglas de la auditoría | `npx firebase emulators:exec --only firestore --project demo-geekapoo-auditoria "npx mocha tests/auditoria/firestore.hallazgos.rules.test.cjs --timeout 60000"` | **32 passing**, 0 failing |
 | Callables post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-callables.mjs"` | **0 hallazgos**, 14 controles OK, 0 errores |
 | Trigger de comentarios post-P0 | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-triggers.mjs"` | **3/3 rechazados**; XP 0 → 0; `commentsCreated = 0`; `bloqueado = true` |
-| Suite completa de reglas | `npm run test:rules` | **791 passing**, 0 failing |
-| Corrida focalizada | 5 suites de chat, fijados, solicitudes, privacidad y groupCodes | **240 passing**, 0 failing |
+| Suite completa de reglas | `npm run test:rules` | **809 passing**, 0 failing (16 min) |
+| Corrida focalizada de chat | `npx mocha tests/firestore.chat.rules.test.cjs` | **102 passing**, 0 failing |
+| Corrida focalizada de group-codes, privacidad y auditoría | `npx mocha` sobre las tres suites | **91 passing**, 0 failing |
+| E2E de residuales | `npx firebase emulators:exec --only firestore,auth,functions --project demo-geekapoo-auditoria "node scripts/auditoria-residuales.mjs"` | **5/5 comprobaciones correctas**, 0 errores |
 | TypeScript | `npm run lint` | Correcto |
 | Lógica | `npm run test:logica` | Correcto |
 | Build de Functions | `npm --prefix functions run build` | Correcto |
@@ -118,6 +129,7 @@ Archivos de resultados:
 
 - `docs/auditoria/resultados-callables.json`
 - `docs/auditoria/resultados-triggers.json`
+- `docs/auditoria/resultados-residuales.json`
 
 ---
 
@@ -138,13 +150,13 @@ Escala usada:
 | C2 | Salir de un club conserva el acceso a su chat | **Alto** | **Corregido P0**; migración de chats pendiente |
 | I | Un moderador ejecuta callables de panel admin-only | **Alto** | **Corregido P0** (9 funciones) |
 | J | `desbanearUsuario` no aplica jerarquía | **Alto** | **Corregido P0** |
-| E | Comentarios a objetivos inexistentes pagan XP | **Alto** | **Corregido P0**; rate limit P1 |
+| E | Comentarios a objetivos inexistentes pagan XP | **Alto** | **Corregido P0**; techo de XP en local (4.N) |
 | F | Un miembro oculta/limpia/falsea el chat de otro | **Alto** | **Corregido P0** (F1-F3) |
 | C1/C3/C4 | Clubes: creación/edición por baneados y altas sin consentimiento | **Alto** | **Corregido P0** el bypass de baneo; altas directas P1 |
 | B | `createdAt` manipulable → medalla de veterano | **Medio** | **Corregido P0** |
 | D | Hilos: `pinned` por autor, tamaños sin revalidar, edición por baneados | **Medio** | **Corregido P0** |
 | G | Fijados con texto/autor falsos | **Medio** | **Corregido P0**; fecha del mensaje **corregida P1** |
-| K | Spam de solicitudes de chat y remitente falsificado | **Medio** | **Corregido P1** (G1); rate limit global residual |
+| K | Spam de solicitudes de chat y remitente falsificado | **Medio** | **Corregido P1** (G1); rate limit y traspaso en local (4.N) |
 | L | Estadísticas de club desde documentos del cliente | **Medio** | **P1 abierto** |
 | H | `replyTo` fabricado | **Bajo** | **Corregido P1** (F4) |
 | M | Canales de club gestionados por baneados | **Medio/Bajo** | **Corregido en reglas**; E2E pendiente |
@@ -336,7 +348,7 @@ function isModerator() {
 
 **Verificación:** E1 (editar a 6.000 caracteres) y E2 (crear con objetivo inventado) fallan. La prueba E2E post-P0 intenta tres comentarios y los tres son rechazados; XP sigue en 0, `commentsCreated` en 0 y `bloqueado = true`.
 
-**Pendiente P1:** añadir límites de frecuencia o un libro mayor por objetivo para evitar farmeo con comentarios válidos repetidos.
+**Residual (cerrado en local, sin desplegar):** el techo de recompensas por comentario válido está en la sección 4.N: 10 por ventana de 10 minutos y 50 por día UTC, con reserva idempotente por `commentId`. El comentario que excede el cupo se publica y cuenta, pero no paga.
 
 ---
 
@@ -469,7 +481,7 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 ### K. Spam de solicitudes de chat y remitente falsificado — corregido en P1
 
 **Severidad:** Medio  
-**Estado:** **corregido, verificado en el emulador y desplegado**. Queda un residual de rate limit global.
+**Estado:** **corregido, verificado en el emulador y desplegado**. Los residuales de rate limit global y traspaso de grupo están cerrados en local (sección 4.N), pendientes de commit y despliegue.
 
 **Evidencia original:**
 
@@ -489,10 +501,11 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 **Verificación:** la regresión G1 de auditoría está en `assertFails`: nombre/avatar falsos, ids arbitrarios y suplantación de remitente fallan; una solicitud legítima con id determinista e identidad real pasa. La suite principal cubre además destinatario falso, `createdAt` falso, `groupName` falso, reapertura de canceladas, cooldown de 24 h, reapertura a las 25 h, grupos/invitaciones aceptados con y sin membresía, y el caso directo aceptado (no se reabre).
 
-**Residual P1:**
+**Residuales (cerrados en local, sin desplegar):**
 
-- **Rate limit global por emisor:** el id determinista limita a una solicitud por destinatario, pero no impide escribir a muchos destinatarios o grupos distintos. Cerrarlo requiere una callable o un libro mayor por usuario; las reglas solas no pueden contar escrituras entre rutas.
-- **Cambio de dueño de un grupo:** una solicitud de grupo ya creada conserva el `toId` del dueño original. Si el grupo se transfiere, la reapertura puede quedar apuntando a quien ya no administra. No otorga permisos, pero conviene migrar o regenerar la solicitud al transferir.
+- **Rate limit global por emisor:** libro mayor `rateLimits/{uid}` con 20 solicitudes cada 24 h. La solicitud y el contador se escriben en la misma transacción; la regla usa `getAfter()` y `ultimaSolicitudId == request.resource.id` para impedir que un único incremento cubra varias solicitudes. Una ventana caducada solo se reinicia con `count == 1` y `windowStart == request.time`.
+- **Cambio de dueño de un grupo:** `onChatOwnerChanged` borra las solicitudes pendientes dirigidas al dueño anterior y las invitaciones firmadas por él, conserva las históricas, las de terceros y las ya dirigidas al dueño nuevo, y repara `groupCodes`.
+- **Bloqueos:** crear o reabrir una solicitud exige que no haya bloqueo en ningún sentido. Aceptar un directo se rechaza si bloqueó el emisor y desbloquea si bloqueó el receptor. Las solicitudes de grupo/invitación se rechazan si hay bloqueo en cualquier sentido.
 
 ---
 
@@ -541,6 +554,42 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 ---
 
+### N. Residuales de G1, farmeo de XP y bloqueos — cerrados en local, sin desplegar
+
+**Severidad:** Medio  
+**Estado:** **corregido y verificado en Firebase Emulator Suite**; **no commiteado ni desplegado**. Producción conserva el comportamiento anterior hasta que se publique.
+
+**Evidencia original:**
+
+- El id determinista de `chatRequests` impedía duplicados contra el mismo destinatario, pero no limitaba cuántos destinatarios o grupos distintos podía escribir una cuenta.
+- Al transferir un grupo, las solicitudes pendientes conservaban el `toId` del dueño anterior y las invitaciones seguían firmadas por él.
+- Un comentario válido pagaba 5 XP y sumaba a `stats.commentsCreated` sin techo: escribir cien comentarios en el mismo hilo inflaba la clasificación.
+- Los bloqueos eran una barrera de cliente: las reglas de `chatRequests` y la callable `responderSolicitudChat` no los aplicaban.
+
+**Corrección aplicada:**
+
+- **Cupo de solicitudes:** `rateLimits/{uid}` guarda `count`, `windowStart`, `ultimaSolicitud` y `ultimaSolicitudId`. `src/services/chatRequests.ts` escribe la solicitud y el libro en la misma transacción. La regla de `chatRequests` exige `getAfter()` con `count` incrementado exactamente uno y `ultimaSolicitud == request.time`; `ultimaSolicitudId == request.resource.id` ata el hueco a esa solicitud concreta. Límite: 20 por usuario cada 24 h; la ventana caducada solo se reinicia con `count == 1` y `windowStart == request.time`.
+- **Traspaso de grupo:** `onChatOwnerChanged` borra solo las solicitudes `group` pendientes con `toId` del dueño anterior y las `invite` pendientes con `fromId` del anterior. Conserva las históricas, las de terceros y las ya dirigidas al dueño nuevo. Repara `ownerId`/`ownerName` de `groupCodes` si el cliente no lo hizo.
+- **Techo de XP por comentarios:** `reservarCupoComentario()` usa ventanas de 10 minutos y de día UTC (10 y 50 recompensas), con una reserva idempotente por `commentId`. Si no hay cupo, el comentario se publica y `commentsCount` sube igual, pero no se concede XP ni se incrementa `stats.commentsCreated`.
+- **Bloqueos:** las reglas de creación y reapertura de `chatRequests` llaman a `hayBloqueoCon()`; `responderSolicitudChat` rechaza si bloqueó el emisor y, si bloqueó el receptor de un directo, acepta y elimina el bloqueo. Para grupos e invitaciones, cualquier bloqueo impide aceptar.
+- **Presupuesto de accesos:** `acceptsChatRequests()` usa un solo `get()` en lugar de `exists()` + `get()`, y el cupo usa un único `getAfter()`. Así las ramas de grupo no superan el límite de 10 accesos por operación.
+
+**Verificación:**
+
+- `npm run test:rules`: **809 passing, 0 failing**.
+- `tests/firestore.chat.rules.test.cjs`: **102 passing, 0 failing**. Incluye el caso nuevo «dos solicitudes no pueden compartir un solo hueco».
+- `tests/firestore.group-codes.rules.test.cjs` + `tests/firestore.privacidad-perfiles.rules.test.cjs` + `tests/auditoria/firestore.hallazgos.rules.test.cjs`: **91 passing, 0 failing**.
+- E2E `scripts/auditoria-residuales.mjs` con Firestore, Auth y Functions: **5/5 comprobaciones correctas**.
+  - 11 comentarios: `xp=50`, `stats.commentsCreated=10`, `commentsCount=11`.
+  - Cupo diario agotado: publica, `xp=0`, `stats.commentsCreated=0`.
+  - Traspaso: solicitudes obsoletas borradas; histórica, de tercero y dirigida al dueño nuevo conservadas; índice actualizado.
+  - Bloqueo del emisor: `400 FAILED_PRECONDITION`, solicitud pendiente y sin chat.
+  - Bloqueo de la receptora: `200`, chat creado con 2 miembros y bloqueo eliminado.
+
+**Pendiente:** commit y despliegue de reglas, Functions y cliente. Hasta entonces, estas correcciones no protegen producción.
+
+---
+
 ## 5. Controles que sí funcionan
 
 Estos casos se probaron y se comportaron correctamente. No compensan los riesgos abiertos, pero acotan el alcance:
@@ -557,9 +606,12 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 - **Fijados:** el autor, el avatar, el texto exacto y la fecha real se contrastan con el mensaje real (incluidos los mensajes largos).
 - **Citas:** el mensaje citado tiene que existir en el mismo chat, y autor y texto canónico tienen que coincidir exactamente.
 - **Solicitudes:** id determinista, identidad derivada del perfil, `createdAt` del servidor, una sola ruta por par y cooldown tras un rechazo.
+- **Cupo de solicitudes:** 20 por usuario cada 24 h con libro mayor y `ultimaSolicitudId`; varias solicitudes no pueden compartir un solo incremento (caso de regresión incluido).
+- **Techo de XP:** 10 comentarios por ventana de 10 min y 50 por día UTC; el comentario que excede el cupo se publica y cuenta, pero no paga.
+- **Bloqueos:** crear/reabrir y aceptar solicitudes respeta el bloqueo en ambos sentidos.
 - **Vista previa de chats:** `lastMessage*` solo lo escribe el trigger, en transacción y comparando fechas.
 - **Regresión P0/P1:** los 17 casos P0 y los 4 casos P1 están invertidos a `assertFails` y ya no pueden volver a abrirse sin que falle la suite.
-- **La suite completa de reglas** (791 pruebas) sigue siendo la línea base y pasa tras los cambios.
+- **La suite completa de reglas** (809 pruebas) sigue siendo la línea base y pasa tras los cambios.
 
 ---
 
@@ -567,22 +619,22 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 
 ### P1 — residuales y siguientes
 
-1. **Rate limit global de solicitudes:** añadir una callable transaccional o un libro mayor por usuario que limite cuántas solicitudes puede enviar por ventana, no solo una por destinatario (G1 residual).
-2. **Cambio de dueño de grupo:** al transferir un grupo, regenerar o invalidar las solicitudes de entrada pendientes para que no queden apuntando al dueño anterior (G1 residual).
-3. **Altas directas de club:** mover altas/bajas a una callable transaccional con consentimiento y hacer que `onClubMembersChanged` solo cuente altas del flujo servidor (C4/L).
-4. **Estadísticas de club:** no confiar en `ownerId`/`memberIds`/`createdBy` escritos por el cliente; probar las medallas afectadas (L).
-5. **Migración de datos:** limpiar `memberIds` de chats de club ya existentes, revisar `createdAt` sospechosos y recalcular medallas/estadísticas si procede.
-6. **Canales de club:** prueba E2E explícita con dueño baneado y con miembro baneado en la ruta `general` (M).
-7. **Cobertura E2E restante:** Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y flujos de aceptación/rechazo.
-8. **Bloqueos (`blocks`):** hoy es una barrera de cliente; si el producto quiere que bloquear impida solicitudes/mensajes, aplicarlo en reglas/callables.
-9. **Auditoría de acciones administrativas:** registrar en una colección inmutable quién ajusta XP, concede medallas, cambia configuración y banea/desbanea; alertar de picos.
+**Cerrados en local (sección 4.N), pendientes de commit y despliegue:** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. No quedan como trabajo de diseño, solo como trabajo de publicación.
+
+1. **Altas directas de club:** mover altas/bajas a una callable transaccional con consentimiento y hacer que `onClubMembersChanged` solo cuente altas del flujo servidor (C4/L).
+2. **Estadísticas de club:** no confiar en `ownerId`/`memberIds`/`createdBy` escritos por el cliente; probar las medallas afectadas (L).
+3. **Migración de datos:** limpiar `memberIds` de chats de club ya existentes, revisar `createdAt` sospechosos y recalcular medallas/estadísticas si procede.
+4. **Canales de club:** prueba E2E explícita con dueño baneado y con miembro baneado en la ruta `general` (M).
+5. **Cobertura E2E restante:** Storage, App Check, encuestas, tier lists, noticias, `reports`/`notifications` y moderación de clubes.
+6. **Bloqueos (`blocks`):** ya cubren crear/reabrir y aceptar solicitudes; falta decidir si además deben impedir mensajes en un chat ya existente.
+7. **Auditoría de acciones administrativas:** registrar en una colección inmutable quién ajusta XP, concede medallas, cambia configuración y banea/desbanea; alertar de picos.
 
 ### P2 — higiene y cobertura
 
-10. **Fijar la región de las Functions** de forma explícita y verificar que el emulador y producción coinciden (`us-central1` vs `europe-southwest1`).
-11. **Añadir pruebas de carga/abuso** para límites de tamaño y frecuencia (comentarios, solicitudes, chats).
-12. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
-13. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
+8. **Fijar la región de las Functions** de forma explícita y verificar que el emulador y producción coinciden (`us-central1` vs `europe-southwest1`).
+9. **Añadir pruebas de carga/abuso** para límites de tamaño y frecuencia (comentarios, solicitudes, chats).
+10. **Revisar dependencias y configuración de Auth** (verificación de email, proveedores, dominios autorizados), fuera del alcance de esta auditoría.
+11. **Repetir la suite completa** después de cada corrección: `npm run test:rules`, `npm run test:logica`, `npm run lint`, `npm --prefix functions run build`, `npm run build`, más las tres suites de auditoría.
 
 ### Despliegue realizado
 
@@ -590,6 +642,7 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 2. Hosting publicado con el bundle P1 (`assets/index-DpFW21Z8.js`), que coincide con el build local.
 3. Reglas de Firestore publicadas: release `cloud.firestore` → ruleset `c5bb00c8-686a-403a-80e6-e775d580af61`, actualizado el 29-10-2026 a las 18:22:49 UTC. El ruleset contiene `citaCoincideConMensaje`, `idDeSolicitudCorrecto` y `mensajeCreadoEnMs`.
 4. Verificación: el bundle servido y el release de reglas se comprobaron contra producción; no se hizo una pasada funcional completa con cuentas reales.
+5. **Los cambios de la sección 4.N no están desplegados.** No hay commit ni release: producción sigue sin rate limit global, sin limpieza de solicitudes al transferir un grupo, sin techo de XP por comentarios y con los bloqueos solo en el cliente. Publicarlos requiere una autorización expresa.
 
 No se desplegaron Functions, índices ni Storage para estos P1. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
@@ -601,34 +654,41 @@ No se desplegaron Functions, índices ni Storage para estos P1. La rama `segurid
 
 | Archivo | Contenido |
 |---|---|
-| `firestore.rules` | Correcciones P0 y P1: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes, canales, sanciones y solicitudes con id determinista e identidad derivada del perfil |
-| `functions/src/index.ts` | `exigirRol`/`exigirAdmin`/`exigirModerador`, jerarquía de baneos, objetivo real de comentarios, vista previa de chats y limpieza de chats de club |
+| `firestore.rules` | Correcciones P0, P1 y residuales locales: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes, canales, sanciones, solicitudes con id determinista e identidad derivada del perfil, `rateLimits` con ventana de 24 h y bloqueos en solicitudes |
+| `functions/src/index.ts` | `exigirRol`/`exigirAdmin`/`exigirModerador`, jerarquía de baneos, objetivo real de comentarios, vista previa de chats, limpieza de chats de club, `reservarCupoComentario`, bloqueos en `responderSolicitudChat` y `onChatOwnerChanged` |
 | `src/services/chats.ts` | Deja de escribir `lastMessage*` desde el cliente; construye `replyTo.texto` completo |
 | `src/utils/chatCita.ts` | `textoParaCita()` canónico sin recortar y `fragmentoParaCita()` para la vista |
 | `src/services/chatFijados.ts` | Añade `autorAvatar`, guarda el texto completo y `mensajeCreadoEnMs` para contrastar la fecha |
-| `src/services/chatRequests.ts` | Ids deterministas, `crearOReabrir()`, cooldown local y limpieza de la respuesta al reabrir |
+| `src/services/chatRequests.ts` | Ids deterministas, `crearOReabrir()` transaccional con `rateLimits`, cooldown local y limpieza de la respuesta al reabrir |
 | `src/components/chat/ChatView.tsx` | Construye la cita desde el mensaje real y pinta `texto` con recorte solo visual |
 | `src/types/index.ts` | `ChatReplyTo` con `texto` (canónico) y `snippet` (compatibilidad de lectura) |
 | `tests/auditoria/firestore.hallazgos.rules.test.cjs` | 32 pruebas de regresión: 17 P0 y 4 P1 en `assertFails`, 11 controles |
+| `tests/helpers/solicitudes.cjs` | Escritura de solicitudes + `rateLimits` en la misma transacción para las suites positivas |
+| `tests/firestore.chat.rules.test.cjs` | 102 pruebas de chat, incluido el bypass de lote del cupo |
 | `scripts/auditoria-callables.mjs` | Verificación post-P0 de las 9 callables con token de moderador y 5 controles |
 | `scripts/auditoria-triggers.mjs` | Verificación E2E de que los comentarios con objetivo inexistente no pagan XP |
+| `scripts/auditoria-residuales.mjs` | Verificación E2E del cupo de comentarios, traspaso de grupo y aceptación con bloqueos |
 | `docs/auditoria/resultados-callables.json` | Resultado estructurado de las callables |
 | `docs/auditoria/resultados-triggers.json` | Resultado estructurado del trigger de comentarios |
+| `docs/auditoria/resultados-residuales.json` | Resultado estructurado de la E2E de residuales (5/5) |
 | `firebase.json` | Emulador de Auth (puerto 9099) para las pruebas |
 
 El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado: Hosting sirve `assets/index-DpFW21Z8.js` y el release `cloud.firestore` apunta al ruleset `c5bb00c8-686a-403a-80e6-e775d580af61` desde el 29-10-2026 18:22:49 UTC. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
+
+Los residuales de la sección 4.N están **en el árbol de trabajo, sin commit**: `firestore.rules`, `functions/src/index.ts`, `src/services/chatRequests.ts`, las suites de pruebas y los scripts. No se publicaron reglas, Functions ni Hosting para ellos.
 
 ---
 
 ## 8. Limitaciones
 
-- **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, las callables revisadas y los servicios inventariados; quedan rutas de Storage, App Check, encuestas, tier lists, noticias, moderación de clubes y flujos de aceptación que no se probaron E2E.
+- **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, las callables revisadas y los servicios inventariados; quedan rutas de Storage, App Check, encuestas, tier lists, noticias y moderación de clubes que no se probaron E2E.
 - **Las pruebas P0/P1 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
 - **No se probó en producción.** Todos los resultados son del emulador; pueden existir diferencias de configuración, índices, reglas desplegadas o datos reales. Del despliegue P0/P1 se comprobó que Hosting sirve el bundle P1 y que el release de reglas es el P1 (ruleset y marcadores); no se hizo una pasada funcional completa en producción con cuentas reales.
+- **Las correcciones de la sección 4.N solo existen en local.** Están verificadas en el emulador, pero no se han commiteado ni desplegado: producción sigue con el comportamiento anterior.
 - **El emulador sirve las Functions en `us-central1`**, mientras que `functions:list` muestra `europe-southwest1` en producción. La lógica probada es la misma, pero la diferencia de región debe resolverse.
 - **La sincronización de noticias del emulador** escribió 168 documentos en el proyecto demo; no se tocó la colección `news` de producción.
 - **No se evaluaron** vulnerabilidades de dependencias, XSS, CSP, configuración de Auth, correo o infraestructura. Este informe se limita a las capas indicadas.
 
 ---
 
-**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. **La aplicación todavía no puede declararse segura en su conjunto**: quedan el rate limit global de solicitudes, el farmeo de XP con comentarios válidos, las altas directas de club, las estadísticas de club, la migración de datos y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
+**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos y verificados en local (**809 reglas, 102 de chat y 5/5 E2E**), pero **no están commiteados ni desplegados**. **La aplicación todavía no puede declararse segura en su conjunto**: quedan las altas directas de club, las estadísticas de club, la migración de datos, los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.

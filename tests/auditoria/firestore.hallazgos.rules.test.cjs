@@ -31,6 +31,7 @@ const {
   addDoc,
   serverTimestamp,
 } = require('firebase/firestore');
+const { guardarSolicitud } = require('../helpers/solicitudes.cjs');
 
 const fs = require('fs');
 const path = require('path');
@@ -687,18 +688,24 @@ describe('AUDITORÍA: hallazgos de reglas de Firestore', () => {
     });
 
     it('CONTROL: una solicitud legítima con id determinista e identidad real se envía', async () => {
+      const bob = db(BOB);
       await assertSucceeds(
-        setDoc(doc(db(BOB), 'chatRequests', `direct_${BOB}_${CAROL}`), {
-          type: 'direct',
-          fromId: BOB,
-          fromName: 'bob',
-          fromAvatar: '',
-          toId: CAROL,
-          toName: 'carol',
-          toAvatar: '',
-          status: 'pending',
-          createdAt: serverTimestamp(),
-        }),
+        guardarSolicitud(
+          bob,
+          BOB,
+          doc(bob, 'chatRequests', `direct_${BOB}_${CAROL}`),
+          {
+            type: 'direct',
+            fromId: BOB,
+            fromName: 'bob',
+            fromAvatar: '',
+            toId: CAROL,
+            toName: 'carol',
+            toAvatar: '',
+            status: 'pending',
+            createdAt: serverTimestamp(),
+          },
+        ),
       );
 
       // La misma pareja no puede tener una segunda ruta.

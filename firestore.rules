@@ -951,29 +951,30 @@ service cloud.firestore {
     // la privacidad. Se lee el de QUIEN RECIBE, que no puede tocarlo
     // el emisor.
     function acceptsChatRequests(uid) {
-      let ruta = /databases/$(database)/documents/users/$(uid);
-      let rutaPrivada = /databases/$(database)/documents/userPrivate/$(uid);
-      let rutaRestriccion = /databases/$(database)/documents/accountRestrictions/$(uid);
-
-      let existePerfil = exists(ruta);
-      let perfil = existePerfil ? get(ruta).data : {};
+      // `get()` solo, no `exists()` + `get()`. Son dos funciones
+      // distintas y cada una cuenta como un acceso; con seis accesos
+      // aquí, una solicitud de grupo se quedaba sin presupuesto para
+      // el chat, el bloqueo y el cupo (el límite es 10 por
+      // operación). `get()` devuelve null si el documento no existe.
+      let docPerfil = get(/databases/$(database)/documents/users/$(uid));
+      let existePerfil = docPerfil != null;
+      let perfil = existePerfil ? docPerfil.data : {};
 
       // El documento privado puede no existir todavía: es el caso
       // de las cuentas anteriores a esta migración. En ese caso se
       // usan las señales públicas antiguas, si las hubiera.
-      let existePrivada = exists(rutaPrivada);
-      let privada = existePrivada ? get(rutaPrivada).data : {};
+      let docPrivada = get(/databases/$(database)/documents/userPrivate/$(uid));
+      let privada = docPrivada != null ? docPrivada.data : {};
       // Un documento privado puede existir antes de la migración
       // porque el usuario guardó solo su apariencia del chat. En ese
       // caso NO tiene mapa `privacy`: hay que seguir usando la copia
       // pública antigua, no ignorarla y dejar todo abierto.
-      let tienePrivacidad = existePrivada
-                            && 'privacy' in privada
-                            && privada.privacy is map;
+      let tienePrivacidad = 'privacy' in privada && privada.privacy is map;
       let privacidad = tienePrivacidad ? privada.privacy : {};
 
-      let existeRestriccion = exists(rutaRestriccion);
-      let restriccion = existeRestriccion ? get(rutaRestriccion).data : {};
+      let docRestriccion = get(/databases/$(database)/documents/accountRestrictions/$(uid));
+      let existeRestriccion = docRestriccion != null;
+      let restriccion = existeRestriccion ? docRestriccion.data : {};
 
       // El destinatario tiene que existir y estar activo. Sin esto,
       // se podían dejar solicitudes contra uids inventados o contra
@@ -1059,6 +1060,68 @@ service cloud.firestore {
              && avatar is string
              && avatar.size() <= 500
              && avatar == avatarDePerfil(uid);
+    }
+
+    /**
+     * ¿Hay un bloqueo entre quien escribe y otra persona?
+     *
+     * Se mira en los DOS sentidos. Da igual quién bloqueó a quién:
+     * si una de las dos partes no quiere saber nada de la otra, no
+     * se puede abrir una solicitud nueva entre ellas. Las solicitudes
+     * que ya estuvieran pendientes se pueden rechazar o, en el caso
+     * directo, aceptar (que desbloquea); lo que no se puede es
+     * seguir creando nuevas.
+     *
+     * Las listas de bloqueados viven en una subcolección de quien
+     * bloquea (`users/{yo}/blocked/{otro}`), así que solo su dueño
+     * las escribe. Aquí solo se consultan.
+     */
+    function hayBloqueoCon(otro) {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)/blocked/$(otro))
+          || exists(/databases/$(database)/documents/users/$(otro)/blocked/$(request.auth.uid));
+    }
+
+    /**
+     * ¿Esta transacción consume un hueco del cupo de solicitudes?
+     *
+     * El cupo es un libro mayor (`rateLimits/{uid}`) con una ventana
+     * de 24 h y 20 solicitudes. La gracia de mirar `getAfter()` es
+     * que la solicitud y el incremento tienen que ir en la MISMA
+     * transacción: si bastara con leer el libro, dos pestañas
+     * podrían mandar solicitudes a la vez viendo el mismo contador
+     * y el límite no serviría de nada.
+     *
+     * Aquí NO se lee el estado anterior con `get()`: el emulador (y
+     * el servicio real) no sirven un `get()` sobre un documento que
+     * la misma transacción está escribiendo; solo `getAfter()`. Por
+     * eso la prueba de frescura es `ultimaSolicitud == request.time`:
+     * el cliente escribe ese campo con `serverTimestamp()` en la
+     * misma transacción, así que si no ha tocado el libro conserva
+     * la hora de la solicitud anterior y no coincide.
+     *
+     * Las transiciones (sumar uno, reiniciar una ventana caducada)
+     * las valida la regla de `rateLimits` más abajo. Aquí solo se
+     * comprueba el estado resultante.
+     */
+    function cupoDeSolicitudesConsumido() {
+      let ruta = /databases/$(database)/documents/rateLimits/$(request.auth.uid);
+      let libro = getAfter(ruta);
+
+      return libro != null
+             && libro.data.count is int
+             && libro.data.count >= 1
+             && libro.data.count <= 20
+             && libro.data.windowStart is timestamp
+             && libro.data.windowStart <= request.time
+             && libro.data.windowStart > request.time - duration.value(24, 'h')
+             && libro.data.ultimaSolicitud is timestamp
+             && libro.data.ultimaSolicitud == request.time
+             // El hueco queda atado a ESTE documento. Sin esto, una
+             // transacción podría crear varias solicitudes con un
+             // único incremento del libro: todas verían el mismo
+             // `getAfter()` y el mismo contador.
+             && libro.data.ultimaSolicitudId is string
+             && libro.data.ultimaSolicitudId == request.resource.id;
     }
 
     // ======================================================
@@ -1792,6 +1855,67 @@ service cloud.firestore {
     }
 
     // ======================================================
+    // CUPO DE SOLICITUDES DE CHAT
+    // ======================================================
+    // Un libro mayor por usuario (`rateLimits/{uid}`) con cuatro
+    // campos: `count`, `windowStart`, `ultimaSolicitud` y
+    // `ultimaSolicitudId`. El cliente lo escribe en la MISMA
+    // transacción que la solicitud; la regla de `chatRequests`
+    // comprueba con `getAfter()` que el incremento está ahí, que
+    // `ultimaSolicitud` es la hora del servidor de ESTA escritura y
+    // que `ultimaSolicitudId` es el id de la solicitud. Así una
+    // transacción no puede crear varias solicitudes con un solo
+    // incremento.
+    //
+    // Estas reglas son las que impiden reiniciar la ventana antes de
+    // tiempo o bajar el contador para saltarse el límite de 20
+    // solicitudes cada 24 h. El libro solo lo puede leer y escribir
+    // su dueño; para los demás la colección no existe.
+    match /rateLimits/{uid} {
+      allow get: if isSelf(uid);
+      allow list: if false;
+
+      allow create: if isSelf(uid)
+                    && request.resource.data.keys().hasOnly(
+                         ['count', 'windowStart', 'ultimaSolicitud',
+                          'ultimaSolicitudId'])
+                    && request.resource.data.count == 1
+                    && request.resource.data.windowStart == request.time
+                    // La marca de frescura: solo puede venir de
+                    // `serverTimestamp()` en esta misma transacción.
+                    && request.resource.data.ultimaSolicitud == request.time
+                    && request.resource.data.ultimaSolicitudId is string
+                    && request.resource.data.ultimaSolicitudId.size() > 0
+                    && request.resource.data.ultimaSolicitudId.size() <= 200;
+
+      allow update: if isSelf(uid)
+                    && request.resource.data.keys().hasOnly(
+                         ['count', 'windowStart', 'ultimaSolicitud',
+                          'ultimaSolicitudId'])
+                    && request.resource.data.count is int
+                    && request.resource.data.count >= 1
+                    && request.resource.data.count <= 20
+                    && request.resource.data.windowStart is timestamp
+                    && request.resource.data.ultimaSolicitud == request.time
+                    && request.resource.data.ultimaSolicitudId is string
+                    && request.resource.data.ultimaSolicitudId.size() > 0
+                    && request.resource.data.ultimaSolicitudId.size() <= 200
+                    && (
+                      // Consumir un hueco de la ventana actual.
+                      (request.resource.data.count == resource.data.count + 1
+                       && request.resource.data.windowStart == resource.data.windowStart
+                       && resource.data.windowStart > request.time - duration.value(24, 'h'))
+                      // La ventana caducó: se reinicia una sola vez.
+                      || (request.resource.data.count == 1
+                          && request.resource.data.windowStart == request.time
+                          && resource.data.windowStart <= request.time - duration.value(24, 'h'))
+                    );
+
+      // Borrarlo permitiría reiniciar el cupo a voluntad.
+      allow delete: if false;
+    }
+
+    // ======================================================
     // SOLICITUDES DE CONVERSACIÓN Y DE ENTRADA A GRUPOS
     // ======================================================
     // El chat NO se crea al pedirlo: se crea al aceptarse.
@@ -1848,6 +1972,12 @@ service cloud.firestore {
                     // comprueba contra SU documento, no contra el
                     // nuestro, para que no se pueda esquivar.
                     && acceptsChatRequests(request.resource.data.toId)
+                    // Si una de las dos partes tiene bloqueada a la
+                    // otra, no se puede abrir una solicitud nueva.
+                    && !hayBloqueoCon(request.resource.data.toId)
+                    // Y la escritura tiene que consumir un hueco del
+                    // libro en la misma transacción.
+                    && cupoDeSolicitudesConsumido()
                     && (
                       // Chat privado: no lleva grupo y el nombre/foto
                       // del destinatario también salen de su perfil.
@@ -1863,7 +1993,6 @@ service cloud.firestore {
                       // puede ser ya miembro.
                       || (request.resource.data.type == 'group'
                         && request.resource.data.groupId is string
-                        && chatExiste(request.resource.data.groupId)
                         && chatData(request.resource.data.groupId).type == 'group'
                         && request.resource.data.toId
                              == chatData(request.resource.data.groupId).ownerId
@@ -1878,7 +2007,6 @@ service cloud.firestore {
                       // invitado no puede ser ya miembro.
                       || (request.resource.data.type == 'invite'
                         && request.resource.data.groupId is string
-                        && chatExiste(request.resource.data.groupId)
                         && chatData(request.resource.data.groupId).type == 'group'
                         && chatData(request.resource.data.groupId).ownerId
                              == request.auth.uid
@@ -1948,6 +2076,12 @@ service cloud.firestore {
                     && !('respondedAt' in request.resource.data)
                     && !('respondedBy' in request.resource.data)
                     && acceptsChatRequests(resource.data.toId)
+                    // Reabrir también cuenta para el cupo y respeta
+                    // los bloqueos: si la otra persona te bloqueó
+                    // mientras la solicitud estaba cancelada, no
+                    // puedes reabrirla.
+                    && !hayBloqueoCon(resource.data.toId)
+                    && cupoDeSolicitudesConsumido()
                     && (
                       resource.data.status == 'cancelled'
                       || (resource.data.status == 'rejected'
@@ -1957,7 +2091,6 @@ service cloud.firestore {
                                 + duration.value(24, 'h'))
                       || (resource.data.status == 'accepted'
                           && resource.data.type == 'group'
-                          && chatExiste(resource.data.groupId)
                           && chatData(resource.data.groupId).type == 'group'
                           && chatData(resource.data.groupId).ownerId
                                == resource.data.toId
@@ -1965,7 +2098,6 @@ service cloud.firestore {
                                in chatData(resource.data.groupId).memberIds))
                       || (resource.data.status == 'accepted'
                           && resource.data.type == 'invite'
-                          && chatExiste(resource.data.groupId)
                           && chatData(resource.data.groupId).type == 'group'
                           && chatData(resource.data.groupId).ownerId
                                == resource.data.fromId

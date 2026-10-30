@@ -31,6 +31,7 @@ const {
   setDoc,
   updateDoc,
 } = require('firebase/firestore');
+const { guardarSolicitud } = require('./helpers/solicitudes.cjs');
 
 const fs = require('fs');
 const path = require('path');
@@ -364,8 +365,8 @@ describe('userPrivate', () => {
     );
     await assertFails(
       setDoc(
-        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
-        solicitudDirecta(BOB, ALICE),
+        doc(db(NUEVO), 'chatRequests', `direct_${NUEVO}_${ALICE}`),
+        solicitudDirecta(NUEVO, ALICE),
       ),
     );
 
@@ -380,8 +381,8 @@ describe('userPrivate', () => {
     );
     await assertFails(
       setDoc(
-        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
-        solicitudDirecta(BOB, ALICE),
+        doc(db(NUEVO), 'chatRequests', `direct_${NUEVO}_${ALICE}`),
+        solicitudDirecta(NUEVO, ALICE),
       ),
     );
 
@@ -394,10 +395,13 @@ describe('userPrivate', () => {
         },
       }),
     );
+    const nuevo = db(NUEVO);
     await assertSucceeds(
-      setDoc(
-        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
-        solicitudDirecta(BOB, ALICE),
+      guardarSolicitud(
+        nuevo,
+        NUEVO,
+        doc(nuevo, 'chatRequests', `direct_${NUEVO}_${ALICE}`),
+        solicitudDirecta(NUEVO, ALICE),
       ),
     );
   });
@@ -424,8 +428,8 @@ describe('userPrivate', () => {
 
     await assertFails(
       setDoc(
-        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
-        solicitudDirecta(BOB, ALICE),
+        doc(db(NUEVO), 'chatRequests', `direct_${NUEVO}_${ALICE}`),
+        solicitudDirecta(NUEVO, ALICE),
       ),
     );
   });
@@ -452,8 +456,8 @@ describe('userPrivate', () => {
 
     await assertFails(
       setDoc(
-        doc(db(BOB), 'chatRequests', `direct_${BOB}_${ALICE}`),
-        solicitudDirecta(BOB, ALICE),
+        doc(db(NUEVO), 'chatRequests', `direct_${NUEVO}_${ALICE}`),
+        solicitudDirecta(NUEVO, ALICE),
       ),
     );
   });

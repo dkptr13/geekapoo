@@ -46,7 +46,12 @@ const {
   deleteField,
   serverTimestamp,
   Timestamp,
+  runTransaction,
 } = require('firebase/firestore');
+const {
+  guardarSolicitud,
+  reabrirSolicitud,
+} = require('./helpers/solicitudes.cjs');
 
 const fs = require('fs');
 const path = require('path');
@@ -148,11 +153,18 @@ function nuevaSolicitud(from, to, extra = {}) {
 }
 
 function crearSolicitud(clientDb, from, to, extra = {}) {
-  return setDoc(refSolicitud(clientDb, from, to, extra), nuevaSolicitud(from, to, extra));
+  return guardarSolicitud(
+    clientDb,
+    from,
+    refSolicitud(clientDb, from, to, extra),
+    nuevaSolicitud(from, to, extra),
+  );
 }
 
 function crearInvitacion(clientDb, from, to, groupId, extra = {}) {
-  return setDoc(
+  return guardarSolicitud(
+    clientDb,
+    from,
     doc(clientDb, 'chatRequests', idInvitacion(groupId, from, to)),
     nuevaInvitacion(from, to, groupId, extra),
   );
@@ -566,12 +578,13 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
       });
     });
 
+    const alice = db(ALICE);
     await assertSucceeds(
-      updateDoc(doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)), {
-        status: 'pending',
-        respondedAt: deleteField(),
-        respondedBy: deleteField(),
-      }),
+      reabrirSolicitud(
+        alice,
+        ALICE,
+        doc(alice, 'chatRequests', idDirecto(ALICE, BOB)),
+      ),
     );
   });
 
@@ -585,12 +598,13 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
       });
     });
 
+    const alice = db(ALICE);
     await assertFails(
-      updateDoc(doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)), {
-        status: 'pending',
-        respondedAt: deleteField(),
-        respondedBy: deleteField(),
-      }),
+      reabrirSolicitud(
+        alice,
+        ALICE,
+        doc(alice, 'chatRequests', idDirecto(ALICE, BOB)),
+      ),
     );
   });
 
@@ -606,12 +620,13 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
       });
     });
 
+    const alice = db(ALICE);
     await assertSucceeds(
-      updateDoc(doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)), {
-        status: 'pending',
-        respondedAt: deleteField(),
-        respondedBy: deleteField(),
-      }),
+      reabrirSolicitud(
+        alice,
+        ALICE,
+        doc(alice, 'chatRequests', idDirecto(ALICE, BOB)),
+      ),
     );
   });
 
@@ -627,12 +642,13 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
       });
     });
 
+    const bob = db(BOB);
     await assertSucceeds(
-      updateDoc(doc(db(BOB), 'chatRequests', idGrupo('g1', BOB)), {
-        status: 'pending',
-        respondedAt: deleteField(),
-        respondedBy: deleteField(),
-      }),
+      reabrirSolicitud(
+        bob,
+        BOB,
+        doc(bob, 'chatRequests', idGrupo('g1', BOB)),
+      ),
     );
   });
 
@@ -669,12 +685,13 @@ describe('Anadir contactos: cualquier cuenta con sesion', () => {
       });
     });
 
+    const alice = db(ALICE);
     await assertSucceeds(
-      updateDoc(doc(db(ALICE), 'chatRequests', idInvitacion('g1', ALICE, BOB)), {
-        status: 'pending',
-        respondedAt: deleteField(),
-        respondedBy: deleteField(),
-      }),
+      reabrirSolicitud(
+        alice,
+        ALICE,
+        doc(alice, 'chatRequests', idInvitacion('g1', ALICE, BOB)),
+      ),
     );
   });
 
@@ -746,7 +763,7 @@ describe('Crear grupos: cualquier cuenta con sesion', () => {
     // cuando la acepta (la entrada real la hace el servidor).
     const invitacion = doc(db(ALICE), 'chatRequests', idInvitacion('g1', ALICE, BOB));
     await assertSucceeds(
-      setDoc(invitacion, nuevaInvitacion(ALICE, BOB, 'g1')),
+      crearInvitacion(db(ALICE), ALICE, BOB, 'g1'),
     );
 
     // Y el invitado tampoco puede aceptarla desde el cliente.
@@ -1666,6 +1683,299 @@ describe('Citar mensajes: contra el mensaje real', () => {
         type: 'text',
         createdAt: '2026-01-01T00:00:00.000Z',
       }),
+    );
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// CUPO DE SOLICITUDES (rateLimits)
+// ═══════════════════════════════════════════════════════════
+
+describe('Cupo de solicitudes de chat', () => {
+  it('la primera solicitud crea el libro con un hueco', async () => {
+    await assertSucceeds(crearSolicitud(db(ALICE), ALICE, BOB));
+
+    const libro = await assertSucceeds(
+      getDoc(doc(db(ALICE), 'rateLimits', ALICE)),
+    );
+    assert.strictEqual(libro.exists(), true);
+    assert.strictEqual(libro.data().count, 1);
+    assert.strictEqual(libro.data().ultimaSolicitudId, idDirecto(ALICE, BOB));
+  });
+
+  it('la segunda solicitud suma exactamente un hueco', async () => {
+    await assertSucceeds(crearSolicitud(db(ALICE), ALICE, BOB));
+    await assertSucceeds(crearSolicitud(db(ALICE), ALICE, CARA));
+
+    const libro = await getDoc(doc(db(ALICE), 'rateLimits', ALICE));
+    assert.strictEqual(libro.data().count, 2);
+  });
+
+  it('sin escribir el libro, la solicitud se rechaza', async () => {
+    await assertFails(
+      setDoc(
+        doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)),
+        nuevaSolicitud(ALICE, BOB),
+      ),
+    );
+  });
+
+  it('no vale con escribir el libro por separado', async () => {
+    await assertSucceeds(
+      setDoc(doc(db(ALICE), 'rateLimits', ALICE), {
+        count: 1,
+        windowStart: serverTimestamp(),
+        ultimaSolicitud: serverTimestamp(),
+        ultimaSolicitudId: idDirecto(ALICE, BOB),
+      }),
+    );
+
+    // El libro ya está, pero ESTA transacción no lo ha incrementado.
+    await assertFails(
+      setDoc(
+        doc(db(ALICE), 'chatRequests', idDirecto(ALICE, BOB)),
+        nuevaSolicitud(ALICE, BOB),
+      ),
+    );
+  });
+
+  it('dos solicitudes no pueden compartir un solo hueco', async () => {
+    const alice = db(ALICE);
+    const idBob = idDirecto(ALICE, BOB);
+    const idCara = idDirecto(ALICE, CARA);
+
+    await assertFails(
+      runTransaction(alice, async (tx) => {
+        tx.set(
+          doc(alice, 'chatRequests', idBob),
+          nuevaSolicitud(ALICE, BOB),
+        );
+        tx.set(
+          doc(alice, 'chatRequests', idCara),
+          nuevaSolicitud(ALICE, CARA),
+        );
+        tx.set(doc(alice, 'rateLimits', ALICE), {
+          count: 1,
+          windowStart: serverTimestamp(),
+          ultimaSolicitud: serverTimestamp(),
+          ultimaSolicitudId: idBob,
+        });
+      }),
+    );
+  });
+
+  it('no se puede abrir la solicitud y sumar dos huecos a la vez', async () => {
+    const alice = db(ALICE);
+    await assertFails(
+      runTransaction(alice, async (tx) => {
+        tx.set(
+          doc(alice, 'chatRequests', idDirecto(ALICE, BOB)),
+          nuevaSolicitud(ALICE, BOB),
+        );
+        tx.set(doc(alice, 'rateLimits', ALICE), {
+          count: 2,
+          windowStart: serverTimestamp(),
+          ultimaSolicitud: serverTimestamp(),
+          ultimaSolicitudId: idDirecto(ALICE, BOB),
+        });
+      }),
+    );
+  });
+
+  it('no se puede reiniciar el contador antes de 24 h', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'rateLimits', ALICE), {
+        count: 5,
+        windowStart: Timestamp.fromDate(new Date(Date.now() - 60 * 60 * 1000)),
+      });
+    });
+
+    const alice = db(ALICE);
+    await assertFails(
+      runTransaction(alice, async (tx) => {
+        await tx.get(doc(alice, 'rateLimits', ALICE));
+        tx.set(
+          doc(alice, 'chatRequests', idDirecto(ALICE, BOB)),
+          nuevaSolicitud(ALICE, BOB),
+        );
+        tx.set(doc(alice, 'rateLimits', ALICE), {
+          count: 1,
+          windowStart: serverTimestamp(),
+          ultimaSolicitud: serverTimestamp(),
+          ultimaSolicitudId: idDirecto(ALICE, BOB),
+        });
+      }),
+    );
+  });
+
+  it('sí se puede reiniciar cuando la ventana caducó', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'rateLimits', ALICE), {
+        count: 5,
+        windowStart: Timestamp.fromDate(
+          new Date(Date.now() - 25 * 60 * 60 * 1000),
+        ),
+      });
+    });
+
+    await assertSucceeds(crearSolicitud(db(ALICE), ALICE, BOB));
+
+    const libro = await getDoc(doc(db(ALICE), 'rateLimits', ALICE));
+    assert.strictEqual(libro.data().count, 1);
+  });
+
+  it('con 19 huecos usados, la solicitud 20 pasa y deja el libro en 20', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'rateLimits', ALICE), {
+        count: 19,
+        windowStart: Timestamp.now(),
+      });
+    });
+
+    await assertSucceeds(crearSolicitud(db(ALICE), ALICE, BOB));
+
+    const libro = await getDoc(doc(db(ALICE), 'rateLimits', ALICE));
+    assert.strictEqual(libro.data().count, 20);
+  });
+
+  it('el hueco 21 no se puede consumir', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'rateLimits', ALICE), {
+        count: 20,
+        windowStart: Timestamp.now(),
+      });
+    });
+
+    const alice = db(ALICE);
+    await assertFails(
+      runTransaction(alice, async (tx) => {
+        await tx.get(doc(alice, 'rateLimits', ALICE));
+        tx.set(
+          doc(alice, 'chatRequests', idDirecto(ALICE, BOB)),
+          nuevaSolicitud(ALICE, BOB),
+        );
+        tx.update(doc(alice, 'rateLimits', ALICE), {
+          count: 21,
+          ultimaSolicitud: serverTimestamp(),
+          ultimaSolicitudId: idDirecto(ALICE, BOB),
+        });
+      }),
+    );
+  });
+
+  it('solo el dueño lee y escribe su libro', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'rateLimits', ALICE), {
+        count: 1,
+        windowStart: Timestamp.now(),
+      });
+    });
+
+    await assertSucceeds(getDoc(doc(db(ALICE), 'rateLimits', ALICE)));
+    await assertFails(getDoc(doc(db(BOB), 'rateLimits', ALICE)));
+    await assertFails(getDocs(collection(db(ALICE), 'rateLimits')));
+
+    await assertFails(
+      updateDoc(doc(db(BOB), 'rateLimits', ALICE), { count: 2 }),
+    );
+    await assertFails(deleteDoc(doc(db(ALICE), 'rateLimits', ALICE)));
+  });
+
+  it('el libro no admite campos de más', async () => {
+    const alice = db(ALICE);
+    await assertFails(
+      runTransaction(alice, async (tx) => {
+        await tx.get(doc(alice, 'rateLimits', ALICE));
+        tx.set(doc(alice, 'rateLimits', ALICE), {
+          count: 1,
+          windowStart: serverTimestamp(),
+          ultimaSolicitud: serverTimestamp(),
+          ultimaSolicitudId: idDirecto(ALICE, BOB),
+          extra: true,
+        });
+      }),
+    );
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// BLOQUEOS Y SOLICITUDES
+// ═══════════════════════════════════════════════════════════
+
+describe('Bloqueos y solicitudes de chat', () => {
+  async function bloquear(a, b) {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'users', a, 'blocked', b), {
+        blockedAt: Timestamp.now(),
+      });
+    });
+  }
+
+  it('quien bloqueó no puede mandar una solicitud directa', async () => {
+    await bloquear(ALICE, BOB);
+
+    await assertFails(crearSolicitud(db(ALICE), ALICE, BOB));
+  });
+
+  it('tampoco puede mandarla si es la otra persona quien le bloqueó', async () => {
+    await bloquear(BOB, ALICE);
+
+    await assertFails(crearSolicitud(db(ALICE), ALICE, BOB));
+  });
+
+  it('con el bloqueo deshecho, la solicitud vuelve a pasar', async () => {
+    await bloquear(ALICE, BOB);
+    await assertFails(crearSolicitud(db(ALICE), ALICE, BOB));
+
+    await sembrar(async (f) => {
+      await deleteDoc(doc(f, 'users', ALICE, 'blocked', BOB));
+    });
+
+    await assertSucceeds(crearSolicitud(db(ALICE), ALICE, BOB));
+  });
+
+  it('no se puede pedir entrar en el grupo de quien te bloqueó', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(BOB, [BOB]));
+      await setDoc(doc(f, 'users', BOB, 'blocked', ALICE), {
+        blockedAt: Timestamp.now(),
+      });
+    });
+
+    await assertFails(
+      crearSolicitud(db(ALICE), ALICE, BOB, { type: 'group', groupId: 'g1' }),
+    );
+  });
+
+  it('el dueño no puede invitar a quien le bloqueó', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chats', 'g1'), nuevoChat(ALICE, [ALICE]));
+      await setDoc(doc(f, 'users', BOB, 'blocked', ALICE), {
+        blockedAt: Timestamp.now(),
+      });
+    });
+
+    await assertFails(crearInvitacion(db(ALICE), ALICE, BOB, 'g1'));
+  });
+
+  it('el bloqueo también impide reabrir una solicitud cancelada', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'chatRequests', idDirecto(ALICE, BOB)), {
+        ...nuevaSolicitud(ALICE, BOB),
+        status: 'cancelled',
+        respondedAt: Timestamp.now(),
+        respondedBy: ALICE,
+      });
+    });
+    await bloquear(BOB, ALICE);
+
+    const alice = db(ALICE);
+    await assertFails(
+      reabrirSolicitud(
+        alice,
+        ALICE,
+        doc(alice, 'chatRequests', idDirecto(ALICE, BOB)),
+      ),
     );
   });
 });

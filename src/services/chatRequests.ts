@@ -2,11 +2,10 @@ import {
   collection,
   deleteField,
   doc,
-  getDoc,
   onSnapshot,
   query,
+  runTransaction,
   serverTimestamp,
-  setDoc,
   updateDoc,
   where,
   type DocumentData,
@@ -180,49 +179,108 @@ function msDeFecha(valor: unknown): number {
   return 0;
 }
 
+/** Mismo límite y ventana que `rateLimits` en `firestore.rules`. */
+const LIMITE_SOLICITUDES = 20;
+const VENTANA_SOLICITUDES_MS = 24 * 60 * 60 * 1000;
+
 /**
  * Crea la solicitud o reabre la que ya existe en esa ruta.
  *
- * `setDoc` sin documento previo entra por la regla de creación; con
- * documento previo, por la de actualización. En la reapertura solo se
- * toca `status` y se limpian `respondedAt`/`respondedBy`: el id, el
- * emisor, el destinatario y la fecha de creación no se reescriben.
+ * La solicitud y el libro mayor del cupo (`rateLimits/{uid}`) se
+ * escriben en la MISMA transacción. No es un detalle de estilo: la
+ * regla de `chatRequests` mira `getAfter()` y exige que el contador
+ * haya subido exactamente uno en esta escritura. Si el libro se
+ * actualizara por separado, dos pestañas podrían mandar solicitudes
+ * a la vez viendo el mismo contador y el límite no serviría.
+ *
+ * Las comprobaciones de estado (pendiente, conversación ya
+ * existente, cooldown de rechazo) se hacen dentro de la transacción
+ * para que la decisión y la escritura sean atómicas.
  */
 async function crearOReabrir(
   ref: ReturnType<typeof doc>,
   datos: DocumentData,
 ): Promise<void> {
-  const snap = await getDoc(ref);
+  const fromId = typeof datos.fromId === 'string' ? datos.fromId : '';
+  if (!fromId) throw new Error('La solicitud no tiene emisor.');
 
-  if (!snap.exists()) {
-    await setDoc(ref, datos);
-    return;
-  }
+  const cupoRef = doc(db, 'rateLimits', fromId);
 
-  const actual = snap.data();
-  const estado = typeof actual.status === 'string' ? actual.status : '';
+  await runTransaction(db, async (tx) => {
+    // Todas las lecturas van antes de la primera escritura.
+    const [snap, cupoSnap] = await Promise.all([
+      tx.get(ref),
+      tx.get(cupoRef),
+    ]);
 
-  if (estado === 'pending') {
-    throw new Error('Ya hay una solicitud pendiente.');
-  }
+    if (!snap.exists()) {
+      tx.set(ref, datos);
+    } else {
+      const actual = snap.data();
+      const estado = typeof actual.status === 'string' ? actual.status : '';
 
-  if (estado === 'accepted' && actual.type === 'direct') {
-    throw new Error('Ya tienes una conversación con esa persona.');
-  }
+      if (estado === 'pending') {
+        throw new Error('Ya hay una solicitud pendiente.');
+      }
 
-  if (estado === 'rejected') {
-    const rechazadaEn = msDeFecha(actual.respondedAt);
-    const restante = rechazadaEn + COOLDOWN_RECHAZO_MS - Date.now();
-    if (restante > 0) {
-      const horas = Math.max(1, Math.ceil(restante / (60 * 60 * 1000)));
-      throw new Error(`Podrás volver a enviarla dentro de ${horas} h.`);
+      if (estado === 'accepted' && actual.type === 'direct') {
+        throw new Error('Ya tienes una conversación con esa persona.');
+      }
+
+      if (estado === 'rejected') {
+        const rechazadaEn = msDeFecha(actual.respondedAt);
+        const restante = rechazadaEn + COOLDOWN_RECHAZO_MS - Date.now();
+        if (restante > 0) {
+          const horas = Math.max(1, Math.ceil(restante / (60 * 60 * 1000)));
+          throw new Error(`Podrás volver a enviarla dentro de ${horas} h.`);
+        }
+      }
+
+      tx.update(ref, {
+        status: 'pending',
+        respondedAt: deleteField(),
+        respondedBy: deleteField(),
+      });
     }
-  }
 
-  await updateDoc(ref, {
-    status: 'pending',
-    respondedAt: deleteField(),
-    respondedBy: deleteField(),
+    const ahora = Date.now();
+    const inicio = cupoSnap.exists()
+      ? msDeFecha(cupoSnap.data().windowStart)
+      : 0;
+    const caducado
+      = !cupoSnap.exists()
+        || inicio <= 0
+        || ahora - inicio >= VENTANA_SOLICITUDES_MS;
+    const consumidas = caducado
+      ? 0
+      : Number(cupoSnap.data().count ?? 0);
+
+    if (consumidas >= LIMITE_SOLICITUDES) {
+      throw new Error(
+        'Has alcanzado el límite de solicitudes de chat. '
+          + 'Inténtalo de nuevo más tarde.',
+      );
+    }
+
+    if (caducado) {
+      // El primer hueco de la ventana. `serverTimestamp()` hace que
+      // la regla pueda comprobar `windowStart == request.time` y
+      // `ultimaSolicitud == request.time`; el id ata el hueco a ESTA
+      // solicitud para que no se puedan crear varias con un solo
+      // incremento.
+      tx.set(cupoRef, {
+        count: 1,
+        windowStart: serverTimestamp(),
+        ultimaSolicitud: serverTimestamp(),
+        ultimaSolicitudId: ref.id,
+      });
+    } else {
+      tx.update(cupoRef, {
+        count: consumidas + 1,
+        ultimaSolicitud: serverTimestamp(),
+        ultimaSolicitudId: ref.id,
+      });
+    }
   });
 }
 
