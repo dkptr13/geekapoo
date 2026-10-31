@@ -57,7 +57,7 @@ export const PERSONAJES = [
   ["Lisa Isaribi", "1,2,3", "supporting", "リサ漁辺", "Ayaka Asai",
    "Amiga de la infancia de Vulcan y miembro de los Vestidos de Blanco. Le enseñaron a matar y a usar el fuego, pero nunca a olvidar el taller donde creció. Su lealtad oscila entre la familia que le dio el Evangelista y la que Vulcan le ofrece."],
 
-  ["Joker", "1,2,3", "supporting", "ジョーカー", "Kenjirou Tsuda",
+  ["Joker", "1,2,3", "antagonist", "ジョーカー", "Kenjirou Tsuda",
    "Vigilante enmascarado que investiga por su cuenta los incendios del Imperio. Tiene poderes de fuego y una lista de nombres propia. No es un héroe ni un villano, pero su camino se cruza con el de la Compañía 8 cada vez que alguien intenta enterrar la verdad."],
 
   ["Shou Kusakabe", "1,3", "antagonist", "象日下部", "Maaya Sakamoto",

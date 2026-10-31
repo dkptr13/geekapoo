@@ -47,16 +47,16 @@ export const PERSONAJES = [
   ['Suzie Q', '', 'supporting', 'スージーＱ', 'Sachiko Kojima',
     'La esposa de Joseph. Dulce y alegre.'],
 
-  ['Santana', '', 'supporting', 'サンタナ', 'Kenji Nomura',
+  ['Santana', '', 'antagonist', 'サンタナ', 'Kenji Nomura',
     'El hombre del pilar. Poderoso y misterioso.'],
 
-  ['ACDC', '', 'supporting', 'エシディシ', 'Keiji Fujiwara',
+  ['ACDC', '', 'antagonist', 'エシディシ', 'Keiji Fujiwara',
     'El hombre del pilar. Poderoso y cruel.'],
 
-  ['Wamuu', '', 'supporting', 'ワムウ', 'Akio Ootsuka',
+  ['Wamuu', '', 'antagonist', 'ワムウ', 'Akio Ootsuka',
     'El hombre del pilar. Honorables y poderoso.'],
 
-  ['Kars', '', 'supporting', 'カーズ', 'Kazuhiko Inoue',
+  ['Kars', '', 'antagonist', 'カーズ', 'Kazuhiko Inoue',
     'El líder de los hombres del pilar. Poderoso y ambicioso.'],
 
   ['Narrator', '', 'supporting', 'ナレーター', 'Tooru Ookawa',

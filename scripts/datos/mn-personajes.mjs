@@ -25,19 +25,19 @@ export const PERSONAJES = [
   ["Minene Uryuu", "", "supporting", "雨流みねね", "Mai Aizawa",
    "Terrorista con diario de huida que se pasa al bando Yuki. Sale en las dos."],
 
-  ["Tsubaki Kasugano", "", "supporting", "春日野椿", "Eri Sendai",
+  ["Tsubaki Kasugano", "", "antagonist", "春日野椿", "Eri Sendai",
    "Vidente ciega del templo con mil ojos. Sale en las dos."],
 
   ["Keigo Kurusu", "", "supporting", "来須圭悟", "Masahiko Tanaka",
    "Poli con diario de investigacion que juega a dos bandas. Sale en las dos."],
 
-  ["Reisuke Houjou", "", "supporting", "豊穣礼佑", "Asami Sanada",
+  ["Reisuke Houjou", "", "antagonist", "豊穣礼佑", "Asami Sanada",
    "Niño de cinco años que mata en serio. Sale en las dos."],
 
   ["Aru Akise", "", "supporting", "秋瀬或", "Akira Ishida",
    "Detective adolescente sin diario que lo huele todo. Sale en las dos."],
 
-  ["Yomotsu Hirasaka", "", "supporting", "平坂黄泉", "Yoshihisa Kawahara",
+  ["Yomotsu Hirasaka", "", "antagonist", "平坂黄泉", "Yoshihisa Kawahara",
    "Ciego de la justicia con diario de videntes. Sale en las dos."],
 
   ["Hinata Hino", "", "supporting", "日野日向", "Yuki Matsuoka",
@@ -49,19 +49,19 @@ export const PERSONAJES = [
   ["Ouji Kousaka", "", "supporting", "高坂王子", "Minoru Shiraishi",
    "Compañero de clase bocazas. Sale en las dos."],
 
-  ["John Bacchus", "", "supporting", "ジョン・バックス", "Takaya Hashi",
+  ["John Bacchus", "", "antagonist", "ジョン・バックス", "Takaya Hashi",
    "Alcalde que mueve el juego desde arriba. Sale en las dos."],
 
-  ["Ai Mikami", "", "supporting", "美神愛", "Natsuko Kuwatani",
+  ["Ai Mikami", "", "antagonist", "美神愛", "Natsuko Kuwatani",
    "Mitad de la pareja del orfanato. Sale en las dos."],
 
-  ["Orin Miyashiro", "", "supporting", "宮代お鈴", "Etsuko Kozakura",
+  ["Orin Miyashiro", "", "antagonist", "宮代お鈴", "Etsuko Kozakura",
    "Anciana del orfanato con diario. Sale en las dos."],
 
   ["Saika Gasai", "", "supporting", "我妻西果", "Kikuko Inoue",
    "Madre de Yuno en recuerdos. Sale en las dos, de la familia."],
 
-  ["Takao Hiyama", "1", "supporting", "火山高夫", "Jin Domon",
+  ["Takao Hiyama", "1", "antagonist", "火山高夫", "Jin Domon",
    "Profe asesino del primer capitulo. Sale en la serie."],
 
   ["Masumi Nishijima", "1", "supporting", "西島真澄", "Makoto Ishii",
@@ -79,7 +79,7 @@ export const PERSONAJES = [
   ["Kamado Ueshita", "1", "supporting", "上下かまど", "Hiromi Konno",
    "Creadora del diario-blog del orfanato. Sale en la serie."],
 
-  ["Marco Ikusaba", "1", "supporting", "戦場マルコ", "Tomokazu Seki",
+  ["Marco Ikusaba", "1", "antagonist", "戦場マルコ", "Tomokazu Seki",
    "Mitad fuerte de la pareja del orfanato. Sale en la serie."],
 
   ["Tarou Nanba", "1", "supporting", "難波太郎", "Naomi Shindou",

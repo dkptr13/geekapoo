@@ -53,7 +53,7 @@ export const PERSONAJES = [
   ["Kyouya Mitsurugi", "1,3,4,7", "supporting", "御剣響夜", "Takuya Eguchi",
    "Espadachin creido con espada maldita incluida. Rival de pacotilla de Kazuma."],
 
-  ["Alderp Alexei Barnes", "3,7", "supporting", "アルダープ・アレクセイ・バーネス", "Takashi Nagasako",
+  ["Alderp Alexei Barnes", "3,7", "antagonist", "アルダープ・アレクセイ・バーネス", "Takashi Nagasako",
    "Noble corrupto de Axel con ejercito propio. Antagonista de despacho mas que de campo."],
 
   ["Ignis Dustiness Ford", "3", "supporting", "イグニス ダスティネス フォード", "Kazuhiko Inoue",

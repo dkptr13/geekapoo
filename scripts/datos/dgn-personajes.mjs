@@ -59,6 +59,6 @@ export const PERSONAJES = [
   ['Alter Ego', '', 'supporting', 'アルターエゴ', 'Kouki Miyata',
     'La IA creada por Chihiro. Inteligente y servicial.'],
 
-  ['Mukuro Ikusaba', '', 'supporting', '戦刃むくろ', 'Megumi Toyoguchi',
+  ['Mukuro Ikusaba', '', 'antagonist', '戦刃むくろ', 'Megumi Toyoguchi',
     'La soldado de nivel super bachillerato. Misteriosa y letal.'],
 ];

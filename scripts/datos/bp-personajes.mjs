@@ -17,7 +17,7 @@ export const PERSONAJES = [
   ['Kai Miyagusuku', '', 'main', '宮城カイ', 'Hiroyuki Yoshino',
     'El hermano adoptivo de Saya. Valiente y decidido.'],
 
-  ['Diva', '', 'supporting', 'ディーヴァ', 'Akiko Yajima',
+  ['Diva', '', 'antagonist', 'ディーヴァ', 'Akiko Yajima',
     'La hermana gemela de Saya. Poderosa y cruel.'],
 
   ['Riku Miyagusuku', '', 'supporting', '宮城リク', 'Akiko Yajima',
@@ -62,16 +62,16 @@ export const PERSONAJES = [
   ['Mao Jahana', '', 'supporting', '謝花真央', 'Ami Koshimizu',
     'La amiga de Saya. Valiente y decidida.'],
 
-  ['Amshel Goldsmith', '', 'supporting', 'アンシェル・ゴールドスミス', 'Jouji Nakata',
+  ['Amshel Goldsmith', '', 'antagonist', 'アンシェル・ゴールドスミス', 'Jouji Nakata',
     'El chevalier de Diva. Inteligente y calculador.'],
 
-  ['Solomon Goldsmith', '', 'supporting', 'ソロモン・ゴールドスミス', 'Kouji Tsujitani',
+  ['Solomon Goldsmith', '', 'antagonist', 'ソロモン・ゴールドスミス', 'Kouji Tsujitani',
     'El chevalier de Diva. Noble y valiente.'],
 
   ['Moses', '', 'supporting', 'モーゼス', 'Naoki Yanagi',
     'El chevalier de Diva. Fuerte y leal.'],
 
-  ['James Ironside', '', 'supporting', 'ジェイムズ・アイアンサイド', 'Tooru Ookawa',
+  ['James Ironside', '', 'antagonist', 'ジェイムズ・アイアンサイド', 'Tooru Ookawa',
     'El chevalier de Diva. Fuerte y decidido.'],
 
   ['Nathan Mahler', '', 'supporting', 'ネイサン・マーラー', 'Keiji Fujiwara',

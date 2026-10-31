@@ -40,7 +40,7 @@ export const PERSONAJES = [
   ["Rika Minami", "1", "supporting", "南リカ", "Junko Takeuchi",
    "Francotiradora amiga de Shizuka. Sale en la serie."],
 
-  ["Kouichi Shidou", "1", "supporting", "紫藤浩一", "Kishou Taniyama",
+  ["Kouichi Shidou", "1", "antagonist", "紫藤浩一", "Kishou Taniyama",
    "Profe falso que monta su culto. Sale en la serie."],
 
   ["Kyouko Hayashi", "1", "supporting", "林京子", "Youko Honna",

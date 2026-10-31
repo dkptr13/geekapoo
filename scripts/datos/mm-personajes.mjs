@@ -51,7 +51,7 @@ export const PERSONAJES = [
   ["Mari Mizuno", "1,3", "supporting", "水野 鞠", "Satomi Satou",
    "Compañera de clase. Sale en la serie y en R."],
 
-  ["Kanetsugu Gasou", "1,3", "supporting", "雅宗兼次", "Mitsuki Saiga",
+  ["Kanetsugu Gasou", "1,3", "antagonist", "雅宗兼次", "Mitsuki Saiga",
    "El falso Masamune que reclama el pasado de Aki. Sale en la serie y en R."],
 
   ["Shidou", "1", "supporting", "椎堂", "You Taichi",

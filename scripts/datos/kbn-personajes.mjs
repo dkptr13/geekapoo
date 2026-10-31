@@ -43,7 +43,7 @@ export const PERSONAJES = [
   ["Mumei no Haha", "", "supporting", "無名の母", "Tomo Sakurai",
    "Madre de Mumei en recuerdos. Sale en las dos, de la familia."],
 
-  ["Shoujin", "", "supporting", "樵人", "Gou Shinomiya",
+  ["Shoujin", "", "antagonist", "樵人", "Gou Shinomiya",
    "Leñador del tren. Sale en las dos."],
 
   ["Nisuke", "", "supporting", "仁助", "Takuya Satou",
@@ -76,7 +76,7 @@ export const PERSONAJES = [
   ["Sayo", "", "supporting", "小夜", "Maki Ikenaga",
    "Niña del tren. Sale en las dos."],
 
-  ["Biba Amatori", "1", "supporting", "天鳥美馬", "Mamoru Miyano",
+  ["Biba Amatori", "1", "antagonist", "天鳥美馬", "Mamoru Miyano",
    "Cazador carismatico con ejercito propio. Sale en la serie."],
 
   ["Uryuu", "1", "supporting", "瓜生", "Kaito Ishikawa",

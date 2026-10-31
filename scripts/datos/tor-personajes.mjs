@@ -57,7 +57,7 @@ export const PERSONAJES = [
     'El de la clase. Sale en cuatro escenas y en tres se le ve sin saber que pasa.'],
   ['Inage', '1', 'supporting', '稲毛', 'Tsuyoshi Aoki',
     'El que va a casa de Taiga a comer. Es el unico personaje de la serie que come bien, y la serie entera se sostiene sobre un hecho: Taiga no tiene a nadie que le cocine.'],
-  ['Rikurō Aisaka', '1', 'supporting', '逢坂陸郎', 'Toru Furuya',
+  ['Rikurō Aisaka', '1', 'antagonist', '逢坂陸郎', 'Toru Furuya',
     'El padre de Taiga. Es el antagonista de verdad de la historia y no es un monstruo: es un tipo que sabe exactamente lo que hace con su hijo y lo hace todos los dias. Todo lo que Taiga es viene de el.'],
   ['Yū Aisaka', '1', 'supporting', '逢坂ゆう', 'Risa Matsuda',
     'El hermano pequeno. Es el de la promesa y el del celos, y el que Ryuuji va a buscar al final de la serie. Es la unica razon por la que Taiga sigue ahi.'],

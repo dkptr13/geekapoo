@@ -32,10 +32,10 @@ export const PERSONAJES = [
   ['Hikawa', '', 'supporting', '氷川', 'Shizuka Ishigami',
     'La compañera de Shuichi que lo ayuda en su misión. Dulce y valiente.'],
 
-  ['Uchuujin', '', 'supporting', '宇宙人', 'Takahiro Sakurai',
+  ['Uchuujin', '', 'antagonist', '宇宙人', 'Takahiro Sakurai',
     'El alienígena que aparece en la isla. Misterioso y poderoso.'],
 
-  ['Tadanori Sanbe', '', 'supporting', '三部忠則', 'Hiroki Yasumoto',
+  ['Tadanori Sanbe', '', 'antagonist', '三部忠則', 'Hiroki Yasumoto',
     'El compañero de Shuichi que lo ayuda en su misión. Leal y valiente.'],
 
   ['Ikeuchi', '', 'supporting', '池内', 'Shouya Chiba',

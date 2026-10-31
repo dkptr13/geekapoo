@@ -29,16 +29,16 @@ export const PERSONAJES = [
   ['Dieter', '', 'supporting', 'ディーター', 'Junko Takeuchi',
     'El niño que Tenma rescata de Kinderheim 511. Dulce y valiente.'],
 
-  ['Roberto', '', 'supporting', 'ロベルト', 'Nobuyuki Katsube',
+  ['Roberto', '', 'antagonist', 'ロベルト', 'Nobuyuki Katsube',
     'El sicario de Johan. Letal y sin escrúpulos.'],
 
-  ['Helmut Wolf', '', 'supporting', 'ヘルムート・ヴォルフ', 'Kouichi Kitamura',
+  ['Helmut Wolf', '', 'antagonist', 'ヘルムート・ヴォルフ', 'Kouichi Kitamura',
     'El director de Kinderheim 511. Misterioso y manipulador.'],
 
-  ['Christof Sievernich', '', 'supporting', 'クリストフ・ジーヴァーニッヒ', 'Masashi Hironaka',
+  ['Christof Sievernich', '', 'antagonist', 'クリストフ・ジーヴァーニッヒ', 'Masashi Hironaka',
     'El político que protege a Johan. Ambicioso y corrupto.'],
 
-  ['Franz Bonaparta', '', 'supporting', 'フランツ・ボナパルタ', 'Nachi Nozawa',
+  ['Franz Bonaparta', '', 'antagonist', 'フランツ・ボナパルタ', 'Nachi Nozawa',
     'El autor de los libros de cuentos. Misterioso y manipulador.'],
 
   ['Petr Čapek', '', 'supporting', 'ペトル・チャペック', 'Nobuo Tanaka',

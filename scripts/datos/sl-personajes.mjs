@@ -80,7 +80,7 @@ export const PERSONAJES = [
   ["Esil Radiru", "2", "supporting", "에실 라디르", "Riho Sugiyama",
    "Noble demonio que guia y se une a Jinwoo. Sale en la segunda."],
 
-  ["Goto Ryuji", "2", "supporting", "고토 류지", "Satoshi Mikami",
+  ["Goto Ryuji", "2", "antagonist", "고토 류지", "Satoshi Mikami",
    "As de elite. Sale en la segunda."],
 
   ["Zhigang Liu", "2", "supporting", "류즈캉", "Tomokazu Seki",
@@ -128,7 +128,7 @@ export const PERSONAJES = [
   ["Kanae Tawata", "2", "supporting", "타와타 카나에", "Yui Ishikawa",
    "Del equipo de la isla. Sale en la segunda."],
 
-  ["Baran", "2", "supporting", "바란", "Shouta Yamamoto",
+  ["Baran", "2", "antagonist", "바란", "Shouta Yamamoto",
    "Sale en la segunda temporada completa."],
 
   ["Shigeo Matsumoto", "2", "supporting", "마쓰모토 시게오", "Naoya Uchida",

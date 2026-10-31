@@ -29,7 +29,7 @@ export const PERSONAJES = [
   ['Turbo Babaa', '', 'supporting', 'ターボババア', 'Mayumi Tanaka',
     'El espíritu de una anciana que se instala en el cuerpo de Okarun. Come, ronca, pide gelados y salta entre los dos, pero protege a Momo con una fiereza de abuela.'],
 
-  ['Acrobatic Sarasara', '1', 'supporting', 'アクロバティックさらさら', 'Kikuko Inoue',
+  ['Acrobatic Sarasara', '1', 'antagonist', 'アクロバティックさらさら', 'Kikuko Inoue',
     'El espíritu de una madre que no pudo con su deuda y acabó en la calle. Se hace pasar por la madre de Aira para protegerla y se desvanece al verla a salvo.'],
 
   ['Penny Chinkosu', '1,2', 'supporting', 'ぺニーチンコス', 'Tomokazu Seki',
@@ -44,7 +44,7 @@ export const PERSONAJES = [
   ['Hana', '1,2', 'supporting', '花', 'Fumi Hirano',
     'Otro modelo anatómico, compañero de Tarou. Lo encuentra en un desguace y, con su declaración de amor, le da a Okarun el empujón para admitir que quiere a Momo.'],
 
-  ['Serpo Seijin', '1', 'supporting', 'セルポ星人', 'Kazuya Nakai',
+  ['Serpo Seijin', '1', 'antagonist', 'セルポ星人', 'Kazuya Nakai',
     'Los extraterrestres de la primera temporada, que secuestran a Momo para experimentar con ella. Pilotan un ovni, se mueven en manada y se fusionan entre ellos cuando la cosa se pone fea.'],
 
   ['Kinta Sakata', '2', 'supporting', '坂田金太', 'Daichi Fujiwara',

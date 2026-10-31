@@ -73,7 +73,7 @@ export const PERSONAJES = [
   ["WISE Kyokuchou", "1", "supporting", "〈WISE〉局長", "Akio Ootsuka",
    "Jefe de Loid en WISE. Sale en la serie."],
 
-  ["Donovan Desmond", "1", "supporting", "ドノバン・デズモンド", "Takaya Hashi",
+  ["Donovan Desmond", "1", "antagonist", "ドノバン・デズモンド", "Takaya Hashi",
    "El objetivo tras la guerra fria. Sale en la serie."],
 
   ["Edgar", "1", "supporting", "エドガー", "Atsushi Ono",
@@ -106,7 +106,7 @@ export const PERSONAJES = [
   ["Shitateya no Tenshu", "1", "supporting", "仕立て屋の店主", "Hana Satou",
    "Dueño de la sastreria. Sale en la serie."],
 
-  ["Keith Kepler", "1", "supporting", "キース・ケプラー", "Hiroki Takahashi",
+  ["Keith Kepler", "1", "antagonist", "キース・ケプラー", "Hiroki Takahashi",
    "Terrorista de los perros bomba. Sale en la serie."],
 
   ["Kris", "1", "supporting", "クリス", "Takaaki Torashima",

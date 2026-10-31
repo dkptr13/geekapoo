@@ -27,7 +27,7 @@ export const PERSONAJES = [
   ["Naoki Atenbou", "", "supporting", "阿天坊直己", "Kouji Takeda",
    "Superviviente del grupo. Sale en la serie."],
 
-  ["Kanta Higurashi", "", "supporting", "日暮莞太", "Nobuhiko Okamoto",
+  ["Kanta Higurashi", "", "antagonist", "日暮莞太", "Nobuhiko Okamoto",
    "Superviviente del grupo. Sale en la serie."],
 
   ["Touko Kanbayashi", "", "supporting", "寒林陶子", "Manaka Iwami",

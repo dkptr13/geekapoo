@@ -44,13 +44,13 @@ export const PERSONAJES = [
   ['Elizabeth', '', 'supporting', 'エリザベス', 'Shinji Takamatsu',
     'El alienígena que acompaña a Katsura. Callado y con un cartel.'],
 
-  ['Bansai Kawakami', '', 'supporting', '河上万斉', 'Takumi Yamazaki',
+  ['Bansai Kawakami', '', 'antagonist', '河上万斉', 'Takumi Yamazaki',
     'El músico que es miembro de los Kiheitai. Misterioso y peligroso.'],
 
-  ['Shinsuke Takasugi', '', 'supporting', '高杉晋助', 'Takehito Koyasu',
+  ['Shinsuke Takasugi', '', 'antagonist', '高杉晋助', 'Takehito Koyasu',
     'El rival de Gintoki que busca venganza. Oscuro y poderoso.'],
 
-  ['Matako Kijima', '', 'supporting', '来島また子', 'Risa Hayamizu',
+  ['Matako Kijima', '', 'antagonist', '来島また子', 'Risa Hayamizu',
     'La miembro de los Kiheitai que está enamorada de Takasugi. Valiente y leal.'],
 
   ['Zenzou Hattori', '', 'supporting', '服部全蔵', 'Keiji Fujiwara',

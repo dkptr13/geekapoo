@@ -52,19 +52,19 @@ export const PERSONAJES = [
   ['Kishou', '', 'supporting', '期聖', 'Shunichi Toki',
     'El verdugo Yamada Asaemon que llega con la segunda expedición. Joven y valiente.'],
 
-  ['Mu Dan', '', 'supporting', '牡丹', 'Yuuko Kaida',
+  ['Mu Dan', '', 'antagonist', '牡丹', 'Yuuko Kaida',
     'Uno de los Tensen, ser inmortal que gobierna la isla. Cruel y poderoso.'],
 
-  ['Ju Fa', '', 'supporting', '菊花', 'Yuuko Kaida',
+  ['Ju Fa', '', 'antagonist', '菊花', 'Yuuko Kaida',
     'Uno de los Tensen, ser inmortal que gobierna la isla. Cruel y poderoso.'],
 
-  ['Zhu Jin', '', 'supporting', '朱槿', 'Yuuko Kaida',
+  ['Zhu Jin', '', 'antagonist', '朱槿', 'Yuuko Kaida',
     'Uno de los Tensen, ser inmortal que gobierna la isla. Cruel y poderoso.'],
 
-  ['Tao Fa', '', 'supporting', '桃花', 'Yuuko Kaida',
+  ['Tao Fa', '', 'antagonist', '桃花', 'Yuuko Kaida',
     'Uno de los Tensen, ser inmortal que gobierna la isla. Cruel y poderoso.'],
 
-  ['Gui Fa', '', 'supporting', '桂花', 'Yuuko Kaida',
+  ['Gui Fa', '', 'antagonist', '桂花', 'Yuuko Kaida',
     'Uno de los Tensen, ser inmortal que gobierna la isla. Cruel y poderoso.'],
 
   ['Tokugawa Nariyoshi', '', 'supporting', '徳川斉慶', 'Chafuurin',

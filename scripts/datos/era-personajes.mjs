@@ -30,7 +30,7 @@ export const PERSONAJES = [
   ["Jun Shiratori", "", "supporting", "白鳥潤", "Daichuu Mizushima",
    "Yuki, el vecino amable acusado en falso por el verdadero. Su sombra planea todo el arco."],
 
-  ["Gaku Yashiro", "", "supporting", "八代学", "Mitsuru Miyamoto",
+  ["Gaku Yashiro", "", "antagonist", "八代学", "Mitsuru Miyamoto",
    "El maestro cercano que ayuda siempre... y es el asesino. Sonríe hasta en la azotea."],
 
   ["Kazu", "", "supporting", "カズ", "Yukitoshi Kikuchi",

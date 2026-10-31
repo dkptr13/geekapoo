@@ -21,7 +21,7 @@ export const PERSONAJES = [
   ['Kallen Stadtfeld', '', 'main', 'カレン・シュタットフェルト', 'Ami Koshimizu',
     'La piloto de Knightmare y miembro de los Caballeros Negros. Valiente y decidida.'],
 
-  ['Cornelia li Britannia', '', 'supporting', 'コーネリア・リ・ブリタニア', 'Junko Minagawa',
+  ['Cornelia li Britannia', '', 'antagonist', 'コーネリア・リ・ブリタニア', 'Junko Minagawa',
     'La princesa de Britannia y general. Fuerte y decidida.'],
 
   ['Nunnally Lamperouge', '', 'supporting', 'ナナリー・ランペルージ', 'Kaori Nazuka',
@@ -30,7 +30,7 @@ export const PERSONAJES = [
   ['Gilbert G.P. Guilford', '', 'supporting', 'ギルバート・G・P・ギルフォード', 'Yoshiyuki Kouno',
     'El caballero de Cornelia. Leal y honorable.'],
 
-  ['Jeremiah Gottwald', '', 'supporting', 'ジェレミア・ゴットバルト', 'Ken Narita',
+  ['Jeremiah Gottwald', '', 'antagonist', 'ジェレミア・ゴットバルト', 'Ken Narita',
     'El caballero de Britannia que persigue a Zero. Leal y honorable.'],
 
   ['Euphemia li Britannia', '', 'supporting', 'ユーフェミア・リ・ブリタニア', 'Omi Minami',
@@ -39,7 +39,7 @@ export const PERSONAJES = [
   ['Kaname Oogi', '', 'supporting', '扇要', 'Mitsuaki Madono',
     'El miembro de los Caballeros Negros que se convierte en líder. Serio y responsable.'],
 
-  ['Andreas Darlton', '', 'supporting', 'アンドレアス・ダールトン', 'Kiyoyuki Yanada',
+  ['Andreas Darlton', '', 'antagonist', 'アンドレアス・ダールトン', 'Kiyoyuki Yanada',
     'El caballero de Cornelia. Leal y honorable.'],
 
   ['Villetta Nu', '', 'supporting', 'ヴィレッタ・ヌゥ', 'Akeno Watanabe',
@@ -72,7 +72,7 @@ export const PERSONAJES = [
   ['Nagata', '', 'supporting', '永田', 'Atsushi Kisaichi',
     'El miembro de los Caballeros Negros. Leal y valiente.'],
 
-  ['Clovis la Britannia', '', 'supporting', 'クロヴィス・ラ・ブリタニア', 'Nobuo Tobita',
+  ['Clovis la Britannia', '', 'antagonist', 'クロヴィス・ラ・ブリタニア', 'Nobuo Tobita',
     'El príncipe de Britannia que muere al principio. Arrogante y cruel.'],
 
   ['Marianne vi Britannia', '', 'supporting', 'マリアンヌ・ヴィ・ブリタニア', 'Asako Dodo',

@@ -97,7 +97,7 @@ export const PERSONAJES = [
   ["Honekawa", "1,3,6", "supporting", "骨川", "Tomohisa Asou",
    "Esqueleto del insti con huesos fuera. Sale en serie, Motto y 2nd."],
 
-  ["Lacospo", "1", "supporting", "ラコスポ", "Kappei Yamaguchi",
+  ["Lacospo", "1", "antagonist", "ラコスポ", "Kappei Yamaguchi",
    "Alienigena de pasada. Sale en la serie."],
 
   ["Ren Elsie Jewelria", "1,3,4,6", "supporting", "レン・エルシ・ジュエリア", "Fuyuka Ooura",
@@ -106,7 +106,7 @@ export const PERSONAJES = [
   ["Buwatts", "1,3,6", "supporting", "ブワッツ", "Daisuke Matsuo",
    "Alienigena de pasada. Sale en serie, Motto y 2nd."],
 
-  ["Maul", "1,3,6", "supporting", "マウル", "Jun Konno",
+  ["Maul", "1,3,6", "antagonist", "マウル", "Jun Konno",
    "Alienigena de pasada. Sale en serie, Motto y 2nd."],
 
   ["Marron", "1,3,4,6", "supporting", "マロン", "Hiroyuki Yoshino",

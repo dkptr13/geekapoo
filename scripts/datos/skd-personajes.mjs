@@ -35,7 +35,7 @@ export const PERSONAJES = [
   ['Hana Sakamoto', '', 'supporting', '坂本花', 'Hina Kino',
     'La hija de Sakamoto. Dulce e inocente.'],
 
-  ['Kei Uzuki', '', 'supporting', '有月憬', 'Daisuke Namikawa',
+  ['Kei Uzuki', '', 'antagonist', '有月憬', 'Daisuke Namikawa',
     'El líder de los asesinos que quiere matar a Sakamoto. Misterioso y poderoso.'],
 
   ['Shishiba', '', 'supporting', '神々廻', 'Taku Yashiro',
@@ -74,7 +74,7 @@ export const PERSONAJES = [
   ['Asakura', '', 'supporting', '朝倉', 'Hiroshi Tsuchida',
     'El asesino que pelea con un cuchillo. Rápido y letal.'],
 
-  ['Kashima', '', 'supporting', '鹿島', 'Kazuyuki Okitsu',
+  ['Kashima', '', 'antagonist', '鹿島', 'Kazuyuki Okitsu',
     'El asesino que pelea con un cuchillo. Rápido y letal.'],
 
   ['Iriya', '', 'supporting', '入谷', 'Hiroki Maeda',

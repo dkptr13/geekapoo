@@ -14,15 +14,15 @@ export const PERSONAJES = [
   ['Isaac Foster', '', 'main', 'アイザック・フォスター', 'Nobuhiko Okamoto',
     'El asesino que promete matar a Rachel si ella le ayuda a escapar. Brutal y leal.'],
 
-  ['Edward Mason', '', 'supporting', 'エドワード・メイソン', 'Natsumi Fujiwara',
+  ['Edward Mason', '', 'antagonist', 'エドワード・メイソン', 'Natsumi Fujiwara',
     'El guardián del primer piso. Misterioso y calculador.'],
 
-  ['Daniel Dickens', '', 'supporting', 'ダニエル・ディケンズ', 'Takahiro Sakurai',
+  ['Daniel Dickens', '', 'antagonist', 'ダニエル・ディケンズ', 'Takahiro Sakurai',
     'El guardián del segundo piso. Misterioso y calculador.'],
 
-  ['Catherine Ward', '', 'supporting', 'キャサリン・ワード', 'Mariya Ise',
+  ['Catherine Ward', '', 'antagonist', 'キャサリン・ワード', 'Mariya Ise',
     'La guardiana del tercer piso. Misteriosa y calculadora.'],
 
-  ['Abraham Gray', '', 'supporting', 'エイブラハム・グレイ', 'Houchuu Ootsuka',
+  ['Abraham Gray', '', 'antagonist', 'エイブラハム・グレイ', 'Houchuu Ootsuka',
     'El guardián del cuarto piso. Misterioso y calculador.'],
 ];

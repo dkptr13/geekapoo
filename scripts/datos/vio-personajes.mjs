@@ -76,45 +76,17 @@ export const PERSONAJES = [
   ['Nerine', '1', 'supporting', 'ネリネ', 'Aya Saitou',
     'La companera de guardia de Violet en el frente, que ocupa el puesto de Gilbert cuando este cae.'],
 
-  ['Dansei Kyaku', '1', 'supporting', '男性客', 'Takuya Inagaki',
-    'Un cliente cualquiera del mostrador, que sirve para recordar que las cartas se escriben para gente de verdad.'],
 
-  ['Oliver', '1', 'supporting', 'オリバー', 'Naoya Nosaka',
-    'El crio que aparece en la puerta de la compania preguntando por una carta que nadie escribio.'],
 
-  ['Roland', '1', 'supporting', 'ローランド', 'Riki Kagami',
-    'El companero de trabajo de la fabrica de munecas, que sueña con su propia casa.'],
 
-  ['Iris no Mei', '1', 'supporting', 'アイリスの姪', 'Rie Hikisaka',
-    'La sobrina de Iris, que es quien recibe la carta que su tia nunca se atreve a escribir.'],
 
-  ['Luculia no Mei', '1', 'supporting', 'ルクリアの姪', 'Rie Hikisaka',
-    'La sobrina de Luculia, que recibe las cartas que su tia escribe para ella.'],
 
-  ['Charlotte no Mei', '1', 'supporting', 'シャルロッテの姪', 'Rie Hikisaka',
-    'La sobrina de la princesa, que tambien recibe cartas.'],
 
-  ['Gisela', '1', 'supporting', 'ギゼラ', 'Megumi Han',
-    'La chica que acompana a Violet en la ultima mision, la de las bombas del puente.'],
 
-  ['Hibiki', '1', 'supporting', 'ヒビキ', 'Yuichi Nakamura',
-    'El soldado que escribe a Violet desde el frente pidienle una carta para su esposa: el encargo que la lleva a un pais en guerra.'],
 
-  ['Ernst', '1', 'supporting', 'エルンスト', 'Kaito Ishikawa',
-    'El joven que lleva la escolta del convoy de paz y que ve a Violet por primera vez.'],
 
-  ['Anemone', '1', 'antagonist', 'アネモネ', 'Yurika Kubo',
-    'La responsable de las munecas de memoria del frente, seria y exigente, que pone a Violet a trabajar.'],
 
-  ['Gillian', '1', 'supporting', 'ジリアン', 'Ai Kayano',
-    'La nina del hospital que escribe a Violet para que vaya a ver a su padre.'],
 
-  ['Dede', '1', 'supporting', 'デデ', 'Sora Amamiya',
-    'El crio del orfanato que le pide a Violet una carta para su madre adoptiva.'],
 
-  ['Albert', '1', 'supporting', 'Albert', 'Takuya Inagaki',
-    'El nombre que Violet da a las cartas que escribe para si misma, las que nunca envia.'],
 
-  ['Olivia', '1', 'supporting', 'オリビア', 'Yurika Kubo',
-    'La alumna mas aplicada de la escuela de munecas, que se le parece a Violet.'],
 ];

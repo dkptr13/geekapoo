@@ -29,7 +29,7 @@ export const PERSONAJES = [
   ['Corkus', '', 'supporting', 'コルカス', 'Tomohiro Nishimura',
     'El miembro de la Banda del Halcón. Arrogante y leal.'],
 
-  ['Zodd', '', 'supporting', 'ゾッド', 'Kenji Utsumi',
+  ['Zodd', '', 'antagonist', 'ゾッド', 'Kenji Utsumi',
     'El apóstol que se enfrenta a Guts. Poderoso y feroz.'],
 
   ['Gambino', '', 'supporting', 'ガンビーノ', 'Norio Wakamoto',
@@ -44,10 +44,10 @@ export const PERSONAJES = [
   ['Godot', '', 'supporting', 'ゴドー', 'Ikuo Nishikawa',
     'El herrero que forja la espada de Guts. Sabio y servicial.'],
 
-  ['General Boscogne', '', 'supporting', 'ボスコーン', 'Ikuya Sawaki',
+  ['General Boscogne', '', 'antagonist', 'ボスコーン', 'Ikuya Sawaki',
     'El general de Midland. Fuerte y leal.'],
 
-  ['Lord Gennon', '', 'supporting', 'ゲノン', 'Shoji Oki',
+  ['Lord Gennon', '', 'antagonist', 'ゲノン', 'Shoji Oki',
     'El noble que persigue a Guts. Cruel y poderoso.'],
 
   ['Bazuso', '', 'supporting', 'バズーソ', 'Ikuya Sawaki',
@@ -56,7 +56,7 @@ export const PERSONAJES = [
   ['Julius', '', 'supporting', 'ユリウス', 'Ryuji Mizuno',
     'El hermano del rey. Ambicioso y cruel.'],
 
-  ['Adon Coborlwitz', '', 'supporting', 'アドン コボルイッツ', 'Tesshou Genda',
+  ['Adon Coborlwitz', '', 'antagonist', 'アドン コボルイッツ', 'Tesshou Genda',
     'El comandante que se enfrenta a Guts. Arrogante y cruel.'],
 
   ['Midland no Ouhi', '', 'supporting', 'ミッドランドの王妃', 'Toshiko Sawada',

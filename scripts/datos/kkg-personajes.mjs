@@ -25,13 +25,13 @@ export const PERSONAJES = [
   ["Midari Ikishima", "1,2,3", "supporting", "生志摩妄", "Mariya Ise",
    "Masoquista de la pistola del consejo. Disfruta el peligro mas que nadie. Sale en las tres."],
 
-  ["Kaede Manyuda", "1,2", "supporting", "豆生田楓", "Tomokazu Sugita",
+  ["Kaede Manyuda", "1,2", "antagonist", "豆生田楓", "Tomokazu Sugita",
    "Tesorero calculador del consejo. El dinero es su juego y lo pierde todo en el."],
 
-  ["Kirari Momobami", "1,2", "supporting", "桃喰綺羅莉", "Miyuki Sawashiro",
+  ["Kirari Momobami", "1,2", "antagonist", "桃喰綺羅莉", "Miyuki Sawashiro",
    "Presidenta que monta la eleccion del clan. Sonrie mientras lo apuesta todo."],
 
-  ["Yuriko Nishinotouin", "1,2", "supporting", "西洞院百合子", "Karin Nanami",
+  ["Yuriko Nishinotouin", "1,2", "antagonist", "西洞院百合子", "Karin Nanami",
    "Tradicionalista del consejo, de juegos clasicos. Sale en las dos series."],
 
   ["Itsuki Sumeragi", "1,2", "supporting", "皇伊月", "Yuuki Wakai",
@@ -40,7 +40,7 @@ export const PERSONAJES = [
   ["Runa Yomozuki", "1,2", "supporting", "黄泉月るな", "Mayu Udono",
    "Niña arbitro de las votaciones con paleta en mano. Sale en las dos series."],
 
-  ["Ririka Momobami", "1,2", "supporting", "桃喰リリカ", "Miyuki Sawashiro",
+  ["Ririka Momobami", "1,2", "antagonist", "桃喰リリカ", "Miyuki Sawashiro",
    "Gemela enmascarada de Kirari. Sale en las dos series."],
 
   ["Yumemi Yumemite", "1,2", "supporting", "夢見弖ユメミ", "Yuu Serizawa",

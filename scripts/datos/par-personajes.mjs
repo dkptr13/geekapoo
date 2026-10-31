@@ -14,7 +14,7 @@ export const PERSONAJES = [
   ['Migi', '', 'main', 'ミギー', 'Aya Hirano',
     'El parásito que se apodera de la mano derecha de Shinichi. Inteligente y calculador.'],
 
-  ['Ryouko Tamiya', '', 'supporting', '田宮良子', 'Atsuko Tanaka',
+  ['Ryouko Tamiya', '', 'antagonist', '田宮良子', 'Atsuko Tanaka',
     'La parásito que se disfraza de profesora. Inteligente y calculadora.'],
 
   ['Kana Kimishima', '', 'supporting', '君嶋加奈', 'Miyuki Sawashiro',
@@ -32,16 +32,16 @@ export const PERSONAJES = [
   ['Nobuko Izumi', '', 'supporting', '泉信子', 'Chieko Sasai',
     'La madre de Shinichi. Cariñosa y protectora.'],
 
-  ['Hideo Shimada', '', 'supporting', '島田秀雄', 'Akira Ishida',
+  ['Hideo Shimada', '', 'antagonist', '島田秀雄', 'Akira Ishida',
     'El parásito que se disfraza de estudiante. Misterioso y poderoso.'],
 
-  ['Gotou', '', 'supporting', '後藤', 'Kazuhiko Inoue',
+  ['Gotou', '', 'antagonist', '後藤', 'Kazuhiko Inoue',
     'El parásito más poderoso. Letal y frío.'],
 
   ['Mamoru Uda', '', 'supporting', '宇田守', 'Takuma Suzuki',
     'El hombre infectado por un parásito en su perro. Amable y valiente.'],
 
-  ['Takeshi Hirokawa', '', 'supporting', '広川剛志', 'Yuu Mizushima',
+  ['Takeshi Hirokawa', '', 'antagonist', '広川剛志', 'Yuu Mizushima',
     'El político infectado por un parásito. Ambicioso y poderoso.'],
 
   ['Kamijou', '', 'supporting', '上条', 'Yuuya Murakami',
@@ -71,7 +71,7 @@ export const PERSONAJES = [
   ['Taku Furuya', '', 'supporting', '古谷タク', 'Junya Enoki',
     'El compañero de Shinichi. Valiente y leal.'],
 
-  ['Uragami', '', 'supporting', '浦上', 'Hiroyuki Yoshino',
+  ['Uragami', '', 'antagonist', '浦上', 'Hiroyuki Yoshino',
     'El asesino que puede ver parásitos. Letal y misterioso.'],
 
   ['Hirama', '', 'supporting', '平間', 'Takuma Suzuki',

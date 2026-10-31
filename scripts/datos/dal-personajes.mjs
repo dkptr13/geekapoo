@@ -94,13 +94,13 @@ export const PERSONAJES = [
   ["Mikie Okamine", "3,5,10", "supporting", "岡峰美紀恵", "Kanami Satou",
    "Sobrina de la profe. Sale en II, peli y V."],
 
-  ["Ellen Mira Mathers", "3,6,9,10", "supporting", "エレン・ミラ・メイザース", "Shizuka Itou",
+  ["Ellen Mira Mathers", "3,6,9,10", "antagonist", "エレン・ミラ・メイザース", "Shizuka Itou",
    "La mas fuerte del DEM con Westcott. Sale en II, III, IV y V."],
 
   ["Mildred F. Fujimura", "3,5,10", "supporting", "ミルドレッド・F・藤村", "Saki Ogasawara",
    "Del DEM con Ellen. Sale en II, peli y V."],
 
-  ["Isaac Ray Peram Westcott", "3,6,9,10", "supporting", "アイザック・レイ・ペラム・ウェストコット", "Ryoutarou Okiayu",
+  ["Isaac Ray Peram Westcott", "3,6,9,10", "antagonist", "アイザック・レイ・ペラム・ウェストコット", "Ryoutarou Okiayu",
    "Jefe del DEM que quiere el poder. Sale en II, III, IV y V."],
 
   ["Elliot Baldwin Woodman", "3,6,9,10", "supporting", "エリオット・ボールドウィン・ウッドマン", "Jouji Nakata",
@@ -109,10 +109,10 @@ export const PERSONAJES = [
   ["Karen Nora Mathers", "6,9,10", "supporting", "カレン・ノーラ・メイザース", "Nozomi Nishida",
    "Hermana de Ellen en el DEM. Sale en III, IV y V."],
 
-  ["Artemisia Bell Ashcroft", "9,10", "supporting", "アルテミシア・ベル・アシュクロフト", "Eriko Matsui",
+  ["Artemisia Bell Ashcroft", "9,10", "antagonist", "アルテミシア・ベル・アシュクロフト", "Eriko Matsui",
    "As del DEM en IV. Sale en IV y V."],
 
-  ["Nibelcole", "9,10", "supporting", "ニベルコル", "Yumiri Hanamori",
+  ["Nibelcole", "9,10", "antagonist", "ニベルコル", "Yumiri Hanamori",
    "Muñecas del DEM en enjambre. Salen en IV y V."],
 
   ["MARIA", "9", "supporting", "マリア", "Suzuko Mimori",

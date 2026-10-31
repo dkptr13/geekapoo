@@ -920,9 +920,13 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     : 'border-white/[0.06] bg-[#0d0d15]/80 hover:border-white/[0.1] p-6'
               }`}
             >
-              {/* Header: Author + Pin + Category */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+              {/* Header: Author + Pin + Category.
+                  En móvil la categoría puede pasar a la línea de
+                  abajo. Sin `flex-wrap` y `min-w-0`, una categoría
+                  larga se estrechaba hasta quedar en varias líneas
+                  mientras el autor se pintaba por encima. */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   {/* Avatar y nombre van al perfil de quien escribió.
                       El avatar es el blanco más obvio: en una tarjeta
                       estrecha el nombre acaba en "…" y la foto se
@@ -940,7 +944,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       className="h-10 w-10 rounded-2xl object-cover ring-2 ring-violet-400/25"
                     />
                   </button>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       {/* Nombre con rol y título. El "flex-1 min-w-0" no
                           es de adorno: sin él, un título largo
@@ -969,7 +973,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   </div>
                 </div>
 
-                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-violet-300">
+                <span className="ml-auto max-w-full break-words rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-right text-[11px] font-medium text-violet-300">
                   {thread.categoryName}
                 </span>
               </div>
@@ -1220,11 +1224,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             ? 'Escribe tu opinión respetuosa...'
                             : 'Inicia sesión para opinar...'
                         }
-                        className="flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
+                        className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
                       />
                       <button
                         type="submit"
-                        className="chat-boton flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
+                        className="chat-boton flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
                       >
                         <Send size={13} />
                         <span>Comentar</span>
@@ -1468,11 +1472,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
                                     placeholder={`Respondiendo a @${comment.authorName}...`}
-                                    className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
+                                    className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
                                   />
                                   <button
                                     type="submit"
-                                    className="chat-boton rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-violet-950/40 hover:brightness-110"
+                                    className="chat-boton shrink-0 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-violet-950/40 hover:brightness-110"
                                   >
                                     Enviar
                                   </button>

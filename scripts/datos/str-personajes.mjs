@@ -20,22 +20,22 @@ export const PERSONAJES = [
   ['Ushio Kofune', '', 'main', '小舟潮', 'Anna Nagase',
     'La amiga de Shinpei que murió. Misteriosa y poderosa.'],
 
-  ['Haine', '', 'supporting', 'ハイネ', 'Misaki Kuno',
+  ['Haine', '', 'antagonist', 'ハイネ', 'Misaki Kuno',
     'La entidad misteriosa de la isla. Poderosa y enigmática.'],
 
   ['Tokiko Hishigata', '', 'supporting', '菱形朱鷺子', 'Maki Kawase',
     'La amiga de Shinpei. Dulce y preocupada.'],
 
-  ['Shiori Kobayakawa', '', 'supporting', '小早川しおり', 'Rie Kugimiya',
+  ['Shiori Kobayakawa', '', 'antagonist', '小早川しおり', 'Rie Kugimiya',
     'La niña que vive en la isla. Misteriosa y poderosa.'],
 
   ['Sou Hishigata', '', 'supporting', '菱形窓', 'Kenshou Ono',
     'El amigo de Shinpei. Valiente y leal.'],
 
-  ['Seidou Hishigata', '', 'supporting', '菱形青銅', 'Akio Ootsuka',
+  ['Seidou Hishigata', '', 'antagonist', '菱形青銅', 'Akio Ootsuka',
     'El padre de Sou. Misterioso y protector.'],
 
-  ['Masahito Karikiri', '', 'supporting', '雁切真砂人', 'Katsuyuki Konishi',
+  ['Masahito Karikiri', '', 'antagonist', '雁切真砂人', 'Katsuyuki Konishi',
     'El sacerdote de la isla. Misterioso y poderoso.'],
 
   ['Ginjirou Nezu', '', 'supporting', '根津銀次郎', 'Jin Urayama',

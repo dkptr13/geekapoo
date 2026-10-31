@@ -36,10 +36,10 @@ export const PERSONAJES = [
   ['Sanji', '', 'main', 'サンジ', 'Hiroaki Hirata',
     'Cocinero del Going Merry. Pelea solo con las piernas porque necesita las manos para cocinar. Sueña con encontrar el All Blue, el mar donde se juntan todos los peces del mundo.'],
 
-  ['Buggy', '1,6,13', 'supporting', 'バギー', 'Shigeru Chiba',
+  ['Buggy', '1,6,13', 'antagonist', 'バギー', 'Shigeru Chiba',
     'Pirata payaso que comió la Fruta de la Separación y puede dividir su cuerpo en trozos. Guarda un rencor enorme a Shanks y busca vengarse de Luffy.'],
 
-  ['Alvida', '1,13', 'supporting', 'アルビダ', 'Youko Matsuoka',
+  ['Alvida', '1,13', 'antagonist', 'アルビダ', 'Youko Matsuoka',
     'Capitana pirata que esclavizó a Koby y se enfrentó a Luffy al principio del viaje. Su maza y su carácter la hacen temible, aunque acaba lanzada por los aires.'],
 
   ['Koby', '1,2', 'supporting', 'コビー', 'Mika Doi',
@@ -48,10 +48,10 @@ export const PERSONAJES = [
   ['Helmeppo', '1,2', 'supporting', 'ヘルメッポ', 'Kouichi Nagano',
     'Hijo del capitán Morgan. Es cobarde y presumido, y se aprovecha del cargo de su padre hasta que Luffy y Zoro le dan su merecido.'],
 
-  ['Morgan', '1', 'supporting', 'モーガン', 'Banjou Ginga',
+  ['Morgan', '1', 'antagonist', 'モーガン', 'Banjou Ginga',
     'Capitán de la Marina en la isla de Shells. Gobierna con mano de hierro, se cree por encima de la ley y lleva un hacha en lugar de mano.'],
 
-  ['Kuro', '1', 'supporting', 'クロ', 'Kouichi Hashimoto',
+  ['Kuro', '1', 'antagonist', 'クロ', 'Kouichi Hashimoto',
     'Mayordomo de la familia de Kaya bajo el nombre de Klahadore. En realidad es el capitán pirata de los Gatos Negros, que fingió su muerte para robar la fortuna de la joven.'],
 
   ['Jango', '1', 'supporting', 'ジャンゴ', 'Kazuki Yao',
@@ -63,10 +63,10 @@ export const PERSONAJES = [
   ['Zeff', '1', 'supporting', 'ゼフ', 'Kouji Yada',
     'Cocinero y dueño del Baratie. Fue un pirata famoso, Pies Rojos, hasta que perdió una pierna para salvar a Sanji. Le enseñó a cocinar y a pelear.'],
 
-  ['Don Krieg', '1', 'supporting', '首領・クリーク', 'Fumihiko Tachiki',
+  ['Don Krieg', '1', 'antagonist', '首領・クリーク', 'Fumihiko Tachiki',
     'Almirante pirata que se cree invencible. Llega al Baratie con su flota destrozada y trata de quedarse con el restaurante y con las vidas de sus cocineros.'],
 
-  ['Arlong', '1', 'supporting', 'アーロン', 'Juurouta Kosugi',
+  ['Arlong', '1', 'antagonist', 'アーロン', 'Juurouta Kosugi',
     'Pirata hombre pez que domina la aldea de Cocoyashi. Cobra un tributo mensual a los aldeanos y obligó a Nami a dibujar mapas para él durante ocho años.'],
 
   ['Hatchan', '1,11', 'supporting', 'はっちゃん', 'Toshiyuki Morikawa',
@@ -156,7 +156,7 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 4: Arabasta y Baroque Works ─────────────────────────
 
-  ['Crocodile', '4,13', 'supporting', 'クロコダイル', 'Ryuuzaburou Ootomo',
+  ['Crocodile', '4,13', 'antagonist', 'クロコダイル', 'Ryuuzaburou Ootomo',
     'Uno de los Siete Señores del Mar y jefe secreto de Baroque Works, conocido como Mr. 0. Comió la Fruta de la Arena y puede secar cualquier cosa que toque. Quiere hacerse con el reino de Arabasta para encontrar el arma ancestral Pluton.'],
 
   ['Mr. 1', '4,13', 'supporting', 'ダズ・ボーネス', 'Tetsu Inada',
@@ -205,7 +205,7 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 6: Jaya y Skypiea ───────────────────────────────────
 
-  ['Enel', '6', 'supporting', 'エネル', 'Toshiyuki Morikawa',
+  ['Enel', '6', 'antagonist', 'エネル', 'Toshiyuki Morikawa',
     'Dios de Skypiea. Comió la Fruta del Rayo y puede convertirse en electricidad, leer los pensamientos con el mantra y lanzar rayos. Quiere destruir las islas del cielo y marcharse a Fairy Vearth.'],
 
   ['Wyper', '6', 'supporting', 'ワイパー', 'Reiko Kiuchi',
@@ -262,13 +262,13 @@ export const PERSONAJES = [
   ['Shoujou', '6', 'supporting', 'ショウジョウ', 'Isamu Tanonaka',
     'Pirata salvamento orangután y hermano de Masira. Forma parte de la Alianza Saruyama y ayuda a Cricket en la búsqueda de la ciudad de oro.'],
 
-  ['Bellamy', '6', 'supporting', 'ベラミー', 'Wataru Takagi',
+  ['Bellamy', '6', 'antagonist', 'ベラミー', 'Wataru Takagi',
     'Pirata de Mock Town conocido como la Hiena. Comió la Fruta del Resorte y se burla de los sueños de los demás; Luffy lo derrota de un solo golpe.'],
 
   ['Sarquiss', '6', 'supporting', 'サーキース', 'Yuuji Ueda',
     'Primer oficial de Bellamy y su aliado más fiel. Pelea con una espada y participa en el ataque a la casa de Cricket.'],
 
-  ['Marshall D. Teach', '6', 'supporting', 'マーシャル・D・ティーチ', 'Akio Ootsuka',
+  ['Marshall D. Teach', '6', 'antagonist', 'マーシャル・D・ティーチ', 'Akio Ootsuka',
     'Pirata conocido como Barbanegra. Se cruza con Luffy en Mock Town y le anima a no abandonar sus sueños; busca una presa importante para entrar en los Siete Señores del Mar.'],
 
   ['Van Augur', '6', 'supporting', 'ヴァン・オーガー', 'Masaya Takatsuka',
@@ -419,7 +419,7 @@ export const PERSONAJES = [
   ['Bartholomew Kuma', '6,10,11', 'supporting', 'バーソロミュー・くま', 'Hideyuki Hori',
     'Uno de los Siete Señores del Mar, con aspecto de oso y poderes desconocidos. Asiste a la reunión de Mary Geoise.'],
 
-  ['Donquixote Doflamingo', '6', 'supporting', 'ドフラミンゴ・ドンキホーテ', 'Hideyuki Tanaka',
+  ['Donquixote Doflamingo', '6', 'antagonist', 'ドフラミンゴ・ドンキホーテ', 'Hideyuki Tanaka',
     'Uno de los Siete Señores del Mar, conocido como el Joker. Asiste a la reunión de Mary Geoise y se burla de la Marina.'],
 
   ['Edward Newgate', '6', 'supporting', 'エドワード・ニューゲート', 'Kinryuu Arimoto',
@@ -448,7 +448,7 @@ export const PERSONAJES = [
   ['Kaku', '8,9', 'supporting', 'カク', 'Ryoutarou Okiayu',
     'Carpintero de Galley-La que en realidad es un agente de CP9. Comió la Fruta de la Jirafa y pelea con Zoro.'],
 
-  ['Rob Lucci', '8,9', 'supporting', 'ロブ・ルッチ', 'Tomokazu Seki',
+  ['Rob Lucci', '8,9', 'antagonist', 'ロブ・ルッチ', 'Tomokazu Seki',
     'Agente de CP9 y asesino del Gobierno. Comió la Fruta del Leopardo y es el rival final de Luffy en Enies Lobby.'],
 
   ['Kalifa', '8,9', 'supporting', 'カリファ', 'Naomi Shindou',
@@ -466,7 +466,7 @@ export const PERSONAJES = [
   ['Fukurou', '8,9', 'supporting', 'フクロウ', 'Kumiko Watanabe',
     'Agente de CP9, delgado y hablador, con una boca que no puede cerrar. Pelea con Franky.'],
 
-  ['Spandam', '8,9', 'supporting', 'スパンダム', 'Masaya Onosaka',
+  ['Spandam', '8,9', 'antagonist', 'スパンダム', 'Masaya Onosaka',
     'Jefe de CP9 e hijo de Spandine. Ambicioso y cobarde, ordena el Buster Call sobre Enies Lobby.'],
 
   ['Tom', '8', 'supporting', 'トム', 'Yasuo Muramatsu',
@@ -557,7 +557,7 @@ export const PERSONAJES = [
   ['Brook', '10,11', 'main', 'ブルック', 'Choo',
     'Esqueleto músico que comió la Fruta de la Resurrección y perdió su sombra en Thriller Bark. Fue capitán de los Piratas Rumbar y quiere volver a ver a la ballena Laboon.'],
 
-  ['Gecko Moria', '10', 'supporting', 'ゲッコー・モリア', 'Katsuhisa Houki',
+  ['Gecko Moria', '10', 'antagonist', 'ゲッコー・モリア', 'Katsuhisa Houki',
     'Uno de los Siete Señores del Mar y dueño de Thriller Bark. Comió la Fruta de la Sombra y roba las sombras de sus víctimas para animar zombis; quiere crear un ejército para el Nuevo Mundo.'],
 
   ['Perona', '10', 'supporting', 'ぺローナ', 'Kumiko Nishihara',
@@ -628,13 +628,13 @@ export const PERSONAJES = [
   ['Scratchmen Apoo', '11', 'supporting', 'スクラッチメン・アプー', 'Mitsuaki Madono',
     'Capitán de los Piratas del Sonido y una de las Supernovas. Convierte su cuerpo en instrumentos y ataca con música.'],
 
-  ['Kizaru', '11', 'supporting', 'ボルサリーノ', 'Unshou Ishizuka',
+  ['Kizaru', '11', 'antagonist', 'ボルサリーノ', 'Unshou Ishizuka',
     'Almirante de la Marina. Comió la Fruta de la Luz y se mueve a la velocidad de la luz; llega a Sabaody para detener a los sombrero de paja.'],
 
   ['Sentomaru', '11', 'supporting', '戦桃丸', 'Kazue Ikura',
     'Capitán de la unidad científica de la Marina y guardaespaldas de Vegapunk. Lleva un hacha enorme y dirige a los Pacifistas en Sabaody.'],
 
-  ['Saint Charloss', '11', 'supporting', 'チャルロス聖', 'Chafuurin',
+  ['Saint Charloss', '11', 'antagonist', 'チャルロス聖', 'Chafuurin',
     'Dragón Celestial y uno de los nobles de Mary Geoise. Dispara a un esclavo y a Hatchan, y Luffy lo golpea en la subasta.'],
 
   // ── TEMPORADA 12: Amazon Lily ───────────────────────────────────
@@ -656,10 +656,10 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 13: Impel Down ────────────────────────────────────
 
-  ['Magellan', '13', 'supporting', 'マゼラン', 'Mitsuaki Hoshino',
+  ['Magellan', '13', 'antagonist', 'マゼラン', 'Mitsuaki Hoshino',
     'Alcaide de Impel Down. Comió la Fruta del Veneno y puede envenenar todo lo que toca; es el enemigo más peligroso de la prisión.'],
 
-  ['Hannyabal', '13', 'supporting', 'ハンニャバル', 'Tetsuo Gotou',
+  ['Hannyabal', '13', 'antagonist', 'ハンニャバル', 'Tetsuo Gotou',
     'Vicealcaide de Impel Down, ambicioso y cómico. Sueña con ser alcaide y se enfrenta a Luffy para defender la prisión.'],
 
   ['Domino', '13', 'supporting', 'ドミノ', 'Naomi Shindou',
@@ -671,7 +671,7 @@ export const PERSONAJES = [
   ['Sadie', '13', 'supporting', 'サディちゃん', 'Yuka Koyama',
     'Jefa de los guardias demonio de Impel Down. Pelea con un látigo y se enfrenta a Ivankov y a los presos.'],
 
-  ['Shiryu', '13', 'supporting', 'シリュウ', 'Takayuki Sugou',
+  ['Shiryu', '13', 'antagonist', 'シリュウ', 'Takayuki Sugou',
     'Antiguo jefe de los guardias de Impel Down, encarcelado en el nivel 6. Magellan lo libera para detener a Barbanegra y acaba uniéndose a él.'],
 
   ['Inazuma', '13', 'supporting', 'イナズマ', 'Kenji Hamada',

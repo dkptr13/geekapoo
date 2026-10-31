@@ -52,7 +52,7 @@ export const PERSONAJES = [
   ["Henrietta von Penrose", "", "supporting", "アンリエッタ・ペンローズ", "Riho Sugiyama",
    "Amiga de Lena en la capital, metida en el analisis de la Legion."],
 
-  ["Shourei Nouzen", "", "supporting", "ショーレイ・ノウゼン", "Makoto Furukawa",
+  ["Shourei Nouzen", "", "antagonist", "ショーレイ・ノウゼン", "Makoto Furukawa",
    "Hermano mayor muerto de Shin, convertido en pastor de la Legion. Su voz es la que mas duele oir."],
 
   ["Václav Milizé", "", "supporting", "ヴァーツラフ・ミリーゼ", "Masaki Terasoma",
@@ -67,6 +67,6 @@ export const PERSONAJES = [
   ["Grethe Wenzel", "", "supporting", "グレーテ・ヴェンツェル", "Kana Ueda",
    "Coronel de la Federacion al mando de la operacion contra Morpho."],
 
-  ["Kiriya Nouzen", "", "supporting", "キリヤ・ノウゼン", "Yuuto Uemura",
+  ["Kiriya Nouzen", "", "antagonist", "キリヤ・ノウゼン", "Yuuto Uemura",
    "Caballero de Frederica perdido en la Legion, al que Shin debe enfrentar en duelo."],
 ];

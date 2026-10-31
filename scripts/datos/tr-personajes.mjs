@@ -20,7 +20,7 @@ export const PERSONAJES = [
   ['Kenjirou Shibasaki', '', 'main', '柴崎健次郎', 'Shunsuke Sakuya',
     'El detective que persigue a Sphinx. Brillante y determinado.'],
 
-  ['Five', '', 'supporting', 'ハイヴ', 'Megumi Han',
+  ['Five', '', 'antagonist', 'ハイヴ', 'Megumi Han',
     'La agente del FBI que desafía a Sphinx. Brillante y obsesiva.'],
 
   ['Mukasa', '', 'supporting', '六笠', 'Mitsuaki Kanuka',

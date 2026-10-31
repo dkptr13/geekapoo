@@ -24,10 +24,10 @@ export const PERSONAJES = [
   ['Mika', '', 'supporting', 'ミカ', 'Kousuke Sakaki',
    'Dueno del cafe y ex instructor que crio a Chisato como hija. Esconde su pasado con el instituto Alan y con Yoshimatsu. Su calma de cafetero tapa decisiones muy gordas.'],
 
-  ['Shinji Yoshimatsu', '', 'supporting', '吉松シンジ', 'Youji Ueda',
+  ['Shinji Yoshimatsu', '', 'antagonist', '吉松シンジ', 'Youji Ueda',
    'Hombre del instituto Alan que salvo a Chisato de nina y mueve sus piezas desde la sombra. Quiere su talento para matar y lo llama salvarla. El villano educado de la funcion.'],
 
-  ['Majima', '', 'supporting', '真島', 'Yoshitsugu Matsuoka',
+  ['Majima', '', 'antagonist', '真島', 'Yoshitsugu Matsuoka',
    'Terrorista con oido sobrenatural obsesionado con reventar la paz falsa de Japon. Adora a Chisato como rival y convierte cada plan en duelo personal. El caos con buena educacion.'],
 
   ['Kusunoki', '', 'supporting', '楠木', 'Youko Soumi',
@@ -39,7 +39,7 @@ export const PERSONAJES = [
   ['Sakura Otome', '', 'supporting', '乙女サクラ', 'Makoto Koichi',
    'Sustituta de Takina en su antiguo equipo: joven, ansiosa y con mucho que demostrar. Aprende el oficio a golpes entre Fuki y las del cafe. El futuro del DA, si hay futuro.'],
 
-  ['Robota', '', 'supporting', 'ロボ太', 'Yuuki Sakakihara',
+  ['Robota', '', 'antagonist', 'ロボ太', 'Yuuki Sakakihara',
    'Hacker segundon al servicio de Majima que traiciona a quien haga falta por seguir vivo. Cobarde con suerte y dedos rapidos. Su USB retransmite la que se lia en la torre.'],
 
   ['Saori Shinohara', '', 'supporting', '篠原沙保里', 'Aino Shimada',
