@@ -7,7 +7,7 @@
 - **Residuales 4.N:** commits `2c9ecd4` (reglas, cliente, Functions y pruebas) y `e2185b8` (región de los triggers); verificados en el emulador el 30-10-2026 y desplegados
 - **Integración:** `main` sincronizado con `origin/main`; código desplegado en `e2185b8`; la rama `seguridad/p0-auditoria` se eliminó después del merge
 - **Alcance:** reglas de Firestore, Cloud Functions con Admin SDK, servicios React/TypeScript y modelo de datos de las superficies de comunidad, chats, clubes, gamificación y moderación.
-- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-CLuyPo_1.js`; el release `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de` (152.933 bytes, 30-10-2026 23:55:24 UTC) y `firebase.storage` al ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7` (11.644 bytes, 23:55:20 UTC). Las Functions siguen en **21 triggers en `europe-southwest1` + 22 callables/scheduled en `us-central1`**, 43 en total y sin duplicados. Verificado: **830 reglas + 105 de chat + 6/6 E2E de residuales**; altas/estadísticas de club **167 focalizadas + 7/7 E2E**; Storage y bloqueos en directos desplegados. App Check tiene inicialización opcional, pero **el enforcement sigue pendiente**. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
+- **Estado:** **P0, P1 y residuales desplegados en producción.** Hosting sirve `assets/index-CjW2VmpW.js`; el release `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de` (152.933 bytes, 30-10-2026 23:55:24 UTC) y `firebase.storage` al ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7` (11.644 bytes, 23:55:20 UTC). Las Functions siguen en **21 triggers en `europe-southwest1` + 22 callables/scheduled en `us-central1`**, 43 en total y sin duplicados. Verificado: **830 reglas + 105 de chat + 6/6 E2E de residuales**; altas/estadísticas de club **167 focalizadas + 7/7 E2E**; Storage y bloqueos en directos desplegados. App Check está inicializado con reCAPTCHA Enterprise, pero **el enforcement sigue pendiente**. Quedan residuales P2 y superficies sin prueba de extremo a extremo. **No se declara la aplicación segura en su conjunto.**
 
 ---
 
@@ -127,8 +127,8 @@ La auditoría no hizo pruebas destructivas contra producción. El P0 y el P1 se 
 | Lógica | `npm run test:logica` | Correcto |
 | Build de Functions | `npm --prefix functions run build` | Correcto |
 | Build de la web | `npm run build` | Correcto |
-| App Check | Build con `VITE_FIREBASE_APP_CHECK_KEY` vacía | Correcto; sin clave no se inicializa ni bloquea |
-| Verificación de Hosting | `GET https://geekapoo-7624d.web.app` | Sirve `assets/index-CLuyPo_1.js`, idéntico al build local |
+| App Check | Build con `VITE_FIREBASE_APP_CHECK_KEY` de reCAPTCHA Enterprise | Correcto; el script de reCAPTCHA Enterprise carga en producción. Enforcement pendiente |
+| Verificación de Hosting | `GET https://geekapoo-7624d.web.app` | Sirve `assets/index-CjW2VmpW.js`, idéntico al build local |
 | Verificación de reglas Firestore | API `projects/geekapoo-7624d/releases/cloud.firestore` | Ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`, 152.933 bytes, 0 comentarios, 23:55:24 UTC |
 | Verificación de reglas Storage | API `projects/geekapoo-7624d/releases/firebase.storage` | Ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`, 11.644 bytes, 23:55:20 UTC |
 | Verificación de Functions | `firebase functions:list` + Cloud Functions API | **43 funciones**: 21 en `europe-southwest1` + 22 en `us-central1`, sin duplicados |
@@ -173,7 +173,7 @@ Escala usada:
 | M | Canales de club gestionados por baneados | **Medio/Bajo** | **Corregido, verificado y desplegado** |
 | S | Storage: rol espejo y baneos en imágenes de club | **Medio** | **Corregido, verificado y desplegado** |
 | B2 | El bloqueo no cortaba chats directos existentes | **Medio** | **Corregido, verificado y desplegado** |
-| AC | App Check sin configurar | **Cobertura** | Inicialización opcional; enforcement pendiente |
+| AC | App Check sin enforcement | **Cobertura** | Inicializado con reCAPTCHA Enterprise; enforcement pendiente |
 
 ---
 
@@ -673,13 +673,13 @@ Ver **F4** en la sección anterior. **Corregido en P1**, verificado y desplegado
 
 ### Q. App Check, encuestas, tier lists y noticias — revisado
 
-**Estado:** **encuestas, tier lists y noticias verificadas**; **App Check preparado pero no exigido**.
+**Estado:** **encuestas, tier lists y noticias verificadas**; **App Check inicializado pero sin enforcement**.
 
 **App Check:**
 
-- La web no inicializaba App Check. Ahora `src/lib/firebase.ts` lo inicializa **solo si existe `VITE_FIREBASE_APP_CHECK_KEY`**; sin clave no cambia nada y el build/emulador siguen funcionando.
-- El enforcement no se activa desde el código: hay que registrar la app, configurar reCAPTCHA v3 y activarlo en Firebase Console para Firestore, Storage y Functions. Mientras no se haga, **App Check no protege nada**.
-- No se pudo probar con una clave real en el emulador; queda como cobertura pendiente, no como control demostrado.
+- La web ya inicializa App Check con **reCAPTCHA Enterprise** (`ReCaptchaEnterpriseProvider`) usando la site key configurada en el build.
+- En producción se carga `enterprise.js` de reCAPTCHA y no hay errores de consola. En el navegador automatizado de la auditoría la assessment quedó pendiente, así que no se pudo confirmar un token completo; hay que mirar las métricas reales en Firebase Console.
+- El enforcement no se activa desde el código: hay que activarlo en Firebase Console para Firestore, Storage y Functions. Mientras no se haga, **App Check no bloquea nada**.
 
 **Encuestas:**
 
@@ -753,7 +753,7 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 
 **Cerrados y desplegados (sección 4.N):** rate limit global de solicitudes (20 por usuario cada 24 h, con `ultimaSolicitudId`), cambio de dueño de grupo, techo de XP por comentarios y bloqueos en solicitudes. **Altas directas y estadísticas de club:** corregidas y desplegadas el 30-10-2026 (sección 4.L). **Migración de chats de club:** revisada en simulación, 0 cambios necesarios. **Canales con dueño/miembro baneado:** E2E 7/7 (sección 4.M). **Storage, encuestas, tier lists, noticias y bloqueos en chats directos:** revisados y desplegados el 30-10-2026 (secciones 4.P, 4.Q y 4.R).
 
-1. **App Check:** registrar la app, configurar reCAPTCHA v3 y activar el enforcement en Firebase Console para Firestore, Storage y Functions. Sin clave y sin enforcement no protege nada.
+1. **App Check:** ya está registrado con reCAPTCHA Enterprise y la web lo inicializa. Falta revisar las métricas y activar el enforcement en Firebase Console para Firestore, Storage y Functions. Sin enforcement no protege nada.
 2. **Cobertura E2E restante:** `reports`/`notifications`, moderación de clubes y flujos de interfaz que aún no tienen prueba de extremo a extremo.
 3. **Auditoría de acciones administrativas:** registrar en una colección inmutable quién ajusta XP, concede medallas, cambia configuración y banea/desbanea; alertar de picos.
 
@@ -774,7 +774,8 @@ Estos casos se probaron y se comportaron correctamente. No compensan los riesgos
 7. Functions de club desplegadas el 30-10-2026: `levantarSancionClub` creada en `us-central1`; `unirseClubPublico`, `responderSolicitudClub` y `onClubMembersChanged` actualizadas (22:50:42–22:50:53 UTC). Inventario final: **21 triggers en Europa + 22 callables/scheduled en US, 43 en total**, sin duplicados.
 8. Reglas y Hosting desplegados el 30-10-2026: release `cloud.firestore` → ruleset `799da4a3-2030-4546-a1f1-728c9a2e1c82`, 152.460 bytes, 22:51:21 UTC; Hosting sirve `assets/index-BruzyIzl.js`, idéntico al build local.
 9. Storage y bloqueos desplegados el 30-10-2026: `cloud.firestore` → ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`, 152.933 bytes, 23:55:24 UTC; `firebase.storage` → ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`, 11.644 bytes, 23:55:20 UTC; Hosting sirve `assets/index-CLuyPo_1.js`.
-10. Verificación: bundle servido, releases de Firestore y Storage e inventario de Functions comprobados contra producción; no se hizo una pasada funcional completa con cuentas reales.
+10. App Check con reCAPTCHA Enterprise desplegado en Hosting: bundle `assets/index-CjW2VmpW.js`; el script `enterprise.js` carga y no hay errores de consola. **Enforcement pendiente.**
+11. Verificación: bundle servido, releases de Firestore y Storage e inventario de Functions comprobados contra producción; no se hizo una pasada funcional completa con cuentas reales.
 
 No se desplegaron índices. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
@@ -788,7 +789,7 @@ No se desplegaron índices. La rama `seguridad/p0-auditoria` se eliminó en loca
 |---|---|
 | `firestore.rules` | Correcciones P0, P1 y residuales desplegados: roles activos, `createdAt`, hilos, comentarios, chats, fijados con fecha real, citas contra el mensaje real, clubes con `sinAltasDeMiembros`, canales con `createdBy` atado, sanciones, solicitudes con id determinista e identidad derivada del perfil, `rateLimits` con ventana de 24 h, bloqueos en solicitudes y bloqueos en chats directos |
 | `storage.rules` | Imágenes de club por `ownerId`/`moderatorIds`/`adminIds`, no por el rol espejo; admin/moderador baneado sin escritura en `content/`; borrados sin baneados |
-| `src/lib/firebase.ts` | Inicialización opcional de App Check con reCAPTCHA v3 si existe `VITE_FIREBASE_APP_CHECK_KEY` |
+| `src/lib/firebase.ts` | Inicialización opcional de App Check con reCAPTCHA Enterprise (`ReCaptchaEnterpriseProvider`) si existe `VITE_FIREBASE_APP_CHECK_KEY` |
 | `functions/src/index.ts` | `exigirRol`/`exigirAdmin`/`exigirModerador`, jerarquía de baneos, objetivo real de comentarios, vista previa de chats, limpieza de chats de club, `reservarCupoComentario`, bloqueos en `responderSolicitudChat`, `onChatOwnerChanged`, `levantarSancionClub` y medallas de club concedidas desde `unirseClubPublico`/`responderSolicitudClub` |
 | `src/services/chats.ts` | Deja de escribir `lastMessage*` desde el cliente; construye `replyTo.texto` completo |
 | `src/utils/chatCita.ts` | `textoParaCita()` canónico sin recortar y `fragmentoParaCita()` para la vista |
@@ -819,7 +820,7 @@ No se desplegaron índices. La rama `seguridad/p0-auditoria` se eliminó en loca
 | `firebase.json` | Emulador de Auth (puerto 9099); reglas de Firestore generadas sin comentarios en el `predeploy` |
 | `.env.example` | Añade `VITE_FIREBASE_APP_CHECK_KEY`, vacía por defecto |
 
-El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado. Los residuales están en `2c9ecd4`, la región de los triggers en `e2185b8` y las altas/estadísticas de club en `4026f9c`; todo ello se publicó el 30-10-2026: Hosting sirve `assets/index-CLuyPo_1.js`, `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de` y `firebase.storage` al ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
+El P0 está en `cc35d84`, integrado en `main` y desplegado. El P1 está en `19a3912`, integrado en `main` con el merge `b8f63c3` (PR #2) y desplegado. Los residuales están en `2c9ecd4`, la región de los triggers en `e2185b8` y las altas/estadísticas de club en `4026f9c`; todo ello se publicó el 30-10-2026: Hosting sirve `assets/index-CjW2VmpW.js`, `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de` y `firebase.storage` al ruleset `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`. La rama `seguridad/p0-auditoria` se eliminó en local y en `origin`; solo queda `main`.
 
 Los residuales de la sección 4.N están **desplegados**: reglas y Hosting el 30-10-2026 (ruleset `e9bfa3ec-6bbc-4aa9-8844-bcba58b4118c`, bundle `index-BfKM3yC0.js`) y Functions (`onCommentCreated` y `onChatOwnerChanged` en `europe-southwest1`; `responderSolicitudChat` en `us-central1`). El inventario de producción quedó en 21 triggers europeos + 21 callables/scheduled en US, sin duplicados.
 
@@ -832,7 +833,7 @@ Storage y los bloqueos en chats directos (secciones 4.P y 4.R) se desplegaron en
 ## 8. Limitaciones
 
 - **No es una auditoría exhaustiva de toda la aplicación.** Se cubrieron las superficies principales de Firestore, Storage, callables y servicios inventariados; quedan `reports`/`notifications`, flujos de interfaz y moderación de clubes sin E2E completa.
-- **App Check no está exigido.** La web solo lo inicializa si hay clave; el enforcement en Firebase Console sigue pendiente. Mientras tanto, no aporta protección real.
+- **App Check está inicializado pero no exigido.** La web carga reCAPTCHA Enterprise y puede emitir tokens, pero el enforcement en Firebase Console sigue pendiente. Mientras tanto, no aporta protección real.
 - **Storage sirve las imágenes por URL pública** y los votos de una tier list pública son legibles por quien puede ver la lista. Son decisiones de producto documentadas; si se requiere privacidad, hay que pasar a URLs firmadas y a un agregado de votos en el servidor.
 - **Las correcciones de Storage y de bloqueos en directos están desplegadas.** Se publicaron el 30-10-2026; en producción solo se comprobaron los artefactos y el inventario, no cada flujo con datos reales.
 - **Las pruebas P0/P1 son de regresión, no una certificación de seguridad.** Confirman que los agujeros corregidos vuelven a fallar si alguien reabre la regla, pero no demuestran que no existan otros.
@@ -846,4 +847,4 @@ Storage y los bloqueos en chats directos (secciones 4.P y 4.R) se desplegaron en
 
 ---
 
-**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**830 reglas, 105 de chat y 6/6 E2E**) y **desplegados el 30-10-2026**. Las altas directas y las estadísticas de club están corregidas y verificadas (**167 focalizadas y 7/7 E2E de clubes**) y **desplegadas**. Storage y los bloqueos en directos también: `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`, `firebase.storage` al `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`, Hosting sirve `index-CLuyPo_1.js` y hay 43 Functions (21 triggers europeos + 22 callables/scheduled en US). La migración de chats de club se revisó en simulación (2 clubes, 8 usuarios, 0 cambios) y la E2E cubre canales con dueño y miembro baneados. **App Check sigue sin enforcement**: solo se inicializa si se configura la clave. **La aplicación todavía no puede declararse segura en su conjunto**: quedan los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
+**Conclusión:** los P0 de la auditoría están corregidos, desplegados y verificados: un admin baneado ya no conserva privilegios, salir de un club corta el acceso al chat, un moderador no puede ejecutar callables de administración, los baneos respetan la jerarquía, los comentarios sin objetivo real no pagan XP y los chats/fijados no se pueden manipular como antes. Los P1 de citas (F4), solicitudes (G1) y fecha de fijados están corregidos, verificados en el emulador y **desplegados en producción**. Los residuales de G1 (rate limit global con `ultimaSolicitudId` y traspaso de grupo), el techo de XP por comentarios y los bloqueos en solicitudes están corregidos, verificados en el emulador (**830 reglas, 105 de chat y 6/6 E2E**) y **desplegados el 30-10-2026**. Las altas directas y las estadísticas de club están corregidas y verificadas (**167 focalizadas y 7/7 E2E de clubes**) y **desplegadas**. Storage y los bloqueos en directos también: `cloud.firestore` apunta al ruleset `8bc79ee8-792d-41e2-9e79-fc1c42d0f7de`, `firebase.storage` al `ab1a5c29-9ed5-4d86-931f-30939eaab2c7`, Hosting sirve `index-CjW2VmpW.js` y hay 43 Functions (21 triggers europeos + 22 callables/scheduled en US). La migración de chats de club se revisó en simulación (2 clubes, 8 usuarios, 0 cambios) y la E2E cubre canales con dueño y miembro baneados. **App Check sigue sin enforcement**: solo se inicializa si se configura la clave. **La aplicación todavía no puede declararse segura en su conjunto**: quedan los P2 y varias superficies sin E2E. La rama de trabajo se eliminó; `main` es la única rama.
