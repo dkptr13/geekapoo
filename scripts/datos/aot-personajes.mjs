@@ -131,7 +131,7 @@ const S1_Y_S2 = [
 
 // ── Cuarta a sexta: el sótano y sus consecuencias ─────────
 const S4_A_S6 = [
-  ['Grisha Yeager', '1,3,4,5,6,7', 'supporting', 'グリシャ・イェーガー', 'Hiroshi Tsuchida',
+  ['Grisha Yeager', '1,3,4,5,6,7', 'antagonist', 'グリシャ・イェーガー', 'Hiroshi Tsuchida',
    'El padre de Eren y el hombre más misterioso de la serie. Durante tres temporadas el público cree que es un médico cobarde, y después se entiende por qué hacía lo que hacía.'],
   ['Eren Kruger', '4,5,6,7', 'supporting', 'エレン・クルーガー', 'Yasunori Matsumoto',
    'Titán de ataque antes que Grisha, y uno de los pocos que sabía lo que pasaba en el mundo de verdad.'],

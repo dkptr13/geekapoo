@@ -32,7 +32,7 @@ export const PERSONAJES = [
   ["Musashi Gouda", "1,2,3", "supporting", "ムサシ", "Toshihiko Seki",
    "El compañero de clase de Mob, ex peleador y el mas sensato del grupo. Es el que le explica al resto que con Mob hay que tener cuidado."],
 
-  ["Katsuya Serizawa", "2,3", "supporting", "芹沢克也", "Takanori Hoshino",
+  ["Katsuya Serizawa", "2,3", "antagonist", "芹沢克也", "Takanori Hoshino",
    "El ejecutor de la mafia de la Garra, que acabo siendo el guardespaldas de Mob. Es un tipo duro que trabaja con los dos bandos a la vez."],
 
   ["Tome Kurata", "1,2,3", "supporting", "暗田トメ", "Atsumi Tanezaki",

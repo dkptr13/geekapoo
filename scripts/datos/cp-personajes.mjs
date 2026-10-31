@@ -115,7 +115,7 @@ export const PERSONAJES = [
   [
     'Kirei Kotomine',
     '',
-    'supporting',
+    'antagonist',
     '言峰綺礼',
     '中田譲治',
     'El sacerdote, que en esta versión es el presentador del concurso de la guerra del Grial. Disfruta del sufrimiento ajeno, sonríe en los momentos peores y trata la humillación de los concursantes como un servicio público.',

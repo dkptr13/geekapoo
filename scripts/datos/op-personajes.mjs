@@ -200,7 +200,7 @@ export const PERSONAJES = [
   ['Henzo', '5', 'supporting', 'ヘンゾ', 'Choo',
     'Científico de la isla de Luluka que lleva cincuenta años buscando la Niebla Arcoíris. De joven formó parte de los Piratas Pumpkin y quiere rescatar a sus compañeros, atrapados en la niebla.'],
 
-  ['Whetton', '5', 'supporting', 'ウェットン', 'Jouji Nakata',
+  ['Whetton', '5', 'antagonist', 'ウェットン', 'Jouji Nakata',
     'Pirata que asaltó la isla de Luluka hace cincuenta años y provocó que los Piratas Pumpkin acabaran atrapados en la Niebla Arcoíris. Ahora vuelve a por el tesoro que se esconde dentro.'],
 
   // ── TEMPORADA 6: Jaya y Skypiea ───────────────────────────────────
@@ -223,13 +223,13 @@ export const PERSONAJES = [
   ['Aisa', '6', 'supporting', 'アイサ', 'Masami Suzuki',
     'Niña shandia que puede usar el mantra para sentir a las personas. Acompaña a Luffy en su lucha contra Enel y le ayuda a encontrar al dios.'],
 
-  ['Ohm', '6', 'supporting', 'オーム', 'Eiji Takemoto',
+  ['Ohm', '6', 'antagonist', 'オーム', 'Eiji Takemoto',
     'Sacerdote de Enel y maestro del Juicio de Hierro. Pelea con una espada de nube y entrena a animales feroces; se enfrenta a Zoro, Wyper y Gan Fall.'],
 
   ['Satori', '6', 'supporting', 'サトリ', 'Yasuhiro Takato',
     'Sacerdote de Enel y guardián del Juicio de las Esferas. Usa el mantra para anticipar los ataques y las esferas sorpresa para atrapar a sus enemigos.'],
 
-  ['Shura', '6', 'supporting', 'シュラ', 'Shinichirou Oota',
+  ['Shura', '6', 'antagonist', 'シュラ', 'Shinichirou Oota',
     'Sacerdote de Enel y guardián del Juicio de la Cuerda. Ataca con un pájaro de fuego y cuerdas invisibles, y se enfrenta a Chopper y Gan Fall.'],
 
   ['Gedatsu', '6', 'supporting', 'ゲダツ', 'Masaya Takatsuka',
@@ -250,7 +250,7 @@ export const PERSONAJES = [
   ['Raki', '6', 'supporting', 'ラキ', 'Michie Tomizawa',
     'Guerrera shandia y prima de Aisa. Es capturada por los sacerdotes y rescatada por sus compañeros durante el ataque a Upper Yard.'],
 
-  ['Yama', '6', 'supporting', 'ヤマ', 'Hidenari Ugaki',
+  ['Yama', '6', 'antagonist', 'ヤマ', 'Hidenari Ugaki',
     'Jefe de los soldados divinos de Enel. Pelea con un hacha enorme y se enfrenta a Robin en las ruinas de Shandora.'],
 
   ['Mont Blanc Cricket', '6', 'supporting', 'モンブラン・クリケット', 'Takashi Taniguchi',
@@ -368,16 +368,16 @@ export const PERSONAJES = [
   ['Kaya', '1', 'supporting', 'カヤ', 'Mariko Kouda',
     'Joven rica de la aldea de Syrup y amiga de Usopp. Está enferma por culpa de Kuro, que planea matarla para heredar su fortuna.'],
 
-  ['Sham', '1', 'supporting', 'シャム', 'Masaya Onosaka',
+  ['Sham', '1', 'antagonist', 'シャム', 'Masaya Onosaka',
     'Hipnotizador de los Gatos Negros y hermano de Buchi. Pelea con guantes de acero y ayuda a Kuro en su plan.'],
 
-  ['Buchi', '1', 'supporting', 'ブチ', 'Yasuhiro Takato',
+  ['Buchi', '1', 'antagonist', 'ブチ', 'Yasuhiro Takato',
     'Luchador de los Gatos Negros y hermano de Sham. Pelea con garras de acero y se enfrenta a Zoro.'],
 
-  ['Kuroobi', '1', 'supporting', 'クロオビ', 'Hisao Egawa',
+  ['Kuroobi', '1', 'antagonist', 'クロオビ', 'Hisao Egawa',
     'Oficial de los piratas de Arlong. Pelea con karate de hombre pez y se enfrenta a Sanji.'],
 
-  ['Chew', '1', 'supporting', 'チュウ', 'Masaya Onosaka',
+  ['Chew', '1', 'antagonist', 'チュウ', 'Masaya Onosaka',
     'Oficial de los piratas de Arlong que dispara agua por la boca. Se enfrenta a Usopp.'],
 
   ['Boodle', '1', 'supporting', 'ブードル', 'Jouji Yanami',
@@ -398,13 +398,13 @@ export const PERSONAJES = [
   ['Lapanui', '5', 'supporting', 'ラパヌイ・パスクア', 'Keiichi Sonobe',
     'Líder de los Piratas Pumpkin, atrapados en la Niebla Arcoíris desde hace cincuenta años. Desconfía de Henzo hasta que descubre la verdad.'],
 
-  ['Ian', '5', 'supporting', 'イアン', 'Masaya Takatsuka',
+  ['Ian', '5', 'antagonist', 'イアン', 'Masaya Takatsuka',
     'Capitán de asalto de los piratas de Wetton. Quedó atrapado en la Niebla Arcoíris con los Piratas Pumpkin y escapa con vida para reunirse con su capitán.'],
 
-  ['Hotori y Kotori', '6', 'supporting', 'ホトリとコトリ', 'Yasuhiro Takato',
+  ['Hotori y Kotori', '6', 'antagonist', 'ホトリとコトリ', 'Yasuhiro Takato',
     'Hermanos gemelos de Satori y tenientes de los soldados divinos de Enel. Usan diales y el mantra para vengar a su hermano, pero Nami y Gan Fall los derrotan.'],
 
-  ['Baskerville', '9', 'supporting', 'バスカビル', 'Mahito Ooba',
+  ['Baskerville', '9', 'antagonist', 'バスカビル', 'Mahito Ooba',
     'Jefe de justicia de Enies Lobby, en realidad tres hombres que fingen ser un solo cuerpo de tres cabezas. Manda a los jurados y a la guardia contra los intrusos.'],
 
   ['Puzzle', '9', 'supporting', 'パズール', 'Kishou Taniyama',
@@ -445,25 +445,25 @@ export const PERSONAJES = [
   ['Paulie', '8,9', 'supporting', 'パウリ', 'Takahiro Yoshimizu',
     'Capataz de Galley-La y experto en cuerdas. Ayuda a la tripulación y se enfrenta a la Familia Franky.'],
 
-  ['Kaku', '8,9', 'supporting', 'カク', 'Ryoutarou Okiayu',
+  ['Kaku', '8,9', 'antagonist', 'カク', 'Ryoutarou Okiayu',
     'Carpintero de Galley-La que en realidad es un agente de CP9. Comió la Fruta de la Jirafa y pelea con Zoro.'],
 
   ['Rob Lucci', '8,9', 'antagonist', 'ロブ・ルッチ', 'Tomokazu Seki',
     'Agente de CP9 y asesino del Gobierno. Comió la Fruta del Leopardo y es el rival final de Luffy en Enies Lobby.'],
 
-  ['Kalifa', '8,9', 'supporting', 'カリファ', 'Naomi Shindou',
+  ['Kalifa', '8,9', 'antagonist', 'カリファ', 'Naomi Shindou',
     'Agente de CP9 que se infiltra como secretaria de Iceberg. Comió la Fruta de la Burbuja y pelea con Nami.'],
 
-  ['Blueno', '8,9', 'supporting', 'ブルーノ', 'Seiji Sasaki',
+  ['Blueno', '8,9', 'antagonist', 'ブルーノ', 'Seiji Sasaki',
     'Agente de CP9 con la Fruta de la Puerta. Secuestra a Robin y se enfrenta a Luffy.'],
 
-  ['Jabra', '8,9', 'supporting', 'ジャブラ', 'Masaya Takatsuka',
+  ['Jabra', '8,9', 'antagonist', 'ジャブラ', 'Masaya Takatsuka',
     'Agente de CP9 con la Fruta del Lobo. Pelea con Sanji y es el único que puede moverse usando el Iron Body.'],
 
-  ['Kumadori', '8,9', 'supporting', 'クマドリ', 'Hiroaki Yoshida',
+  ['Kumadori', '8,9', 'antagonist', 'クマドリ', 'Hiroaki Yoshida',
     'Agente de CP9 con el pelo largo y una técnica de control del cuerpo. Pelea con Chopper y es derrotado por su forma monstruosa.'],
 
-  ['Fukurou', '8,9', 'supporting', 'フクロウ', 'Kumiko Watanabe',
+  ['Fukurou', '8,9', 'antagonist', 'フクロウ', 'Kumiko Watanabe',
     'Agente de CP9, delgado y hablador, con una boca que no puede cerrar. Pelea con Franky.'],
 
   ['Spandam', '8,9', 'antagonist', 'スパンダム', 'Masaya Onosaka',
@@ -499,13 +499,13 @@ export const PERSONAJES = [
   ['Zambai', '8,9', 'supporting', 'ザンバイ', 'Kouichi Nagano',
     'Líder de la Familia Franky y viejo amigo de Franky. Organiza a los suyos para ayudar a la tripulación.'],
 
-  ['Nero', '8', 'supporting', 'ネロ', 'Hidenobu Kiuchi',
+  ['Nero', '8', 'antagonist', 'ネロ', 'Hidenobu Kiuchi',
     'Agente de CP9 conocido como la Comadreja. Pelea con Franky en el tren marino.'],
 
-  ['T-Bone', '8', 'supporting', 'Ｔボーン', 'Tomomichi Nishimura',
+  ['T-Bone', '8', 'antagonist', 'Ｔボーン', 'Tomomichi Nishimura',
     'Capitán de la Marina conocido como el Cortabarcos. Se enfrenta a Zoro en el tren marino.'],
 
-  ['Wanze', '8', 'supporting', 'ワンゼ', 'Yasuhiro Takato',
+  ['Wanze', '8', 'antagonist', 'ワンゼ', 'Yasuhiro Takato',
     'Agente del Gobierno y cocinero que pelea con Ramen Kenpo. Se enfrenta a Sanji en el tren marino.'],
 
   // ── TEMPORADA 9: Enies Lobby, Ohara y los Accino ─────────────────
@@ -516,7 +516,7 @@ export const PERSONAJES = [
   ['Kashi', '9', 'supporting', 'カーシー', 'Kouhei Fukuhara',
     'Gigante que custodia la segunda puerta de Enies Lobby junto a Oimo. También se une a la alianza.'],
 
-  ['Spandine', '9', 'supporting', 'スパンダイン', 'Masaya Onosaka',
+  ['Spandine', '9', 'antagonist', 'スパンダイン', 'Masaya Onosaka',
     'Padre de Spandam y antiguo jefe de CP9. Ordenó el Buster Call sobre Ohara veinte años atrás.'],
 
   ['Jaguar D. Saul', '9', 'supporting', 'ハグワール･D･サウロ', 'Takeshi Kusao',
@@ -528,25 +528,25 @@ export const PERSONAJES = [
   ['Clover', '9', 'supporting', 'クローバー', 'Kouichi Kitamura',
     'Profesor y líder de los arqueólogos de Ohara. Muere por investigar el siglo vacío.'],
 
-  ['Don Accino', '9', 'supporting', 'ドン・アッチーノ', 'Tomomichi Nishimura',
+  ['Don Accino', '9', 'antagonist', 'ドン・アッチーノ', 'Tomomichi Nishimura',
     'Capitán de la familia Accino y usuario de la Fruta del Calor. Caza a los sombrero de paja para cobrar su recompensa.'],
 
-  ['Hockera', '9', 'supporting', 'ホッケラ・アッチーノ', 'Takuma Suzuki',
+  ['Hockera', '9', 'antagonist', 'ホッケラ・アッチーノ', 'Takuma Suzuki',
     'Miembro de la familia Accino que usa un traje térmico. Pelea contra Franky en el mar helado.'],
 
-  ['Salchow', '9', 'supporting', 'サルコー・アッチーノ', 'Katsuyuki Konishi',
+  ['Salchow', '9', 'antagonist', 'サルコー・アッチーノ', 'Katsuyuki Konishi',
     'Miembro de la familia Accino y esposo de Arbell. Pelea contra Sanji y Usopp.'],
 
-  ['Brindo', '9', 'supporting', 'ブリンド・アッチーノ', 'Kouichi Toochika',
+  ['Brindo', '9', 'antagonist', 'ブリンド・アッチーノ', 'Kouichi Toochika',
     'Miembro de la familia Accino que forma un imán con su hermano Canpacino. Pelea contra Luffy.'],
 
-  ['Arbell', '9', 'supporting', 'アルベル・アッチーノ', 'Yuuko Nagashima',
+  ['Arbell', '9', 'antagonist', 'アルベル・アッチーノ', 'Yuuko Nagashima',
     'Miembro de la familia Accino y hermana de Lil. Pelea con un látigo y ayuda a su familia.'],
 
-  ['Lil', '9', 'supporting', 'リル・アッチーノ', 'Katsue Miwa',
+  ['Lil', '9', 'antagonist', 'リル・アッチーノ', 'Katsue Miwa',
     'Miembro de la familia Accino que controla peces voladores. Se hace amiga de Robin.'],
 
-  ['Canpacino', '9', 'supporting', 'カンパチーノ・アッチーノ', 'Taiki Matsuno',
+  ['Canpacino', '9', 'antagonist', 'カンパチーノ・アッチーノ', 'Taiki Matsuno',
     'Miembro de la familia Accino y hermano de Brindo. Forma un imán con él y pelea contra Puzzle.'],
 
   ['Jiro', '9', 'supporting', 'ジロー', 'Miyu Irino',
@@ -560,25 +560,25 @@ export const PERSONAJES = [
   ['Gecko Moria', '10', 'antagonist', 'ゲッコー・モリア', 'Katsuhisa Houki',
     'Uno de los Siete Señores del Mar y dueño de Thriller Bark. Comió la Fruta de la Sombra y roba las sombras de sus víctimas para animar zombis; quiere crear un ejército para el Nuevo Mundo.'],
 
-  ['Perona', '10', 'supporting', 'ぺローナ', 'Kumiko Nishihara',
+  ['Perona', '10', 'antagonist', 'ぺローナ', 'Kumiko Nishihara',
     'Princesa Fantasma de Thriller Bark y lugarteniente de Moria. Comió la Fruta del Fantasma y usa fantasmas negativos y explosivos; se enfrenta a Usopp.'],
 
-  ['Absalom', '10', 'supporting', 'アブサロム', 'Hiroaki Miura',
+  ['Absalom', '10', 'antagonist', 'アブサロム', 'Hiroaki Miura',
     'Zombi invisible de Thriller Bark y lugarteniente de Moria. Comió la Fruta de la Transparencia y quiere casarse con Nami; Sanji lo derrota.'],
 
-  ['Hogback', '10', 'supporting', 'ドクトル・ホグバック', 'Hiroshi Iwasaki',
+  ['Hogback', '10', 'antagonist', 'ドクトル・ホグバック', 'Hiroshi Iwasaki',
     'Cirujano famoso de Thriller Bark que trabaja para Moria. Resucita cadáveres como zombis y experimenta con Victoria Cindry; Chopper lo detesta.'],
 
   ['Ryuma', '10', 'supporting', '霜月リューマ', 'Choo',
     'Samurái zombi de Thriller Bark que guarda la sombra de Brook. Pelea con Zoro y le entrega su espada Shusui al ser derrotado.'],
 
-  ['Oars', '10', 'supporting', 'オーズ', 'Mayumi Tanaka',
+  ['Oars', '10', 'antagonist', 'オーズ', 'Mayumi Tanaka',
     'Gigante legendario resucitado por Moria con la sombra de Luffy. Se comporta como Luffy y es el enemigo más fuerte de Thriller Bark.'],
 
   ['Victoria Cindry', '10', 'supporting', 'ビクトリア・シンドリー', 'Houko Kuwashima',
     'Actriz fallecida resucitada por Hogback como zombi. Sirve en su mansión y conserva un gesto de rebeldía contra su creador.'],
 
-  ['Hildon', '10', 'supporting', 'ヒルドン', 'Taiki Matsuno',
+  ['Hildon', '10', 'antagonist', 'ヒルドン', 'Taiki Matsuno',
     'Vampiro de Thriller Bark que guía a Nami, Usopp y Chopper hasta la mansión de Hogback. Es un servidor de Moria.'],
 
   ['Lola', '10', 'supporting', 'ローラ', 'Aya Hisakawa',
@@ -668,7 +668,7 @@ export const PERSONAJES = [
   ['Saldeath', '13', 'supporting', 'サルデス', 'Kazuya Nakai',
     'Jefe de los guardias de Impel Down. Usa una red de kairoseki y dirige a los Blugori contra Luffy.'],
 
-  ['Sadie', '13', 'supporting', 'サディちゃん', 'Yuka Koyama',
+  ['Sadie', '13', 'antagonist', 'サディちゃん', 'Yuka Koyama',
     'Jefa de los guardias demonio de Impel Down. Pelea con un látigo y se enfrenta a Ivankov y a los presos.'],
 
   ['Shiryu', '13', 'antagonist', 'シリュウ', 'Takayuki Sugou',
@@ -683,7 +683,7 @@ export const PERSONAJES = [
   ['Jimbei', '13', 'supporting', 'ジンベエ', 'Daisuke Gouri',
     'Tiburón ballena y uno de los Siete Señores del Mar, conocido como el Caballero del Mar. Está preso en Impel Down por negarse a luchar contra Barbablanca y se une a Luffy.'],
 
-  ['Shiki', '13', 'supporting', 'シキ', 'Naoto Takenaka',
+  ['Shiki', '13', 'antagonist', 'シキ', 'Naoto Takenaka',
     'El León Dorado, legendario pirata que escapó de Impel Down hace veinte años. Es el villano de la película Strong World y aparece en el especial de la temporada.'],
 
   ['Yoko', '13', 'supporting', 'ヨーコ', 'Mari Yaguchi',

@@ -1302,7 +1302,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
                       <div className="absolute bottom-3 left-3">
                         <span className="rounded-md bg-violet-600/90 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-                          {char.role === 'main' ? 'Personaje Principal' : 'Secundario'}
+                          {char.role === 'main'
+                            ? 'Personaje Principal'
+                            : char.role === 'antagonist'
+                              ? 'Antagonista'
+                              : 'Secundario'}
                         </span>
                       </div>
                     </div>

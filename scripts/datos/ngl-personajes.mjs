@@ -98,7 +98,7 @@ export const PERSONAJES = [
     'La hermana mayor de Riku y la que dirige el poblado después de que él ya no pueda. Se sacrifica en la partida que cierra la guerra, y ese sacrificio es lo que ochocientos años después explica por qué la familia Dola tiene a Sora y Shiro.'],
   ['Schwi Dola', '2', 'supporting', 'シュヴィ・ドーラ', 'Ai Kayano',
     'El menor de los Dola de la película. Es quien encuentra a Sora y Shiro ochocientos años antes de que lleguen al mundo, y el único que sabe lo que van a ser. Todo lo que hace la película tiene que ver con que este crío se quede atrapado entre dos guerras.'],
-  ['Think Nirvalen', '2', 'supporting', 'シンク・ニルヴァレン', 'Mami Noto',
+  ['Think Nirvalen', '2', 'antagonist', 'シンク・ニルヴァレン', 'Mami Noto',
     'El dios antiguo que lía la guerra y que lleva años siendo una de las dos piezas más fuertes del tablero. La serie no enseña su cara hasta el último capítulo; en la película ya se le ve moverse. Es el mismo personaje que Fiel, en la otra forma que puede tener.'],
   ['Einzig', '2', 'supporting', 'アインツィヒ', 'Junichi Suwabe',
     'El que lleva las cuentas en el bando contrario y el que sabe desde el principio que la guerra se ha perdido. Juega con una lógica que los personajes de esta historia no tienen, y es el motivo de que la película termine como termina.'],
