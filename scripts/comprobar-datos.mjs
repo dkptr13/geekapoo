@@ -96,8 +96,13 @@ const ANGELESAS = [
  * Es la misma idea que el flag `TITULOS_SUBTITULADOS` de Tokyo
  * Revengers: una excepcion explicita y con su motivo, no relajar el
  * filtro hasta que deje de molestar.
+ *
+ * `much` es el mismo caso en One Piece: el oficial de los Nuevos Piratas
+ * Hombre Pez se llama Ikaros Much, con `Much` como apellido, y asi sale
+ * en la Wikipedia en espanol, en el doblaje y en las fichas de la serie.
+ * Traducirlo a "Mucho" seria inventarse un nombre que nadie usa.
  */
-const PROPIOS_EN_INGLES = ['power', 'green', 'light'];
+const PROPIOS_EN_INGLES = ['power', 'green', 'light', 'much'];
 
 /**
  * Si una palabra inglesa sale como NOMBRE PROPIO y no como palabra.

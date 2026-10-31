@@ -582,6 +582,22 @@ export const TRAMO_TVDB = {
     //
     //   catalogo T13  (422-456)  TVDB S13E41..S13E75
     13: [{ temporada: 13, desde: 41, hasta: 75 }],
+    // La T14 son los 60 capitulos del 457 al 516. TVDB cierra con ellos su
+    // temporada 13 (hasta la muerte de Barbablanca) y abre la 14 con el
+    // resto, que llega hasta el entrenamiento de Luffy.
+    //
+    //   catalogo T14  (457-481)  TVDB S13E76..S13E100
+    //   catalogo T14  (482-516)  TVDB S14E1..S14E35
+    14: [
+      { temporada: 13, desde: 76, hasta: 100 },
+      { temporada: 14, desde: 1, hasta: 35 },
+    ],
+    // La T15 son los 62 capitulos del 517 al 578, todos en la temporada 15
+    // de TVDB (la vuelta a Sabaody, la isla de los hombres pez y Z's
+    // Ambition).
+    //
+    //   catalogo T15  (517-578)  TVDB S15E1..S15E62
+    15: [{ temporada: 15, desde: 1, hasta: 62 }],
   },
 };
 
@@ -955,6 +971,21 @@ export const TITULO_TVDB = {
     'さらなる混乱! 黒ひげ・ティーチ襲来!': 'さらなる混乱！黒ひげ・ティーチ襲来',
     '怒りのJETピストル　ルフィvs黒ヒゲ': '怒りのJETピストル ルフィVS黒ひげ',
     '脱獄チーム絶体絶命 禁じ手"毒の巨兵"': '脱獄チーム絶体絶命 禁じ手“毒の巨兵”',
+    // La T14 y la T15 anaden diez mas: TVDB escribe 焼き尽す por 焼き尽くす
+    // (463), 指令 por 命令 (474) y くま por クマ (469), cambia los signos
+    // (465, 550 y 551) y alterna 蘇る y 甦る (539), 絶対絶命 y 絶体絶命
+    // (559), 戦闘 y 激闘 (560) y ビッグマム y ビッグ・マム (571). Son las
+    // mismas fechas y el mismo orden.
+    'すべてを焼き尽くす!! 大将赤犬の能力!': 'すべてを焼き尽す!!大将赤犬の能力!',
+    '勝者だけが正義 発動! センゴクの作戦': '勝者だけが正義 発動！センゴクの作戦！',
+    'クマに起きた異変　イワさん怒りの一撃': 'くまに起きた異変 イワさん怒りの一撃',
+    '処刑執行命令下る 包囲壁を突破せよ!': '処刑執行指令下る 包囲壁を突破せよ！',
+    '蘇る因縁! ナミと魚人海賊団!': '甦る因縁！ナミと魚人海賊団！',
+    'ホーディの異変! 凶薬の真の力': 'ホーディの異変 凶薬の真の力！',
+    '決戦始まる ギョンコルド広場': '決戦始まる ギョンコルド広場！',
+    '急げルフィ! しらほし絶対絶命': '急げルフィ！しらほし絶体絶命',
+    '戦闘開始! ルフィVSホーディ!': '激闘開始！ルフィVSホーディ！',
+    'お菓子好き! 四皇ビッグマム': 'お菓子好き！四皇ビッグ・マム',
   },
 };
 

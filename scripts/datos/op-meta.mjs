@@ -4,7 +4,7 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las trece primeras temporadas:
+// De momento el catalogo tiene las quince primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
@@ -19,6 +19,8 @@
 //   T11  26 capitulos  (diciembre de 2008 - junio de 2009)
 //   T12  14 capitulos  (julio - octubre de 2009)
 //   T13  35 capitulos  (octubre de 2009 - junio de 2010)
+//   T14  60 capitulos  (julio de 2010 - septiembre de 2011)
+//   T15  62 capitulos  (octubre de 2011 - diciembre de 2012)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -73,7 +75,7 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las trece primeras temporadas:
+ * De momento estan cargadas las quince primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
@@ -88,11 +90,13 @@ export const RATING_SERIE = 9.0;
  *   T11  26  (diciembre de 2008 - junio de 2009)
  *   T12  14  (julio - octubre de 2009)
  *   T13  35  (octubre de 2009 - junio de 2010)
+ *   T14  60  (julio de 2010 - septiembre de 2011)
+ *   T15  62  (octubre de 2011 - diciembre de 2012)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 456;
+export const EPISODIOS_TOTAL = 578;
 
 /**
  * Donde se emite en Espana.
@@ -263,5 +267,31 @@ export const TEMPORADAS = [
       'Es la saga de Impel Down: Luffy se infiltra en la gran prision para rescatar a Ace, se reencuentra con ' +
       'Buggy, Mr. 2, Crocodile y Jimbei, y presencia la llegada de Barbanegra.',
     capitulos: 'T13',
+  },
+  {
+    numero: 14,
+    titulo: '',
+    anio: 2010,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Sesenta capitulos del 18 de julio de 2010 al 25 de septiembre de 2011, en Toei Animation para Fuji TV. ' +
+      'Es la guerra de Marineford: la ejecucion de Ace, la llegada de Barbablanca y de Shanks, la muerte de ' +
+      'los dos y el reencuentro de Luffy con Jimbei y Rayleigh. La segunda mitad son los capitulos del ' +
+      'paradero de la tripulacion y el flashback de Luffy, Ace y Sabo.',
+    capitulos: 'T14',
+  },
+  {
+    numero: 15,
+    titulo: '',
+    anio: 2011,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Sesenta y dos capitulos del 2 de octubre de 2011 al 23 de diciembre de 2012, en Toei Animation para ' +
+      'Fuji TV. Es la vuelta de la tripulacion tras dos anos de entrenamiento: el reencuentro en Sabaody, ' +
+      'el descenso a la isla de los hombres pez, la lucha contra Hordy Jones y los Nuevos Piratas Hombre ' +
+      'Pez, y el arco de Z\'s Ambition que anuncia la pelicula Film Z.',
+    capitulos: 'T15',
   },
 ];
