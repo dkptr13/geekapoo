@@ -26,6 +26,7 @@ import {
 } from '../services/reactions';
 
 import { mergeCategories } from '../data/animeCategories';
+import { ponerLikeLocal } from '../utils/likes';
 
 import type { ImageDims } from '../utils/imagenes';
 import {
@@ -224,6 +225,11 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Un like por contenido puede estar esperando a Firestore. El
+  // corazón cambia en local enseguida; el bloqueo solo evita que un
+  // doble toque lance dos transacciones contrarias a la vez.
+  const likesPendientes = useRef(new Set<string>());
 
   // Cuántos listeners siguen sin responder por primera vez.
   // Hay nueve listeners: animes, temporadas, hilos, comentarios,
@@ -563,6 +569,12 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // servicio escribe un documento por persona y es la Cloud
   // Function quien actualiza `likedBy` y `likesCount`; en el
   // catálogo se sigue usando la transacción de siempre.
+  //
+  // Esperar a todo ese camino hacía que el corazón tardara en
+  // responder. En hilos y comentarios se refleja primero el cambio
+  // en la copia local; la transacción lo confirma después y, si
+  // falla, se revierte. El servidor sigue siendo la fuente de
+  // verdad: esto no escribe los contadores en Firestore.
   // ====================================================
 
   const guardUser = useCallback((): string | null => {
@@ -572,6 +584,56 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     return currentUser.uid;
   }, [currentUser, requireAuth]);
+
+  const actualizarLikeLocal = useCallback((
+    tipo: 'thread' | 'comment',
+    id: string,
+    uid: string,
+    liked: boolean,
+  ) => {
+    if (tipo === 'thread') {
+      setThreads((prev) => prev.map((thread) => (
+        thread.id === id ? ponerLikeLocal(thread, uid, liked) : thread
+      )));
+      return;
+    }
+
+    setComments((prev) => prev.map((comment) => (
+      comment.id === id ? ponerLikeLocal(comment, uid, liked) : comment
+    )));
+  }, []);
+
+  const runCommunityLike = useCallback(async (
+    tipo: 'thread' | 'comment',
+    id: string,
+    action: (uid: string) => Promise<boolean>,
+  ) => {
+    const uid = guardUser();
+    if (!uid) return;
+
+    const clave = `${tipo}:${id}`;
+    if (likesPendientes.current.has(clave)) return;
+
+    const actual = tipo === 'thread'
+      ? threads.find((thread) => thread.id === id)
+      : comments.find((comment) => comment.id === id);
+    const likedAntes = actual?.likedBy?.includes(uid) ?? false;
+
+    likesPendientes.current.add(clave);
+    actualizarLikeLocal(tipo, id, uid, !likedAntes);
+
+    try {
+      const likedConfirmado = await action(uid);
+      // Si otra pestaña cambió el documento a la vez, manda el
+      // resultado real de la transacción, no lo que supuso el clic.
+      actualizarLikeLocal(tipo, id, uid, likedConfirmado);
+    } catch (e) {
+      actualizarLikeLocal(tipo, id, uid, likedAntes);
+      console.error('[Community] Error en "me gusta":', e);
+    } finally {
+      likesPendientes.current.delete(clave);
+    }
+  }, [actualizarLikeLocal, comments, guardUser, threads]);
 
   const runLike = useCallback(async (action: (uid: string) => Promise<boolean>) => {
     const uid = guardUser();
@@ -584,13 +646,21 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [guardUser]);
 
   const toggleThreadLike = useCallback(
-    (threadId: string) => runLike((uid) => toggleThreadLikeService(threadId, uid)),
-    [runLike],
+    (threadId: string) => runCommunityLike(
+      'thread',
+      threadId,
+      (uid) => toggleThreadLikeService(threadId, uid),
+    ),
+    [runCommunityLike],
   );
 
   const toggleCommentLike = useCallback(
-    (commentId: string) => runLike((uid) => toggleCommentLikeService(commentId, uid)),
-    [runLike],
+    (commentId: string) => runCommunityLike(
+      'comment',
+      commentId,
+      (uid) => toggleCommentLikeService(commentId, uid),
+    ),
+    [runCommunityLike],
   );
 
   const toggleAnimeLike = useCallback(

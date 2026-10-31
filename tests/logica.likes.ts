@@ -22,6 +22,7 @@ import {
   debeProcesarLike,
   idsDeLikes,
 } from '../functions/src/likesLogic';
+import { ponerLikeLocal } from '../src/utils/likes';
 
 // ──────────────────────────────────────────────────────────
 // 1. Qué ha pasado con el documento
@@ -115,5 +116,38 @@ assert.equal(
   'baja seguida de alta antes del trigger: no retira',
 );
 assert.equal(debeProcesarLike(null, 'alice', ['bob']), false, 'un update no paga ni retira');
+
+// ──────────────────────────────────────────────────────────
+// 5. Actualización optimista de la interfaz
+// ──────────────────────────────────────────────────────────
+
+const hilo = {
+  id: 'hilo-1',
+  title: 'Se conserva el resto del hilo',
+  likedBy: ['bob'],
+  likesCount: 1,
+};
+const hiloConAlice = ponerLikeLocal(hilo, 'alice', true);
+
+assert.deepEqual(hiloConAlice.likedBy, ['bob', 'alice']);
+assert.equal(hiloConAlice.likesCount, 2, 'el corazón y el contador cambian a la vez');
+assert.equal(hiloConAlice.title, hilo.title, 'no se pierde ningún campo');
+assert.deepEqual(hilo.likedBy, ['bob'], 'no se muta el estado anterior');
+
+assert.equal(
+  ponerLikeLocal(hiloConAlice, 'alice', true),
+  hiloConAlice,
+  'confirmar un estado ya visible no vuelve a sumar',
+);
+assert.deepEqual(
+  ponerLikeLocal(hiloConAlice, 'alice', false),
+  hilo,
+  'si falla la escritura, la interfaz puede revertir el cambio',
+);
+assert.equal(
+  ponerLikeLocal({ likedBy: ['alice'], likesCount: 0 }, 'alice', false).likesCount,
+  0,
+  'un dato antiguo desajustado nunca produce un contador negativo',
+);
 
 console.log('OK · lógica de "me gusta" por usuario');
