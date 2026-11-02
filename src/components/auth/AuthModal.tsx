@@ -364,7 +364,7 @@ export const AuthModal: React.FC = () => {
                   onChange={(e) =>
                     setEmail(e.target.value)
                   }
-                  placeholder="ejemplo@geekapoo.com"
+                  placeholder="ejemplo@geekapoo.es"
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
@@ -567,7 +567,7 @@ export const AuthModal: React.FC = () => {
                   onChange={(e) =>
                     setEmail(e.target.value)
                   }
-                  placeholder="ejemplo: kaguya.fan@geekapoo.com"
+                  placeholder="ejemplo: kaguya.fan@geekapoo.es"
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />

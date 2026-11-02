@@ -1,5 +1,5 @@
 /**
- * GAMIFICACION DE geekapoo.com
+ * GAMIFICACION DE geekapoo.es
  * ============================
  *
  * Este archivo es el UNICO que escribe XP, nivel, medallas y

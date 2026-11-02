@@ -826,7 +826,7 @@ service cloud.firestore {
               <h2 className="text-base sm:text-lg font-black text-white flex flex-wrap items-center gap-2">
                 <span>Arquitectura & Base de Datos</span>
                 <span className="rounded-md bg-violet-600/20 border border-violet-500/30 px-2 py-0.5 text-[10px] font-bold text-violet-300">
-                  geekapoo.com
+                  geekapoo.es
                 </span>
               </h2>
               <p className="text-xs text-zinc-400">

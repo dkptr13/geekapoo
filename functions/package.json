@@ -2,7 +2,7 @@
   "name": "geekapoo-gamificacion",
   "private": true,
   "version": "1.0.0",
-  "description": "Concede XP, niveles y medallas de geekapoo.com. Único escritor de esos campos.",
+  "description": "Concede XP, niveles y medallas de geekapoo.es. Único escritor de esos campos.",
   "main": "lib/index.js",
   "type": "commonjs",
   "engines": {

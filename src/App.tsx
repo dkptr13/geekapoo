@@ -660,7 +660,7 @@ const {
           <div className="flex items-center gap-2">
 
             <span className="font-black text-white text-sm">
-              geekapoo.com
+              geekapoo.es
             </span>
 
             <span>—</span>

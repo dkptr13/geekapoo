@@ -36,7 +36,7 @@ export const WEEKLY_WORKS = 'weeklyWorks';
 // portada nunca se quede en blanco.
 export const DEFAULT_SETTINGS: SiteSettings = {
   welcomeTitle: 'Bienvenido a',
-  welcomeHighlight: 'geekapoo.com',
+  welcomeHighlight: 'geekapoo.es',
   welcomeText:
     'Un espacio cómodo, seguro y sin restricciones (salvo el respeto mutuo) diseñado para que jóvenes, ' +
     'amantes del anime, series, películas, cultura pop y tecnología puedan debatir, opinar, compartir ' +

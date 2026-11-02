@@ -3266,7 +3266,7 @@ service cloud.firestore {
      * Moderador del club: está en `moderatorsIds` o es el
      * propietario.
      *
-     * Es INDEPENDIENTE del rol global de geekapoo.com: ser
+     * Es INDEPENDIENTE del rol global de geekapoo.es: ser
      * moderador de un club no concede ningún permiso en el
      * panel de administración ni sobre los hilos. Ahí sigue
      * mandando `users/{uid}.role`.

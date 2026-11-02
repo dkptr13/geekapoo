@@ -1231,7 +1231,7 @@ export interface SupportTicket {
 export interface SiteSettings {
   /** Parte inicial: "Bienvenido a". */
   welcomeTitle: string;
-  /** La parte con color degradado: "geekapoo.com". */
+  /** La parte con color degradado: "geekapoo.es". */
   welcomeHighlight: string;
   /** Párrafo descriptivo bajo el título. */
   welcomeText: string;

@@ -548,7 +548,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   };
 
   const handleShare = (thread: Thread) => {
-    navigator.clipboard.writeText(`https://geekapoo.com/hilo/${thread.id}`);
+    // El dominio se toma de la barra de direcciones para que el enlace
+    // funcione igual en vercel.app y en el dominio propio, sin tener
+    // que tocar código al mudarse.
+    const base = `${window.location.origin}${window.location.pathname}`;
+    navigator.clipboard.writeText(`${base}?tab=inicio&hilo=${thread.id}`);
     setCopiedShareId(thread.id);
     setTimeout(() => setCopiedShareId(null), 2000);
   };

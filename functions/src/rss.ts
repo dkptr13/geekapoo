@@ -271,7 +271,7 @@ export async function leerFeed(fuente: FuenteRss): Promise<Noticia[]> {
         // Sin esto hay feeds que devuelven HTML en vez de RSS, y el
         // error sale como "no se encontró ningún item" en lugar de
         // "el servidor devolvió otra cosa", que es lo que pasó.
-        'User-Agent': 'geekapoo.com RSS reader (+https://geekapoo.com)',
+        'User-Agent': 'geekapoo.es RSS reader (+https://geekapoo.es)',
         Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
       },
     });

@@ -332,7 +332,7 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
                       : 'border-zinc-800 focus-within:border-violet-500'
                 }`}
               >
-                <span className="pl-3 font-mono text-[11px] text-zinc-600">geekapoo.com/chats/</span>
+                <span className="pl-3 font-mono text-[11px] text-zinc-600">geekapoo.es/chats/</span>
                 <input
                   id="club-slug"
                   type="text"

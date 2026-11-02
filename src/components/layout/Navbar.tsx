@@ -382,13 +382,13 @@ export default function Navbar({
 
               A 320px la cabecera lleva el logo, la campana, el
               avatar y el botón del menú. Con el nombre completo
-              "geekapoo.com" la fila no cabe y el botón del menú se
+              "geekapoo.es" la fila no cabe y el botón del menú se
               sale por la derecha. Por debajo de 360px se queda solo
-              "geekapoo"; en cuanto hay sitio vuelve el ".com". A
+              "geekapoo"; en cuanto hay sitio vuelve el ".es". A
               partir de sm (640px) el nombre recupera su tamaño. */}
           <div>
             <span className="text-lg font-black tracking-tight text-white transition-colors group-hover:text-violet-300 sm:text-xl">
-              geekapoo<span className="hidden text-violet-300 min-[360px]:inline">.com</span>
+              geekapoo<span className="hidden text-violet-300 min-[360px]:inline">.es</span>
             </span>
           </div>
 

@@ -587,7 +587,7 @@ export const AuthProvider = ({
                 role: 'user',
                 createdAt: new Date().toISOString(),
                 lastSeen: 'En línea',
-                bio: 'Comunidad geekapoo.com',
+                bio: 'Comunidad geekapoo.es',
                 privateProfile: false,
                 activityHidden: false,
               };
@@ -852,7 +852,7 @@ export const AuthProvider = ({
         role: 'user',
         createdAt: new Date().toISOString(),
         lastSeen: 'En línea',
-        bio: 'Nuevo miembro en geekapoo.com',
+        bio: 'Nuevo miembro en geekapoo.es',
         privateProfile: false,
         activityHidden: false,
       };

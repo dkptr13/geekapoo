@@ -1,4 +1,4 @@
-# ⚡ geekapoo.com — Plataforma Web, Foro & Wiki Otaku
+# ⚡ Geekapoo — Plataforma Web, Foro & Wiki Otaku
 
 <p align="center">
   <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1200&q=80" alt="Geekapoo Banner" width="100%" style="border-radius: 16px;" />
@@ -8,6 +8,10 @@
   <b>Un espacio cómodo, libre y seguro para la comunidad otaku, gamer y geek.</b><br/>
   Sin censura, sin filtros innecesarios y con una única regla inquebrantable: <b>el respeto mutuo</b>.
 </p>
+
+> **Web en producción:** https://geekapoo.vercel.app
+> **Dominio previsto:** `geekapoo.es` (pendiente de registrar)
+> **Importante:** `geekapoo.com` **no** pertenece a este proyecto. No enlazar ni usar en textos.
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
