@@ -197,7 +197,12 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     return unsub;
-  }, [currentUser]);
+  }, [currentUser?.uid]);
+
+  const misClubesKey = useMemo(
+    () => misClubes.map((club) => club.id).sort().join('|'),
+    [misClubes],
+  );
 
   // ── Canales de mis clubes ──────────────────────────
   //
@@ -236,7 +241,9 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     return () => desuscrs.forEach((d) => d());
-  }, [misClubes, currentUser]);
+    // La firma solo cambia cuando entra o sale un club. Un cambio de
+    // nombre o de portada no vuelve a abrir todos los listeners.
+  }, [misClubesKey, currentUser?.uid]);
 
   // ── Solicitudes de los clubes que modero ─────────────
   //
@@ -246,7 +253,11 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // escuchas colgando de clubes que ya no lo son.
   const clubesModerados = useMemo(
     () => misClubes.filter((c) => esModerador(c, currentUser?.uid ?? null)),
-    [misClubes, currentUser],
+    [misClubes, currentUser?.uid],
+  );
+  const clubesModeradosKey = useMemo(
+    () => clubesModerados.map((club) => club.id).sort().join('|'),
+    [clubesModerados],
   );
 
   useEffect(() => {
@@ -269,10 +280,16 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     return () => desuscrs.forEach((d) => d());
-  }, [clubesModerados]);
+  }, [clubesModeradosKey]);
 
   const refrescarDescubrir = useCallback(
     async (busqueda = '', categoria: ClubCategory | 'todas' = 'todas') => {
+      // Las reglas no permiten leer clubes sin sesión; no se lanza
+      // una consulta que siempre va a ser denegada.
+      if (!currentUser) {
+        setDescubrir([]);
+        return;
+      }
       try {
         const clubs = await listarClubes(busqueda, categoria);
         setDescubrir(clubs);
@@ -281,11 +298,10 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setError('No se pudo cargar la galería de clubes.');
       }
     },
-    [],
+    [currentUser?.uid],
   );
 
-  // La galería se carga al montar: no depende de la sesión
-  // porque un visitante puede ver los clubes públicos.
+  // La galería se carga al montar, pero solo con una sesión válida.
   useEffect(() => {
     void refrescarDescubrir();
   }, [refrescarDescubrir]);

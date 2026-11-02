@@ -72,7 +72,7 @@ export const PERSONAJES = [
   ["Joka", "1,2,3", "supporting", "女華", "Hiroki Nanami",
    "Una sirvienta del palacio que ayuda en las tareas diarias del harén."],
 
-  ["Suirei", "1,2,3", "supporting", "翠苓", "Kaori Nazuka",
+  ["Suirei", "1,2,3", "antagonist", "翠苓", "Kaori Nazuka",
    "Una mujer misteriosa vinculada a conspiraciones del palacio."],
 
   ["Lihaku", "1,2,3", "supporting", "李白", "Kenji Akabane",

@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   serverTimestamp,
@@ -12,6 +13,8 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { cachedRead, invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
+import { measureRead } from '../lib/firestoreDiagnostics';
 import type { SiteSettings, WeeklyWork } from '../types';
 
 // ======================================================
@@ -52,6 +55,82 @@ export const DEFAULT_SETTINGS: SiteSettings = {
 
 const asStr = (v: unknown, fallback = ''): string =>
   typeof v === 'string' && v.trim() !== '' ? v : fallback;
+
+const TTL_AJUSTES = 60 * 60 * 1000;
+const TTL_OBRAS = 30 * 60 * 1000;
+const KEY_AJUSTES = 'site:settings';
+const KEY_OBRAS = 'site:weekly-works';
+
+function normalizarAjustes(data: Partial<SiteSettings> | undefined): SiteSettings {
+  if (!data) return DEFAULT_SETTINGS;
+  return {
+    welcomeTitle: asStr(data.welcomeTitle, DEFAULT_SETTINGS.welcomeTitle),
+    welcomeHighlight: asStr(data.welcomeHighlight, DEFAULT_SETTINGS.welcomeHighlight),
+    welcomeText: asStr(data.welcomeText, DEFAULT_SETTINGS.welcomeText),
+    logoUrl: typeof data.logoUrl === 'string' ? data.logoUrl : '',
+    supportArtLeftUrl:
+      typeof data.supportArtLeftUrl === 'string'
+        ? data.supportArtLeftUrl
+        : DEFAULT_SETTINGS.supportArtLeftUrl,
+    supportArtRightUrl:
+      typeof data.supportArtRightUrl === 'string'
+        ? data.supportArtRightUrl
+        : DEFAULT_SETTINGS.supportArtRightUrl,
+  };
+}
+
+function normalizarObras(
+  docs: { id: string; data: () => Record<string, unknown> }[],
+): WeeklyWork[] {
+  const works = docs.map((d) => {
+    const data = d.data() as Omit<WeeklyWork, 'id'> & { createdAt?: unknown };
+    return {
+      ...data,
+      id: d.id,
+      order: typeof data.order === 'number' ? data.order : 99,
+      score: typeof data.score === 'number' ? data.score : 0,
+      active: data.active !== false,
+    };
+  });
+  works.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+  return works;
+}
+
+/** Ajustes globales con caché larga e invalidación al guardar. */
+export function getSiteSettingsCached(force = false): Promise<SiteSettings> {
+  return cachedRead({
+    key: KEY_AJUSTES,
+    scope: PUBLIC_CACHE,
+    ttlMs: TTL_AJUSTES,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'settings', collection: SITE_SETTINGS, origin: 'SiteContentContext' },
+        () => 1,
+        () => getDoc(doc(db, SITE_SETTINGS, SETTINGS_DOC)),
+      );
+      return normalizarAjustes(snap.data() as Partial<SiteSettings> | undefined);
+    },
+  });
+}
+
+/** Obras de la semana con caché; cambian desde el panel, no cada minuto. */
+export function getWeeklyWorksCached(force = false): Promise<WeeklyWork[]> {
+  return cachedRead({
+    key: KEY_OBRAS,
+    scope: PUBLIC_CACHE,
+    ttlMs: TTL_OBRAS,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'weeklyWorks', collection: WEEKLY_WORKS, origin: 'SiteContentContext' },
+        (result) => result.size,
+        () => getDocs(collection(db, WEEKLY_WORKS)),
+      );
+      return normalizarObras(snap.docs);
+    },
+  });
+}
 
 // ────────────────────────────────────────────────────────
 // AJUSTES DEL SITIO
@@ -115,6 +194,7 @@ export async function saveSiteSettings(
     { ...patch, updatedAt: serverTimestamp() },
     { merge: true },
   );
+  invalidateCache(KEY_AJUSTES, PUBLIC_CACHE);
 }
 
 // ────────────────────────────────────────────────────────
@@ -186,6 +266,7 @@ export async function createWeeklyWork(
     createdAt: serverTimestamp(),
   });
 
+  invalidateCache(KEY_OBRAS, PUBLIC_CACHE);
   return ref.id;
 }
 
@@ -203,10 +284,12 @@ export async function updateWeeklyWork(
   if (Object.keys(clean).length === 0) return;
 
   await updateDoc(doc(db, WEEKLY_WORKS, workId), clean);
+  invalidateCache(KEY_OBRAS, PUBLIC_CACHE);
 }
 
 export async function deleteWeeklyWork(workId: string): Promise<void> {
   await deleteDoc(doc(db, WEEKLY_WORKS, workId));
+  invalidateCache(KEY_OBRAS, PUBLIC_CACHE);
 }
 
 /**
@@ -239,6 +322,7 @@ export async function moveWeeklyWork(
     patch.set(doc(db, WEEKLY_WORKS, current.id), { order: index + 1 });
     patch.set(doc(db, WEEKLY_WORKS, neighbour.id), { order: targetIndex + 1 });
     await patch.commit();
+    invalidateCache(KEY_OBRAS, PUBLIC_CACHE);
     return;
   }
 
@@ -246,6 +330,7 @@ export async function moveWeeklyWork(
   batch.set(doc(db, WEEKLY_WORKS, current.id), { order: neighbourOrder });
   batch.set(doc(db, WEEKLY_WORKS, neighbour.id), { order: currentOrder });
   await batch.commit();
+  invalidateCache(KEY_OBRAS, PUBLIC_CACHE);
 }
 
 async function getDocsOrdered(): Promise<WeeklyWork[]> {

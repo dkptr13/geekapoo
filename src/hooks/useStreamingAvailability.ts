@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import {
   collection,
-  onSnapshot,
+  getDocs,
   query,
   where,
   type QueryConstraint,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
+import { measureRead } from '../lib/firestoreDiagnostics';
 import { normalizarCodigoRegion } from '../data/streaming';
 import { withId } from '../services/firestoreUtils';
 import { normalizarDisponibilidad } from '../services/streamingAvailabilityLogic';
@@ -49,49 +51,62 @@ export function useStreamingAvailability(
 
     let activo = true;
     const filtroRegion = normalizarCodigoRegion(region);
+    const key = `streaming:availability:${animeId}:${filtroRegion ?? 'all'}`;
 
     setDatos([]);
     setCargando(true);
     setError(null);
 
-    const constraints: QueryConstraint[] = [where('animeId', '==', animeId)];
-    if (filtroRegion) constraints.push(where('region', '==', filtroRegion));
+    const cargar = async (force = false) => {
+      try {
+        const constraints: QueryConstraint[] = [where('animeId', '==', animeId)];
+        if (filtroRegion) constraints.push(where('region', '==', filtroRegion));
+        const consulta = query(collection(db, 'streamingAvailability'), ...constraints);
 
-    const consulta = query(collection(db, 'streamingAvailability'), ...constraints);
+        const filas = await cachedRead({
+          key,
+          scope: PUBLIC_CACHE,
+          ttlMs: 30 * 60 * 1000,
+          force,
+          read: async () => {
+            const snap = await measureRead(
+              { name: 'availability', collection: 'streamingAvailability', origin: 'useStreamingAvailability' },
+              (result) => result.size,
+              () => getDocs(consulta),
+            );
+            return snap.docs
+              .map((docSnap) => normalizarDisponibilidad({ ...withId<Record<string, unknown>>(docSnap) }))
+              .filter((row): row is StreamingAvailability => row !== null)
+              .sort(
+                (a, b) =>
+                  a.region.localeCompare(b.region) ||
+                  a.platformId.localeCompare(b.platformId),
+              );
+          },
+        });
 
-    const parar = onSnapshot(
-      consulta,
-      (snap) => {
         if (!activo) return;
-
-        const filas = snap.docs
-          .map((docSnap) => {
-            const raw = { ...withId<Record<string, unknown>>(docSnap) };
-            return normalizarDisponibilidad(raw);
-          })
-          .filter((row): row is StreamingAvailability => row !== null)
-          .sort(
-            (a, b) =>
-              a.region.localeCompare(b.region) ||
-              a.platformId.localeCompare(b.platformId),
-          );
-
         setDatos(filas);
-        setCargando(false);
-      },
-      (e) => {
+        setError(null);
+      } catch (e) {
         if (!activo) return;
         console.error('[Streaming] Error leyendo streamingAvailability:', e);
-        setError(
-          'No se pudo cargar la disponibilidad regional. Inténtalo de nuevo más tarde.',
-        );
-        setCargando(false);
-      },
-    );
+        setError('No se pudo cargar la disponibilidad regional. Inténtalo de nuevo más tarde.');
+      } finally {
+        if (activo) setCargando(false);
+      }
+    };
+
+    const alInvalidar = (event: Event) => {
+      const invalidada = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (invalidada?.startsWith('streaming:availability:')) void cargar(true);
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    void cargar();
 
     return () => {
       activo = false;
-      parar();
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
     };
   }, [animeId, region]);
 

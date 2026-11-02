@@ -23,18 +23,18 @@ export const PERSONAJES = [
   ['Nunnally Lamperouge', '', 'main', 'ナナリー・ランペルージ', 'Kaori Nazuka',
     'La hermana de Lelouch, ciega y en silla de ruedas. El motivo por el que lucha.'],
 
-  ['Cornelia li Britannia', '', 'supporting', 'コーネリア・リ・ブリタニア', 'Junko Minagawa',
+  ['Cornelia li Britannia', '', 'antagonist', 'コーネリア・リ・ブリタニア', 'Junko Minagawa',
     'La princesa de Britannia y general. Fuerte y decidida.'],
 
-  ['Jeremiah Gottwald', '', 'supporting', 'ジェレミア・ゴットバルト', 'Ken Narita',
+  ['Jeremiah Gottwald', '', 'antagonist', 'ジェレミア・ゴットバルト', 'Ken Narita',
     'El caballero de Britannia que persigue a Zero. Leal y honorable.'],
 
-  ['Schneizel el Britannia', '', 'supporting', 'シュナイゼル・エル・ブリタニア', 'Norihiro Inoue',
+  ['Schneizel el Britannia', '', 'antagonist', 'シュナイゼル・エル・ブリタニア', 'Norihiro Inoue',
     'El príncipe de Britannia y estratega. Calculador y ambicioso.'],
 
-  ['Charles zi Britannia', '', 'supporting', 'シャルル・ジ・ブリタニア', 'Norio Wakamoto',
+  ['Charles zi Britannia', '', 'antagonist', 'シャルル・ジ・ブリタニア', 'Norio Wakamoto',
     'El emperador de Britannia y padre de Lelouch. Cruel y despiadado.'],
 
-  ['Rolo Lamperouge', '', 'supporting', 'ロロ・ランペルージ', 'Daichuu Mizushima',
+  ['Rolo Lamperouge', '', 'antagonist', 'ロロ・ランペルージ', 'Daichuu Mizushima',
     'El hermano falso de Lelouch. Misterioso y peligroso.'],
 ];

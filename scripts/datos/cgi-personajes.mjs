@@ -23,10 +23,10 @@ export const PERSONAJES = [
   ['Nunnally Lamperouge', '', 'supporting', 'ナナリー・ランペルージ', 'Kaori Nazuka',
     'La hermana de Lelouch, ciega y en silla de ruedas. El motivo por el que lucha.'],
 
-  ['Cornelia li Britannia', '', 'supporting', 'コーネリア・リ・ブリタニア', 'Junko Minagawa',
+  ['Cornelia li Britannia', '', 'antagonist', 'コーネリア・リ・ブリタニア', 'Junko Minagawa',
     'La princesa de Britannia y general. Fuerte y decidida.'],
 
-  ['Jeremiah Gottwald', '', 'supporting', 'ジェレミア・ゴットバルト', 'Ken Narita',
+  ['Jeremiah Gottwald', '', 'antagonist', 'ジェレミア・ゴットバルト', 'Ken Narita',
     'El caballero de Britannia que persigue a Zero. Leal y honorable.'],
 
   ['Euphemia li Britannia', '', 'supporting', 'ユーフェミア・リ・ブリタニア', 'Omi Minami',
@@ -62,6 +62,6 @@ export const PERSONAJES = [
   ['Cécile Croomy', '', 'supporting', 'セシル・クルーミー', 'Kikuko Inoue',
     'La asistente de Lloyd. Seria y profesional.'],
 
-  ['Charles zi Britannia', '', 'supporting', 'シャルル・ジ・ブリタニア', 'Norio Wakamoto',
+  ['Charles zi Britannia', '', 'antagonist', 'シャルル・ジ・ブリタニア', 'Norio Wakamoto',
     'El emperador de Britannia y padre de Lelouch. Cruel y despiadado.'],
 ];

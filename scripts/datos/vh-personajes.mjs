@@ -27,13 +27,13 @@ export const PERSONAJES = [
   ["Bo-Mi Choi", "", "supporting", "최보미", "Yui Ishikawa",
    "Compañera de clase. Sale en la serie."],
 
-  ["Tae-Hoon Seong", "", "supporting", "성태훈", "Kaito Ishikawa",
+  ["Tae-Hoon Seong", "", "antagonist", "성태훈", "Kaito Ishikawa",
    "Del circuito de peleas del instituto. Sale en la serie."],
 
   ["Ru-Mi Yeo", "", "supporting", "여루미", "Yoshino Aoyama",
    "Compañera de clase. Sale en la serie."],
 
-  ["Mun-Seong Kim", "", "supporting", "김문성", "Yuuichi Nakamura",
+  ["Mun-Seong Kim", "", "antagonist", "김문성", "Yuuichi Nakamura",
    "Del circuito de peleas del instituto. Sale en la serie."],
 
   ["Ji-Hyeon Park", "", "supporting", "박지현", "Youko Honna",

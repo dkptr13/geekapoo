@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 
 import {
+  cargarMensajesAnteriores,
   clearConversationFor,
   createGroupChat as createGroupChatService,
   findGroupByCode,
@@ -72,6 +73,10 @@ interface ChatContextType {
   activeRoomId: string | null;
   setActiveRoomId: (id: string | null) => void;
   messages: Record<string, ChatMessage[]>;
+  /** Si quedan tramos anteriores por cargar en cada conversación. */
+  hasMoreMessages: Record<string, boolean>;
+  loadingOlderMessages: Record<string, boolean>;
+  loadOlderMessages: (roomId: string) => Promise<void>;
   activeRoom: ChatRoom | null;
   loading: boolean;
   error: string | null;
@@ -178,6 +183,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
+  const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({});
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState<Record<string, boolean>>({});
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -203,7 +210,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return subscribeOcultos(currentUser.uid, setHiddenIds, (e: unknown) =>
       console.error('[Chats] No se pudieron leer los mensajes ocultos:', e),
     );
-  }, [currentUser]);
+  }, [currentUser?.uid]);
 
   const [chatOpen, setChatOpen] = useState(false);
   const [tabVisible, setTabVisible] = useState(
@@ -268,7 +275,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     return unsub;
-  }, [currentUser, clearAll]);
+  }, [currentUser?.uid, clearAll]);
 
   // ── Solicitudes (recibidas y enviadas) ───────────────
   useEffect(() => {
@@ -287,7 +294,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
       },
     );
-  }, [currentUser]);
+  }, [currentUser?.uid]);
 
   // ── Lista de bloqueados ─────────────────────────────
   useEffect(() => {
@@ -298,7 +305,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (ids) => setBlockedIds(ids),
       (e) => console.error('[Chats] Error al leer los bloqueados:', e),
     );
-  }, [currentUser]);
+  }, [currentUser?.uid]);
 
   // Ya no hay un directorio público de grupos: se entra con el
   // CÓDIGO que comparte quien lo creó, porque los nombres se
@@ -361,11 +368,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       unsub = subscribeMessages(
         activeRoomId,
         myClearedAt,
-        (data) => {
+        (data, hasMore) => {
           if (cancelled) return;
           attempts = 0;
           setMessagesError(null);
           setMessages((prev) => ({ ...prev, [activeRoomId]: data }));
+          setHasMoreMessages((prev) => ({ ...prev, [activeRoomId]: hasMore }));
         },
         (e) => {
           if (cancelled) return;
@@ -403,7 +411,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Se pone la marca y no el array "rooms" entero a propósito:
     // rooms cambia con cada mensaje enviado (lastMessageAt), y
     // depender de él resuscribiría el listener constantemente.
-  }, [activeRoomId, currentUser, myClearedAt]);
+  }, [activeRoomId, currentUser?.uid, myClearedAt]);
 
   // ── Conversaciones con mensajes sin leer ─────────────
   const unreadRoomIds = useMemo(() => {
@@ -484,7 +492,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     markChatRead(activeRoomId, currentUser.uid).catch((e: unknown) =>
       console.error('[Chats] No se pudo actualizar el recibo de lectura:', e),
     );
-  }, [activeRoomId, currentUser, messages, rooms, chatOpen, tabVisible]);
+  }, [activeRoomId, currentUser?.uid, messages, rooms, chatOpen, tabVisible]);
 
   // ── ¿Lo ha leído todo el mundo? ───────────────────────
   const isReadByEveryone = useCallback(
@@ -523,6 +531,54 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     },
     [],
+  );
+
+  // ── Cargar historial anterior bajo demanda ────────────
+  const loadOlderMessages = useCallback(
+    async (roomId: string): Promise<void> => {
+      const lista = messages[roomId];
+      if (
+        !lista?.length ||
+        !hasMoreMessages[roomId] ||
+        loadingOlderMessages[roomId]
+      ) return;
+
+      setLoadingOlderMessages((prev) => ({ ...prev, [roomId]: true }));
+      try {
+        const room = rooms.find((r) => r.id === roomId);
+        const clearedAt = currentUser
+          ? room?.clearedAt?.[currentUser.uid]
+          : undefined;
+        const resultado = await cargarMensajesAnteriores(
+          roomId,
+          lista[0].createdAt,
+          clearedAt,
+        );
+
+        setMessages((prev) => {
+          const actuales = prev[roomId] ?? [];
+          const unicos = new Map<string, ChatMessage>();
+          [...resultado.messages, ...actuales].forEach((m) => unicos.set(m.id, m));
+          return {
+            ...prev,
+            [roomId]: [...unicos.values()].sort((a, b) => {
+              const at = Date.parse(a.createdAt) || 0;
+              const bt = Date.parse(b.createdAt) || 0;
+              return at - bt || a.id.localeCompare(b.id);
+            }),
+          };
+        });
+        setHasMoreMessages((prev) => ({ ...prev, [roomId]: resultado.hasMore }));
+      } catch (e: unknown) {
+        console.error('[Chats] No se pudo cargar el historial anterior:', e);
+        setMessagesError(
+          `No se pudo cargar el historial anterior: ${messageOf(e, 'error desconocido')}`,
+        );
+      } finally {
+        setLoadingOlderMessages((prev) => ({ ...prev, [roomId]: false }));
+      }
+    },
+    [messages, hasMoreMessages, loadingOlderMessages, rooms, currentUser],
   );
 
   // ── Enviar mensaje ───────────────────────────────────
@@ -940,6 +996,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         activeRoomId,
         setActiveRoomId,
         messages,
+        hasMoreMessages,
+        loadingOlderMessages,
+        loadOlderMessages,
         activeRoom,
         loading,
         error,

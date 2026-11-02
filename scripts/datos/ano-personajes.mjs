@@ -26,7 +26,7 @@ export const PERSONAJES = [
   ['Sanae Mizuno', '', 'supporting', '水野沙苗', 'Seiko Yoshida',
     'La bibliotecaria que ayuda a Kouichi. Amable y servicial.'],
 
-  ['Reiko Mikami', '', 'supporting', '三神怜子', 'Naoko Sakakibara',
+  ['Reiko Mikami', '', 'antagonist', '三神怜子', 'Naoko Sakakibara',
     'La tía de Kouichi, que vive con él en Yomiyama. Cariñosa y protectora.'],
 
   ['Yuuya Mochizuki', '', 'supporting', '望月優矢', 'Kazutomi Yamamoto',

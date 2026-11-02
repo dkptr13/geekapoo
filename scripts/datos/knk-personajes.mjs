@@ -19,7 +19,7 @@ export const PERSONAJES = [
   ["Yuzuru Nishimiya", "", "supporting", "西宮結絃", "Aoi Yuuki",
    "Hermana pequeña de Shouko, de pelo corto y camara siempre a mano. Dura con Shouya hasta ganarsela."],
 
-  ["Naoka Ueno", "", "supporting", "植野直花", "Yuuki Kaneko",
+  ["Naoka Ueno", "", "antagonist", "植野直花", "Yuuki Kaneko",
    "Compañera de primaria que siguio a Shouya y nunca trago a Shouko. Directa hasta doler."],
 
   ["Miyako Ishida", "", "supporting", "石田美也子", "Satsuki Yukino",
@@ -28,7 +28,7 @@ export const PERSONAJES = [
   ["Maria Ishida", "", "supporting", "石田マリア", "Erena Kamata",
    "Sobrina pequeña de Shouya. Dulzura que desarma a cualquiera."],
 
-  ["Miki Kawai", "", "supporting", "川井みき", "Megumi Han",
+  ["Miki Kawai", "", "antagonist", "川井みき", "Megumi Han",
    "La popular de clase, de sonrisa perfecta y conciencia selectiva. Fachada amable."],
 
   ["Satoshi Mashiba", "", "supporting", "真柴智", "Toshiyuki Toyonaga",

@@ -23,7 +23,7 @@ export const PERSONAJES = [
   ['Ein', '', 'supporting', 'アイン', 'Kouichi Yamadera',
     'El perro inteligente de la tripulación. Leal y astuto.'],
 
-  ['Vicious', '', 'supporting', 'ビシャス', 'Norio Wakamoto',
+  ['Vicious', '', 'antagonist', 'ビシャス', 'Norio Wakamoto',
     'El rival de Spike. Cruel y calculador.'],
 
   ['Julia', '', 'supporting', 'ジュリア', 'Gara Takashima',

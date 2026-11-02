@@ -11,7 +11,7 @@ export const PERSONAJES = [
   ['Lain Iwakura', '', 'main', '岩倉玲音', 'Kaori Shimizu',
     'La chica introvertida que se obsesiona con Wired. Protagonista.'],
 
-  ['Masami Eiri', '', 'supporting', '英利政美', 'Shou Hayami',
+  ['Masami Eiri', '', 'antagonist', '英利政美', 'Shou Hayami',
     'El creador de Wired. Misterioso y manipulador.'],
 
   ['Arisu Mizuki', '', 'supporting', '瑞城ありす', 'Youko Asada',

@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { recordListenerSnapshot, trackListener } from '../lib/firestoreDiagnostics';
 import { mapWithId, toIsoString, WithId } from './firestoreUtils';
 import type { AppNotification } from '../types/notifications';
 
@@ -73,10 +74,12 @@ export function escucharNotificaciones(
     }
 
     const q = query(collection(db, 'users', uid, NOTIFICATIONS), ...constraints);
+    const meta = { name: 'notifications', collection: 'notifications', origin: 'NotificationsContext' };
 
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
       q,
       (snap) => {
+        recordListenerSnapshot(meta, snap.size, snap.docChanges().length);
         const notificaciones = mapWithId<AppNotification>(snap);
         const unreadCount = snap.docs.filter((d) => d.data().read !== true).length;
 
@@ -102,6 +105,8 @@ export function escucharNotificaciones(
         });
       },
     );
+
+    return trackListener(meta, unsubscribe);
   };
 
   const unsubscribe = cargar();

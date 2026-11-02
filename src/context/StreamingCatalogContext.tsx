@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   collection,
-  onSnapshot,
+  getDocs,
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
+import { measureRead } from '../lib/firestoreDiagnostics';
 import {
   PLATAFORMAS_INICIALES,
   REGIONES_INICIALES,
@@ -116,59 +118,68 @@ export const StreamingCatalogProvider: React.FC<{ children: React.ReactNode }> =
 
   useEffect(() => {
     let activo = true;
-    const respondidas = new Set<'platforms' | 'regions'>();
+    const TTL = 30 * 60 * 1000;
 
-    const terminar = (coleccion: 'platforms' | 'regions') => {
-      respondidas.add(coleccion);
-      if (activo && respondidas.size >= 2) setLoading(false);
+    const cargar = async (force = false) => {
+      try {
+        const [plataformas, regiones] = await Promise.all([
+          cachedRead({
+            key: 'streaming:platforms',
+            scope: PUBLIC_CACHE,
+            ttlMs: TTL,
+            force,
+            read: async () => {
+              const snap = await measureRead(
+                { name: 'platforms', collection: 'streamingPlatforms', origin: 'StreamingCatalogContext' },
+                (result) => result.size,
+                () => getDocs(collection(db, 'streamingPlatforms')),
+              );
+              return snap.docs
+                .map(platformFromDoc)
+                .filter((p): p is StreamingPlatform => p !== null);
+            },
+          }),
+          cachedRead({
+            key: 'streaming:regions',
+            scope: PUBLIC_CACHE,
+            ttlMs: TTL,
+            force,
+            read: async () => {
+              const snap = await measureRead(
+                { name: 'regions', collection: 'streamingRegions', origin: 'StreamingCatalogContext' },
+                (result) => result.size,
+                () => getDocs(collection(db, 'streamingRegions')),
+              );
+              return snap.docs
+                .map(regionFromDoc)
+                .filter((r): r is StreamingRegion => r !== null);
+            },
+          }),
+        ]);
+
+        if (!activo) return;
+        setExtraPlatforms(plataformas);
+        setExtraRegions(regiones);
+        setError(null);
+      } catch (e) {
+        if (!activo) return;
+        setError('No se pudo leer el catálogo de plataformas y regiones. Se muestran solo los datos base.');
+        console.error('[Streaming] Error leyendo el catálogo:', e);
+      } finally {
+        if (activo) setLoading(false);
+      }
     };
 
-    const pararPlataformas = onSnapshot(
-      collection(db, 'streamingPlatforms'),
-      (snap) => {
-        if (!activo) return;
-        setExtraPlatforms(
-          snap.docs
-            .map(platformFromDoc)
-            .filter((p): p is StreamingPlatform => p !== null),
-        );
-        terminar('platforms');
-      },
-      (e) => {
-        if (!activo) return;
-        setError(
-          'No se pudo leer el catálogo de plataformas. Se muestran solo las plataformas base.',
-        );
-        console.error('[Streaming] Error leyendo streamingPlatforms:', e);
-        terminar('platforms');
-      },
-    );
-
-    const pararRegiones = onSnapshot(
-      collection(db, 'streamingRegions'),
-      (snap) => {
-        if (!activo) return;
-        setExtraRegions(
-          snap.docs
-            .map(regionFromDoc)
-            .filter((r): r is StreamingRegion => r !== null),
-        );
-        terminar('regions');
-      },
-      (e) => {
-        if (!activo) return;
-        setError(
-          'No se pudo leer el catálogo de regiones. Se muestran solo las regiones base.',
-        );
-        console.error('[Streaming] Error leyendo streamingRegions:', e);
-        terminar('regions');
-      },
-    );
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key === 'streaming:platforms' || key === 'streaming:regions') void cargar(true);
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    void cargar();
 
     return () => {
       activo = false;
-      pararPlataformas();
-      pararRegiones();
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
     };
   }, []);
 

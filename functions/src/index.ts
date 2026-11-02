@@ -213,17 +213,32 @@ const CONFIG_POR_DEFECTO: Config = {
  * defecto, que tienen `activo: false`. Es lo que hace que un
  * despliegue sin configurar no toque nada.
  */
+let configCache: { value: Config; expiresAt: number } | null = null;
+const CONFIG_TTL_MS = 30_000;
+
 async function leerConfig(): Promise<Config> {
+  if (configCache && configCache.expiresAt > Date.now()) return configCache.value;
+
   try {
     const snap = await db.doc(CONFIG_PATH).get();
-    if (!snap.exists) return CONFIG_POR_DEFECTO;
-    const d = snap.data() ?? {};
-    return {
-      ...CONFIG_POR_DEFECTO,
-      ...d,
-      xp: { ...XP_POR_DEFECTO, ...(d.xp ?? {}) },
-      animeMedallas: d.animeMedallas ?? {},
-    };
+    const value = snap.exists
+      ? (() => {
+          const d = snap.data() ?? {};
+          return {
+            ...CONFIG_POR_DEFECTO,
+            ...d,
+            xp: { ...XP_POR_DEFECTO, ...(d.xp ?? {}) },
+            animeMedallas: d.animeMedallas ?? {},
+          };
+        })()
+      : CONFIG_POR_DEFECTO;
+
+    // Varios triggers y varias recompensas del mismo evento leen la
+    // configuración. Una caché de instancia de 30 s evita repetir la
+    // misma lectura sin retrasar de forma perceptible un cambio del
+    // panel.
+    configCache = { value, expiresAt: Date.now() + CONFIG_TTL_MS };
+    return value;
   } catch (e) {
     logger.error('No se pudo leer la configuracion de gamificacion', e);
     return CONFIG_POR_DEFECTO;
@@ -1215,24 +1230,36 @@ const COLECCION_DE_OBJETIVO_COMENTARIO: Record<string, string> = {
   character: CHARACTERS,
 };
 
-async function comentarioTieneObjetivoReal(
+async function leerObjetivoDeComentario(
   targetType: string | undefined,
   targetId: string,
-): Promise<boolean> {
-  if (!targetType || !targetId) return false;
+): Promise<{ existe: boolean; animeId: string | null }> {
+  if (!targetType || !targetId) return { existe: false, animeId: null };
   const coleccion = COLECCION_DE_OBJETIVO_COMENTARIO[targetType];
-  if (!coleccion) return false;
+  if (!coleccion) return { existe: false, animeId: null };
 
   try {
     const snap = await db.doc(`${coleccion}/${targetId}`).get();
-    return snap.exists;
+    if (!snap.exists) return { existe: false, animeId: null };
+
+    // La misma lectura sirve para validar el destino y para saber a
+    // qué anime atribuir el XP. Antes se leía dos veces el mismo
+    // documento en `onCommentCreated`.
+    const data = snap.data() ?? {};
+    const animeId =
+      targetType === 'anime'
+        ? targetId
+        : typeof data.animeId === 'string'
+          ? data.animeId
+          : null;
+    return { existe: true, animeId };
   } catch (e) {
     logger.warn('No se pudo comprobar el objetivo de un comentario', {
       targetType,
       targetId,
       error: e instanceof Error ? e.message : String(e),
     });
-    return false;
+    return { existe: false, animeId: null };
   }
 }
 
@@ -1585,7 +1612,8 @@ export const onCommentCreated = onDocumentCreated(
     // comentario se escribió con el Admin SDK, las reglas no lo
     // filtraron; si es de una versión antigua, tampoco. El trigger
     // tiene que decidirlo por su cuenta.
-    if (!(await comentarioTieneObjetivoReal(targetType, targetId))) {
+    const objetivo = await leerObjetivoDeComentario(targetType, targetId);
+    if (!objetivo.existe) {
       logger.warn('Comentario con objetivo inexistente; no se concede XP', {
         commentId,
         targetType,
@@ -1603,7 +1631,7 @@ export const onCommentCreated = onDocumentCreated(
       logger.error('Fallo contando un comentario nuevo', { commentId, error: e });
     }
 
-    const animeId = await resolverAnimeDe(targetType, targetId);
+    const animeId = objetivo.animeId;
 
     // Comentarios en hilos son "debates". Es lo que separa
     // "Debatiente Pro" (muchos comentarios, en cualquier sitio)
@@ -5141,6 +5169,7 @@ export const configurarGamificacion = onCall(async (request) => {
     { ...siguiente, actualizadoAt: FieldValue.serverTimestamp() },
     { merge: true },
   );
+  configCache = null;
 
   logger.info('Configuracion de gamificacion actualizada', {
     cambios: Object.keys(d),

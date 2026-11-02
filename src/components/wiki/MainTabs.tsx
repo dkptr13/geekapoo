@@ -14,7 +14,8 @@ import { MAIN_TABS, type MainTab } from '../../utils/wikiFilter';
 
 interface MainTabsProps {
   active: MainTab;
-  counts: Record<MainTab, number>;
+  /** Un tipo sin cargar se queda sin número, no con un 0 engañoso. */
+  counts: Partial<Record<MainTab, number>>;
   onChange: (tab: MainTab) => void;
 }
 
@@ -40,7 +41,9 @@ const MainTabs: FC<MainTabsProps> = ({ active, counts, onChange }) => {
             }`}
           >
             {tab.label}
-            <span className="ml-1.5 opacity-60">{counts[tab.id] ?? 0}</span>
+            {typeof counts[tab.id] === 'number' && (
+              <span className="ml-1.5 opacity-60">{counts[tab.id]}</span>
+            )}
           </button>
         );
       })}

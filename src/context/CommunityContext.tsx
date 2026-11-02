@@ -2,14 +2,22 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 
 import {
   collection,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
+  where,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
+import {
+  measureRead,
+  recordListenerSnapshot,
+  trackListener,
+} from '../lib/firestoreDiagnostics';
 
-import { mapWithId, withId } from '../services/firestoreUtils';
+import { mapWithId } from '../services/firestoreUtils';
 import { createThread as createThreadService, deleteThread as deleteThreadService, toggleThreadLike as toggleThreadLikeService } from '../services/threads';
 import { createComment, deleteComment as deleteCommentService, toggleCommentLike as toggleCommentLikeService } from '../services/comments';
 import {
@@ -33,7 +41,6 @@ import {
   Anime,
   CategoryItem,
   Character,
-  Comment,
   Episode,
   GifAttachment,
   MascotDialogue,
@@ -62,10 +69,17 @@ export interface CommunityContextType {
   seasons: Season[];
   episodes: Record<string, Episode[]>;
   characters: Record<string, Character[]>;
-  comments: Comment[];
   categories: CategoryItem[];
   triviaExtras: TriviaExtra[];
   mascotDialogues: string[];
+
+  /** Carga temporadas, episodios y personajes la primera vez que se
+   *  necesitan (perfil, editor de tier lists...). */
+  ensureCatalogData: () => void;
+  /** Carga solo los episodios, personajes y temporadas de una serie. */
+  ensureAnimeData: (animeId: string) => void;
+  /** `true` cuando ya están cargados todos los episodios y personajes. */
+  catalogComplete: boolean;
 
   loading: boolean;
   error: string | null;
@@ -89,7 +103,8 @@ export interface CommunityContextType {
   canEditThread: (thread: Thread) => boolean;
 
   toggleThreadLike: (threadId: string) => Promise<void>;
-  toggleCommentLike: (commentId: string) => Promise<void>;
+  /** `false` si Firestore rechazó la escritura. */
+  toggleCommentLike: (commentId: string) => Promise<boolean>;
   toggleAnimeLike: (animeId: string) => Promise<void>;
   toggleEpisodeLike: (episodeId: string) => Promise<void>;
   toggleCharacterLike: (characterId: string) => Promise<void>;
@@ -163,11 +178,6 @@ export interface CommunityContextType {
     /** Dimensiones de la imagen, medidas al subir. */
     imageDims?: ImageDims | null,
   ) => Promise<boolean>;
-
-  getCommentsForTarget: (
-    targetType: CommentTarget,
-    targetId: string,
-  ) => Comment[];
 }
 
 // ======================================================
@@ -194,12 +204,57 @@ function normalizarHilo(thread: Thread): Thread {
   };
 }
 
-function normalizarComentario(comment: Comment): Comment {
-  return {
-    ...comment,
-    likesCount: typeof comment.likesCount === 'number' ? comment.likesCount : 0,
-    likedBy: Array.isArray(comment.likedBy) ? comment.likedBy : [],
-  };
+const TTL_CATALOGO = 30 * 60 * 1000;
+const TTL_CONFIGURACION = 60 * 60 * 1000;
+
+/** Lectura pública compartida; no abre un listener por cada visita. */
+function leerColeccionCached<T>(
+  coleccion: string,
+  key: string,
+  ttlMs: number,
+  ordenada = false,
+  force = false,
+): Promise<T[]> {
+  return cachedRead({
+    key,
+    ttlMs,
+    scope: PUBLIC_CACHE,
+    force,
+    read: async () => {
+      const referencia = ordenada
+        ? query(collection(db, coleccion), orderBy('id', 'asc'))
+        : collection(db, coleccion);
+      const snap = await measureRead(
+        { name: 'getDocs', collection: coleccion, origin: 'CommunityContext' },
+        (result) => result.size,
+        () => getDocs(referencia),
+      );
+      return mapWithId<T>(snap);
+    },
+  });
+}
+
+/** Lectura de una sola serie, compartida por todas sus visitas. */
+function leerColeccionDeAnime<T>(
+  coleccion: string,
+  key: string,
+  animeId: string,
+  force = false,
+): Promise<T[]> {
+  return cachedRead({
+    key,
+    ttlMs: TTL_CATALOGO,
+    scope: PUBLIC_CACHE,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'getDocs:anime', collection: coleccion, origin: 'CommunityContext' },
+        (result) => result.size,
+        () => getDocs(query(collection(db, coleccion), where('animeId', '==', animeId))),
+      );
+      return mapWithId<T>(snap);
+    },
+  });
 }
 
 // ======================================================
@@ -218,10 +273,10 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [episodes, setEpisodes] = useState<Record<string, Episode[]>>({});
   const [characters, setCharacters] = useState<Record<string, Character[]>>({});
-  const [comments, setComments] = useState<Comment[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [triviaExtras, setTriviaExtras] = useState<TriviaExtra[]>([]);
   const [mascotDialogues, setMascotDialogues] = useState<string[]>([]);
+  const [catalogComplete, setCatalogComplete] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -230,122 +285,127 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // corazón cambia en local enseguida; el bloqueo solo evita que un
   // doble toque lance dos transacciones contrarias a la vez.
   const likesPendientes = useRef(new Set<string>());
+  const cargarCatalogoRef = useRef<() => void>(() => undefined);
+  const cargarAnimeRef = useRef<(animeId: string) => void>(() => undefined);
 
-  // Cuántos listeners siguen sin responder por primera vez.
-  // Hay nueve listeners: animes, temporadas, hilos, comentarios,
-  // personajes, episodios, categorías, trivia y diálogos de la
-  // mascota.
+  // Cuántas fuentes siguen sin responder por primera vez. Solo el
+  // feed de hilos conserva listener; el catálogo usa caché pública y
+  // los comentarios se cargan al abrir su objetivo.
   const pendingListeners = useRef(0);
 
   // ====================================================
-  // LISTENERS EN TIEMPO REAL
+  // CARGA DE COMUNIDAD Y CATÁLOGO
   // ====================================================
-  // Ya no hay siembra de datos ni copia de seguridad desde
-  // mockData: Firestore es la única fuente de verdad. Si algo
-  // falla, se muestra el error en vez de inventarse datos.
+  // Las colecciones de la wiki no necesitan avisar cada cambio a
+  // todos los visitantes. Se leen una vez por TTL y se comparten las
+  // peticiones simultáneas. El feed de hilos sí sigue en vivo; los
+  // comentarios se escuchan solo mientras su objetivo está abierto.
   // ====================================================
 
   useEffect(() => {
     const unsubs: (() => void)[] = [];
+    const recargas = new Map<string, (force?: boolean) => void>();
+    let vivo = true;
 
-    // Se arma la cuenta antes de registrar los listeners, para que
-    // markReady() no ponga loading a false en la primera respuesta.
-    pendingListeners.current = 9;
+    pendingListeners.current = 5;
 
-    // Marca un listener como respondido la primera vez
     const markReady = () => {
+      if (!vivo) return;
       pendingListeners.current = Math.max(0, pendingListeners.current - 1);
       if (pendingListeners.current === 0) setLoading(false);
     };
 
-    const handleError = (label: string) => (e: Error) => {
-      console.error(`[Community] Error en el listener de "${label}":`, e);
+    const mostrarError = (label: string, e: Error) => {
+      console.error(`[Community] Error leyendo "${label}":`, e);
+      if (!vivo) return;
       setError(
         `No se pudo leer "${label}" de Firestore: ${e.message}. ` +
         `Si el error menciona un índice, ejecuta: firebase deploy --only firestore:indexes`,
       );
+    };
+
+    const handleError = (label: string) => (e: Error) => {
+      mostrarError(label, e);
       markReady();
     };
 
-    // ── Animes ──────────────────────────────────────────
-    unsubs.push(
-      onSnapshot(
-        collection(db, 'animes'),
-        (snap) => {
-          setAnimes(mapWithId<Anime>(snap));
-          markReady();
-        },
-        handleError('animes'),
-      ),
+    const registrarCarga = <T,>(
+      label: string,
+      key: string,
+      ttlMs: number,
+      apply: (data: T[]) => void,
+      ordenada = false,
+    ) => {
+      let inicial = true;
+      const cargar = (force = false) => (
+        leerColeccionCached<T>(label, key, ttlMs, ordenada, force)
+          .then((data) => {
+            if (vivo) apply(data);
+            if (inicial) {
+              inicial = false;
+              markReady();
+            }
+          })
+          .catch((e: Error) => {
+            mostrarError(label, e);
+            if (inicial) {
+              inicial = false;
+              markReady();
+            }
+          })
+      );
+      recargas.set(key, cargar);
+      void cargar();
+      return cargar;
+    };
+
+    // Lo mínimo para pintar Inicio.
+    registrarCarga<Anime>('animes', 'community:animes', TTL_CATALOGO, setAnimes);
+    registrarCarga<CategoryItem>('categories', 'community:categories', TTL_CONFIGURACION, (lista) => {
+      setCategories(mergeCategories(lista));
+    });
+    registrarCarga<TriviaExtra>('trivia_extras', 'community:trivia-extras', TTL_CONFIGURACION, setTriviaExtras);
+    registrarCarga<MascotDialogue>(
+      'mascot_dialogues',
+      'community:mascot-dialogues',
+      TTL_CONFIGURACION,
+      (lista) => setMascotDialogues(lista.map((d) => d.text).filter(Boolean)),
+      true,
     );
 
-    // ── Temporadas ────────────────────────────────────
-    // Van en su propia colección y no como subcolección de
-    // animes para poder escucharlas todas de una vez: la wiki
-    // pinta el selector de temporada de la serie que se está
-    // viendo, y un get() por cada serie abierta retrasaría
-    // todo lo demás.
-    unsubs.push(
-      onSnapshot(
-        collection(db, 'seasons'),
-        (snap) => {
-          setSeasons(mapWithId<Season>(snap));
-          markReady();
-        },
-        handleError('seasons'),
-      ),
-    );
+    // Episodios y personajes son miles de documentos y no se pintan
+    // en Inicio. Se piden la primera vez que una vista los necesita.
+    let catalogoPedido = false;
+    const cargarCatalogo = () => {
+      if (catalogoPedido) return;
+      catalogoPedido = true;
 
-    // ── Hilos (del más nuevo al más viejo) ─────────────
-    unsubs.push(
-      onSnapshot(
-        query(collection(db, 'threads'), orderBy('createdAt', 'desc')),
-        (snap) => {
-          setThreads(mapWithId<Thread>(snap).map(normalizarHilo));
-          markReady();
-        },
-        handleError('threads'),
-      ),
-    );
-
-    // ── Comentarios ────────────────────────────────────
-    unsubs.push(
-      onSnapshot(
-        query(collection(db, 'comments'), orderBy('createdAt', 'desc')),
-        (snap) => {
-          setComments(mapWithId<Comment>(snap).map(normalizarComentario));
-          markReady();
-        },
-        handleError('comments'),
-      ),
-    );
-
-    // ── Personajes, agrupados por anime ────────────────
-    unsubs.push(
-      onSnapshot(
-        collection(db, 'characters'),
-        (snap) => {
+      const temporadas = registrarCarga<Season>(
+        'seasons',
+        'community:seasons',
+        TTL_CATALOGO,
+        setSeasons,
+      );
+      const personajes = registrarCarga<Character>(
+        'characters',
+        'community:characters',
+        TTL_CATALOGO,
+        (lista) => {
           const grouped: Record<string, Character[]> = {};
-          snap.docs.forEach((d) => {
-            const char = withId<Character>(d);
+          lista.forEach((char) => {
             if (!grouped[char.animeId]) grouped[char.animeId] = [];
             grouped[char.animeId].push(char);
           });
           setCharacters(grouped);
-          markReady();
         },
-        handleError('characters'),
-      ),
-    );
-
-    // ── Episodios, agrupados por anime y ordenados ─────
-    unsubs.push(
-      onSnapshot(
-        collection(db, 'episodes'),
-        (snap) => {
+      );
+      const episodios = registrarCarga<Episode>(
+        'episodes',
+        'community:episodes',
+        TTL_CATALOGO,
+        (lista) => {
           const grouped: Record<string, Episode[]> = {};
-          snap.docs.forEach((d) => {
-            const ep = withId<Episode>(d);
+          lista.forEach((ep) => {
             if (!grouped[ep.animeId]) grouped[ep.animeId] = [];
             grouped[ep.animeId].push(ep);
           });
@@ -353,57 +413,103 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             grouped[animeId].sort((a, b) => a.number - b.number);
           });
           setEpisodes(grouped);
-          markReady();
         },
-        handleError('episodes'),
-      ),
-    );
+      );
+      void Promise.all([temporadas(), personajes(), episodios()]).then(() => {
+        if (vivo) setCatalogComplete(true);
+      });
+    };
+    cargarCatalogoRef.current = cargarCatalogo;
 
-    // ── Categorías ─────────────────────────────────────
-    //
-    // Se fusiona lo que hay en Firestore con la lista canónica de
-    // código. Sin esto, las categorías nuevas solo existían para la
-    // wiki: el desplegable de "Publicar Nuevo Hilo" y los botones de
-    // la barra lateral leían solo Firestore y seguían mostrando
-    // cinco.
-    unsubs.push(
-      onSnapshot(
-        collection(db, 'categories'),
-        (snap) => {
-          setCategories(mergeCategories(mapWithId<CategoryItem>(snap)));
-          markReady();
-        },
-        handleError('categories'),
-      ),
-    );
+    const animesPedidos = new Set<string>();
+    const cargarAnime = (animeId: string) => {
+      if (!animeId || catalogoPedido || animesPedidos.has(animeId)) return;
+      animesPedidos.add(animeId);
 
-    // ── Extras y curiosidades ───────────────────────────
-    unsubs.push(
-      onSnapshot(
-        collection(db, 'trivia_extras'),
-        (snap) => {
-          setTriviaExtras(mapWithId<TriviaExtra>(snap));
-          markReady();
-        },
-        handleError('trivia_extras'),
-      ),
-    );
+      const seasonKey = `community:seasons:${animeId}`;
+      const characterKey = `community:characters:${animeId}`;
+      const episodeKey = `community:episodes:${animeId}`;
 
-    // ── Diálogos de la mascota ─────────────────────────
-    unsubs.push(
-      onSnapshot(
-        query(collection(db, 'mascot_dialogues'), orderBy('id', 'asc')),
-        (snap) => {
-          setMascotDialogues(
-            snap.docs.map((d) => (d.data() as MascotDialogue).text).filter(Boolean),
-          );
-          markReady();
-        },
-        handleError('mascot_dialogues'),
-      ),
-    );
+      const cargarTemporadas = (force = false) => {
+        void leerColeccionDeAnime<Season>('seasons', seasonKey, animeId, force)
+          .then((lista) => {
+            if (!vivo) return;
+            setSeasons((prev) => [
+              ...prev.filter((s) => s.animeId !== animeId),
+              ...lista,
+            ]);
+          })
+          .catch((e: Error) => mostrarError('temporadas', e));
+      };
+      const cargarPersonajes = (force = false) => {
+        void leerColeccionDeAnime<Character>('characters', characterKey, animeId, force)
+          .then((lista) => {
+            if (!vivo) return;
+            setCharacters((prev) => ({ ...prev, [animeId]: lista }));
+          })
+          .catch((e: Error) => mostrarError('personajes', e));
+      };
+      const cargarEpisodios = (force = false) => {
+        void leerColeccionDeAnime<Episode>('episodes', episodeKey, animeId, force)
+          .then((lista) => {
+            if (!vivo) return;
+            setEpisodes((prev) => ({
+              ...prev,
+              [animeId]: [...lista].sort((a, b) => a.number - b.number),
+            }));
+          })
+          .catch((e: Error) => mostrarError('episodios', e));
+      };
 
-    return () => unsubs.forEach((u) => u());
+      recargas.set(seasonKey, cargarTemporadas);
+      recargas.set(characterKey, cargarPersonajes);
+      recargas.set(episodeKey, cargarEpisodios);
+      cargarTemporadas();
+      cargarPersonajes();
+      cargarEpisodios();
+    };
+    cargarAnimeRef.current = cargarAnime;
+
+    // Las escrituras del panel invalidan solo su colección. Si este
+    // provider está montado, recarga esa fuente sin tocar las demás.
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (!key) return;
+      recargas.get(key)?.(true);
+      recargas.forEach((cargar, registrada) => {
+        if (registrada.startsWith(`${key}:`)) cargar(true);
+      });
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+
+    const metaThreads = { name: 'threads:recientes', collection: 'threads', origin: 'CommunityContext' };
+    const pararThreads = onSnapshot(
+      query(collection(db, 'threads'), orderBy('createdAt', 'desc')),
+      (snap) => {
+        recordListenerSnapshot(metaThreads, snap.size, snap.docChanges().length);
+        if (!vivo) return;
+        setThreads(mapWithId<Thread>(snap).map(normalizarHilo));
+        markReady();
+      },
+      handleError('threads'),
+    );
+    unsubs.push(trackListener(metaThreads, pararThreads));
+
+    return () => {
+      vivo = false;
+      cargarCatalogoRef.current = () => undefined;
+      cargarAnimeRef.current = () => undefined;
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+      unsubs.forEach((u) => u());
+    };
+  }, []);
+
+  const ensureCatalogData = useCallback(() => {
+    cargarCatalogoRef.current();
+  }, []);
+
+  const ensureAnimeData = useCallback((animeId: string) => {
+    cargarAnimeRef.current(animeId);
   }, []);
 
   // ====================================================
@@ -586,54 +692,43 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [currentUser, requireAuth]);
 
   const actualizarLikeLocal = useCallback((
-    tipo: 'thread' | 'comment',
     id: string,
     uid: string,
     liked: boolean,
   ) => {
-    if (tipo === 'thread') {
-      setThreads((prev) => prev.map((thread) => (
-        thread.id === id ? ponerLikeLocal(thread, uid, liked) : thread
-      )));
-      return;
-    }
-
-    setComments((prev) => prev.map((comment) => (
-      comment.id === id ? ponerLikeLocal(comment, uid, liked) : comment
+    setThreads((prev) => prev.map((thread) => (
+      thread.id === id ? ponerLikeLocal(thread, uid, liked) : thread
     )));
   }, []);
 
-  const runCommunityLike = useCallback(async (
-    tipo: 'thread' | 'comment',
+  const runThreadLike = useCallback(async (
     id: string,
     action: (uid: string) => Promise<boolean>,
   ) => {
     const uid = guardUser();
     if (!uid) return;
 
-    const clave = `${tipo}:${id}`;
+    const clave = `thread:${id}`;
     if (likesPendientes.current.has(clave)) return;
 
-    const actual = tipo === 'thread'
-      ? threads.find((thread) => thread.id === id)
-      : comments.find((comment) => comment.id === id);
+    const actual = threads.find((thread) => thread.id === id);
     const likedAntes = actual?.likedBy?.includes(uid) ?? false;
 
     likesPendientes.current.add(clave);
-    actualizarLikeLocal(tipo, id, uid, !likedAntes);
+    actualizarLikeLocal(id, uid, !likedAntes);
 
     try {
       const likedConfirmado = await action(uid);
       // Si otra pestaña cambió el documento a la vez, manda el
       // resultado real de la transacción, no lo que supuso el clic.
-      actualizarLikeLocal(tipo, id, uid, likedConfirmado);
+      actualizarLikeLocal(id, uid, likedConfirmado);
     } catch (e) {
-      actualizarLikeLocal(tipo, id, uid, likedAntes);
+      actualizarLikeLocal(id, uid, likedAntes);
       console.error('[Community] Error en "me gusta":', e);
     } finally {
       likesPendientes.current.delete(clave);
     }
-  }, [actualizarLikeLocal, comments, guardUser, threads]);
+  }, [actualizarLikeLocal, guardUser, threads]);
 
   const runLike = useCallback(async (action: (uid: string) => Promise<boolean>) => {
     const uid = guardUser();
@@ -646,21 +741,26 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [guardUser]);
 
   const toggleThreadLike = useCallback(
-    (threadId: string) => runCommunityLike(
-      'thread',
+    (threadId: string) => runThreadLike(
       threadId,
       (uid) => toggleThreadLikeService(threadId, uid),
     ),
-    [runCommunityLike],
+    [runThreadLike],
   );
 
   const toggleCommentLike = useCallback(
-    (commentId: string) => runCommunityLike(
-      'comment',
-      commentId,
-      (uid) => toggleCommentLikeService(commentId, uid),
-    ),
-    [runCommunityLike],
+    async (commentId: string): Promise<boolean> => {
+      const uid = guardUser();
+      if (!uid) return false;
+      try {
+        await toggleCommentLikeService(commentId, uid);
+        return true;
+      } catch (e) {
+        console.error('[Community] Error en "me gusta":', e);
+        return false;
+      }
+    },
+    [guardUser],
   );
 
   const toggleAnimeLike = useCallback(
@@ -757,16 +857,6 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 
   // ====================================================
-  // OBTENER COMENTARIOS DE UN OBJETIVO
-  // ====================================================
-
-  const getCommentsForTarget = useCallback(
-    (targetType: CommentTarget, targetId: string): Comment[] =>
-      comments.filter((c) => c.targetType === targetType && c.targetId === targetId),
-    [comments],
-  );
-
-  // ====================================================
   // PANTALLA DE CARGA
   // ====================================================
 
@@ -793,10 +883,12 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         seasons,
         episodes,
         characters,
-        comments,
         categories,
         triviaExtras,
         mascotDialogues,
+        ensureCatalogData,
+        ensureAnimeData,
+        catalogComplete,
         loading,
         error,
         createThread,
@@ -814,7 +906,6 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setPollClosed: setPollClosedAction,
         toggleReaction,
         addComment,
-        getCommentsForTarget,
       }}
     >
       {error && (

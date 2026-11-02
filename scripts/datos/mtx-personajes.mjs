@@ -44,6 +44,6 @@ export const PERSONAJES = [
   ["Tonako Dogo", "1", "supporting", "道後十七子", "Tomoyo Kurosawa",
    "Nueva jefa del Clan de las Bestias y hermana de Toshiro. Su especie animal compañera es el lobo."],
 
-  ["Byakko", "1", "supporting", "白狐", "Ayaka Suwa",
+  ["Byakko", "1", "antagonist", "白狐", "Ayaka Suwa",
    "Parte de una familia subordinada al Clan de las Bestias, que son rechazados como los amos impuros porque despellejan a sus compañeros osos en lugar de controlarlos."],
 ];

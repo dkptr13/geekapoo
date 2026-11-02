@@ -36,7 +36,7 @@ export const PERSONAJES = [
   ["Rumiho Akiha", "", "supporting", "秋葉留美穂", "Haruko Momoi",
    "Faris la maid reina de Akiba que cambia la ciudad con un D-mail. Nyannyan con imperio."],
 
-  ["Moeka Kiryuu", "", "supporting", "桐生萌郁", "Saori Gotou",
+  ["Moeka Kiryuu", "", "antagonist", "桐生萌郁", "Saori Gotou",
    "La Rounder fría de SERN que mata a Mayuri y se suicida con Yugo. Shining Finger sin amo al final."],
 
   ["Yuugo Tennouji", "", "supporting", "天王寺裕吾", "Masaki Terasoma",
@@ -45,7 +45,7 @@ export const PERSONAJES = [
   ["Nae Tennouji", "", "supporting", "天王寺綯", "Ayano Yamamoto",
    "La hija del casero que empuja a Mayuri al tren en una línea. Limpia con saña de sargento."],
 
-  ["Dr. Nakabachi", "1", "supporting", "ドクター中鉢", "Mitsuru Ogata",
+  ["Dr. Nakabachi", "1", "antagonist", "ドクター中鉢", "Mitsuru Ogata",
    "El padre de Kurisu resentido que la apuñala por robarle la teoría y huye a Rusia. El origen de la guerra."],
 
   ["Kagari Shiina", "3", "supporting", "椎名かがり", "Megumi Han",

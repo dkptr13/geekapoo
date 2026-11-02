@@ -15,6 +15,7 @@ import {
   type MedalStatus,
 } from '../types/gamification';
 import {
+  aProgreso,
   escucharConfiguracion,
   escucharProgreso,
   equiparTitulo,
@@ -118,6 +119,23 @@ export const ProgressionProvider: React.FC<{
   // ====================================================
 
   useEffect(() => {
+    if (!uid) {
+      setProgreso(null);
+      setLoading(false);
+      return;
+    }
+
+    // El perfil propio ya llega en vivo por AuthContext. Abrir otro
+    // listener sobre `users/{uid}` duplicaba la misma lectura y cada
+    // cambio de XP activaba los dos.
+    if (uid === currentUser?.uid) {
+      setProgreso(aProgreso(currentUser as unknown as Record<string, unknown>));
+      setLoading(false);
+    }
+  }, [uid, currentUser]);
+
+  useEffect(() => {
+    if (!uid || uid === currentUser?.uid) return;
     setLoading(true);
 
     const cancelar = escucharProgreso(uid, (p) => {
@@ -128,7 +146,7 @@ export const ProgressionProvider: React.FC<{
     });
 
     return cancelar;
-  }, [uid]);
+  }, [uid, currentUser?.uid]);
 
   // ====================================================
   // ESCUCHA DE LA CONFIGURACION

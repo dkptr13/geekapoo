@@ -18,6 +18,7 @@ import { useFollows } from '../../context/FollowsContext';
 import { useProgression } from '../../context/ProgressionContext';
 import { formatearNumero } from '../../utils/follows';
 import { calcularStats } from '../../utils/profile';
+import { useProfileComments } from '../../hooks/useProfileComments';
 import { nivelDesdeXp } from '../../utils/progression';
 import { VITRINAS, VITRINAS_POR_DEFECTO } from '../../data/profileCustomization';
 import type { TipoVitrina } from '../../data/profileCustomization';
@@ -226,7 +227,17 @@ const Perfil: React.FC<{
 
   const { catalogo, equipar, config, loading: cargandoProgreso } = useProgression();
 
-  const { threads, comments, animes, episodes, characters } = useCommunity();
+  const { threads, animes, episodes, characters, ensureCatalogData } = useCommunity();
+  const { comments, likedComments } = useProfileComments(perfil.uid);
+
+  // El catálogo pesado solo hace falta para poner título a comentarios
+  // de episodios o personajes. Un perfil sin esa actividad no lo carga.
+  useEffect(() => {
+    const necesitaCatalogo = [...comments, ...likedComments].some(
+      (c) => c.targetType === 'episode' || c.targetType === 'character',
+    );
+    if (necesitaCatalogo) ensureCatalogData();
+  }, [comments, likedComments, ensureCatalogData]);
 
   const [copiedId, setCopiedId] = useState(false);
   const [copiedUid, setCopiedUid] = useState(false);
@@ -385,10 +396,10 @@ const Perfil: React.FC<{
 
   const myLikedComments = useMemo(
     () =>
-      comments
-        .filter((c) => c.likedBy?.includes(perfil.uid))
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    [comments, perfil.uid],
+      [...likedComments].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [likedComments],
   );
 
   // El contador de la casilla suma las tres cosas: es lo que ha

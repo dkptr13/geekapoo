@@ -3,12 +3,20 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { cachedRead, invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
+import { measureRead } from '../lib/firestoreDiagnostics';
+import { mapWithId } from './firestoreUtils';
 import { esUrlDeGifValida } from './gifs';
 import { dimsValidas, type ImageDims } from '../utils/imagenes';
 import type { Comment, GifAttachment } from '../types';
@@ -22,6 +30,88 @@ import type { Comment, GifAttachment } from '../types';
 export const COMMENTS = 'comments';
 
 const MAX_BODY = 5000;
+const TTL_PERFIL_COMENTARIOS = 2 * 60 * 1000;
+const MAX_COMENTARIOS_PERFIL = 200;
+
+/** Comentarios escritos por una persona, para su perfil. */
+export function getCommentsByAuthor(
+  authorId: string,
+  force = false,
+): Promise<Comment[]> {
+  return cachedRead({
+    key: `comments:author:${authorId}`,
+    scope: PUBLIC_CACHE,
+    ttlMs: TTL_PERFIL_COMENTARIOS,
+    force,
+    read: async () => {
+      const meta = { name: 'comments:author', collection: COMMENTS, origin: 'ProfileView' };
+      const ordenada = query(
+        collection(db, COMMENTS),
+        where('authorId', '==', authorId),
+        orderBy('createdAt', 'desc'),
+        limit(MAX_COMENTARIOS_PERFIL),
+      );
+      try {
+        const snap = await measureRead(meta, (result) => result.size, () => getDocs(ordenada));
+        return mapWithId<Comment>(snap);
+      } catch (e) {
+        if ((e as { code?: string }).code !== 'failed-precondition') throw e;
+        const snap = await measureRead(
+          meta,
+          (result) => result.size,
+          () => getDocs(query(
+            collection(db, COMMENTS),
+            where('authorId', '==', authorId),
+            limit(MAX_COMENTARIOS_PERFIL),
+          )),
+        );
+        return mapWithId<Comment>(snap).sort(
+          (a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0),
+        );
+      }
+    },
+  });
+}
+
+/** Comentarios a los que una persona dio "me gusta", para su perfil. */
+export function getCommentsLikedBy(
+  uid: string,
+  force = false,
+): Promise<Comment[]> {
+  return cachedRead({
+    key: `comments:liked:${uid}`,
+    scope: PUBLIC_CACHE,
+    ttlMs: TTL_PERFIL_COMENTARIOS,
+    force,
+    read: async () => {
+      const meta = { name: 'comments:liked', collection: COMMENTS, origin: 'ProfileView' };
+      const ordenada = query(
+        collection(db, COMMENTS),
+        where('likedBy', 'array-contains', uid),
+        orderBy('createdAt', 'desc'),
+        limit(MAX_COMENTARIOS_PERFIL),
+      );
+      try {
+        const snap = await measureRead(meta, (result) => result.size, () => getDocs(ordenada));
+        return mapWithId<Comment>(snap);
+      } catch (e) {
+        if ((e as { code?: string }).code !== 'failed-precondition') throw e;
+        const snap = await measureRead(
+          meta,
+          (result) => result.size,
+          () => getDocs(query(
+            collection(db, COMMENTS),
+            where('likedBy', 'array-contains', uid),
+            limit(MAX_COMENTARIOS_PERFIL),
+          )),
+        );
+        return mapWithId<Comment>(snap).sort(
+          (a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0),
+        );
+      }
+    },
+  });
+}
 
 /**
  * Comprueba que el GIF venga de verdad de GIPHY o de Tenor.
@@ -118,6 +208,7 @@ export async function createComment(input: NewCommentInput): Promise<string> {
   if (gif) payload.gif = gif;
 
   await setDoc(ref, payload);
+  invalidateCache(`comments:author:${input.authorId}`, PUBLIC_CACHE);
 
   return ref.id;
 }
@@ -135,6 +226,10 @@ export async function updateCommentBody(commentId: string, body: string): Promis
     body: clean,
     updatedAt: serverTimestamp(),
   });
+  // La edición no trae el autor sin otra lectura. Es una acción poco
+  // frecuente: se invalida el índice del perfil y se recarga cuando
+  // haga falta.
+  invalidateCache('comments:author:', PUBLIC_CACHE);
 }
 
 /**
@@ -175,6 +270,8 @@ export async function deleteComment(
   const targetId = data.targetId as string | undefined;
 
   await deleteDoc(ref);
+  invalidateCache('comments:author:', PUBLIC_CACHE);
+  invalidateCache('comments:liked:', PUBLIC_CACHE);
 
   return { targetType, targetId };
 }

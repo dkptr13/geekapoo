@@ -27,6 +27,7 @@ import { useAuth } from '../../context/AuthContext';
 import { AuthorBadge } from '../gamification/AuthorBadge';
 import { ReportDialog } from '../community/ReportDialog';
 import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
+import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories } from '../../data/animeCategories';
 import CatalogBrowser from './CatalogBrowser';
@@ -48,7 +49,7 @@ import { fichaDe, personajeEnTemporada } from '../../utils/seasonData';
 import { TAG_DESTACADOS } from '../../utils/tags';
 import { ALTURA_CARD_PERSONAJE } from '../../utils/layout';
 
-import { Anime, Character, Episode, Season, Thread } from '../../types';
+import { Anime, Character, Comment, Episode, Season, Thread } from '../../types';
 
 interface AnimeWikiProps {
   /** Anime con el que se abre la wiki. Es opcional: si no llega,
@@ -75,10 +76,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     episodes,
     characters,
     threads,
+    ensureCatalogData,
+    ensureAnimeData,
+    catalogComplete,
     toggleAnimeLike,
     toggleEpisodeLike,
     toggleCharacterLike,
-    getCommentsForTarget,
     addComment,
     toggleCommentLike,
     deleteComment,
@@ -127,6 +130,21 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
     if (ok) setConfirmandoBorrar(null);
     avisar(ok ? 'Comentario borrado.' : 'No se pudo borrar el comentario.');
+  };
+
+  const alternarLikeEpisodio = (comment: Comment) => {
+    if (!currentUser) {
+      void toggleCommentLike(comment.id);
+      return;
+    }
+
+    const uid = currentUser.uid;
+    const estaba = comment.likedBy?.includes(uid) ?? false;
+    marcarLikeEpisodioLocal(comment.id, uid, !estaba);
+
+    void toggleCommentLike(comment.id).then((ok) => {
+      if (!ok) marcarLikeEpisodioLocal(comment.id, uid, estaba);
+    });
   };
 
   // ====================================================
@@ -184,6 +202,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
   const isBrowsing = !currentAnime;
 
+  // La ficha carga solo su serie. El catálogo completo (miles de
+  // episodios y personajes) se reserva para el buscador global.
+  useEffect(() => {
+    if (currentAnime?.id) ensureAnimeData(currentAnime.id);
+  }, [currentAnime?.id, ensureAnimeData]);
+
   // Todas las salidas al catálogo se hacen con UNA escritura.
   //
   // Antes cada una llamaba a su propio setUrlAnime y setSearchQuery
@@ -238,6 +262,15 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // cambia la vista (rejilla de animes o listas).
   const [searchFilter, setSearchFilter] = useState<MainTab>('all');
 
+  // El buscador y las pestañas globales de episodios/personajes
+  // abarcan todas las series. Solo entonces se piden completos.
+  useEffect(() => {
+    const necesitaCatalogoCompleto =
+      Boolean(searchQuery.trim()) ||
+      (isBrowsing && (searchFilter === 'episodes' || searchFilter === 'characters'));
+    if (necesitaCatalogoCompleto) ensureCatalogData();
+  }, [searchQuery, searchFilter, isBrowsing, ensureCatalogData]);
+
   // Filtros avanzados: refinan la pestaña activa y se combinan
   // con el buscador. No van a la URL para no ensuciarla.
   const [filtros, setFiltros] = useState<FiltrosAvanzados>(FILTROS_VACIOS);
@@ -265,11 +298,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
       all: animes.length,
       series: animes.length - pelis,
       movies: pelis,
-      episodes: Object.values(episodes).flat().length,
-      characters: Object.values(characters).flat().length,
+      episodes: catalogComplete ? Object.values(episodes).flat().length : undefined,
+      characters: catalogComplete ? Object.values(characters).flat().length : undefined,
       threads: threads.length,
     };
-  }, [animes, episodes, characters, threads]);
+  }, [animes, episodes, characters, threads, catalogComplete]);
 
   // Ref al input, para poder ponerle el cursor encima desde fuera.
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -291,6 +324,17 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // Character filter: "all" | "destacados" | "likes" | "related"
   const [characterFilter, setCharacterFilter] = useState<'all' | 'destacados' | 'likes' | 'related'>('all');
   const [expandedCharacterId, setExpandedCharacterId] = useState<string | null>(null);
+  const {
+    comments: comentariosEpisodio,
+    marcarLikeLocal: marcarLikeEpisodioLocal,
+  } = useCommentsForTarget(
+    expandedEpisodeId ? 'episode' : null,
+    expandedEpisodeId,
+  );
+  const { comments: comentariosPersonaje } = useCommentsForTarget(
+    expandedCharacterId ? 'character' : null,
+    expandedCharacterId,
+  );
   const [characterCommentText, setCharacterCommentText] = useState('');
   // Respuesta a una opinión de personaje: a qué comentario y con qué texto.
   const [replyingToCharId, setReplyingToCharId] = useState<string | null>(null);
@@ -976,7 +1020,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             <div className="space-y-4">
               {animeEpisodes.map((ep) => {
             const isExpanded = expandedEpisodeId === ep.id;
-            const epComments = getCommentsForTarget('episode', ep.id);
+            const epComments = isExpanded ? comentariosEpisodio : [];
             const isLiked = currentUser ? ep.likedBy?.includes(currentUser.uid) : false;
             const epRating = typeof ep.rating === 'number' ? ep.rating : 0;
 
@@ -1059,7 +1103,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                         }`}
                       >
                         <MessageCircle size={13} />
-                        <span>Ver Comentarios ({epComments.length})</span>
+                        <span>Ver comentarios{isExpanded ? ` (${epComments.length})` : ''}</span>
                       </button>
                     </div>
                   </div>
@@ -1123,7 +1167,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                             <p className="mt-1 text-xs text-zinc-300">{c.body}</p>
                             <div className="mt-2 flex items-center gap-2">
                               <button
-                                onClick={() => toggleCommentLike(c.id)}
+                                onClick={() => alternarLikeEpisodio(c)}
                                 className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-pink-400"
                               >
                                 <Heart size={11} />
@@ -1266,7 +1310,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               {filteredCharacters.map((char) => {
               const isLiked = currentUser ? char.likedBy?.includes(currentUser.uid) : false;
               const isExpanded = expandedCharacterId === char.id;
-              const charComments = getCommentsForTarget('character', char.id);
+              const charComments = isExpanded ? comentariosPersonaje : [];
 
               return (
                 <div
@@ -1351,7 +1395,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                     >
                       <span className="flex items-center gap-1.5">
                         <MessageCircle size={14} />
-                        Opiniones y Críticas ({charComments.filter((c) => !c.parentId).length})
+                        Opiniones y Críticas
+                        {isExpanded ? ` (${charComments.filter((c) => !c.parentId).length})` : ''}
                       </span>
                       <span>{isExpanded ? 'Ocultar' : 'Ver y comentar'}</span>
                     </button>

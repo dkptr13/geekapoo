@@ -6,9 +6,9 @@ import {
   createWeeklyWork,
   deleteWeeklyWork,
   moveWeeklyWork,
+  getSiteSettingsCached,
+  getWeeklyWorksCached,
   saveSiteSettings,
-  subscribeSiteSettings,
-  subscribeWeeklyWorks,
   updateWeeklyWork,
   type NewWeeklyWorkInput,
 } from '../services/siteContent';
@@ -49,27 +49,54 @@ export const SiteContentProvider: FC<{ children: ReactNode }> = ({ children }) =
   const [weeklyWorks, setWeeklyWorks] = useState<WeeklyWork[]>([]);
 
   // ── Ajustes ──────────────────────────────────────────
-  useEffect(
-    () =>
-      subscribeSiteSettings(
-        (data) => {
+  // Cambian solo cuando el equipo guarda desde el panel. No hacen
+  // falta listeners permanentes en cada visita.
+  useEffect(() => {
+    let activo = true;
+    const cargar = (force = false) => {
+      void getSiteSettingsCached(force)
+        .then((data) => {
+          if (!activo) return;
           setSettings(data);
           setSettingsLoaded(true);
-        },
-        () => setSettingsLoaded(true),
-      ),
-    [],
-  );
+        })
+        .catch(() => {
+          if (activo) setSettingsLoaded(true);
+        });
+    };
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key === 'site:settings') cargar(true);
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    cargar();
+    return () => {
+      activo = false;
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+    };
+  }, []);
 
   // ── Obras de la semana ──────────────────────────────
-  useEffect(
-    () =>
-      subscribeWeeklyWorks(
-        setWeeklyWorks,
-        (e) => console.error('[Site] Error al leer las obras:', e),
-      ),
-    [],
-  );
+  useEffect(() => {
+    let activo = true;
+    const cargar = (force = false) => {
+      void getWeeklyWorksCached(force)
+        .then((data) => {
+          if (activo) setWeeklyWorks(data);
+        })
+        .catch((e: Error) => console.error('[Site] Error al leer las obras:', e));
+    };
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key === 'site:weekly-works') cargar(true);
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    cargar();
+    return () => {
+      activo = false;
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+    };
+  }, []);
 
   const saveSettings = useCallback(async (patch: Partial<SiteSettings>) => {
     try {

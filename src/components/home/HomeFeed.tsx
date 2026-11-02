@@ -25,6 +25,7 @@ import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useCommunity } from '../../context/CommunityContext';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { reaccionesDe, useReacciones } from '../../hooks/useReacciones';
+import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
 import { reactionKey } from '../../services/reactions';
 import { normalizarPoll } from '../../services/polls';
 import { AttachImage } from '../community/AttachImage';
@@ -54,7 +55,7 @@ import {
   draftANewPoll,
   type PollDraft,
 } from '../community/PollComposer';
-import { Thread, GifAttachment, NewPollInput } from '../../types';
+import { Thread, GifAttachment, NewPollInput, Comment } from '../../types';
 
 interface HomeFeedProps {
   onGoToAnime?: (slug: string) => void;
@@ -102,7 +103,6 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     threads,
     createThread,
     toggleThreadLike,
-    getCommentsForTarget,
     addComment,
     toggleCommentLike,
     categories,
@@ -220,6 +220,13 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
   // Expanded comments for thread
   const [expandedThreadId, setExpandedThreadId] = useState<string | null>(null);
+  const {
+    comments: comentariosHiloAbierto,
+    marcarLikeLocal: marcarLikeComentarioLocal,
+  } = useCommentsForTarget(
+    expandedThreadId ? 'thread' : null,
+    expandedThreadId,
+  );
   const [newCommentText, setNewCommentText] = useState('');
   const [commentGif, setCommentGif] = useState<GifAttachment | null>(null);
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
@@ -479,6 +486,21 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     }
   };
 
+  const alternarLikeComentario = (comment: Comment) => {
+    if (!currentUser) {
+      void toggleCommentLike(comment.id);
+      return;
+    }
+
+    const uid = currentUser.uid;
+    const estaba = comment.likedBy?.includes(uid) ?? false;
+    marcarLikeComentarioLocal(comment.id, uid, !estaba);
+
+    void toggleCommentLike(comment.id).then((ok) => {
+      if (!ok) marcarLikeComentarioLocal(comment.id, uid, estaba);
+    });
+  };
+
   const handleCommentSubmit = async (threadId: string, e: React.FormEvent) => {
     e.preventDefault();
     // Un comentario puede no tener texto si lleva un GIF.
@@ -600,13 +622,13 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     );
 
     if (expandedThreadId) {
-      getCommentsForTarget('thread', expandedThreadId).forEach((c) =>
+      comentariosHiloAbierto.forEach((c) =>
         objetivos.push({ targetType: 'comment', targetId: c.id }),
       );
     }
 
     return objetivos;
-  }, [filtered, expandedThreadId, getCommentsForTarget]);
+  }, [filtered, expandedThreadId, comentariosHiloAbierto]);
 
   const { de: reacciones, mias: misReacciones } = useReacciones(objetivosReaccion);
 
@@ -902,7 +924,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
         {filtered.map((thread) => {
           const isLiked = currentUser ? thread.likedBy?.includes(currentUser.uid) : false;
           const isExpanded = expandedThreadId === thread.id;
-          const threadComments = getCommentsForTarget('thread', thread.id);
+          const threadComments = isExpanded ? comentariosHiloAbierto : [];
 
           return (
             <article
@@ -1107,7 +1129,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     }`}
                   >
                     <MessageSquare size={15} />
-                    <span className="font-mono">{threadComments.length}</span>
+                    <span className="font-mono">
+                      {isExpanded ? threadComments.length : thread.commentsCount}
+                    </span>
                     <span className="hidden sm:inline">Comentarios</span>
                   </button>
 
@@ -1359,7 +1383,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
                             <div className="flex flex-wrap items-center gap-3 pl-8 pt-1 text-[11px]">
                               <button
-                                onClick={() => toggleCommentLike(comment.id)}
+                                onClick={() => alternarLikeComentario(comment)}
                                 className={`chat-boton flex items-center gap-1 font-mono transition-colors ${
                                   commentLiked ? 'text-pink-300 font-bold' : 'text-zinc-500 hover:text-zinc-300'
                                 }`}
@@ -1560,7 +1584,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                        )}
                                        <div className="flex flex-wrap items-center gap-3 pl-5 pt-1">
                                          <button
-                                           onClick={() => toggleCommentLike(reply.id)}
+                                           onClick={() => alternarLikeComentario(reply)}
                                            className={`flex items-center gap-1 text-[11px] font-mono ${
                                              replyLiked ? 'text-pink-400 font-bold' : 'text-zinc-500 hover:text-zinc-300'
                                            }`}

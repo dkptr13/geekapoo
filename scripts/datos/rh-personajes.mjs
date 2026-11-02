@@ -32,16 +32,16 @@ export const PERSONAJES = [
   ["Anna", "", "supporting", "アンナ", "Asuka Nishi",
    "Aldeana del pasado de Keyaru. Sale en la serie."],
 
-  ["Blade", "", "supporting", "ブレイド", "Mami Fujita",
+  ["Blade", "", "antagonist", "ブレイド", "Mami Fujita",
    "Heroina del reino con látigo y prisas. Sale en la serie."],
 
-  ["Bullet", "", "supporting", "ブレット", "Tetsu Inada",
+  ["Bullet", "", "antagonist", "ブレット", "Tetsu Inada",
    "Heroe pistolero del reino. Sale en la serie."],
 
   ["Maid", "", "supporting", "メイド", "Akiha Matsui",
    "Criada del reino. Sale en la serie."],
 
-  ["Proum Jioral", "", "supporting", "プローム・ジオラル", "Takaya Hashi",
+  ["Proum Jioral", "", "antagonist", "プローム・ジオラル", "Takaya Hashi",
    "Rey padre de Flare y Norn. Sale en la serie, de la familia."],
 
   ["Hoshi no Seirei", "", "supporting", "星の精霊", "Fumi Hirano",

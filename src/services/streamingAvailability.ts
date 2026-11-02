@@ -7,6 +7,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
 import {
   PLATAFORMAS_INICIALES,
   REGIONES_INICIALES,
@@ -110,6 +111,7 @@ export async function crearPlataforma(input: {
     createdAt: serverTimestamp(),
   });
 
+  invalidateCache('streaming:platforms', PUBLIC_CACHE);
   return id;
 }
 
@@ -144,6 +146,7 @@ export async function crearRegion(input: {
     createdAt: serverTimestamp(),
   });
 
+  invalidateCache('streaming:regions', PUBLIC_CACHE);
   return code;
 }
 
@@ -204,9 +207,11 @@ export async function guardarDisponibilidad(
   if (status === 'available' && url) data.url = url;
   if (status !== 'unverified' && verifiedAt) data.verifiedAt = verifiedAt;
 
-  await setDoc(doc(db, COLECCION_DISPONIBILIDAD, idDisponibilidad(animeId, platformId, region)), data);
+  const id = idDisponibilidad(animeId, platformId, region);
+  await setDoc(doc(db, COLECCION_DISPONIBILIDAD, id), data);
+  invalidateCache('streaming:availability:', PUBLIC_CACHE);
 
-  return idDisponibilidad(animeId, platformId, region);
+  return id;
 }
 
 /** Borra una fila regional. No toca el anime ni las demás filas. */

@@ -116,7 +116,11 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
   onClose,
 }) => {
   const { currentUser, requireAuth } = useAuth();
-  const { animes, characters } = useCommunity();
+  const { animes, characters, ensureCatalogData } = useCommunity();
+
+  useEffect(() => {
+    ensureCatalogData();
+  }, [ensureCatalogData]);
 
   const [draft, setDraft] = useState<EditorDraft>(() => ({
     ...borradorVacio(clubId ? 'club' : 'public'),

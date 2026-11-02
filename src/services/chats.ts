@@ -4,8 +4,10 @@ import {
   collection,
   deleteDoc,
   doc,
+  endAt,
   getDoc,
   getDocs,
+  limitToLast,
   onSnapshot,
   orderBy,
   query,
@@ -19,6 +21,7 @@ import {
 import { httpsCallable } from 'firebase/functions';
 
 import { db, functions } from '../lib/firebase';
+import { measureRead, recordListenerSnapshot, trackListener } from '../lib/firestoreDiagnostics';
 import { mapWithId, toDate, toIsoString, withId, Timestamp } from './firestoreUtils';
 import { esUrlDeGifValida } from './gifs';
 import { ubicacionPlausible } from './ubicacion';
@@ -101,9 +104,11 @@ export function subscribeChats(
   onData: (rooms: ChatRoom[]) => void,
   onError?: (e: Error) => void,
 ): Unsubscribe {
-  return onSnapshot(
+  const meta = { name: 'chats:propios', collection: 'chats', origin: 'ChatContext' };
+  const unsubscribe = onSnapshot(
     query(collection(db, CHATS), where('memberIds', 'array-contains', uid)),
     (snap) => {
+      recordListenerSnapshot(meta, snap.size, snap.docChanges().length);
       const visible: ChatRoom[] = [];
 
       snap.docs.forEach((d) => {
@@ -140,48 +145,93 @@ export function subscribeChats(
     },
     (e) => onError?.(e),
   );
+  return trackListener(meta, unsubscribe);
 }
 
+/** Cuántos mensajes se cargan de golpe en una conversación. */
+export const CHAT_PAGE_SIZE = 80;
+
+function visiblesDesde(
+  messages: ChatMessage[],
+  clearedMs: number,
+): ChatMessage[] {
+  if (Number.isNaN(clearedMs)) return messages;
+  return messages.filter((m) => {
+    const at = Date.parse(m.createdAt);
+    if (Number.isNaN(at)) return true;
+    // Margen de 1 s: si el servidor del mensaje y el de la marca no
+    // coinciden exactamente, el último mensaje se quedaría a la vista.
+    return at > clearedMs - 1000;
+  });
+}
+
+/**
+ * Escucha solo la página más reciente del chat.
+ *
+ * El historial completo se carga por tramos con
+ * `cargarMensajesAnteriores`. La conversación sigue siendo en tiempo
+ * real; lo único que cambia es que no descarga años de historial para
+ * enseñar el final.
+ */
 export function subscribeMessages(
   chatId: string,
   clearedAt: string | undefined,
-  onData: (messages: ChatMessage[]) => void,
+  onData: (messages: ChatMessage[], hasMore: boolean) => void,
   onError?: (e: Error) => void,
 ): () => void {
   if (!chatId) {
-    onData([]);
+    onData([], false);
     return () => undefined;
   }
 
-  // Marca de "vaciar conversación" del usuario actual. Los
-  // mensajes anteriores no se le enseñan, pero siguen ahí para
-  // los demás: por eso la acción es unilateral.
   const clearedMs = clearedAt ? Date.parse(clearedAt) : NaN;
+  const meta = { name: 'chat:mensajes-recientes', collection: 'messages', origin: 'ChatContext' };
 
-  return onSnapshot(
-    query(collection(db, CHATS, chatId, 'messages'), orderBy('createdAt', 'asc')),
+  const unsubscribe = onSnapshot(
+    query(
+      collection(db, CHATS, chatId, 'messages'),
+      orderBy('createdAt', 'asc'),
+      limitToLast(CHAT_PAGE_SIZE + 1),
+    ),
     (snap) => {
+      recordListenerSnapshot(meta, snap.size, snap.docChanges().length);
       const all = mapWithId<ChatMessage>(snap);
-
-      if (Number.isNaN(clearedMs)) {
-        onData(all);
-        return;
-      }
-
-      onData(
-        all.filter((m) => {
-          const at = Date.parse(m.createdAt);
-          if (Number.isNaN(at)) return true;
-          // Margen de 1 s: si el servidor del mensaje y el de la
-          // marca no coinciden exactamente, el último mensaje se
-          // quedaría a la vista y la conversación no parecería
-          // vacía del todo.
-          return at > clearedMs - 1000;
-        }),
-      );
+      const hasMore = all.length > CHAT_PAGE_SIZE;
+      const pagina = hasMore ? all.slice(all.length - CHAT_PAGE_SIZE) : all;
+      onData(visiblesDesde(pagina, clearedMs), hasMore);
     },
     (e) => onError?.(e),
   );
+
+  return trackListener(meta, unsubscribe);
+}
+
+/** Carga el tramo inmediatamente anterior a la fecha indicada. */
+export async function cargarMensajesAnteriores(
+  chatId: string,
+  antesDeIso: string,
+  clearedAt: string | undefined,
+  pageSize = CHAT_PAGE_SIZE,
+): Promise<{ messages: ChatMessage[]; hasMore: boolean }> {
+  const ms = Date.parse(antesDeIso);
+  if (!chatId || Number.isNaN(ms)) return { messages: [], hasMore: false };
+
+  const snap = await measureRead(
+    { name: 'chat:mensajes-anteriores', collection: 'messages', origin: 'ChatContext' },
+    (result) => result.size,
+    () => getDocs(query(
+      collection(db, CHATS, chatId, 'messages'),
+      orderBy('createdAt', 'asc'),
+      endAt(Timestamp.fromMillis(ms)),
+      limitToLast(pageSize + 1),
+    )),
+  );
+
+  const all = mapWithId<ChatMessage>(snap);
+  const hasMore = all.length > pageSize;
+  const pagina = hasMore ? all.slice(all.length - pageSize) : all;
+  const clearedMs = clearedAt ? Date.parse(clearedAt) : NaN;
+  return { messages: visiblesDesde(pagina, clearedMs), hasMore };
 }
 
 // ────────────────────────────────────────────────────────

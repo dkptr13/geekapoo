@@ -176,6 +176,9 @@ export const ChatView: React.FC = () => {
     activeRoomId,
     setActiveRoomId,
     messages,
+    hasMoreMessages,
+    loadingOlderMessages,
+    loadOlderMessages,
     sendMessage,
     createGroupChat,
     setGroupAvatar,
@@ -539,11 +542,10 @@ export const ChatView: React.FC = () => {
   /**
    * Salta al mensaje original de un fijado.
    *
-   * La conversación carga todos sus mensajes de golpe, así que el
-   * mensaje está en el DOM. Aun así se hace el scroll dos veces:
-   * las imágenes y los adjuntos tardan en cargar y, cuando lo
-   * hacen, el mensaje crece y deja de estar centrado. El segundo
-   * scroll, ya con las imágenes dentro, corrige la posición.
+   * La conversación carga por tramos. Si el fijado es antiguo, hay
+   * que pulsar "Cargar mensajes anteriores" hasta que esté en el DOM;
+   * no se finge que se ha borrado. Cuando aparece, se hace el scroll
+   * dos veces porque las imágenes y adjuntos cambian la altura.
    */
   const irAMensaje = (messageId: string) => {
     setPanelFijados(false);
@@ -555,7 +557,7 @@ export const ChatView: React.FC = () => {
       return true;
     };
     if (!buscar()) {
-      setActionFeedback('Ese mensaje ya no está en la conversación.');
+      setActionFeedback('Ese mensaje es antiguo: carga los mensajes anteriores para llegar a él.');
       return;
     }
     // Second pass: images and attachments change the height.
@@ -1656,6 +1658,23 @@ export const ChatView: React.FC = () => {
   const activeMessages = (
     activeRoomId ? messages[activeRoomId] || [] : []
   ).filter((m) => !hiddenIds.has(m.id));
+
+  const cargarAnteriores = async () => {
+    if (!activeRoomId) return;
+    const lista = listaRef.current;
+    const altoAntes = lista?.scrollHeight ?? 0;
+    const topAntes = lista?.scrollTop ?? 0;
+
+    await loadOlderMessages(activeRoomId);
+
+    // Al insertar arriba, el navegador conserva `scrollTop` y el
+    // mensaje que se estaba leyendo saltaría. Se recoloca el mismo
+    // punto visual.
+    requestAnimationFrame(() => {
+      if (!lista) return;
+      lista.scrollTop = lista.scrollHeight - altoAntes + topAntes;
+    });
+  };
 
   // Nombre e interlocutor del chat abierto, calculados igual que en
   // la lista: a partir de la lista de miembros, no del nombre
@@ -3360,6 +3379,17 @@ export const ChatView: React.FC = () => {
                 className="chat-hilo min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-6 sm:py-6 lg:px-10 flex flex-col"
                 style={{ ...aparienciaVista.fondoLista, ...aparienciaVista.gapLista }}
               >
+                {activeRoomId && activeMessages.length > 0 && hasMoreMessages[activeRoomId] && (
+                  <button
+                    type="button"
+                    onClick={() => void cargarAnteriores()}
+                    disabled={loadingOlderMessages[activeRoomId]}
+                    className="mx-auto mb-3 flex shrink-0 items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-400/30 hover:text-violet-200 disabled:opacity-60"
+                  >
+                    {loadingOlderMessages[activeRoomId] && <Loader2 size={11} className="animate-spin" />}
+                    {loadingOlderMessages[activeRoomId] ? 'Cargando...' : 'Cargar mensajes anteriores'}
+                  </button>
+                )}
                 {activeMessages.length === 0 ? (
                   <div className="mx-auto flex h-full w-full max-w-sm flex-col items-center justify-center text-center p-8">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-600/20 to-sky-500/10 text-violet-300 shadow-inner">

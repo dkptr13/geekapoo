@@ -7,9 +7,11 @@ import React, {
   useState,
 } from 'react';
 
-import { collection, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { cachedRead, setCached, userCacheScope } from '../lib/firestoreCache';
+import { measureRead } from '../lib/firestoreDiagnostics';
 import { useAuth } from './AuthContext';
 import {
   errorDeFollow,
@@ -30,10 +32,8 @@ import type { UserSocialStats } from '../types/follows';
 //
 // ── Qué se escucha y qué no ──────────────────────────────
 //
-// El proyecto ya paga un `onSnapshot(collection(db, 'users'))` en
-// `AuthContext` que trae TODOS los usuarios en memoria. Aquí no se
-// añade nada que duplique eso. Solo hay DOS suscripciones
-// propias:
+// `AuthContext` mantiene el directorio de usuarios en una caché
+// compartida. Aquí no se duplica. Solo hay DOS lecturas propias:
 //
 //   1. `users/{yo}/following` → un conjunto de uids, para saber de
 //      un vistazo a quién sigo.
@@ -121,6 +121,11 @@ const FollowsContext = createContext<FollowsContextType | undefined>(undefined);
 
 /** Cuántos seguidos se traen de golpe al abrir la sesión. */
 const MAX_SEGUIDOS = 500;
+const TTL_SIGUIENDO = 10 * 60 * 1000;
+
+function cacheSiguiendo(uid: string, ids: Set<string>): void {
+  setCached('auth:following', [...ids], TTL_SIGUIENDO, userCacheScope(uid));
+}
 
 export const FollowsProvider: React.FC<{
   children: React.ReactNode;
@@ -167,33 +172,47 @@ export const FollowsProvider: React.FC<{
       return;
     }
 
+    let activo = true;
     setSiguiendoCargando(true);
 
-    const q = query(
-      collection(db, 'users', miUid, 'following'),
-      orderBy('createdAt', 'desc'),
-      limit(MAX_SEGUIDOS),
-    );
-
-    return onSnapshot(
-      q,
-      (snap) => {
+    const scope = userCacheScope(miUid);
+    void cachedRead({
+      key: 'auth:following',
+      scope,
+      ttlMs: TTL_SIGUIENDO,
+      read: async () => {
+        const q = query(
+          collection(db, 'users', miUid, 'following'),
+          orderBy('createdAt', 'desc'),
+          limit(MAX_SEGUIDOS),
+        );
+        const snap = await measureRead(
+          { name: 'following', collection: 'following', origin: 'FollowsContext' },
+          (result) => result.size,
+          () => getDocs(q),
+        );
         if (snap.size >= MAX_SEGUIDOS) {
           console.warn(
-            `[Follows] Hay ${MAX_SEGUIDOS} seguidos o mas y solo se muestran los ` +
-              `${MAX_SEGUIDOS} mas recientes: el boton "Seguir" puede parecer ` +
-              'equivocado con los mas antiguos. Sube MAX_SEGUIDOS en ' +
-              'FollowsContext.tsx si hace falta.',
+            `[Follows] Hay ${MAX_SEGUIDOS} seguidos o mas y solo se cargan los ` +
+              `${MAX_SEGUIDOS} mas recientes.`,
           );
         }
-        setSiguiendo(new Set(snap.docs.map((d) => d.id)));
-        setSiguiendoCargando(false);
+        return snap.docs.map((d) => d.id);
       },
-      (e) => {
+    })
+      .then((ids) => {
+        if (!activo) return;
+        setSiguiendo(new Set(ids));
+        setSiguiendoCargando(false);
+      })
+      .catch((e: Error) => {
         console.error('[Follows] No se pudo leer la lista de seguidos:', e);
-        setSiguiendoCargando(false);
-      },
-    );
+        if (activo) setSiguiendoCargando(false);
+      });
+
+    return () => {
+      activo = false;
+    };
   }, [miUid]);
 
   const siguiendoA = useCallback(
@@ -247,12 +266,11 @@ export const FollowsProvider: React.FC<{
         //
         // Si la escritura falla se vuelve al estado anterior y se
         // avisa. Es preferible a dejar el botón mintiendo.
-        setSiguiendo((prev) => {
-          const siguiente = new Set(prev);
-          if (estaba) siguiente.delete(uid);
-          else siguiente.add(uid);
-          return siguiente;
-        });
+        const siguiente = new Set(siguiendo);
+        if (estaba) siguiente.delete(uid);
+        else siguiente.add(uid);
+        setSiguiendo(siguiente);
+        cacheSiguiendo(miUid, siguiente);
 
         if (estaba) {
           await unfollowUser(miUid, uid);
@@ -262,12 +280,9 @@ export const FollowsProvider: React.FC<{
         await followUser(miUid, uid);
         return true;
       } catch (e) {
-        setSiguiendo((prev) => {
-          const anterior = new Set(prev);
-          if (estaba) anterior.add(uid);
-          else anterior.delete(uid);
-          return anterior;
-        });
+        const anterior = new Set(siguiendo);
+        setSiguiendo(anterior);
+        cacheSiguiendo(miUid, anterior);
         setError(errorDeFollow(e));
         console.error('[Follows] No se pudo cambiar el seguimiento:', e);
         return estaba;

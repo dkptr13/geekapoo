@@ -1,6 +1,7 @@
 import { doc, runTransaction, serverTimestamp } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
 
 // ======================================================
 // "ME GUSTA" DE HILOS Y COMENTARIOS
@@ -70,6 +71,10 @@ async function toggleLikeDoc(
     });
     nowLiked = true;
   });
+
+  if (target === 'comment') {
+    invalidateCache(`comments:liked:${uid}`, PUBLIC_CACHE);
+  }
 
   return nowLiked;
 }

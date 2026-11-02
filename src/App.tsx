@@ -555,11 +555,7 @@ const {
             independiente (así el mismo componente sirve para
             enseñarle los logros a otro usuario). */}
 
-        {currentTab === 'logros' && (
-          <ProgressionProvider uid={currentUser?.uid ?? null}>
-            <AchievementsView />
-          </ProgressionProvider>
-        )}
+        {currentTab === 'logros' && <AchievementsView />}
 
         {/* ================================================
             TRIVIA DIARIA
@@ -568,11 +564,7 @@ const {
             página necesita el progreso del usuario para enseñar
             el XP ganado y la racha, igual que la de logros. */}
 
-        {currentTab === 'trivia' && (
-          <ProgressionProvider uid={currentUser?.uid ?? null}>
-            <DailyTriviaView />
-          </ProgressionProvider>
-        )}
+        {currentTab === 'trivia' && <DailyTriviaView />}
 
 
         {/* ================================================

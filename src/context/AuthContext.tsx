@@ -21,6 +21,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   serverTimestamp,
   writeBatch,
@@ -32,6 +33,14 @@ import {
   githubProvider,
   googleProvider,
 } from '../lib/firebase';
+import {
+  cachedRead,
+  clearPrivateCaches,
+  clearUserCache,
+  setCached,
+  userCacheScope,
+} from '../lib/firestoreCache';
+import { measureRead, recordListenerSnapshot, trackListener } from '../lib/firestoreDiagnostics';
 
 import { toIsoString } from '../services/firestoreUtils';
 
@@ -39,7 +48,6 @@ import { DEFAULT_PRIVACY, readPrivacy } from '../services/accountSettings';
 
 import {
   PRIVATE_PROFILE_FIELDS,
-  getUserPrivate,
   privateFieldsOf,
   publicPrivacySignals,
   soloCamposPublicos,
@@ -388,6 +396,18 @@ export const AuthProvider = ({
   // que el listener del perfil público pueda mezclarla sin volver a
   // suscribirse ni depender del orden en que lleguen los snapshots.
   const datosPrivadosRef = useRef<UserPrivateData | null>(null);
+  const directorioUidRef = useRef<string | null>(null);
+  const restriccionRef = useRef<{
+    uid: string;
+    promesa: Promise<EstadoRestriccion>;
+  } | null>(null);
+
+  const restriccionDe = (uid: string): Promise<EstadoRestriccion> => {
+    if (restriccionRef.current?.uid === uid) return restriccionRef.current.promesa;
+    const promesa = estadoRestriccion(uid);
+    restriccionRef.current = { uid, promesa };
+    return promesa;
+  };
 
   // El directorio de usuarios se carga DESPUÉS de resolver la
   // sesión, nunca en el montaje.
@@ -406,58 +426,68 @@ export const AuthProvider = ({
   // identidad con cada XP o medalla nueva, y con el objeto entero
   // aquí se re-suscribiría el directorio entero cada vez.
   useEffect(() => {
-    if (!currentUser) {
+    const uid = currentUser?.uid ?? null;
+    const anterior = directorioUidRef.current;
+    if (anterior && anterior !== uid) clearUserCache(anterior);
+    directorioUidRef.current = uid;
+
+    if (!uid) {
+      clearPrivateCaches();
       setUsersList([]);
       return;
     }
 
-    const unsubscribe = onSnapshot(
-      collection(db, 'users'),
-      (snapshot) => {
-        const directory = snapshot.docs
-          .map((userDoc) => {
-            const data = userDoc.data() as User & { isBanned?: boolean };
-            // Aunque la migración aún no haya limpiado un perfil
-            // antiguo, el directorio no se queda con sus campos
-            // privados: solo con la mitad pública y la señal de
-            // compatibilidad del baneo.
-            const publico = soloCamposPublicos(data) as unknown as User;
-            return {
-              ...publico,
-              // Mientras la migración termina, un perfil antiguo
-              // puede tener la privacidad solo en los campos viejos.
-              // Se traduce a las señales públicas antes de tirar
-              // esos campos, para no enseñar de más.
-              privateProfile:
-                data.privateProfile === true ||
-                data.profileVisibility === 'private',
-              activityHidden:
-                data.activityHidden === true || data.showActivity === false,
-              // La fecha se guarda como Timestamp y aquí vuelve a
-              // texto ISO, para no meter un objeto en un campo
-              // declarado como string.
-              createdAt: toIsoString(data.createdAt),
-            };
-          })
-          // No se filtra por la bandera antigua: con el nuevo
-          // modelo un baneado no la lleva, y un baneo ya levantado
-          // podría conservarla en un perfil sin migrar. La sanción
-          // vigente la aplican las reglas; el directorio no es la
-          // lista de quién puede publicar.
-          .sort((a, b) => a.username.localeCompare(b.username));
+    let activo = true;
+    const scope = userCacheScope(uid);
+    const cargar = (force = false) => {
+      void cachedRead({
+        key: 'auth:users',
+        scope,
+        ttlMs: 5 * 60 * 1000,
+        force,
+        read: async () => {
+          const snapshot = await measureRead(
+            { name: 'directory', collection: 'users', origin: 'AuthContext' },
+            (result) => result.size,
+            () => getDocs(collection(db, 'users')),
+          );
 
-        setUsersList(directory);
-      },
-      (error) => {
-        console.error(
-          '[Auth] No se pudo cargar el directorio de usuarios:',
-          error,
-        );
-        setUsersList([]);
-      }
-    );
+          return snapshot.docs
+            .map((userDoc) => {
+              const data = userDoc.data() as User & { isBanned?: boolean };
+              const publico = soloCamposPublicos(data) as unknown as User;
+              return {
+                ...publico,
+                privateProfile:
+                  data.privateProfile === true || data.profileVisibility === 'private',
+                activityHidden:
+                  data.activityHidden === true || data.showActivity === false,
+                createdAt: toIsoString(data.createdAt),
+              };
+            })
+            .sort((a, b) => a.username.localeCompare(b.username));
+        },
+      })
+        .then((directory) => {
+          if (activo) setUsersList(directory);
+        })
+        .catch((error: Error) => {
+          console.error('[Auth] No se pudo cargar el directorio de usuarios:', error);
+          if (activo) setUsersList([]);
+        });
+    };
 
-    return unsubscribe;
+    const alInvalidar = (event: Event) => {
+      const detail = (event as CustomEvent<{ key?: string; scope?: string }>).detail;
+      if (detail?.key === 'auth:users' && detail.scope === scope) cargar(true);
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    cargar();
+
+    return () => {
+      activo = false;
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+    };
   }, [currentUser?.uid]);
 
 
@@ -509,10 +539,6 @@ export const AuthProvider = ({
           userDocRef,
           async (userDoc) => {
 
-            // ✅ LOG AÑADIDO AQUÍ
-            console.log('perfil en vivo - ¿Existe doc?', userDoc.exists());
-            console.log('perfil en vivo - UID:', fbUser.uid);
-
             if (userDoc.exists()) {
 
               const firestoreUser = userDoc.data() as User;
@@ -520,7 +546,7 @@ export const AuthProvider = ({
               // El registro duradero manda desde que existe. La
               // bandera antigua solo se usa si aún no hay registro,
               // para no reactivar un baneo ya levantado.
-              const restriccion = await estadoRestriccion(fbUser.uid);
+              const restriccion = await restriccionDe(fbUser.uid);
               const baneado = estaBaneado(firestoreUser, restriccion);
 
               setCurrentUser(
@@ -547,7 +573,7 @@ export const AuthProvider = ({
               // con el estado local de baneado. Las reglas lo
               // aplican igualmente aunque el documento no lleve
               // ninguna bandera.
-              const restriccion = await estadoRestriccion(fbUser.uid);
+              const restriccion = await restriccionDe(fbUser.uid);
               const baneado = restriccion.vigente;
 
               const newUser: User = {
@@ -761,82 +787,9 @@ export const AuthProvider = ({
         };
       }
 
-      const userDocRef = doc(db, 'users', fbUser.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-
-        const firestoreUser = userDoc.data() as User;
-        const privado = await getUserPrivate(fbUser.uid).catch((e) => {
-          console.error('[Auth] No se pudo leer el perfil privado al entrar:', e);
-          return null;
-        });
-        datosPrivadosRef.current = privado;
-
-        // Igual que en el listener: el registro duradero manda
-        // desde que existe. La bandera antigua solo cubre cuentas
-        // que aún no tienen registro.
-        const restriccion = await estadoRestriccion(fbUser.uid);
-        const baneado = estaBaneado(firestoreUser, restriccion);
-
-        setCurrentUser(
-          unirPerfilPrivado(
-            firestoreUser,
-            privado,
-            fbUser.email,
-            baneado,
-          ),
-        );
-
-      } else {
-
-        const username =
-          fbUser.displayName ||
-          fbUser.email?.split('@')[0] ||
-          'UserGeek';
-
-        // Mismo caso que en el listener: el perfil no existe (lo
-        // acaban de borrar o es la primera entrada). Se consulta el
-        // registro duradero antes de recrearlo.
-        const restriccion = await estadoRestriccion(fbUser.uid);
-        const baneado = restriccion.vigente;
-
-        const newUser: User = {
-          uid: fbUser.uid,
-          email: fbUser.email || '',
-          username: username.replace(/\s+/g, '_'),
-          displayName: username,
-          chatId: `GK-${Math.floor(1000 + Math.random() * 9000)}-${username.substring(0, 4).toUpperCase()}`,
-          avatarUrl: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-          role: 'user',
-          createdAt: new Date().toISOString(),
-          lastSeen: 'En línea',
-          bio: 'Comunidad geekapoo.com',
-          privateProfile: false,
-          activityHidden: false,
-        };
-
-        const privadoInicial: UserPrivateData = {
-          email: fbUser.email || '',
-          privacy: { ...DEFAULT_PRIVACY },
-        };
-        datosPrivadosRef.current = privadoInicial;
-
-        await crearPerfilEnFirestore(
-          fbUser.uid,
-          newUser,
-          fbUser.email || '',
-        );
-
-        setCurrentUser(
-          unirPerfilPrivado(
-            newUser,
-            privadoInicial,
-            fbUser.email,
-            baneado,
-          ),
-        );
-      }
+      // El listener de `onAuthStateChanged` ya carga el perfil
+      // público, el privado y la restricción. No se repiten aquí las
+      // mismas tres lecturas mientras se resuelve la sesión.
 
       closeAuth();
       return { ok: true };
@@ -1032,6 +985,7 @@ export const AuthProvider = ({
     try {
 
       await signOut(auth);
+      clearPrivateCaches();
       setCurrentUser(null);
 
     } catch (error) {
@@ -1153,6 +1107,17 @@ export const AuthProvider = ({
     };
 
     setCurrentUser(updatedUser);
+
+    // El directorio ya está en memoria: se parchea la entrada propia
+    // en vez de volver a descargar todos los usuarios.
+    if (hayPublico) {
+      const publico = soloCamposPublicos(updatedUser) as unknown as User;
+      const siguiente = usersList
+        .map((user) => (user.uid === uid ? { ...user, ...publico } : user))
+        .sort((a, b) => a.username.localeCompare(b.username));
+      setUsersList(siguiente);
+      setCached('auth:users', siguiente, 5 * 60 * 1000, userCacheScope(uid));
+    }
   };
 
   const getUserByChatId = (chatId: string): User | undefined => {

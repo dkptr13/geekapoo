@@ -3,14 +3,18 @@ import {
   deleteDoc,
   deleteField,
   doc,
+  getDoc,
   getDocs,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
   writeBatch,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
 import {
   estadoCorto,
   seasonIdsDe,
@@ -141,13 +145,32 @@ export function slugify(text: string): string {
  */
 async function uniqueSlug(collectionName: string, title: string): Promise<string> {
   const base = slugify(title) || 'elemento';
-  const taken = new Set((await getDocs(collection(db, collectionName))).docs.map((d) => d.id));
-
-  if (!taken.has(base)) return base;
-
+  let candidate = base;
   let n = 2;
-  while (taken.has(`${base}-${n}`)) n += 1;
-  return `${base}-${n}`;
+
+  // Antes se descargaba la colección entera solo para saber si un id
+  // estaba libre. Lo habitual es una única lectura del candidato.
+  while ((await getDoc(doc(db, collectionName, candidate))).exists()) {
+    candidate = `${base}-${n}`;
+    n += 1;
+  }
+  return candidate;
+}
+
+const CACHE_KEYS: Record<string, string> = {
+  animes: 'community:animes',
+  seasons: 'community:seasons',
+  episodes: 'community:episodes',
+  characters: 'community:characters',
+  categories: 'community:categories',
+  trivia_extras: 'community:trivia-extras',
+};
+
+function invalidarCatalogo(...colecciones: string[]): void {
+  colecciones.forEach((coleccion) => {
+    const key = CACHE_KEYS[coleccion];
+    if (key) invalidateCache(key, PUBLIC_CACHE);
+  });
 }
 
 // ────────────────────────────────────────────────────────
@@ -231,6 +254,7 @@ export async function createAnime(input: NewAnimeInput): Promise<string> {
     createdAt: serverTimestamp(),
   });
 
+  invalidarCatalogo('animes');
   return id;
 }
 
@@ -283,6 +307,7 @@ export async function createEpisode(input: NewEpisodeInput): Promise<string> {
     createdAt: serverTimestamp(),
   });
 
+  invalidarCatalogo('episodes');
   return ref.id;
 }
 
@@ -342,6 +367,7 @@ await setDoc(ref, {
     createdAt: serverTimestamp(),
   });
 
+  invalidarCatalogo('characters');
   return ref.id;
 }
 
@@ -423,6 +449,7 @@ export async function createSeason(input: NewSeasonInput): Promise<string> {
     createdAt: serverTimestamp(),
   });
 
+  invalidarCatalogo('seasons');
   return id;
 }
 
@@ -447,6 +474,7 @@ export async function moveToSeason(
   await updateDoc(doc(db, 'episodes', itemId), {
     seasonId: seasonId ? seasonId : deleteField(),
   });
+  invalidarCatalogo('episodes');
 }
 
 /** Ids de temporada limpios: sin vacíos y sin repetidos. */
@@ -476,6 +504,7 @@ export async function setCharacterSeasons(
     seasonIds: normalizaSeasonIds(seasonIds),
     seasonId: deleteField(),
   });
+  invalidarCatalogo('characters');
 }
 
 // ======================================================
@@ -524,6 +553,7 @@ export async function saveSeasonFields(
   fields: Record<string, unknown>,
 ): Promise<void> {
   await updateDoc(doc(db, 'seasons', seasonId), fields);
+  invalidarCatalogo('seasons');
 
   if (!esLaPrimera) return;
 
@@ -538,6 +568,7 @@ export async function saveSeasonFields(
 
   if (Object.keys(paraElAnime).length > 0) {
     await updateDoc(doc(db, 'animes', animeId), paraElAnime);
+    invalidarCatalogo('animes');
   }
 }
 
@@ -567,6 +598,7 @@ export async function createTrivia(input: NewTriviaInput): Promise<string> {
     createdAt: serverTimestamp(),
   });
 
+  invalidarCatalogo('trivia_extras');
   return ref.id;
 }
 
@@ -603,6 +635,7 @@ export async function createCategory(
     createdAt: serverTimestamp(),
   });
 
+  invalidarCatalogo('categories');
   return id;
 }
 
@@ -625,6 +658,7 @@ export async function updateFields(
   if (Object.keys(clean).length === 0) return;
 
   await updateDoc(doc(db, collectionOf(section), itemId), clean);
+  invalidarCatalogo(collectionOf(section));
 }
 
 /** Guarda un único campo (normalmente una URL de imagen). */
@@ -635,6 +669,7 @@ export async function setField(
   value: unknown,
 ): Promise<void> {
   await setDoc(doc(db, collectionOf(section), itemId), { [field]: value }, { merge: true });
+  invalidarCatalogo(collectionOf(section));
 }
 
 // ────────────────────────────────────────────────────────
@@ -643,6 +678,7 @@ export async function setField(
 
 export async function deleteItem(section: CatalogSection, itemId: string): Promise<void> {
   await deleteDoc(doc(db, collectionOf(section), itemId));
+  invalidarCatalogo(collectionOf(section));
 }
 
 /**
@@ -664,22 +700,17 @@ export async function deleteAnimeCascade(animeId: string): Promise<{
   episodes: number;
   characters: number;
 }> {
-  // Se traen los tres conjuntos y se filtran en memoria en vez de
-  // usar "where('animeId', '==', ...)": eso exigiría un índice
-  // compuesto desplegado, y si no lo está la operación fallaría
-  // justo cuando se está borrando algo. El catálogo es pequeño.
-  const [allSeasons, allEpisodes, allCharacters] = await Promise.all([
-    getDocs(collection(db, 'seasons')),
-    getDocs(collection(db, 'episodes')),
-    getDocs(collection(db, 'characters')),
+  // Un único `where` no necesita índice compuesto y evita descargar
+  // episodios, temporadas y personajes de todos los demás animes.
+  const [seasonSnap, episodeSnap, characterSnap] = await Promise.all([
+    getDocs(query(collection(db, 'seasons'), where('animeId', '==', animeId))),
+    getDocs(query(collection(db, 'episodes'), where('animeId', '==', animeId))),
+    getDocs(query(collection(db, 'characters'), where('animeId', '==', animeId))),
   ]);
 
-  const belongsToAnime = (d: { data: () => unknown }) =>
-    (d.data() as { animeId?: string }).animeId === animeId;
-
-  const seasonDocs = allSeasons.docs.filter(belongsToAnime);
-  const episodeDocs = allEpisodes.docs.filter(belongsToAnime);
-  const characterDocs = allCharacters.docs.filter(belongsToAnime);
+  const seasonDocs = seasonSnap.docs;
+  const episodeDocs = episodeSnap.docs;
+  const characterDocs = characterSnap.docs;
 
   // Firestore admite un máximo de 500 operaciones por batch. El
   // catálogo es pequeño, pero partirlo evita que un anime con
@@ -697,6 +728,7 @@ export async function deleteAnimeCascade(animeId: string): Promise<{
     await batch.commit();
   }
 
+  invalidarCatalogo('animes', 'seasons', 'episodes', 'characters');
   return {
     seasons: seasonDocs.length,
     episodes: episodeDocs.length,
@@ -725,20 +757,20 @@ export async function deleteAnimeCascade(animeId: string): Promise<{
 export async function deleteSeasonCascade(
   seasonId: string,
 ): Promise<{ episodes: number; characters: number }> {
-  const [allEpisodes, allCharacters] = await Promise.all([
-    getDocs(collection(db, 'episodes')),
-    getDocs(collection(db, 'characters')),
+  const [episodeSnap, charactersNew, charactersLegacy] = await Promise.all([
+    getDocs(query(collection(db, 'episodes'), where('seasonId', '==', seasonId))),
+    getDocs(query(collection(db, 'characters'), where('seasonIds', 'array-contains', seasonId))),
+    getDocs(query(collection(db, 'characters'), where('seasonId', '==', seasonId))),
   ]);
 
-  const episodeDocs = allEpisodes.docs.filter(
-    (d) => (d.data() as { seasonId?: string }).seasonId === seasonId,
-  );
+  const episodeDocs = episodeSnap.docs;
 
-  // Los personajes se leen con `seasonIdsDe`, que entiende el
-  // array nuevo y el "seasonId" antiguo de los personajes que ya
-  // había. Sin esto, borrar una temporada dejaría a sus personajes
-  // apuntando a un id que ya no existe.
-  const personajes = allCharacters.docs
+  // Se admiten los dos formatos sin descargar personajes ajenos a
+  // esta temporada. El mapa evita duplicados si un documento antiguo
+  // conserva los dos campos durante la migración.
+  const porId = new Map<string, (typeof charactersNew.docs)[number]>();
+  [...charactersNew.docs, ...charactersLegacy.docs].forEach((d) => porId.set(d.id, d));
+  const personajes = [...porId.values()]
     .map((d) => ({ ref: d.ref, ids: seasonIdsDe(d.data()) }))
     .filter((p) => p.ids.includes(seasonId));
 
@@ -759,6 +791,7 @@ export async function deleteSeasonCascade(
   );
 
   await batch.commit();
+  invalidarCatalogo('seasons', 'episodes', 'characters');
 
   return { episodes: episodeDocs.length, characters: personajes.length };
 }

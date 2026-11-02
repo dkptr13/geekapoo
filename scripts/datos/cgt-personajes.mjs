@@ -23,7 +23,7 @@ export const PERSONAJES = [
   ['Nunnally Lamperouge', '', 'supporting', 'ナナリー・ランペルージ', 'Kaori Nazuka',
     'La hermana de Lelouch, ciega y en silla de ruedas. El motivo por el que lucha.'],
 
-  ['Cornelia li Britannia', '', 'supporting', 'コーネリア・リ・ブリタニア', 'Junko Minagawa',
+  ['Cornelia li Britannia', '', 'antagonist', 'コーネリア・リ・ブリタニア', 'Junko Minagawa',
     'La princesa de Britannia y general. Fuerte y decidida.'],
 
   ['Kaname Oogi', '', 'supporting', '扇要', 'Mitsuaki Madono',
@@ -47,7 +47,7 @@ export const PERSONAJES = [
   ['Diethard Ried', '', 'supporting', 'ディートハルト・リート', 'Jouji Nakata',
     'El miembro de los Caballeros Negros que graba todo. Calculador y ambicioso.'],
 
-  ['Schneizel el Britannia', '', 'supporting', 'シュナイゼル・エル・ブリタニア', 'Norihiro Inoue',
+  ['Schneizel el Britannia', '', 'antagonist', 'シュナイゼル・エル・ブリタニア', 'Norihiro Inoue',
     'El príncipe de Britannia y estratega. Calculador y ambicioso.'],
 
   ['Rakshata Chawla', '', 'supporting', 'ラクシャータ・チャウラー', 'Masayo Kurata',
@@ -56,10 +56,10 @@ export const PERSONAJES = [
   ['Kaguya Sumeragi', '', 'supporting', '皇神楽耶', 'Mika Kanai',
     'La presidenta del consejo estudiantil. Inteligente y decidida.'],
 
-  ['Charles zi Britannia', '', 'supporting', 'シャルル・ジ・ブリタニア', 'Norio Wakamoto',
+  ['Charles zi Britannia', '', 'antagonist', 'シャルル・ジ・ブリタニア', 'Norio Wakamoto',
     'El emperador de Britannia y padre de Lelouch. Cruel y despiadado.'],
 
-  ['Rolo Lamperouge', '', 'supporting', 'ロロ・ランペルージ', 'Daichuu Mizushima',
+  ['Rolo Lamperouge', '', 'antagonist', 'ロロ・ランペルージ', 'Daichuu Mizushima',
     'El hermano falso de Lelouch. Misterioso y peligroso.'],
 
   ['Euphemia li Britannia', '', 'supporting', 'ユーフェミア・リ・ブリタニア', 'Omi Minami',

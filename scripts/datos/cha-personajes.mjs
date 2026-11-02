@@ -37,7 +37,7 @@ export const PERSONAJES = [
   ["Takehito Kumagami", "", "supporting", "熊耳武仁", "Eiji Takemoto",
    "El detector que guía al consejo y muere cubriendo a Nao. El precio del rescate."],
 
-  ["Sara Shane", "1", "supporting", "Sara Shane", "Miyuki Sawashiro",
+  ["Sara Shane", "1", "antagonist", "Sara Shane", "Miyuki Sawashiro",
    "La ciega de Zhiend que calma con canciones. Su música despierta recuerdos."],
 
   ["Yumi Shirayanagi", "1", "supporting", "白柳弓", "Mai Nakahara",
