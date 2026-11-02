@@ -57,11 +57,10 @@ import { Code2 } from 'lucide-react';
 // CONTENIDO PRINCIPAL
 // ======================================================
 
-const MainAppContent: React.FC = () => {
+const MainAppContentInner: React.FC = () => {
 
 const {
   currentUser,
-  loading,
   canManage,
 } = useAuth();
 
@@ -83,17 +82,6 @@ const {
 
     navigate(`/anime/${encodeURIComponent(slug)}`, { replace: true });
   }, [pathname, search, navigate]);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent" />
-          <p className="text-sm text-zinc-400">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
 
   const [
     currentTabParam,
@@ -767,6 +755,38 @@ const {
 
     </div>
   );
+};
+
+/**
+ * Puerta de carga de la app.
+ *
+ * Este componente solo hace dos cosas: preguntar a Auth si ya
+ * terminó y, mientras no lo haya hecho, pintar el spinner. No
+ * declara ningún hook después de un `return` a propósito.
+ *
+ * Antes el spinner vivía dentro de `MainAppContent`, antes de la
+ * mitad de sus hooks. Mientras `loading` era `false` desde el
+ * primer render no pasaba nada, pero cuando Auth tardaba un poco
+ * (sesión guardada, IndexedDB lento, otro navegador) el primer
+ * render ejecutaba menos hooks que el segundo y React lanzaba el
+ * error #310: "Rendered more hooks than during the previous render".
+ * Separarlo deja el orden de hooks fijo pase lo que pase.
+ */
+const MainAppContent: React.FC = () => {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent" />
+          <p className="text-sm text-zinc-400">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <MainAppContentInner />;
 };
 
 
