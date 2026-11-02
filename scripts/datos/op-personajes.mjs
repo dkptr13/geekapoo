@@ -95,7 +95,7 @@ export const PERSONAJES = [
   ['Crocus', '2', 'supporting', 'クロッカス', 'Gorou Naya',
     'Médico y farero de Reverse Mountain. Cuida de Laboon desde hace años y vive dentro de la ballena, donde ha pintado un cielo para que no esté sola. Fue médico de la tripulación de Gol D. Roger.'],
 
-  ['Nefertari Vivi', '2,3,4', 'supporting', 'ネフェルタリ・ビビ', 'Misa Watanabe',
+  ['Nefertari Vivi', '2,3,4,19', 'supporting', 'ネフェルタリ・ビビ', 'Misa Watanabe',
     'Princesa de Arabasta. Se infiltró en Baroque Works como Miss Wednesday para descubrir quién dirige la organización, y acaba viajando con los sombrero de paja para que la lleven de vuelta a su país.'],
 
   ['Igaram', '2,4', 'supporting', 'イガラム', 'Keiichi Sonobe',
@@ -128,24 +128,24 @@ export const PERSONAJES = [
   ['Miss Valentine', '2', 'supporting', 'ミキータ', 'Fumiko Orikasa',
     'Compañera de Mr. 5. Comió la Fruta del Peso y cambia su peso a voluntad: puede flotar como una pluma o caer sobre su enemigo como una tonelada.'],
 
-  ['Nico Robin', '2,4,5,6,7,8,9,10,11,12,13,14,15,16,17', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
+  ['Nico Robin', '2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
     'Vicepresidenta de Baroque Works, conocida como Miss All Sunday. Aparece en el barco de los sombrero de paja, les ofrece un eternal pose y demuestra que sabe demasiado sobre ellos. Tras la caída de Crocodile en Arabasta, se une a la tripulación.'],
 
   // ── TEMPORADA 3: la isla de Drum y Tony Tony Chopper ───────────────
 
-  ['Tony Tony Chopper', '3,4,5,6,7,8,9,10,11,12,13,14,15,16,17', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
+  ['Tony Tony Chopper', '3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
     'Reno que comió la Fruta Humano-Humano y aprendió a hablar y a caminar como una persona. Quiere ser un médico capaz de curar cualquier enfermedad y se une a la tripulación en la isla de Drum.'],
 
-  ['Kureha', '3', 'supporting', 'くれは', 'Masako Nozawa',
+  ['Kureha', '3,19', 'supporting', 'くれは', 'Masako Nozawa',
     'La doctora de la isla de Drum, conocida como la bruja. Tiene 139 años, vive en la cima del castillo y es la única persona capaz de curar la fiebre de Nami. Acoge a Chopper como aprendiz.'],
 
   ['Hiruluk', '3', 'supporting', 'ヒルルク', 'Shigeru Ushiyama',
     'Médico al que todos llamaban un matasanos. Cuidó de Chopper cuando era un reno rechazado y le enseñó que no hay enfermedad incurable. Su sueño eran los cerezos que florecen en la nieve.'],
 
-  ['Wapol', '3', 'supporting', 'ワポル', 'Bin Shimada',
+  ['Wapol', '3,19', 'supporting', 'ワポル', 'Bin Shimada',
     'Antiguo rey de la isla de Drum. Comió la Fruta de la Comida y puede comerse cualquier cosa y unirla a su cuerpo. Huyó del reino cuando lo atacaron unos piratas y vuelve para recuperar el trono.'],
 
-  ['Dalton', '3', 'supporting', 'ドルトン', 'Kenichi Ono',
+  ['Dalton', '3,19', 'supporting', 'ドルトン', 'Kenichi Ono',
     'Capitán de la guardia de Drum y hombre de confianza del pueblo. Comió la Fruta del Bisonte y se enfrenta a Wapol para proteger a los aldeanos cuando el rey vuelve a la isla.'],
 
   ['Chess', '3', 'supporting', 'チェス', 'Yuusuke Numata',
@@ -410,7 +410,7 @@ export const PERSONAJES = [
   ['Puzzle', '9', 'supporting', 'パズール', 'Kishou Taniyama',
     'Capitán de los Piratas del Fénix y viejo pirata del Nuevo Mundo. Está gravemente herido cuando la tripulación lo encuentra y recupera la confianza para luchar contra los Accino.'],
 
-  ['Sengoku', '6,14,17', 'supporting', 'センゴク', 'Takkou Ishimori',
+  ['Sengoku', '6,14,17,19', 'supporting', 'センゴク', 'Takkou Ishimori',
     'Almirante de flota de la Marina y estratega del Gobierno Mundial. Dirige la reunión de los Señores del Mar en la que se discute el sustituto de Crocodile.'],
 
   ['Tsuru', '6,14,17', 'supporting', 'つる中将', 'Minori Matsushima',
@@ -419,7 +419,7 @@ export const PERSONAJES = [
   ['Bartholomew Kuma', '6,10,11,14', 'supporting', 'バーソロミュー・くま', 'Hideyuki Hori',
     'Uno de los Siete Señores del Mar, con aspecto de oso y poderes desconocidos. Asiste a la reunión de Mary Geoise.'],
 
-  ['Donquixote Doflamingo', '6,14,16,17', 'antagonist', 'ドフラミンゴ・ドンキホーテ', 'Hideyuki Tanaka',
+  ['Donquixote Doflamingo', '6,14,16,17,19', 'antagonist', 'ドフラミンゴ・ドンキホーテ', 'Hideyuki Tanaka',
     'Uno de los Siete Señores del Mar, conocido como el Joker. Asiste a la reunión de Mary Geoise y se burla de la Marina.'],
 
   ['Edward Newgate', '6,14', 'supporting', 'エドワード・ニューゲート', 'Kinryuu Arimoto',
@@ -436,7 +436,7 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 8: Water Seven y CP9 ───────────────────────────────
 
-  ['Franky', '8,9,14,15,16,17', 'main', 'フランキー', 'Kazuki Yao',
+  ['Franky', '8,9,14,15,16,17,18,19', 'main', 'フランキー', 'Kazuki Yao',
     'Cyborg y carpintero de Water Seven, antiguo aprendiz de Tom. Construye el Thousand Sunny y se une a la tripulación como carpintero.'],
 
   ['Iceberg', '8,9', 'supporting', 'アイスバーグ', 'Shinichirou Miki',
@@ -554,7 +554,7 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 10: Thriller Bark ──────────────────────────────────
 
-  ['Brook', '10,11,14,15,16,17', 'main', 'ブルック', 'Choo',
+  ['Brook', '10,11,14,15,16,17,18,19', 'main', 'ブルック', 'Choo',
     'Esqueleto músico que comió la Fruta de la Resurrección y perdió su sombra en Thriller Bark. Fue capitán de los Piratas Rumbar y quiere volver a ver a la ballena Laboon.'],
 
   ['Gecko Moria', '10,14', 'antagonist', 'ゲッコー・モリア', 'Katsuhisa Houki',
@@ -601,31 +601,31 @@ export const PERSONAJES = [
   ['Shakky', '11,14', 'supporting', 'シャクヤク', 'Hiromi Tsuru',
     'Dueña del bar de Sabaody y vieja conocida de Rayleigh. Informa a la tripulación de las Supernovas y de los peligros del archipiélago.'],
 
-  ['Eustass Kid', '11,14,17', 'supporting', 'ユースタス・キッド', 'Daisuke Namikawa',
+  ['Eustass Kid', '11,14,17,18', 'supporting', 'ユースタス・キッド', 'Daisuke Namikawa',
     'Capitán de los Piratas de Kid y una de las once Supernovas. Comió la Fruta del Imán y tiene una recompensa enorme; rival de Luffy.'],
 
-  ['Killer', '11,14,17', 'supporting', 'キラー', 'Kenji Hamada',
+  ['Killer', '11,14,17,18', 'supporting', 'キラー', 'Kenji Hamada',
     'Mano derecha de Eustass Kid y una de las Supernovas. Lleva una máscara y pelea con cuchillas giratorias.'],
 
-  ['Trafalgar Law', '11,14,16,17', 'supporting', 'トラファルガー・ロー', 'Hiroshi Kamiya',
+  ['Trafalgar Law', '11,14,16,17,18', 'supporting', 'トラファルガー・ロー', 'Hiroshi Kamiya',
     'Capitán de los Piratas Heart y una de las Supernovas. Comió la Fruta de la Operación y se alía con Luffy en Sabaody.'],
 
-  ['Jewelry Bonney', '11,14', 'supporting', 'ジュエリー・ボニー', 'Reiko Kiuchi',
+  ['Jewelry Bonney', '11,14,19', 'supporting', 'ジュエリー・ボニー', 'Reiko Kiuchi',
     'Capitana de los Piratas de Bonney y una de las Supernovas. Comió la Fruta de la Edad y tiene un apetito enorme.'],
 
   ['X Drake', '11,14,17', 'supporting', 'Ｘ・ドレーク', 'Eiji Takemoto',
     'Capitán de los Piratas Drake y una de las Supernovas. Antiguo marine y usuario de una Fruta Zoan de dinosaurio.'],
 
-  ['Basil Hawkins', '11,14,17', 'supporting', 'バジル・ホーキンス', 'Shigenori Souya',
+  ['Basil Hawkins', '11,14,17,18', 'supporting', 'バジル・ホーキンス', 'Shigenori Souya',
     'Capitán de los Piratas de Hawkins y una de las Supernovas. Usa cartas y muñecos de paja para desviar el daño.'],
 
   ['Urouge', '11,14', 'supporting', 'ウルージ', 'Taiten Kusunoki',
     'Capitán de los Piratas del Monje y una de las Supernovas. Un gigante que convierte el daño recibido en fuerza.'],
 
-  ['Capone Bege', '11,14,17', 'supporting', 'カポネ・ベッジ', 'Naoki Tatsuta',
+  ['Capone Bege', '11,14,17,19', 'supporting', 'カポネ・ベッジ', 'Naoki Tatsuta',
     'Capitán de los Piratas de Fuego y una de las Supernovas. Comió la Fruta del Castillo y guarda un ejército dentro de su cuerpo.'],
 
-  ['Scratchmen Apoo', '11,14,17', 'supporting', 'スクラッチメン・アプー', 'Mitsuaki Madono',
+  ['Scratchmen Apoo', '11,14,17,18', 'supporting', 'スクラッチメン・アプー', 'Mitsuaki Madono',
     'Capitán de los Piratas del Sonido y una de las Supernovas. Convierte su cuerpo en instrumentos y ataca con música.'],
 
   ['Kizaru', '11,14,15', 'antagonist', 'ボルサリーノ', 'Unshou Ishizuka',
@@ -680,7 +680,7 @@ export const PERSONAJES = [
   ['Emporio Ivankov', '13,14', 'supporting', 'エンポリオ・イワンコフ', 'Mitsuo Iwata',
     'Reina del Reino Kamabakka y comandante del Ejército Revolucionario. Comió la Fruta de las Hormonas y cura a Luffy en el nivel 5.5 de Impel Down.'],
 
-  ['Jimbei', '13,14,15', 'supporting', 'ジンベエ', 'Daisuke Gouri',
+  ['Jimbei', '13,14,15,19', 'supporting', 'ジンベエ', 'Daisuke Gouri',
     'Tiburón ballena y uno de los Siete Señores del Mar, conocido como el Caballero del Mar. Está preso en Impel Down por negarse a luchar contra Barbablanca y se une a Luffy.'],
 
   ['Shiki', '13', 'antagonist', 'シキ', 'Naoto Takenaka',
@@ -691,10 +691,10 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 14: Marineford ────────────────────────────────────
 
-  ['Monkey D. Garp', '9,14', 'supporting', 'ガープ', 'Hiroshi Naka',
+  ['Monkey D. Garp', '9,14,19', 'supporting', 'ガープ', 'Hiroshi Naka',
     'Vicealmirante de la Marina y abuelo de Luffy. Héroe de la Marina que persiguió a Roger y que ahora tiene que elegir entre su deber y su familia en Marineford.'],
 
-  ['Akainu', '9,14,17', 'antagonist', 'サカズキ', 'Fumihiko Tachiki',
+  ['Akainu', '9,14,17,19', 'antagonist', 'サカズキ', 'Fumihiko Tachiki',
     'Almirante de la Marina, conocido como Akainu por su fruta de magma. Es el más implacable de los tres almirantes y persigue a Luffy y a Ace hasta el final de la guerra.'],
 
   ['Vista', '14', 'supporting', 'ビスタ', 'Masaya Takatsuka',
@@ -709,7 +709,7 @@ export const PERSONAJES = [
   ['Curly Dadan', '14', 'supporting', 'カーリー・ダダン', 'Noriko Uemura',
     'Jefa de los bandidos del monte Corvo, que crió a Ace y luego a Luffy. Se enfrenta a Bluejam para salvarlos y llora la muerte de Ace en silencio.'],
 
-  ['Sabo', '14,17', 'supporting', 'サボ', 'Junko Takeuchi',
+  ['Sabo', '14,17,19', 'supporting', 'サボ', 'Junko Takeuchi',
     'Hijo de un noble que se escapa al Terminal Gris y se hace hermano de Ace y Luffy. Muere de un disparo de un Dragón Celestial cuando se hace a la mar.'],
 
   ['Bluejam', '14', 'antagonist', 'ブルージャム', 'Akihiko Ishizumi',
@@ -717,7 +717,7 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 15: isla de los hombres pez ───────────────────────
 
-  ['Shirahoshi', '15', 'supporting', 'しらほし', 'Yukana',
+  ['Shirahoshi', '15,19', 'supporting', 'しらほし', 'Yukana',
     'Princesa sirena de la isla de los hombres pez y única persona que puede hablar con los Reyes del Mar. Lleva diez años encerrada en la torre de concha.'],
 
   ['Neptune', '15', 'supporting', 'ネプチューン', 'Minoru Inaba',
@@ -738,7 +738,7 @@ export const PERSONAJES = [
   ['Fisher Tiger', '15', 'supporting', 'フィッシャー・タイガー', 'Kouji Ishii',
     'Fundador de los Piratas del Sol y héroe que liberó a los esclavos de Mary Geoise. Fue esclavo y se negó a recibir sangre humana.'],
 
-  ['Koala', '15,17', 'supporting', 'コアラ', 'Satsuki Yukino',
+  ['Koala', '15,17,19', 'supporting', 'コアラ', 'Satsuki Yukino',
     'Niña rescatada por los Piratas del Sol. Tiger la devuelve a su madre y años después se une al Ejército Revolucionario.'],
 
   ['Hody Jones', '15', 'antagonist', 'ホーディ・ジョーンズ', 'Jouji Nakata',
@@ -750,13 +750,13 @@ export const PERSONAJES = [
   ['Caribou', '15', 'antagonist', 'カリブー', 'Masaki Terasoma',
     'Pirata con la Fruta del Pantano que se cuela en el Sunny. Es cruel, cobarde y solo piensa en secuestrar sirenas para venderlas.'],
 
-  ['Pekoms', '15', 'supporting', 'ペコムズ', 'Nobuo Tobita',
+  ['Pekoms', '15,18,19', 'supporting', 'ペコムズ', 'Nobuo Tobita',
     'Tripulante de Big Mom y usuario de una fruta Zoan de tortuga. Va a la isla de los hombres pez a cobrar el dulce mensual.'],
 
-  ['Tamago', '15', 'supporting', 'タマゴ', 'Mugihito',
+  ['Tamago', '15,19', 'supporting', 'タマゴ', 'Mugihito',
     'Barón y embajador de Big Mom. Acompaña a Pekoms a cobrar el tributo de dulces y negocia con Luffy.'],
 
-  ['Charlotte Linlin', '15', 'antagonist', 'シャーロット・リンリン', 'Toshiko Fujita',
+  ['Charlotte Linlin', '15,19', 'antagonist', 'シャーロット・リンリン', 'Toshiko Fujita',
     'Big Mom, una de los Cuatro Emperadores. Protege la isla de los hombres pez a cambio de dulces y amenaza con destruirla si dejan de pagar.'],
 
   ['Wadatsumi', '15', 'antagonist', 'ワダツミ', 'Kouki Miyata',
@@ -797,7 +797,7 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 16: Punk Hazard ───────────────────────────────────
 
-  ['Caesar Clown', '16,17', 'antagonist', 'シーザー・クラウン', 'Ryuusei Nakao',
+  ['Caesar Clown', '16,17,19', 'antagonist', 'シーザー・クラウン', 'Ryuusei Nakao',
     'Científico loco que experimenta con niños y gases venenosos en Punk Hazard. Comió la Fruta del Gas y trabaja para Doflamingo fabricando SMILE.'],
 
   ['Monet', '16', 'antagonist', 'モネ', 'Naoko Matsui',
@@ -809,10 +809,10 @@ export const PERSONAJES = [
   ['Brownbeard', '16', 'supporting', '茶ひげ', 'Yasuhiko Tokuyama',
     'Capitán pirata con cuerpo de cocodrilo que trabaja para Caesar. Ayuda a los Sombrero de Paja tras descubrir que su tripulación murió por el gas.'],
 
-  ['Kin\'emon', '16,17', 'supporting', '錦えもん', 'Kenyuu Horiuchi',
+  ['Kin\'emon', '16,17,18', 'supporting', '錦えもん', 'Kenyuu Horiuchi',
     'Samurái de Wano que corta el fuego con su espada. Busca a su hijo Momonosuke y se une a la tripulación en Punk Hazard.'],
 
-  ['Momonosuke', '16,17', 'supporting', '光月モモの助', 'Ai Orikasa',
+  ['Momonosuke', '16,17,18', 'supporting', '光月モモの助', 'Ai Orikasa',
     'Hijo de Kin\'emon y heredero del clan Kozuki. Comió una fruta artificial que lo convirtió en dragón y viaja con los Sombrero de Paja.'],
 
   ['Baby 5', '16,17', 'antagonist', 'ベビー5', 'Rina Satou',
@@ -832,13 +832,13 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 17: Dressrosa ─────────────────────────────────────
 
-  ['Rebecca', '17', 'supporting', 'レベッカ', 'Megumi Hayashibara',
+  ['Rebecca', '17,19', 'supporting', 'レベッカ', 'Megumi Hayashibara',
     'Gladiadora del Coliseo y nieta del rey Riku. Pelea sin herir a nadie para recuperar la Fruta del Fuego y vengar a su madre.'],
 
   ['Kyros', '17', 'supporting', 'キュロス', 'Rikiya Koyama',
     'Legendario gladiador de Dressrosa convertido en soldado de juguete. Es el padre de Rebecca y protege la rebelión contra Doflamingo.'],
 
-  ['Riku Doldo III', '17', 'supporting', 'リク・ドルド3世', 'Masashi Hirose',
+  ['Riku Doldo III', '17,19', 'supporting', 'リク・ドルド3世', 'Masashi Hirose',
     'Antiguo rey de Dressrosa, derrocado por Doflamingo. Su familia y sus ciudadanos sufren el engaño que lo hizo pasar por tirano.'],
 
   ['Viola', '17', 'supporting', 'ヴァイオレット', 'Mie Sonozaki',
@@ -877,7 +877,7 @@ export const PERSONAJES = [
   ['Cavendish', '17', 'supporting', 'キャベンディッシュ', 'Akira Ishida',
     'Pirata noble y espadachín bellísimo. Su otra personalidad, Hakuba, lo convierte en un asesino velocísimo.'],
 
-  ['Fujitora', '17', 'supporting', 'イッショウ', 'Ikuya Sawaki',
+  ['Fujitora', '17,19', 'supporting', 'イッショウ', 'Ikuya Sawaki',
     'Almirante de la Marina ciego que controla la gravedad. Llega a Dressrosa para detener a Luffy y acaba enfrentándose a Doflamingo.'],
 
   ['Bastille', '17', 'supporting', 'バスティーユ', 'Tsuyoshi Koyama',
@@ -889,7 +889,7 @@ export const PERSONAJES = [
   ['Chinjao', '17', 'supporting', 'チンジャオ', 'Shin Aomori',
     'Líder de la Marina Happo y abuelo de Sai. Antiguo rival de Garp, recupera su cabeza de taladro gracias a Luffy.'],
 
-  ['Sai', '17', 'supporting', 'サイ', 'Kouichi Hashimoto',
+  ['Sai', '17,19', 'supporting', 'サイ', 'Kouichi Hashimoto',
     'Nuevo líder de la Marina Happo y nieto de Chinjao. Se enamora de Baby 5 y la convierte en su esposa.'],
 
   ['Ideo', '17', 'supporting', 'イデオ', 'Masaki Aizawa',
@@ -910,7 +910,7 @@ export const PERSONAJES = [
   ['Mansherry', '17', 'supporting', 'マンシェリー', 'Ai Nonaka',
     'Princesa de los enanos de Tontatta. Sus lágrimas curan heridas y ayudan a los heridos de Dressrosa.'],
 
-  ['Leo', '17', 'supporting', 'レオ', 'Kurumi Mamiya',
+  ['Leo', '17,19', 'supporting', 'レオ', 'Kurumi Mamiya',
     'Líder de los enanos de Tontatta. Comió la Fruta de la Costura y cose a sus enemigos al suelo.'],
 
   ['Kabu', '17', 'supporting', 'カブ', 'Masami Kikuchi',
@@ -922,21 +922,142 @@ export const PERSONAJES = [
   ['Corazon', '17', 'supporting', 'ドンキホーテ・ロシナンテ', 'Kouichi Yamadera',
     'Hermano pequeño de Doflamingo y oficial de los Donquixote. Salvó a Law y murió por él.'],
 
-  ['Kaido', '17', 'antagonist', 'カイドウ', 'Tesshou Genda',
+  ['Kaido', '17,19', 'antagonist', 'カイドウ', 'Tesshou Genda',
     'Uno de los Cuatro Emperadores y la criatura más fuerte del mundo. Compra las frutas SMILE para crear un ejército.'],
 
-  ['Jack', '17', 'antagonist', 'ジャック', 'Kenji Nomura',
+  ['Jack', '17,18', 'antagonist', 'ジャック', 'Kenji Nomura',
     'Comandante de los Piratas de las Bestias. Ataca el convoy que lleva a Doflamingo a Impel Down.'],
 
-  ['Sheepshead', '17', 'antagonist', 'シープスヘッド', 'Katsuyuki Konishi',
+  ['Sheepshead', '17,18', 'antagonist', 'シープスヘッド', 'Katsuyuki Konishi',
     'Pirata de las Bestias que ataca a la tripulación en Zou. Puede transformar sus brazos en cuernos de carnero.'],
 
-  ['Ginrummy', '17', 'antagonist', 'ジンラミー', 'Sakiko Uran',
+  ['Ginrummy', '17,18', 'antagonist', 'ジンラミー', 'Sakiko Uran',
     'Pirata de las Bestias que acompaña a Sheepshead. Busca a los samuráis en la isla.'],
 
-  ['Kanjuro', '17', 'supporting', 'カン十郎', 'Takumi Yamazaki',
+  ['Kanjuro', '17,18', 'supporting', 'カン十郎', 'Takumi Yamazaki',
     'Samurái de Wano y compañero de Kin\'emon. Dibuja seres que cobran vida con su fruta.'],
 
   ['Hack', '17', 'supporting', 'ハック', 'Kousei Hirota',
     'Hombre pez y maestro de karate gyojin del Ejército Revolucionario. Ayuda a Sabo y a Koala en Dressrosa.'],
+
+  // ── TEMPORADA 18: Zou y la mina de plata ────────────────────────
+
+  ['Carrot', '18,19', 'supporting', 'キャロット', 'Kanae Itou',
+    'Coneja Mink de Zou que se une al equipo de rescate de Sanji. Puede activar el Sulong con la luna llena y pelea con electricidad.'],
+
+  ['Pedro', '18,19', 'supporting', 'ペドロ', 'Shinichirou Miki',
+    'Jaguar Mink y capitán de los guardianes de Zou. Acompaña a Luffy a Totto Land y se sacrifica para salvar a la tripulación.'],
+
+  ['Wanda', '18', 'supporting', 'ワンダ', 'Fumiko Orikasa',
+    'Perra Mink que guía a los Sombrero de Paja por Zou. Cuida de los heridos y explica la historia del ducado.'],
+
+  ['Inuarashi', '18', 'supporting', 'イヌアラシ', 'Takaya Hashi',
+    'Duque de Mokomo y rey del día de Zou. Uno de los dos gobernantes Mink que defendieron la isla de Jack.'],
+
+  ['Nekomamushi', '18', 'supporting', 'ネコマムシ', 'Masaru Ikeda',
+    'Maestro Cat Viper y rey de la noche de Zou. Comparte el gobierno con Inuarashi y ayuda a la alianza contra Kaido.'],
+
+  ['Raizo', '18', 'supporting', '雷ぞう', 'Masashi Ebara',
+    'Ninja del clan Kozuki y tercer samurái de Wano. Los Mink lo escondieron de Jack durante semanas.'],
+
+  ['Edward Weevil', '18', 'antagonist', 'エドワード・ウィーブル', 'Kōzō Shioya',
+    'Nuevo Señor del Mar que dice ser hijo biológico de Barbablanca. Ataca a los antiguos aliados de su padre buscando su tesoro.'],
+
+  ['Bakkin', '18', 'supporting', 'バッキン', 'Reiko Suzuki',
+    'Madre de Edward Weevil y antigua compañera de Barbablanca. Maneja a su hijo para hacerse con la herencia del emperador.'],
+
+  ['Grount', '18', 'antagonist', 'オールハント・グラント', 'Natsuki Hanae',
+    'Capitán de la Marina del arco de relleno de Fron. Tiene un brazo zoan de gorila que aprendió a controlar con Aokiji.'],
+
+  ['Bill', '18', 'antagonist', 'ビル', 'Hiroki Takahashi',
+    'Líder de la Alianza Pirata de Plata y antagonista del relleno de la mina. Comió la Fruta de la Fundición y crea armas con mineral.'],
+
+  ['Desire', '18', 'supporting', 'デザイア', 'Yuki Kaida',
+    'Pirata amiga de la infancia de Bartolomeo. Bill destruyó su tripulación y ella ayuda a Luffy a escapar de la mina.'],
+
+  // ── TEMPORADA 19: Whole Cake Island y el Levely ─────────────────
+
+  ['Vinsmoke Judge', '19', 'antagonist', 'ヴィンスモーク・ジャッジ', 'Hideyuki Hori',
+    'Rey del reino de Germa y padre de Sanji. Creó un ejército de clones con Vegapunk y desprecia a su hijo por no tener poderes.'],
+
+  ['Vinsmoke Reiju', '19', 'supporting', 'ヴィンスモーク・レイジュ', 'Michiko Neya',
+    'Princesa de Germa y hermana mayor de Sanji. Le salvó la vida de niño y le ayuda a escapar de la boda.'],
+
+  ['Vinsmoke Ichiji', '19', 'antagonist', 'ヴィンスモーク・イチジ', 'Noriaki Sugiyama',
+    'Primer hijo de Judge y hermano de Sanji. Tiene fuerza y velocidad sobrehumanas y trata a Sanji como un fracaso.'],
+
+  ['Vinsmoke Niji', '19', 'antagonist', 'ヴィンスモーク・ニジ', 'Atsushi Miyauchi',
+    'Segundo hijo de Judge y hermano de Sanji. Es cruel y golpea a los sirvientes; Sanji se enfrenta a él en Germa.'],
+
+  ['Vinsmoke Yonji', '19', 'antagonist', 'ヴィンスモーク・ヨンジ', 'Kenjirou Tsuda',
+    'Cuarto hijo de Judge y hermano de Sanji. Se burla de él y lo provoca en su primer reencuentro.'],
+
+  ['Vinsmoke Sora', '19', 'supporting', 'ヴィンスモーク・ソラ', 'Yuriko Yamamoto',
+    'Madre de Sanji y esposa de Judge. Tomó un fármaco para que sus hijos conservaran los sentimientos y murió por ello.'],
+
+  ['Charlotte Pudding', '19', 'supporting', 'シャーロット・プリン', 'Miyuki Sawashiro',
+    'Hija de Big Mom y prometida de Sanji. Tiene un tercer ojo y al principio conspira para matarlo, pero acaba enamorada de él.'],
+
+  ['Charlotte Katakuri', '19', 'antagonist', 'シャーロット・カタクリ', 'Tomokazu Sugita',
+    'General Dulce de Big Mom y el hombre de los mil millones. Ve el futuro con su haki y se enfrenta a Luffy en el mundo de los espejos.'],
+
+  ['Charlotte Perospero', '19', 'antagonist', 'シャーロット・ペロスペロー', 'Yuuya Uchida',
+    'Primer hijo de Big Mom y ministro de Totto Land. Su Fruta del Lamiido le permite crear caramelos y atrapar a sus enemigos.'],
+
+  ['Charlotte Oven', '19', 'antagonist', 'シャーロット・オーブン', 'Masafumi Kimura',
+    'Hijo de Big Mom con la Fruta del Calor. Persigue a los Sombrero de Paja en Cacao y ataca a Pound.'],
+
+  ['Charlotte Daifuku', '19', 'antagonist', 'シャーロット・ダイフク', 'Shunsuke Sakuya',
+    'Hijo de Big Mom con la Fruta del Genio. Su genio lucha con una lanza y se enfrenta a Sanji.'],
+
+  ['Charlotte Smoothie', '19', 'antagonist', 'シャーロット・スムージー', 'Masako Katsuki',
+    'General Dulce de Big Mom y ministra de jugos. Puede exprimir a sus enemigos con su fruta.'],
+
+  ['Charlotte Cracker', '19', 'antagonist', 'シャーロット・クラッカー', 'Takuya Kirimoto',
+    'General Dulce de Big Mom y usuario de la Fruta de la Galleta. Crea soldados de galleta y se enfrenta a Luffy.'],
+
+  ['Charlotte Brûlée', '19', 'antagonist', 'シャーロット・ブリュレ', 'Yuuko Iguchi',
+    'Hija de Big Mom con la Fruta del Espejo. Atrapa a Carrot y a Chopper y ayuda a Luffy a moverse por Totto Land.'],
+
+  ['Charlotte Chiffon', '19', 'supporting', 'シャーロット・シフォン', 'Aya Hisakawa',
+    'Hija de Big Mom y hermana gemela de Lola. Se rebela contra su madre y ayuda a Sanji a llevar el pastel.'],
+
+  ['Charlotte Amande', '19', 'antagonist', 'シャーロット・アマンド', 'Wasabi Mizuta',
+    'Hija de Big Mom y ministra de frutas. Pelea con una espada y ejecuta a King Baum.'],
+
+  ['Charlotte Galette', '19', 'antagonist', 'シャーロット・ガレット', 'Ai Maeda',
+    'Hija de Big Mom y ministra de mantequilla. Usa su fruta para inmovilizar a Nami.'],
+
+  ['Charlotte Mont-d\'Or', '19', 'antagonist', 'シャーロット・モンドール', 'Atsushi Imaruoka',
+    'Hijo de Big Mom con la Fruta del Libro. Encierra a Luffy y Nami en un libro y controla a los prisioneros.'],
+
+  ['Charlotte Opera', '19', 'antagonist', 'シャーロット・オペラ', 'Yoshihisa Kawahara',
+    'Hijo de Big Mom y ministro de azúcar. Tortura a Nami para que revele el paradero de Lola.'],
+
+  ['Charlotte Flampe', '19', 'antagonist', 'シャーロット・フランペ', 'Chiwa Saitou',
+    'Hija de Big Mom y hermana pequeña de Katakuri. Interfiere en su pelea con Luffy y lo hiere.'],
+
+  ['Pound', '19', 'supporting', 'パウンド', 'Masami Kikuchi',
+    'Padre de Chiffon y Lola y antiguo marido de Big Mom. Protege a sus hijas y muere a manos de Oven.'],
+
+  ['Streusen', '19', 'supporting', 'シュトロイゼン', 'Haruhiko Jo',
+    'Cocinero y fundador de Totto Land junto a Big Mom. Convierte el castillo en pastel para salvar a la tripulación.'],
+
+  ['Carmel', '19', 'supporting', 'カルメル', 'Fumi Hirano',
+    'Monja que acogió a Big Mom en Elbaf y dirigía el orfanato Casa de las Ovejas. Era traficante de niños.'],
+
+  ['Aladine', '19', 'supporting', 'アラディン', 'Takashi Nagasako',
+    'Hombre pez y médico de los Piratas del Sol. Ayuda a Jinbe y a la tripulación a escapar de Totto Land.'],
+
+  ['Mjosgard', '19', 'supporting', 'ミョスガルド聖', 'Tetsuo Gotou',
+    'Dragón Celestial que cambió gracias a Otohime. Defiende a Shirahoshi de Charlos en el Levely.'],
+
+  ['Ryokugyu', '19', 'supporting', 'アラマキ', 'Keiji Fujiwara',
+    'Almirante de la Marina con poderes de planta. Habla con Fujitora sobre el invento de Vegapunk.'],
+
+  ['Gion', '19', 'supporting', 'ギオン', 'Yuka Komatsu',
+    'Vicealmirante de la Marina y vieja conocida de Garp. Comenta con él las acciones de Luffy.'],
+
+  ['Stelly', '19', 'supporting', 'ステリー', 'Chika Sakamoto',
+    'Hermano adoptivo de Sabo y rey del reino de Goa. Es vanidoso y cobarde, y sueña con sentarse en el Trono Vacío.'],
 ];

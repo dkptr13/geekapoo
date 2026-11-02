@@ -78,7 +78,9 @@ export function limpiar(s) {
     // El numero de capitulo delante del titulo (第1話, 第13話...).
     // Va con lo anterior: sin esto, 第1話選ばれし者 seguiria sin ser
     // 選ばれし者. Solo vale al principio, que es donde TVDB lo pone.
-    .replace(/^第[0-9０-９一二三四五六七八九十百千]+話/g, '')
+    // En la temporada 18 de One Piece TVDB lo escribe con espacios
+    // (第 747 話　銀の要塞...), asi que los espacios son opcionales.
+    .replace(/^第\s*[0-9０-９一二三四五六七八九十百千]+\s*話\s*/g, '')
     // Los dos puntos y el punto medio, que en un titulo de capitulo
     // separan el subtitulo del original y no son parte de ninguno de los
     // dos: 【Mother and Children】 es "Mother and Children", no "Mother

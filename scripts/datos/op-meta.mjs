@@ -4,7 +4,7 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las diecisiete primeras temporadas:
+// De momento el catalogo tiene las diecinueve primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
@@ -23,6 +23,8 @@
 //   T15  62 capitulos  (octubre de 2011 - diciembre de 2012)
 //   T16  50 capitulos  (enero de 2013 - enero de 2014)
 //   T17 118 capitulos  (enero de 2014 - junio de 2016)
+//   T18  36 capitulos  (junio de 2016 - abril de 2017)
+//   T19 109 capitulos  (abril de 2017 - junio de 2019)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -77,7 +79,7 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las diecisiete primeras temporadas:
+ * De momento estan cargadas las diecinueve primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
@@ -96,11 +98,13 @@ export const RATING_SERIE = 9.0;
  *   T15  62  (octubre de 2011 - diciembre de 2012)
  *   T16  50  (enero de 2013 - enero de 2014)
  *   T17 118  (enero de 2014 - junio de 2016)
+ *   T18  36  (junio de 2016 - abril de 2017)
+ *   T19 109  (abril de 2017 - junio de 2019)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 746;
+export const EPISODIOS_TOTAL = 891;
 
 /**
  * Donde se emite en Espana.
@@ -323,5 +327,31 @@ export const TEMPORADAS = [
       'Donquixote, los juguetes y los enanos de Tontatta, y la batalla final contra Doflamingo con la ' +
       'Cuarta Marcha de Luffy.',
     capitulos: 'T17',
+  },
+  {
+    numero: 18,
+    titulo: '',
+    anio: 2016,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Treinta y seis capitulos del 26 de junio de 2016 al 2 de abril de 2017, en Toei Animation para Fuji ' +
+      'TV. Empieza con el relleno de la mina de plata, sigue con la llegada a Zou, el reino de los Mink y ' +
+      'la alianza con los samurais de Wano, y termina con el relleno de la base marina de Fron antes de ' +
+      'partir hacia Totto Land.',
+    capitulos: 'T18',
+  },
+  {
+    numero: 19,
+    titulo: '',
+    anio: 2017,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Ciento nueve capitulos del 9 de abril de 2017 al 30 de junio de 2019, en Toei Animation para Fuji ' +
+      'TV. Es la saga de Whole Cake Island: la boda de Sanji con Pudding, la familia Vinsmoke, la huida ' +
+      'de Totto Land y el combate contra Katakuri. Al final entran el Levely y los primeros capitulos del ' +
+      'mar de Wano.',
+    capitulos: 'T19',
   },
 ];
