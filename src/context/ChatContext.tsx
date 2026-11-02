@@ -37,6 +37,7 @@ import {
 } from '../services/chatRequests';
 
 import { blockUser, subscribeBlocked, unblockUser } from '../services/blocks';
+import { HEARTBEAT_MS, marcarPresencia } from '../services/presence';
 
 import {
   ChatMessage,
@@ -232,6 +233,36 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
+
+  // ── Presencia real ──────────────────────────────────
+  //
+  // Mientras la cuenta está abierta se escribe un latido cada minuto.
+  // La presencia se considera activa durante dos minutos, así que un
+  // cierre de pestaña sin aviso termina apareciendo como desconectado.
+  useEffect(() => {
+    const uid = currentUser?.uid;
+    if (!uid) return;
+
+    const latir = () => {
+      if (document.visibilityState !== 'visible') return;
+      void marcarPresencia(uid, true).catch((e: unknown) =>
+        console.error('[Presencia] No se pudo enviar el latido:', e),
+      );
+    };
+
+    latir();
+    const intervalo = window.setInterval(latir, HEARTBEAT_MS);
+    const alCambiarVisibilidad = () => {
+      if (document.visibilityState === 'visible') latir();
+    };
+    document.addEventListener('visibilitychange', alCambiarVisibilidad);
+
+    return () => {
+      window.clearInterval(intervalo);
+      document.removeEventListener('visibilitychange', alCambiarVisibilidad);
+      void marcarPresencia(uid, false).catch(() => undefined);
+    };
+  }, [currentUser?.uid]);
 
   // Limpieza de los chats antiguos del navegador (versión localStorage).
   useEffect(() => {

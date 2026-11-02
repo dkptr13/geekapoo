@@ -45,6 +45,7 @@ import { measureRead, recordListenerSnapshot, trackListener } from '../lib/fires
 import { toIsoString } from '../services/firestoreUtils';
 
 import { DEFAULT_PRIVACY, readPrivacy } from '../services/accountSettings';
+import { marcarPresencia } from '../services/presence';
 
 import {
   PRIVATE_PROFILE_FIELDS,
@@ -984,6 +985,9 @@ export const AuthProvider = ({
 
     try {
 
+      if (currentUser?.uid) {
+        await marcarPresencia(currentUser.uid, false).catch(() => undefined);
+      }
       await signOut(auth);
       clearPrivateCaches();
       setCurrentUser(null);

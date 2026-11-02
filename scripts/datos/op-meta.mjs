@@ -4,7 +4,7 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las quince primeras temporadas:
+// De momento el catalogo tiene las diecisiete primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
@@ -21,6 +21,8 @@
 //   T13  35 capitulos  (octubre de 2009 - junio de 2010)
 //   T14  60 capitulos  (julio de 2010 - septiembre de 2011)
 //   T15  62 capitulos  (octubre de 2011 - diciembre de 2012)
+//   T16  50 capitulos  (enero de 2013 - enero de 2014)
+//   T17 118 capitulos  (enero de 2014 - junio de 2016)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -75,7 +77,7 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las quince primeras temporadas:
+ * De momento estan cargadas las diecisiete primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
@@ -92,11 +94,13 @@ export const RATING_SERIE = 9.0;
  *   T13  35  (octubre de 2009 - junio de 2010)
  *   T14  60  (julio de 2010 - septiembre de 2011)
  *   T15  62  (octubre de 2011 - diciembre de 2012)
+ *   T16  50  (enero de 2013 - enero de 2014)
+ *   T17 118  (enero de 2014 - junio de 2016)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 578;
+export const EPISODIOS_TOTAL = 746;
 
 /**
  * Donde se emite en Espana.
@@ -293,5 +297,31 @@ export const TEMPORADAS = [
       'el descenso a la isla de los hombres pez, la lucha contra Hordy Jones y los Nuevos Piratas Hombre ' +
       'Pez, y el arco de Z\'s Ambition que anuncia la pelicula Film Z.',
     capitulos: 'T15',
+  },
+  {
+    numero: 16,
+    titulo: '',
+    anio: 2013,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Cincuenta capitulos del 6 de enero de 2013 al 12 de enero de 2014, en Toei Animation para Fuji TV. ' +
+      'Es la saga de Punk Hazard: la isla envenenada donde Aokiji y Akainu se jugaron el puesto de almirante ' +
+      'general, el laboratorio de Caesar Clown, los ninos gigantes y la alianza de Luffy con Trafalgar Law ' +
+      'para derrotar a un emperador.',
+    capitulos: 'T16',
+  },
+  {
+    numero: 17,
+    titulo: '',
+    anio: 2014,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Ciento dieciocho capitulos del 19 de enero de 2014 al 19 de junio de 2016, en Toei Animation para ' +
+      'Fuji TV. Es la saga de Dressrosa: el coliseo Corrida, el torneo por la Fruta del Fuego, la familia ' +
+      'Donquixote, los juguetes y los enanos de Tontatta, y la batalla final contra Doflamingo con la ' +
+      'Cuarta Marcha de Luffy.',
+    capitulos: 'T17',
   },
 ];

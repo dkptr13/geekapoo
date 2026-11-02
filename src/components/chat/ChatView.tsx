@@ -71,6 +71,8 @@ import {
 import { deleteReplacedImage, uploadCommunityImage } from '../../services/imageUpload';
 import { getChatPrefs } from '../../services/chatPrefs';
 import { saveFondoChat, subscribeChatPrefs } from '../../services/chatPrefs';
+import { subscribePresence } from '../../services/presence';
+import { estadoPresencia, type PresenceInfo } from '../../utils/presence';
 import { userPrivateRef } from '../../services/userPrivate';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { useChat } from '../../context/ChatContext';
@@ -187,6 +189,7 @@ export const ChatView: React.FC = () => {
     error: chatsError,
     isReadByEveryone,
     parchearMensaje,
+    chatOpen,
     setChatOpen,
     unreadRoomIds,
     corteNuevos,
@@ -207,6 +210,56 @@ export const ChatView: React.FC = () => {
   } = useChat();
 
   const [filterType, setFilterType] = useState<'direct' | 'group' | 'all'>('all');
+
+  // ── Presencia de los contactos directos ─────────────
+  const [presencia, setPresencia] = useState<Record<string, PresenceInfo>>({});
+  const [relojPresencia, setRelojPresencia] = useState(() => Date.now());
+
+  const contactosDirectos = useMemo(() => {
+    if (!currentUser) return [];
+    const ids = new Set<string>();
+    rooms.forEach((room) => {
+      if (room.type !== 'direct') return;
+      room.memberIds.forEach((uid) => {
+        if (uid !== currentUser.uid) ids.add(uid);
+      });
+    });
+    return [...ids].sort();
+  }, [rooms, currentUser?.uid]);
+  const contactosKey = contactosDirectos.join('|');
+
+  useEffect(() => {
+    if (!chatOpen || !currentUser || contactosDirectos.length === 0) {
+      setPresencia({});
+      return;
+    }
+    return subscribePresence(
+      contactosDirectos,
+      setPresencia,
+      (e) => console.error('[Presencia] Error escuchando contactos:', e),
+    );
+    // `contactosKey` representa la lista sin depender de su identidad.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatOpen, currentUser?.uid, contactosKey]);
+
+  // Recalcula los textos "hace X" aunque no llegue ningún documento.
+  useEffect(() => {
+    if (!chatOpen) return;
+    const intervalo = window.setInterval(
+      () => setRelojPresencia(Date.now()),
+      30_000,
+    );
+    return () => window.clearInterval(intervalo);
+  }, [chatOpen]);
+
+  const estadoPresenciaDe = useCallback(
+    (uid: string | undefined) => estadoPresencia(
+      uid ? presencia[uid] : undefined,
+      relojPresencia,
+    ),
+    [presencia, relojPresencia],
+  );
+
   // En qué vista de la sección estamos. Empieza en 'privados'
   // para conservar el comportamiento de siempre: entrar en
   // «Chats» te deja en tus conversaciones.
@@ -1705,6 +1758,10 @@ export const ChatView: React.FC = () => {
         ? nicknames[activeRoom.id] || activeRoom.name
         : '';
 
+  const estadoActivo = activeRoom?.type === 'direct'
+    ? estadoPresenciaDe(activeOtherParty?.uid)
+    : null;
+
   const activeRoomAvatar =
     activeRoom && activeRoom.type === 'direct' && activeOtherParty
       ? activeOtherParty.avatarUrl || activeRoom.avatar
@@ -2698,6 +2755,9 @@ export const ChatView: React.FC = () => {
                   (u) => currentUser && room.memberIds.includes(u.uid) && u.uid !== currentUser.uid,
                 );
                 const isDirect = room.type === 'direct' && !!otherParty;
+                const estadoContacto = isDirect
+                  ? estadoPresenciaDe(otherParty?.uid)
+                  : null;
                 const displayName = nombreVisible(room);
                 const otherPartyChatId = otherParty?.chatId;
                 const roomAvatar = isDirect
@@ -2744,7 +2804,12 @@ export const ChatView: React.FC = () => {
                           <Users size={9} />
                         </span>
                       ) : (
-                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-zinc-950 bg-emerald-500" />
+                        <span
+                          title={estadoContacto?.label}
+                          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-zinc-950 ${
+                            estadoContacto?.online ? 'bg-emerald-500' : 'bg-zinc-600'
+                          }`}
+                        />
                       )}
                     </div>
 
@@ -3010,8 +3075,13 @@ export const ChatView: React.FC = () => {
                     {/* El candito de "en línea". En un grupo no significa
                         nada: no es que haya una persona conectada, es
                         que el grupo existe. */}
-                    {activeRoom.type !== 'group' && (
-                      <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-zinc-900 bg-emerald-500" />
+                    {activeRoom.type === 'direct' && (
+                      <span
+                        title={estadoActivo?.label}
+                        className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-zinc-900 ${
+                          estadoActivo?.online ? 'bg-emerald-500' : 'bg-zinc-600'
+                        }`}
+                      />
                     )}
 
                     {/* Cambiar la foto del grupo. Solo el dueño, que es
@@ -3092,10 +3162,25 @@ export const ChatView: React.FC = () => {
                           </span>
                         )}
                       </span>
+                    ) : activeRoom.type === 'group' ? (
+                      <span className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-violet-300/80">
+                        <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+                        Sala grupal activa
+                      </span>
                     ) : (
-                      <span className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-emerald-300/90">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
-                        {activeRoom.type === 'group' ? 'Sala grupal activa' : 'En línea'}
+                      <span
+                        className={`mt-0.5 flex items-center gap-1.5 text-[11px] font-medium ${
+                          estadoActivo?.online ? 'text-emerald-300/90' : 'text-zinc-500'
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            estadoActivo?.online
+                              ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]'
+                              : 'bg-zinc-600'
+                          }`}
+                        />
+                        {estadoActivo?.label ?? 'Desconectado'}
                       </span>
                     )}
                   </div>

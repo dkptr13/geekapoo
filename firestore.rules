@@ -1419,6 +1419,18 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Presencia: un documento mínimo por persona. Solo su dueño puede
+    // escribir su estado y la fecha debe ser el reloj del servidor, no
+    // una hora inventada por el cliente.
+    match /presence/{uid} {
+      allow read: if isSignedIn();
+      allow create, update: if isSelf(uid)
+                            && request.resource.data.keys().hasOnly(['online', 'lastSeenAt'])
+                            && request.resource.data.online is bool
+                            && request.resource.data.lastSeenAt == request.time;
+      allow delete: if false;
+    }
+
     match /users/{uid} {
       allow read: if isSignedIn();
 

@@ -598,6 +598,23 @@ export const TRAMO_TVDB = {
     //
     //   catalogo T15  (517-578)  TVDB S15E1..S15E62
     15: [{ temporada: 15, desde: 1, hasta: 62 }],
+    // La T16 son los 50 capitulos del 579 al 628. TVDB tiene los primeros
+    // once en su temporada 16, el crossover con Toriko y Dragon Ball (590)
+    // lo guarda como especial en la temporada 0, y el resto sigue en la 16.
+    //
+    //   catalogo T16  (579-589)  TVDB S16E1..S16E11
+    //   catalogo T16  (590)      TVDB S0E39 (especial crossover)
+    //   catalogo T16  (591-628)  TVDB S16E12..S16E49
+    16: [
+      { temporada: 16, desde: 1, hasta: 11 },
+      { temporada: 0, desde: 39, hasta: 39 },
+      { temporada: 16, desde: 12, hasta: 49 },
+    ],
+    // La T17 son los 118 capitulos del 629 al 746, todos seguidos en la
+    // temporada 17 de TVDB (Dressrosa).
+    //
+    //   catalogo T17  (629-746)  TVDB S17E1..S17E118
+    17: [{ temporada: 17, desde: 1, hasta: 118 }],
   },
 };
 
@@ -986,6 +1003,51 @@ export const TITULO_TVDB = {
     '急げルフィ! しらほし絶対絶命': '急げルフィ！しらほし絶体絶命',
     '戦闘開始! ルフィVSホーディ!': '激闘開始！ルフィVSホーディ！',
     'お菓子好き! 四皇ビッグマム': 'お菓子好き！四皇ビッグ・マム',
+    // La T16 y la T17 anaden treinta y cinco mas. Casi todas son la misma
+    // frase con los signos de ancho completo, espacios distintos o el
+    // parentesis de lectura (M(マスター), 灰熊銃(グリズリー・マグナム)).
+    // Hay ademas cuatro erratas de TVDB: マンシュリー por マンシェリー
+    // (693), 最後 por 最期 (706), 台地 por 大地 (718) y 荒狂う por
+    // 荒れ狂う (746); y tres palabras cambiadas sin cambiar el sentido:
+    // 子供たち por 子供達 (583), ルフィ、ロー脱出 por ルフィ・ロー大脱出
+    // (603) y セニョール por セニュール (715). Las fechas y el orden
+    // coinciden. El 590 es el crossover con Toriko y Dragon Ball, que
+    // TVDB guarda en la temporada 0 con el titulo largo.
+    '子供達を救え! 一味戦闘開始': '子供たちを救え！一味戦闘開始',
+    '史上最強コラボVS海の大食漢': 'トリコ×ONE PIECE×ドラゴンボールZ 超コラボスペシャル!! 史上最強コラボVS海の大食漢',
+    'Mを捉えろ 海賊同盟作戦開始!': 'M(マスター)を捉えろ 海賊同盟作戦開始',
+    '炎切り裂く侍! 狐火の錦えもん!': '炎切り裂く侍！狐火の錦えもん',
+    '反撃開始! ルフィ·ロー大脱出': '反撃開始！ルフィ、ロー脱出',
+    'めざせR棟! 海賊同盟快進撃!': 'めざせR棟！海賊同盟快進撃',
+    'たしぎの涙 G5決死の突破作戦': 'たしぎの涙 G-5決死の突破作戦',
+    '闇の黒幕! ドフラミンゴ動く!': '闇の黒幕！ドフラミンゴ動く',
+    '小さなドラゴン! モモの助現る': '小さなドラゴン！モモの助現る！',
+    'シーザー撃破! 最強の灰熊銃': 'シーザー撃破！最強の灰熊銃(グリズリー・マグナム)！',
+    '海賊貴公子 キャベンディッシュ': '海賊貴公子　キャべンディッシュ',
+    '世紀の謀略 ドフラミンゴ動く': '世紀の謀略　ドフラミンゴ動く！',
+    '決戦！ジョーラVS麦わらの一味': '決戦！ジョーラＶＳ麦わらの一味',
+    '美剣! 白馬のキャベンディッシュ': '美剣！白馬のキャベンディッシュ！',
+    '七武海対決！ ローVSドフラミンゴ': '七武海対決　ローVSドフラミンゴ',
+    'SOP作戦開始　ウソランド突撃': 'ＳＯＰ作戦開始　ウソランド突撃',
+    '動く城! 最高幹部ピーカ出現': '動く城!　最高幹部ピーカ出現！',
+    '敵陣突破 ルフィ・ゾロ反撃開始!': '敵陣突破　ルフィ・ゾロ反撃開始',
+    '小人の姫　囚われのマンシェリー': '小人の姫、囚われのマンシュリー',
+    '涙の再会 レベッカとキュロス': '涙の再会　レベッカとキュロス！',
+    '一撃必殺！ ドレスローザを救う男': '一撃必殺　ドレスローザを救う男',
+    '時迫る オペオペの実を奪え！': '時迫る！オペオペの実を奪え！',
+    '行けロー 優しき男最期の戦い！': '行けロー　優しき男　最後の戦い！',
+    '愛の決戦 新棟梁サイVSベビー5': '愛の決戦　新棟梁サイＶＳベビー５',
+    '男の意地 ベラミー最期の突撃!': '男の意地　ベラミー最後の突撃！',
+    '疾風怒濤 ハクバVSデリンジャー': '疾風怒濤　ハクバＶＳデリンジャー',
+    '男の決闘　セニュール愛の挽歌': '男の決闘　セニョール愛の挽歌',
+    '雷の破壊剣！キュロス怒りの一撃！': '雷の破壊剣！　キュロス怒りの一撃',
+    '大地横断 巨像ピーカ奇襲作戦!': '台地横断　巨像ピーカ奇襲作戦！',
+    'ギア4！ 驚異のバウンドマン！': 'ギア４！驚異のバウンドマン！',
+    'ルフィ！ 渾身の獅子バズーカ！': 'ルフィ！渾身の獅子バズーカ',
+    '伝説誕生、革命戦士サボの冒険！': '伝説誕生 革命戦士サボの冒険！',
+    '藤虎動く麦わら一味完全包囲網': '藤虎動く　麦わらの一味完全包囲網',
+    '男の意地ルフィVS藤虎真向勝負!': '男の意地　ルフィVS藤虎真向勝負 2',
+    '群雄割拠荒れ狂う新世界の怪物達': '群雄割拠　荒狂う新世界の怪物達',
   },
 };
 
