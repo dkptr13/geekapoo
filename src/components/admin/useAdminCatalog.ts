@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { collection, onSnapshot, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  updateDoc,
+} from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
 import { db, functions } from '../../lib/firebase';
+import { cachedRead, userCacheScope } from '../../lib/firestoreCache';
+import { measureRead } from '../../lib/firestoreDiagnostics';
 import { useAuth } from '../../context/AuthContext';
 import { collectionOf } from '../../services/catalogAdmin';
 import { toIsoString } from '../../services/firestoreUtils';
@@ -87,6 +95,88 @@ const EMPTY: Record<ListenedSection, RawDoc[]> = {
   tickets: [],
 };
 
+const ADMIN_CACHE_TTL = 2 * 60 * 1000;
+
+const SECTION_BY_CACHE_KEY: Record<string, ListenedSection> = {
+  'community:animes': 'animes',
+  'community:seasons': 'seasons',
+  'community:characters': 'characters',
+  'community:episodes': 'episodes',
+  'community:categories': 'categories',
+  'community:trivia-extras': 'trivia',
+  'community:threads': 'threads',
+};
+
+function leerSeccionAdmin(
+  uid: string,
+  section: ListenedSection,
+  force = false,
+): Promise<RawDoc[]> {
+  const nombre = COLLECTION_MAP[section];
+  return cachedRead({
+    key: `admin:section:${section}`,
+    scope: userCacheScope(uid),
+    ttlMs: ADMIN_CACHE_TTL,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: `admin:${section}`, collection: nombre, origin: 'useAdminCatalog' },
+        (result) => result.size,
+        () => getDocs(collection(db, nombre)),
+      );
+      return snap.docs.map((d) => ({ ...(d.data() as RawDoc), id: d.id }));
+    },
+  });
+}
+
+function leerRestriccionesAdmin(
+  uid: string,
+  force = false,
+): Promise<Record<string, { activo?: boolean; tipo?: string }>> {
+  return cachedRead({
+    key: 'admin:restrictions',
+    scope: userCacheScope(uid),
+    ttlMs: ADMIN_CACHE_TTL,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'admin:restrictions', collection: 'accountRestrictions', origin: 'useAdminCatalog' },
+        (result) => result.size,
+        () => getDocs(collection(db, 'accountRestrictions')),
+      );
+      const next: Record<string, { activo?: boolean; tipo?: string }> = {};
+      snap.docs.forEach((d) => {
+        next[d.id] = d.data() as { activo?: boolean; tipo?: string };
+      });
+      return next;
+    },
+  });
+}
+
+function leerPrivadosAdmin(
+  uid: string,
+  force = false,
+): Promise<Record<string, UserPrivateData>> {
+  return cachedRead({
+    key: 'admin:user-private',
+    scope: userCacheScope(uid),
+    ttlMs: ADMIN_CACHE_TTL,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'admin:user-private', collection: USER_PRIVATE, origin: 'useAdminCatalog' },
+        (result) => result.size,
+        () => getDocs(collection(db, USER_PRIVATE)),
+      );
+      const next: Record<string, UserPrivateData> = {};
+      snap.docs.forEach((d) => {
+        next[d.id] = d.data() as UserPrivateData;
+      });
+      return next;
+    },
+  });
+}
+
 export function useAdminCatalog() {
   const { currentUser } = useAuth();
   const [docs, setDocs] = useState<Record<ListenedSection, RawDoc[]>>(EMPTY);
@@ -102,96 +192,120 @@ export function useAdminCatalog() {
     Record<string, { activo?: boolean; tipo?: string }>
   >({});
 
-  useEffect(() => {
-    const unsubs: (() => void)[] = [];
-    let responded = 0;
+  const uid = currentUser?.uid ?? null;
+  const role = currentUser?.role;
 
-    LISTENED_SECTIONS.forEach((section) => {
-      unsubs.push(
-        onSnapshot(
-          collection(db, COLLECTION_MAP[section]),
-          (snap) => {
-            setDocs((prev) => ({
-              ...prev,
-              [section]: snap.docs.map((d) => ({ ...(d.data() as RawDoc), id: d.id })),
-            }));
-            responded += 1;
-            if (responded === LISTENED_SECTIONS.length) setLoading(false);
-          },
-          (e) => {
-            console.error(`[Admin] Error leyendo "${COLLECTION_MAP[section]}":`, e);
-            setError(
-              `No se pudo leer "${COLLECTION_MAP[section]}": ${e.message}. ` +
-              `Comprueba que tienes rol admin o moderador y que las reglas están desplegadas.`,
-            );
-            responded += 1;
-            if (responded === LISTENED_SECTIONS.length) setLoading(false);
-          },
-        ),
+  const refrescarSeccion = useCallback(async (section: ListenedSection, force = true) => {
+    if (!uid) return;
+    try {
+      const datos = await leerSeccionAdmin(uid, section, force);
+      setDocs((prev) => ({ ...prev, [section]: datos }));
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error(String(e));
+      console.error(`[Admin] Error leyendo "${COLLECTION_MAP[section]}":`, error);
+      setError(
+        `No se pudo leer "${COLLECTION_MAP[section]}": ${error.message}. ` +
+        `Comprueba que tienes rol admin o moderador y que las reglas están desplegadas.`,
       );
-    });
+    }
+  }, [uid]);
 
-    return () => unsubs.forEach((u) => u());
-  }, []);
+  const refrescarRestricciones = useCallback(async () => {
+    if (!uid) return;
+    try {
+      setRestricciones(await leerRestriccionesAdmin(uid, true));
+    } catch (e) {
+      console.error('[Admin] No se pudo leer accountRestrictions:', e);
+    }
+  }, [uid]);
+
+  const refrescarPrivados = useCallback(async () => {
+    if (!uid || role !== 'admin') {
+      setPrivados({});
+      return;
+    }
+    try {
+      setPrivados(await leerPrivadosAdmin(uid, true));
+    } catch (e) {
+      console.error('[Admin] No se pudo leer userPrivate:', e);
+    }
+  }, [uid, role]);
 
   useEffect(() => {
-    if (!currentUser) {
+    if (!uid) {
+      setDocs(EMPTY);
       setPrivados({});
       setRestricciones({});
+      setLoading(false);
       return;
     }
 
-    const unsubs: (() => void)[] = [];
+    let activo = true;
+    setLoading(true);
+    setError(null);
 
-    unsubs.push(
-      onSnapshot(
-        collection(db, 'accountRestrictions'),
-        (snap) => {
-          const next: Record<string, { activo?: boolean; tipo?: string }> = {};
-          snap.docs.forEach((d) => {
-            next[d.id] = d.data() as { activo?: boolean; tipo?: string };
-          });
-          setRestricciones(next);
-        },
-        (e) => {
-          console.error('[Admin] No se pudo leer accountRestrictions:', e);
-        },
-      ),
+    const tareas: Promise<unknown>[] = LISTENED_SECTIONS.map(async (section) => {
+      try {
+        const datos = await leerSeccionAdmin(uid, section);
+        if (activo) setDocs((prev) => ({ ...prev, [section]: datos }));
+      } catch (e) {
+        if (!activo) return;
+        const error = e instanceof Error ? e : new Error(String(e));
+        console.error(`[Admin] Error leyendo "${COLLECTION_MAP[section]}":`, error);
+        setError(
+          `No se pudo leer "${COLLECTION_MAP[section]}": ${error.message}. ` +
+          `Comprueba que tienes rol admin o moderador y que las reglas están desplegadas.`,
+        );
+      }
+    });
+
+    tareas.push(
+      leerRestriccionesAdmin(uid)
+        .then((datos) => { if (activo) setRestricciones(datos); })
+        .catch((e: Error) => { if (activo) console.error('[Admin] No se pudo leer accountRestrictions:', e); }),
     );
 
     // El correo y el resto de preferencias privadas solo los puede
-    // listar un admin. Un moderador sigue viendo el panel de
-    // usuarios, pero sin la columna de correo. Si una sesión pasa
-    // de admin a moderador, se vacía lo que ya se había leído para
-    // no seguir enseñándolo por estado residual.
-    if (currentUser.role !== 'admin') {
-      setPrivados({});
-    }
-
-    if (currentUser.role === 'admin') {
-      unsubs.push(
-        onSnapshot(
-          collection(db, USER_PRIVATE),
-          (snap) => {
-            const next: Record<string, UserPrivateData> = {};
-            snap.docs.forEach((d) => {
-              next[d.id] = d.data() as UserPrivateData;
-            });
-            setPrivados(next);
-          },
-          (e) => {
+    // listar un admin. Si una sesión pasa de admin a moderador, se
+    // vacía lo que ya se había leído para no dejar estado residual.
+    if (role === 'admin') {
+      tareas.push(
+        leerPrivadosAdmin(uid)
+          .then((datos) => { if (activo) setPrivados(datos); })
+          .catch((e: Error) => {
+            if (!activo) return;
             console.error('[Admin] No se pudo leer userPrivate:', e);
             setError(
               `No se pudieron leer los datos privados de los usuarios: ${e.message}. ` +
               'Comprueba que tienes rol admin y que las reglas están desplegadas.',
             );
-          },
-        ),
+          }),
       );
+    } else {
+      setPrivados({});
     }
 
-    return () => unsubs.forEach((u) => u());
-  }, [currentUser?.role, currentUser?.uid]);
+    void Promise.allSettled(tareas).then(() => {
+      if (activo) setLoading(false);
+    });
+
+    return () => {
+      activo = false;
+    };
+  }, [uid, role]);
+
+  // Los editores del catálogo invalidan su colección al guardar. El
+  // panel recarga solo esa sección en vez de mantener nueve listeners.
+  useEffect(() => {
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (!key) return;
+      const section = SECTION_BY_CACHE_KEY[key];
+      if (section) void refrescarSeccion(section, true);
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    return () => window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+  }, [refrescarSeccion]);
 
   const counts = useMemo(() => {
     const out = {} as Record<AdminSection, number>;
@@ -242,10 +356,11 @@ export function useAdminCatalog() {
   );
 
   const setUserRole = useCallback(
-    async (uid: string, role: User['role']): Promise<void> => {
-      await updateDoc(doc(db, 'users', uid), { role });
+    async (userId: string, nuevoRol: User['role']): Promise<void> => {
+      await updateDoc(doc(db, 'users', userId), { role: nuevoRol });
+      await refrescarSeccion('users');
     },
-    [],
+    [refrescarSeccion],
   );
 
   /**
@@ -256,11 +371,12 @@ export function useAdminCatalog() {
    * el registro duradero `accountRestrictions`, que es la fuente
    * de verdad y sobrevive a borrar y recrear el perfil.
    */
-  const setUserBanned = useCallback(async (uid: string, banned: boolean): Promise<void> => {
+  const setUserBanned = useCallback(async (userId: string, banned: boolean): Promise<void> => {
     const nombre = banned ? 'banearUsuario' : 'desbanearUsuario';
     const llamar = httpsCallable<{ uid: string }, { ok: boolean }>(functions, nombre);
-    await llamar({ uid });
-  }, []);
+    await llamar({ uid: userId });
+    await refrescarRestricciones();
+  }, [refrescarRestricciones]);
 
   /**
    * Borra el documento de un usuario de Firestore.
@@ -277,14 +393,19 @@ export function useAdminCatalog() {
    * con el Admin SDK en un servidor: desde el navegador no se
    * puede, y pretender lo contrario sería engañoso.
    */
-  const deleteUser = useCallback(async (uid: string): Promise<void> => {
+  const deleteUser = useCallback(async (userId: string): Promise<void> => {
     // Primero los datos privados. Si se borrara el perfil público
     // y fallara esta escritura, el correo y las preferencias
     // quedarían huérfanos en `userPrivate` aunque ya no hubiera
     // perfil que enseñar.
-    await deleteDoc(doc(db, USER_PRIVATE, uid));
-    await deleteDoc(doc(db, 'users', uid));
-  }, []);
+    await deleteDoc(doc(db, USER_PRIVATE, userId));
+    await deleteDoc(doc(db, 'users', userId));
+    await Promise.all([
+      refrescarSeccion('users'),
+      refrescarPrivados(),
+      refrescarRestricciones(),
+    ]);
+  }, [refrescarSeccion, refrescarPrivados, refrescarRestricciones]);
 
   // ── Tickets de soporte ─────────────────────────────
 
@@ -301,8 +422,9 @@ export function useAdminCatalog() {
   const setTicketStatus = useCallback(
     async (ticketId: string, status: SupportTicket['status']): Promise<void> => {
       await updateDoc(doc(db, SUPPORT_TICKETS, ticketId), { status });
+      await refrescarSeccion('tickets');
     },
-    [],
+    [refrescarSeccion],
   );
 
   return {

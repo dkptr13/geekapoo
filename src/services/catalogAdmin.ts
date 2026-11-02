@@ -164,6 +164,7 @@ const CACHE_KEYS: Record<string, string> = {
   characters: 'community:characters',
   categories: 'community:categories',
   trivia_extras: 'community:trivia-extras',
+  threads: 'community:threads',
 };
 
 function invalidarCatalogo(...colecciones: string[]): void {

@@ -151,6 +151,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 ### Panel y Cloud Functions
 
+- El panel de administración ya no mantiene un listener por colección: carga una vez con caché privada de 2 minutos y recarga solo la sección afectada tras cada escritura.
 - `uniqueSlug` comprueba ids concretos, no descarga la colección.
 - Los borrados en cascada filtran por `animeId` o `seasonId`.
 - `onCommentCreated` reutiliza una sola lectura del destino para validar y resolver el anime.
@@ -196,6 +197,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - Búsqueda/pestañas globales: cargan el catálogo completo solo al pedirlo.
   - No se creó contenido de prueba con más de 200 comentarios en producción; la paginación nueva está compilada y cubierta por tipos, pero falta probarla con un hilo real de ese tamaño.
   - La escucha de canales solo para el club abierto está compilada, pero necesita una prueba autenticada real para confirmar el cambio de club y el estado de carga.
+  - El panel de administración pasó a consultas puntuales; falta confirmar con una cuenta admin que editar, borrar, banear y cambiar tickets refresca cada sección.
 - `npm run test:rules`: se ejecutó durante más de 15 minutos; todos los casos mostrados pasaron, pero el proceso superó el límite de tiempo antes del resumen final. No se observaron fallos. No se presenta como suite completa certificada.
 
 ## 8. Archivos principales modificados
@@ -227,6 +229,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - `src/components/chat/ChatView.tsx`
   - `src/components/search/GlobalSearch.tsx`
   - `src/components/admin/AdminPanel.tsx`
+  - `src/components/admin/useAdminCatalog.ts`
   - `src/components/admin/GamificationSection.tsx`
   - `src/components/tierlists/TierListEditor.tsx`
   - `src/hooks/useStreamingAvailability.ts`
@@ -261,8 +264,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 1. **Feed de hilos:** sigue escuchando la colección de hilos completa. Debe paginarse por cursor; perfiles, búsqueda y panel necesitan consultas propias antes de recortarlo.
 2. **Catálogo global de episodios/personajes:** al abrir sus pestañas o buscar se sigue descargando completo. La siguiente mejora es búsqueda/paginación del lado del servidor.
-3. **Panel de administración:** mantiene listeners de todas las colecciones mientras está abierto. Es aceptable por uso restringido, pero se puede pasar a consultas bajo demanda.
-4. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
+3. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
 
 ## 11. Despliegue
 
