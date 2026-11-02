@@ -1,0 +1,22 @@
+// TEMPORADA 1 - Horimiya (2021)
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// 13 capitulos del 2021-01-10 al 2021-04-04, en CloverWorks.
+// Las notas son de IMDb (tt13103134).
+
+export const T1 = [
+  [1, 'Un pequeño accidente', 'ほんの、ささいなきっかけで。', '2021-01-10', 8, 'Hori es la chica popular de clase, pero en casa cuida de su hermano y lleva una vida sencilla. Miyamura, el chico callado, descubre su secreto y ella descubre sus piercings y tatuajes. Los dos deciden guardar el secreto del otro y empiezan a acercarse.'],
+  [2, 'Llevas más de una cara', '顔は、ひとつだけじゃない。', '2021-01-17', 7.7, 'Hori se da cuenta de que no sabe el nombre de Miyamura y trama varias formas de averiguarlo. En el instituto, el consejo estudiantil la acusa de perder un informe, pero Miyamura demuestra que fue un accidente de Remi. Poco después, Miyamura le regala un CD por su cumpleaños.'],
+  [3, 'Por eso está bien', 'だから、大丈夫。', '2021-01-24', 8.3, 'Miyamura recuerda su pasado solitario mientras un trabajo de clase le obliga a pasar tiempo con Hori, Ishikawa y Yoshikawa. Poco a poco empieza a sentir que tiene amigos de verdad. Hori, por su parte, empieza a darse cuenta de lo que siente por él.'],
+  [4, 'Todo el mundo quiere a alguien', '誰も、誰かが好きなんだ。', '2021-01-31', 8.6, 'Llega el verano y Sakura se enamora de Ishikawa. Hori y Miyamura pasan más tiempo juntos, y Miyamura conoce a Shindo, un antiguo compañero. Cuando Hori enferma, Miyamura la cuida y acaba confesándole sus sentimientos.'],
+  [5, 'No puedo decirlo en voz alta', 'それは、言えないこと。', '2021-02-07', 8.8, 'Sota cree que Miyamura sale con otra chica, y Hori se enfada con él. La discusión se arregla cuando Miyamura le explica la verdad y conoce a su padre. Hori y Miyamura empiezan a salir, mientras Ishikawa y Sakura intentan asumir sus propios sentimientos.'],
+  [6, 'Este verano va a ser caluroso', '今年の夏は、暑いから。', '2021-02-14', 8.6, 'El resto del instituto descubre que Hori y Miyamura están juntos. Miyamura se corta el pelo y deja las gafas para no perjudicar la reputación de Hori. Ese verano conoce a Sawada, una estudiante que se convierte en su amiga, y da su primer beso con Hori.'],
+  [7, 'Tú estás aquí, yo estoy aquí', '君がいて、僕がいて。', '2021-02-21', 8.3, 'Sakura y Yuki se acercan a Ishikawa, cada una a su manera. Miyamura viaja a Hokkaido por un funeral y Hori lo espera con ansiedad. A su vuelta, la pareja se reencuentra y Hori intenta mostrarse más cariñosa con él, aunque sus planes no salen como espera.'],
+  [8, 'La verdad que revela el engaño', '偽ることで、見えるもの。', '2021-02-28', 7.8, 'Miyamura sueña con su yo del pasado y se promete que algún día tendrá amigos. Remi recuerda cómo conoció a Sengoku, y Yanagi se declara a Yoshikawa. El grupo acaba aceptando a Yanagi, mientras Hori y Miyamura descubren nuevas facetas de su relación.'],
+  [9, 'Es difícil, pero no imposible', '難しいけど、無理じゃない。', '2021-03-07', 7.9, 'Miyamura se reencuentra con Tanihara, un antiguo compañero que lo intimidaba. Hori interviene y Miyamura intenta ser más duro con ella, aunque sin mucho éxito. Tanihara acaba visitando la pastelería de Miyamura y empieza a reconciliarse con su pasado.'],
+  [10, 'Hasta que se derrita la nieve', 'いつか、雪が溶けるまで。', '2021-03-14', 8.1, 'Hori se pone celosa de la cercanía entre Miyamura y Tanihara. Sakura cree que Ishikawa y Yuki salen juntos, y Yuki no sabe cómo ser sincera con sus sentimientos. Sengoku consuela a Sakura mientras el grupo intenta aclarar sus relaciones.'],
+  [11, 'Puede parecer odio', '嫌い嫌いも、ウラがある。', '2021-03-21', 7.4, 'El grupo descubre que Iura tiene una hermana pequeña, Motoko. Miyamura se hace amigo de Yanagi y Sawada intenta llevarse mejor con Iura. Motoko duda de su futuro y Hori la ayuda como tutora, mientras los hermanos Iura aprenden a entenderse.'],
+  [12, 'Hasta ahora y para siempre', 'これまでも、そしてこれからも。', '2021-03-28', 8.3, 'Hori invita a Miyamura a la cena de Navidad, pero él tiene trabajo. Ishikawa habla con sus amigos sobre Yuki y el grupo celebra la Navidad cada uno a su manera. Miyamura visita a Hori y, en Nochevieja, los dos empiezan a pensar en su futuro juntos.'],
+  [13, 'Te regalaría el cielo', 'せめて、この大空を。', '2021-04-04', 8.8, 'Se acerca la graduación y el grupo hace planes para seguir en contacto. Miyamura se despide de su yo del pasado y Hori de Sawada. Después de la ceremonia, la pareja sale junta y Miyamura reflexiona sobre todo lo que Hori ha hecho por él.'],
+];
