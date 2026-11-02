@@ -36,7 +36,10 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
   "bio": "Amante del anime y debates sin filtro",
   "role": "user" | "moderator" | "admin",
   "createdAt": Timestamp,
-  "lastSeen": "En línea",   // texto ya formateado, NO es una fecha
+
+  // La presencia NO vive aquí: escribir el perfil entero cada
+  // minuto sería caro y actualizaría la caché del directorio.
+  // Se guarda aparte en presence/{uid}.
 
   // Señales públicas de privacidad. Los ajustes completos están
   // en userPrivate: aquí solo lo mínimo para pintar el perfil.
@@ -52,6 +55,26 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
 //   users/{uid}/blocked/{blockedUid} → { blockedAt }
 // Solo la lee su dueño. Antes cualquier persona con sesión podía
 // recorrerla y deducir a quién tiene bloqueado cada uno.
+
+// 1b. PRESENCE: presence/{uid}
+// Documento mínimo, independiente del perfil, para no escribir
+// users/{uid} cada minuto ni invalidar el directorio de usuarios.
+{
+  "online": true | false,
+  "lastSeenAt": Timestamp
+}
+// El cliente escribe un latido cada 60 s mientras la pestaña está
+// visible y marca online:false al cerrar sesión.
+//
+// Estado visible:
+//   · online:true + latido de hace menos de 2 minutos → «En línea»
+//   · resto → gris con «Hace un momento» o «Últ. vez hace X».
+//
+// Lectura: cualquier usuario con sesión (los contactos directos
+// solo mientras Chats está abierto).
+// Escritura: únicamente el dueño, con lastSeenAt == request.time.
+// No se escucha toda la colección: se consulta por documentId() in
+// los contactos directos, en bloques de 30.
 
 // 2. ANIMES: animes/{animeId}
 {
@@ -510,6 +533,17 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Presencia: solo el dueño escribe su latido. La fecha tiene que
+    // ser el reloj del servidor, no una hora elegida por el cliente.
+    match /presence/{uid} {
+      allow read: if isSignedIn();
+      allow create, update: if isSelf(uid)
+                            && request.resource.data.keys().hasOnly(['online', 'lastSeenAt'])
+                            && request.resource.data.online is bool
+                            && request.resource.data.lastSeenAt == request.time;
+      allow delete: if false;
+    }
+
     // Perfil público: sin correo, sin preferencias privadas y sin
     // estado de sanción. Esas claves se rechazan aunque sea el dueño.
     match /users/{uid} {
@@ -783,13 +817,13 @@ service cloud.firestore {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
       <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 p-5 bg-zinc-900/90">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-fuchsia-600 text-white shadow-md shadow-violet-600/30">
+        <div className="flex shrink-0 items-center justify-between border-b border-zinc-800 p-5 bg-zinc-900/90">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-fuchsia-600 text-white shadow-md shadow-violet-600/30">
               <Code2 size={20} />
             </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-black text-white flex flex-wrap items-center gap-2">
                 <span>Arquitectura & Base de Datos</span>
                 <span className="rounded-md bg-violet-600/20 border border-violet-500/30 px-2 py-0.5 text-[10px] font-bold text-violet-300">
                   geekapoo.com
@@ -803,14 +837,15 @@ service cloud.firestore {
 
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+            aria-label="Cerrar arquitectura"
+            className="shrink-0 rounded-full p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Tab Buttons */}
-        <div className="flex border-b border-zinc-800 bg-zinc-900/50 px-4 sm:px-6 overflow-x-auto text-xs font-semibold">
+        <div className="flex shrink-0 border-b border-zinc-800 bg-zinc-900/50 px-4 sm:px-6 overflow-x-auto text-xs font-semibold">
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex items-center gap-2 border-b-2 py-3 px-3 whitespace-nowrap transition-all ${
@@ -856,7 +891,7 @@ service cloud.firestore {
             }`}
           >
             <Code2 size={14} />
-            <span>Tabla de Endpoints API</span>
+            <span>Cloud Functions & Servicios</span>
           </button>
 
           <button
@@ -873,7 +908,7 @@ service cloud.firestore {
         </div>
 
         {/* Content body */}
-        <div className="flex-1 overflow-y-auto p-6 text-xs sm:text-sm text-zinc-300 space-y-4">
+        <div className="min-h-0 flex-1 overflow-y-auto p-6 text-xs sm:text-sm text-zinc-300 space-y-4">
           {/* OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-4">
@@ -883,31 +918,48 @@ service cloud.firestore {
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-3 text-xs">
                   <div className="rounded-xl bg-zinc-950 p-3 border border-zinc-850">
-                    <strong className="text-white block mb-0.5">Frontend & Framework:</strong>
-                    <span className="text-zinc-400">Next.js 16 + React 19 + TypeScript + Tailwind CSS</span>
+                    <strong className="text-white block mb-0.5">Frontend & Despliegue:</strong>
+                    <span className="text-zinc-400">Vite + React 19 + TypeScript + Tailwind CSS · Vercel</span>
                   </div>
                   <div className="rounded-xl bg-zinc-950 p-3 border border-zinc-850">
                     <strong className="text-white block mb-0.5">Autenticación Segura:</strong>
-                    <span className="text-zinc-400">Firebase Auth (Email/Pass + GitHub OAuth)</span>
+                    <span className="text-zinc-400">Firebase Auth (Email/Pass + Google/GitHub OAuth)</span>
                   </div>
                   <div className="rounded-xl bg-zinc-950 p-3 border border-zinc-850">
                     <strong className="text-white block mb-0.5">Base de Datos NoSQL:</strong>
-                    <span className="text-zinc-400">Cloud Firestore (Listeners en tiempo real para chats)</span>
+                    <span className="text-zinc-400">Firestore: tiempo real selectivo, caché, paginación y consultas bajo demanda</span>
                   </div>
                   <div className="rounded-xl bg-zinc-950 p-3 border border-zinc-850">
-                    <strong className="text-white block mb-0.5">Almacenamiento de Medios:</strong>
-                    <span className="text-zinc-400">Firebase Storage (Avatares y fanarts)</span>
+                    <strong className="text-white block mb-0.5">Backend y Medios:</strong>
+                    <span className="text-zinc-400">Cloud Functions Node 22 + Firebase Storage</span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  Decisión de Arquitectura: ¿Por qué Next.js + Firebase y no Express + MongoDB?
+                  Decisión de Arquitectura: SPA + Firebase
                 </h4>
                 <p className="leading-relaxed text-zinc-300">
-                  Al emplear Next.js con Route Handlers y Firebase (Authentication + Firestore + Storage), eliminamos la sobrecarga de mantener servidores Express separados y bases de datos dispersas. Firestore provee subcolecciones ideales para chats escalables y listeners nativos en tiempo real con latencia de milisegundos.
+                  Geekapoo es una SPA de React desplegada en Vercel. Firebase Auth gestiona la sesión, Firestore guarda los datos y Cloud Functions concentra las operaciones sensibles: XP, medallas, sanciones, borrados y agregados. No hay un servidor Express ni rutas <code>/api</code> propias.
                 </p>
+              </div>
+
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Estrategia de lectura
+                </h4>
+                <ul className="space-y-2 leading-relaxed text-zinc-300">
+                  <li>
+                    <strong className="text-emerald-300">Tiempo real:</strong> chats abiertos, notificaciones, hilos recientes, comentarios desplegados, sanciones, reacciones visibles y canales del club abierto.
+                  </li>
+                  <li>
+                    <strong className="text-violet-300">Caché:</strong> catálogo, fichas, configuración y noticias; con TTL, deduplicación de peticiones y persistencia pública en IndexedDB.
+                  </li>
+                  <li>
+                    <strong className="text-sky-300">Bajo demanda y paginación:</strong> perfiles, historial de chats, comentarios, feed y pestañas globales de episodios/personajes.
+                  </li>
+                </ul>
               </div>
             </div>
           )}
@@ -953,52 +1005,79 @@ service cloud.firestore {
           {/* API ENDPOINTS */}
           {activeTab === 'api' && (
             <div className="space-y-3">
+              <p className="text-xs leading-relaxed text-zinc-400">
+                Geekapoo no expone endpoints <code>/api</code> propios. El cliente llama directamente a Firebase Auth, Firestore y Storage, y las operaciones sensibles pasan por Cloud Functions con el token de Firebase.
+              </p>
               <div className="overflow-x-auto rounded-2xl border border-zinc-800">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead className="bg-zinc-900 border-b border-zinc-800 text-zinc-400 uppercase text-[10px]">
                     <tr>
-                      <th className="p-3">Método</th>
-                      <th className="p-3">Endpoint</th>
-                      <th className="p-3">Autenticación</th>
-                      <th className="p-3">Descripción</th>
+                      <th className="p-3">Tipo</th>
+                      <th className="p-3">Función / servicio</th>
+                      <th className="p-3">Autorización</th>
+                      <th className="p-3">Uso</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-850">
                     <tr>
-                      <td className="p-3 font-mono text-emerald-400 font-bold">POST</td>
-                      <td className="p-3 font-mono text-zinc-200">/api/auth/session</td>
-                      <td className="p-3 text-zinc-400">Firebase Token</td>
-                      <td className="p-3 text-zinc-300">Crea cookie de sesión HttpOnly segura</td>
+                      <td className="p-3 font-mono text-emerald-400 font-bold">Callable</td>
+                      <td className="p-3 font-mono text-zinc-200">responderSolicitudChat / responderSolicitudClub</td>
+                      <td className="p-3 text-amber-400">Usuario implicado / equipo</td>
+                      <td className="p-3 text-zinc-300">Aceptar o rechazar solicitudes de chats y clubes</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-mono text-sky-400 font-bold">GET</td>
-                      <td className="p-3 font-mono text-zinc-200">/api/users/by-chat-id</td>
-                      <td className="p-3 text-amber-400">Requerida</td>
-                      <td className="p-3 text-zinc-300">Buscar contacto por ID único</td>
+                      <td className="p-3 font-mono text-emerald-400 font-bold">Callable</td>
+                      <td className="p-3 font-mono text-zinc-200">abrirChatDirecto</td>
+                      <td className="p-3 text-pink-400">Admin</td>
+                      <td className="p-3 text-zinc-300">Abrir una conversación directa desde administración</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-mono text-emerald-400 font-bold">POST</td>
-                      <td className="p-3 font-mono text-zinc-200">/api/threads</td>
-                      <td className="p-3 text-amber-400">Requerida</td>
-                      <td className="p-3 text-zinc-300">Publicar nuevo hilo con tags y categoría</td>
+                      <td className="p-3 font-mono text-emerald-400 font-bold">Callable</td>
+                      <td className="p-3 font-mono text-zinc-200">eliminarMensajeParaTodos / editarMensajeChat</td>
+                      <td className="p-3 text-amber-400">Autor del mensaje</td>
+                      <td className="p-3 text-zinc-300">Borrado y edición con validación de plazo en servidor</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-mono text-emerald-400 font-bold">POST</td>
-                      <td className="p-3 font-mono text-zinc-200">/api/comments</td>
-                      <td className="p-3 text-amber-400">Requerida</td>
-                      <td className="p-3 text-zinc-300">Comentario condicional a hilos, episodios o personajes</td>
+                      <td className="p-3 font-mono text-emerald-400 font-bold">Callable</td>
+                      <td className="p-3 font-mono text-zinc-200">banearUsuario / desbanearUsuario / levantarSancionClub</td>
+                      <td className="p-3 text-pink-400">Admin / moderador</td>
+                      <td className="p-3 text-zinc-300">Sanciones duraderas y levantamiento de sanciones</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-mono text-emerald-400 font-bold">POST</td>
-                      <td className="p-3 font-mono text-zinc-200">/api/chats</td>
-                      <td className="p-3 text-amber-400">Requerida</td>
-                      <td className="p-3 text-zinc-300">Crear chat 1 a 1 o sala grupal con miembros</td>
+                      <td className="p-3 font-mono text-emerald-400 font-bold">Callable</td>
+                      <td className="p-3 font-mono text-zinc-200">configurarGamificacion / ajustarXp / concederMedalla / recalcularUsuario</td>
+                      <td className="p-3 text-pink-400">Admin</td>
+                      <td className="p-3 text-zinc-300">Configuración, correcciones de XP, medallas y recálculos</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-mono text-sky-400 font-bold">GET</td>
-                      <td className="p-3 font-mono text-zinc-200">/api/search</td>
-                      <td className="p-3 text-zinc-500">Pública</td>
-                      <td className="p-3 text-zinc-300">Búsqueda global con filtro por categorías y tags</td>
+                      <td className="p-3 font-mono text-emerald-400 font-bold">Callable</td>
+                      <td className="p-3 font-mono text-zinc-200">gestionarEncuesta / gestionarTriviaDiaria / sincronizarNoticias</td>
+                      <td className="p-3 text-pink-400">Admin / moderador</td>
+                      <td className="p-3 text-zinc-300">Gestión de encuestas, trivia diaria y noticias RSS</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-emerald-400 font-bold">Callable</td>
+                      <td className="p-3 font-mono text-zinc-200">unirseClubPublico / cambiarVisibilidadCanal</td>
+                      <td className="p-3 text-amber-400">Miembro / equipo del club</td>
+                      <td className="p-3 text-zinc-300">Entrada a clubes y control de canales restringidos</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-emerald-400 font-bold">Callable</td>
+                      <td className="p-3 font-mono text-zinc-200">buscarGifs</td>
+                      <td className="p-3 text-amber-400">Usuario con sesión</td>
+                      <td className="p-3 text-zinc-300">Búsqueda de GIFs a través del servidor</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-sky-400 font-bold">Trigger</td>
+                      <td className="p-3 font-mono text-zinc-200">Likes, comentarios, follows, encuestas, sanciones...</td>
+                      <td className="p-3 text-zinc-500">Solo servidor</td>
+                      <td className="p-3 text-zinc-300">Mantener contadores, XP, medallas, notificaciones y agregados</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-violet-400 font-bold">Cliente</td>
+                      <td className="p-3 font-mono text-zinc-200">{'presence/{uid}'}</td>
+                      <td className="p-3 text-amber-400">Solo el dueño escribe</td>
+                      <td className="p-3 text-zinc-300">Latido de presencia; lectura de contactos directos en Chats</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1011,44 +1090,66 @@ service cloud.firestore {
             <pre className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-[11px] leading-relaxed text-zinc-300 overflow-x-auto">
 {`geekapoo/
 ├── public/
-│   ├── images/
-│   └── mascot/
+│   └── img/
 │
 ├── src/
-│   ├── app/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── navegar/
-│   │   │   └── [slug]/page.tsx
-│   │   ├── buscar/page.tsx
-│   │   ├── chats/page.tsx
-│   │   ├── soporte/page.tsx
-│   │   ├── extras/page.tsx
-│   │   ├── perfil/page.tsx
-│   │   └── api/
-│   │       ├── auth/session/route.ts
-│   │       ├── users/by-chat-id/route.ts
-│   │       ├── comments/route.ts
-│   │       └── chats/route.ts
-│   │
 │   ├── components/
-│   │   ├── layout/ (Navbar, Sidebar)
-│   │   ├── mascot/ (OtakuMascot)
-│   │   ├── wiki/ (AnimeWiki)
-│   │   ├── chat/ (ChatView)
-│   │   └── auth/ (AuthModal)
+│   │   ├── layout/ (Navbar, Sidebar, AccountMenu)
+│   │   ├── home/ (HomeFeed, NewsWidget)
+│   │   ├── community/ (PollCard, ReactionBar...)
+│   │   ├── wiki/ (AnimeWiki, CatalogBrowser...)
+│   │   ├── chat/ (ChatView, ClubDetail...)
+│   │   ├── profile/ (ProfileView, ProfileContent)
+│   │   ├── admin/ (AdminPanel, editores)
+│   │   └── docs/ (este modal de arquitectura)
 │   │
-│   └── lib/firebase/ (client.ts, admin.ts)
+│   ├── context/
+│   │   ├── AuthContext.tsx
+│   │   ├── CommunityContext.tsx
+│   │   ├── ChatContext.tsx
+│   │   ├── ClubsContext.tsx
+│   │   ├── NotificationsContext.tsx
+│   │   └── ProgressionContext.tsx
+│   │
+│   ├── hooks/
+│   │   ├── useCommentsForTarget.ts
+│   │   ├── useProfileComments.ts
+│   │   ├── useCatalogPage.ts
+│   │   └── useAnimeCatalogData.ts
+│   │
+│   ├── lib/
+│   │   ├── firebase.ts
+│   │   ├── firestoreCache.ts
+│   │   ├── persistentCache.ts
+│   │   └── firestoreDiagnostics.ts
+│   │
+│   ├── services/
+│   │   ├── chats.ts, clubs.ts, comments.ts
+│   │   ├── likes.ts, reactions.ts, presence.ts
+│   │   ├── notifications.ts, gamification.ts
+│   │   └── siteContent.ts, news.ts
+│   │
+│   ├── utils/
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css
 │
+├── functions/
+│   └── src/index.ts
+│
+├── tests/
 ├── firestore.rules
-├── proxy.ts
+├── firestore.deploy.rules
+├── firestore.indexes.json
+├── firebase.json
+├── vite.config.ts
 └── package.json`}
             </pre>
           )}
         </div>
 
         {/* Footer */}
-        <div className="border-t border-zinc-800 p-4 bg-zinc-900/90 flex justify-end">
+        <div className="flex shrink-0 justify-end border-t border-zinc-800 p-4 bg-zinc-900/90">
           <button
             onClick={onClose}
             className="rounded-xl bg-violet-600 px-5 py-2 text-xs font-bold text-white hover:bg-violet-500"
