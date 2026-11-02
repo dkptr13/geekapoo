@@ -28,6 +28,7 @@ import { AuthorBadge } from '../gamification/AuthorBadge';
 import { ReportDialog } from '../community/ReportDialog';
 import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
 import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
+import { useCatalogPage, useCollectionCount } from '../../hooks/useCatalogPage';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories } from '../../data/animeCategories';
 import CatalogBrowser from './CatalogBrowser';
@@ -37,6 +38,7 @@ import { AdvancedFilters, ChipsFiltros } from './AdvancedFilters';
 import { WhereToWatch } from './WhereToWatch';
 import {
   FILTROS_VACIOS,
+  contarFiltrosActivos,
   esPelicula,
   generosDisponibles,
   rangoAnios,
@@ -270,16 +272,6 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // cambia la vista (rejilla de animes o listas).
   const [searchFilter, setSearchFilter] = useState<MainTab>('all');
 
-  // El buscador y las pestañas globales de episodios/personajes
-  // abarcan todas las series. Solo entonces se piden completos.
-  useEffect(() => {
-    const necesitaCatalogoCompleto =
-      Boolean(searchQuery.trim()) ||
-      (isBrowsing && (searchFilter === 'episodes' || searchFilter === 'characters'));
-    if (necesitaCatalogoCompleto) ensureCatalogData();
-    if (necesitaCatalogoCompleto || searchFilter === 'threads') ensureAllThreads();
-  }, [searchQuery, searchFilter, isBrowsing, ensureCatalogData, ensureAllThreads]);
-
   // Filtros avanzados: refinan la pestaña activa y se combinan
   // con el buscador. No van a la URL para no ensuciarla.
   const [filtros, setFiltros] = useState<FiltrosAvanzados>(FILTROS_VACIOS);
@@ -294,6 +286,68 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
   const limpiarFiltros = useCallback(() => setFiltros(FILTROS_VACIOS), []);
 
+  // Navegación normal: páginas de 60. Búsqueda o filtros: catálogo
+  // completo, porque filtrar solo la página daría resultados
+  // incompletos.
+  const sinFiltrosCatalogo =
+    selectedCategory === 'all' &&
+    !searchQuery.trim() &&
+    contarFiltrosActivos(filtros) === 0 &&
+    filtros.orden === 'defecto';
+  const paginaEpisodiosActiva =
+    isBrowsing && searchFilter === 'episodes' && sinFiltrosCatalogo && !catalogComplete;
+  const paginaPersonajesActiva =
+    isBrowsing && searchFilter === 'characters' && sinFiltrosCatalogo && !catalogComplete;
+
+  const paginaEpisodios = useCatalogPage<Episode>('episodes', paginaEpisodiosActiva);
+  const paginaPersonajes = useCatalogPage<Character>(
+    'characters',
+    paginaPersonajesActiva,
+    'name',
+  );
+  const totalEpisodios = useCollectionCount('episodes', isBrowsing);
+  const totalPersonajes = useCollectionCount('characters', isBrowsing);
+
+  // El buscador y las pestañas globales con filtros abarcan todas
+  // las series. La navegación normal usa las páginas anteriores.
+  useEffect(() => {
+    const necesitaCatalogoCompleto =
+      Boolean(searchQuery.trim()) ||
+      (isBrowsing &&
+        ((searchFilter === 'episodes' && !paginaEpisodiosActiva) ||
+          (searchFilter === 'characters' && !paginaPersonajesActiva)));
+    if (necesitaCatalogoCompleto) ensureCatalogData();
+    if (necesitaCatalogoCompleto || searchFilter === 'threads') ensureAllThreads();
+  }, [
+    searchQuery,
+    searchFilter,
+    isBrowsing,
+    paginaEpisodiosActiva,
+    paginaPersonajesActiva,
+    ensureCatalogData,
+    ensureAllThreads,
+  ]);
+
+  const episodiosParaCatalogo = useMemo(() => {
+    if (!paginaEpisodiosActiva) return episodes;
+    const grouped: Record<string, Episode[]> = {};
+    paginaEpisodios.items.forEach((ep) => {
+      if (!grouped[ep.animeId]) grouped[ep.animeId] = [];
+      grouped[ep.animeId].push(ep);
+    });
+    return grouped;
+  }, [paginaEpisodiosActiva, paginaEpisodios.items, episodes]);
+
+  const personajesParaCatalogo = useMemo(() => {
+    if (!paginaPersonajesActiva) return characters;
+    const grouped: Record<string, Character[]> = {};
+    paginaPersonajes.items.forEach((personaje) => {
+      if (!grouped[personaje.animeId]) grouped[personaje.animeId] = [];
+      grouped[personaje.animeId].push(personaje);
+    });
+    return grouped;
+  }, [paginaPersonajesActiva, paginaPersonajes.items, characters]);
+
   // Opciones del panel, sacadas de los datos reales: si mañana
   // entra un género nuevo, sale solo en el filtro.
   const generosWiki = useMemo(() => generosDisponibles(animes), [animes]);
@@ -307,11 +361,24 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
       all: animes.length,
       series: animes.length - pelis,
       movies: pelis,
-      episodes: catalogComplete ? Object.values(episodes).flat().length : undefined,
-      characters: catalogComplete ? Object.values(characters).flat().length : undefined,
+      episodes: catalogComplete
+        ? Object.values(episodes).flat().length
+        : (totalEpisodios ?? undefined),
+      characters: catalogComplete
+        ? Object.values(characters).flat().length
+        : (totalPersonajes ?? undefined),
       threads: allThreads.length > 0 ? allThreads.length : threads.length,
     };
-  }, [animes, episodes, characters, allThreads, threads, catalogComplete]);
+  }, [
+    animes,
+    episodes,
+    characters,
+    allThreads,
+    threads,
+    catalogComplete,
+    totalEpisodios,
+    totalPersonajes,
+  ]);
 
   // Ref al input, para poder ponerle el cursor encima desde fuera.
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -611,8 +678,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
       {!searchQuery.trim() && isBrowsing && (
         <CatalogBrowser
           animes={animes}
-          episodes={episodes}
-          characters={characters}
+          episodes={episodiosParaCatalogo}
+          characters={personajesParaCatalogo}
           threads={allThreads.length > 0 ? allThreads : threads}
           selectedCategory={selectedCategory}
           mainTab={searchFilter}
@@ -621,6 +688,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           onSelectAnime={openAnime}
           onSelectThread={onSelectThread}
           onLimpiarFiltros={limpiarFiltros}
+          hasMoreEpisodes={paginaEpisodiosActiva && paginaEpisodios.hasMore}
+          loadingMoreEpisodes={paginaEpisodiosActiva && paginaEpisodios.loadingMore}
+          onLoadMoreEpisodes={paginaEpisodiosActiva ? paginaEpisodios.loadMore : undefined}
+          hasMoreCharacters={paginaPersonajesActiva && paginaPersonajes.hasMore}
+          loadingMoreCharacters={paginaPersonajesActiva && paginaPersonajes.loadingMore}
+          onLoadMoreCharacters={paginaPersonajesActiva ? paginaPersonajes.loadMore : undefined}
         />
       )}
 

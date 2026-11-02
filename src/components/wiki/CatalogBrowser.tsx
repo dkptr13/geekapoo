@@ -10,6 +10,7 @@ import {
   Users,
   MessageSquare,
   SearchX,
+  Loader2,
 } from 'lucide-react';
 
 import { ALL_ANIME_CATEGORIES, animeCategories, isInCategory, normalize } from '../../data/animeCategories';
@@ -59,6 +60,12 @@ interface CatalogBrowserProps {
   onSelectAnime: (id: string) => void;
   onSelectThread?: (thread: Thread) => void;
   onLimpiarFiltros: () => void;
+  hasMoreEpisodes?: boolean;
+  loadingMoreEpisodes?: boolean;
+  onLoadMoreEpisodes?: () => Promise<void>;
+  hasMoreCharacters?: boolean;
+  loadingMoreCharacters?: boolean;
+  onLoadMoreCharacters?: () => Promise<void>;
 }
 
 const CatalogBrowser: FC<CatalogBrowserProps> = ({
@@ -73,6 +80,12 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
   onSelectAnime,
   onSelectThread,
   onLimpiarFiltros,
+  hasMoreEpisodes = false,
+  loadingMoreEpisodes = false,
+  onLoadMoreEpisodes,
+  hasMoreCharacters = false,
+  loadingMoreCharacters = false,
+  onLoadMoreCharacters,
 }) => {
   // Se agrupa una sola vez y no en cada render de la rejilla: se
   // recorre la lista entera por cada categoría.
@@ -226,9 +239,14 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           : mainTab === 'threads'
             ? hilosVisibles.length
             : animesVisibles.length;
+    const sufijo =
+      (mainTab === 'episodes' && hasMoreEpisodes) ||
+      (mainTab === 'characters' && hasMoreCharacters)
+        ? ' · hay más'
+        : '';
     if (mainTab === 'movies') return n === 1 ? '1 película' : `${n} películas`;
-    if (mainTab === 'episodes') return n === 1 ? '1 episodio' : `${n} episodios`;
-    if (mainTab === 'characters') return n === 1 ? '1 personaje' : `${n} personajes`;
+    if (mainTab === 'episodes') return `${n === 1 ? '1 episodio' : `${n} episodios`}${sufijo}`;
+    if (mainTab === 'characters') return `${n === 1 ? '1 personaje' : `${n} personajes`}${sufijo}`;
     if (mainTab === 'threads') return n === 1 ? '1 hilo' : `${n} hilos`;
     return n === 1 ? '1 serie' : `${n} series`;
   })();
@@ -491,6 +509,34 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           {mainTab === 'episodes' && botonVerMas('episodes', episodiosVisibles.length)}
           {mainTab === 'characters' && botonVerMas('characters', personajesVisibles.length)}
           {mainTab === 'threads' && botonVerMas('threads', hilosVisibles.length)}
+          {mainTab === 'episodes' &&
+            hasMoreEpisodes &&
+            onLoadMoreEpisodes &&
+            episodiosVisibles.length <= recorte('episodes', episodiosVisibles.length) && (
+            <button
+              type="button"
+              onClick={() => void onLoadMoreEpisodes()}
+              disabled={loadingMoreEpisodes}
+              className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-amber-400/40 hover:text-white disabled:opacity-60"
+            >
+              {loadingMoreEpisodes && <Loader2 size={11} className="animate-spin" />}
+              {loadingMoreEpisodes ? 'Cargando...' : 'Cargar más episodios'}
+            </button>
+          )}
+          {mainTab === 'characters' &&
+            hasMoreCharacters &&
+            onLoadMoreCharacters &&
+            personajesVisibles.length <= recorte('characters', personajesVisibles.length) && (
+            <button
+              type="button"
+              onClick={() => void onLoadMoreCharacters()}
+              disabled={loadingMoreCharacters}
+              className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-pink-400/40 hover:text-white disabled:opacity-60"
+            >
+              {loadingMoreCharacters && <Loader2 size={11} className="animate-spin" />}
+              {loadingMoreCharacters ? 'Cargando...' : 'Cargar más personajes'}
+            </button>
+          )}
           </>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">

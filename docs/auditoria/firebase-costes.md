@@ -36,7 +36,7 @@ Instrumentación: `src/lib/firestoreDiagnostics.ts`, activa solo con `import.met
 
 La medición anterior se tomó después de convertir los listeners estáticos en lecturas, pero antes de diferir el catálogo. No incluía la colección completa de comentarios que el código anterior también escuchaba, por lo que el consumo original real era **igual o superior** a 11.400 documentos.
 
-El único listener permanente de Comunidad en Inicio es el feed de hilos. La sesión autenticada añade los listeners propios de Auth, chats, clubes y notificaciones descritos más abajo.
+El único listener permanente de Comunidad en Inicio es el feed de hilos. La sesión autenticada añade los listeners propios de Auth y notificaciones; chats, clubes y canales abren los suyos al entrar en su sección.
 
 ### Wiki
 
@@ -46,7 +46,9 @@ El único listener permanente de Comunidad en Inicio es el feed de hilos. La ses
 | Abrir una ficha concreta | 11.197 documentos | **63 documentos** |
 | Volver a abrir una ficha ya visitada | Nueva lectura completa | **0 lecturas nuevas** (caché en memoria) |
 | Recargar la ficha dentro del TTL | Nueva lectura completa | **7 documentos** (solo el feed de hilos) |
-| Pestaña global de episodios/personajes o búsqueda | Colección completa | Colección completa **solo al solicitarla** |
+| Pestaña global de episodios | 6.659 documentos | **61 documentos** por página |
+| Pestaña global de personajes | 4.117 documentos | **61 documentos** por página |
+| Búsqueda o filtros globales | Colección completa | Colección completa **solo al aplicarlos** para no dar resultados incompletos |
 
 El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue `Kaguya-sama: Love is War`: 4 temporadas, 14 personajes, 40 episodios y 5 filas de disponibilidad; baja un **99,4 %** (11.197 → 63).
 
@@ -114,7 +116,9 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - El listado completo de series se carga al entrar en la Wiki, el perfil o el panel.
 - Temporadas, episodios y personajes de cada serie se cargan solo al abrir su ficha.
 - `ensureAnimeData(animeId)` carga solo la serie abierta.
-- `ensureCatalogData()` carga el catálogo completo solo para búsqueda global o pestañas globales de episodios/personajes.
+- Las pestañas globales de episodios y personajes cargan 60 elementos por página y tienen “Cargar más”.
+- Los contadores de esas pestañas se obtienen con agregaciones de Firestore, sin descargar las colecciones.
+- `ensureCatalogData()` carga el catálogo completo solo para búsqueda global o cuando se aplican filtros/orden, donde paginar daría resultados incompletos.
 - La caché se invalida desde las escrituras del panel, incluidas las de una serie concreta.
 - Los comentarios se cargan con `useCommentsForTarget` únicamente al desplegar el objetivo y se limpian al cerrar.
 - El historial anterior del hilo/episodio/personaje se pagina con “Cargar comentarios anteriores”.
@@ -200,7 +204,9 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - Volver a la ficha: 0 lecturas, aciertos de caché.
   - Recargar la ficha dentro del TTL: 7 documentos, 22 aciertos de caché.
   - Abrir/cerrar comentarios: 1 documento y 0 listeners al cerrar.
-  - Búsqueda/pestañas globales: cargan el catálogo completo solo al pedirlo.
+  - Pestaña global de episodios: 61 documentos iniciales y 61 por “Cargar más”.
+  - Pestaña global de personajes: 61 documentos iniciales.
+  - Al aplicar un filtro de categoría: carga completa y el filtrado sigue siendo exacto (11.204 documentos medidos).
   - No se creó contenido de prueba con más de 200 comentarios en producción; la paginación nueva está compilada y cubierta por tipos, pero falta probarla con un hilo real de ese tamaño.
   - La escucha de canales solo para el club abierto está compilada, pero necesita una prueba autenticada real para confirmar el cambio de club y el estado de carga.
   - El panel de administración pasó a consultas puntuales; falta confirmar con una cuenta admin que editar, borrar, banear y cambiar tickets refresca cada sección.
@@ -214,6 +220,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - `src/lib/firestoreDiagnostics.ts`
   - `src/hooks/useCommentsForTarget.ts`
   - `src/hooks/useProfileComments.ts`
+  - `src/hooks/useCatalogPage.ts`
   - `tests/logica.cache.ts`
 - Contextos:
   - `src/context/AuthContext.tsx`
@@ -262,13 +269,14 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 - **Estimación de lecturas evitadas en rutas medidas:** 11.357 documentos menos en Inicio, 11.025 menos al abrir el catálogo de la Wiki y hasta 11.134 menos al abrir una ficha.
 - **Porcentaje estimado en esas rutas:** 99,6 % en Inicio, 98,5 % en el catálogo y 99,4 % en la ficha.
+- **Pestañas globales:** episodios pasa de 6.659 documentos a 61 (−99,1 %) y personajes de 4.117 a 61 (−98,5 %) en navegación normal.
 - **Recargas dentro del TTL:** Inicio baja de 43 a 7 documentos y una ficha ya cacheada de 63 a 7; los 7 son el listener de hilos, no el catálogo.
 - **Ahorro monetario real:** no medido. Falta contrastar con las métricas de Firebase/Google Cloud tras desplegar.
 - Los documentos devueltos no son una factura: no se deben multiplicar por el precio sin validar las métricas reales.
 
 ## 10. Pendientes y siguientes pasos
 
-1. **Catálogo global de episodios/personajes:** al abrir sus pestañas o buscar se sigue descargando completo. La siguiente mejora es búsqueda/paginación del lado del servidor.
+1. **Búsqueda y filtros globales de episodios/personajes:** la navegación normal ya pagina, pero aplicar un filtro u orden descendente sigue cargando el catálogo completo para no mostrar resultados incompletos. La siguiente mejora requiere búsqueda/filtrado del lado del servidor.
 2. **Pruebas autenticadas:** chats, clubes, canales, panel de administración, filtros del feed y paginación con datos reales.
 3. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
 
