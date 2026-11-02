@@ -262,8 +262,8 @@ export const PERSONAJES = [
   ['Shoujou', '6', 'supporting', 'ショウジョウ', 'Isamu Tanonaka',
     'Pirata salvamento orangután y hermano de Masira. Forma parte de la Alianza Saruyama y ayuda a Cricket en la búsqueda de la ciudad de oro.'],
 
-  ['Bellamy', '6', 'antagonist', 'ベラミー', 'Wataru Takagi',
-    'Pirata de Mock Town conocido como la Hiena. Comió la Fruta del Resorte y se burla de los sueños de los demás; Luffy lo derrota de un solo golpe.'],
+  ['Bellamy', '6,17', 'antagonist', 'ベラミー', 'Wataru Takagi',
+    'Pirata de Mock Town conocido como la Hiena. Comió la Fruta del Resorte y se burla de los sueños de los demás; Luffy lo derrota en Jaya y vuelve a enfrentarse a él en Dressrosa.'],
 
   ['Sarquiss', '6', 'supporting', 'サーキース', 'Yuuji Ueda',
     'Primer oficial de Bellamy y su aliado más fiel. Pelea con una espada y participa en el ataque a la casa de Cricket.'],
@@ -274,8 +274,8 @@ export const PERSONAJES = [
   ['Van Augur', '6', 'supporting', 'ヴァン・オーガー', 'Masaya Takatsuka',
     'Francotirador de los piratas de Barbanegra. Aparece en Mock Town y demuestra una puntería imposible.'],
 
-  ['Jesus Burgess', '6', 'supporting', 'ジーザス・バージェス', 'Tetsu Inada',
-    'Luchador enorme de los piratas de Barbanegra. Acompaña a su capitán en Jaya y se ríe del sueño de Skypiea.'],
+  ['Jesus Burgess', '6,17', 'antagonist', 'ジーザス・バージェス', 'Tetsu Inada',
+    'Luchador enorme de los piratas de Barbanegra. Acompaña a su capitán en Jaya y en Dressrosa participa en el Coliseo para hacerse con la Fruta del Fuego.'],
 
   ['Doc Q', '6', 'supporting', 'ドクQ', 'Naoya Uchida',
     'Médico de los piratas de Barbanegra. Va en un caballo flaco y reparte manzanas explosivas a los que se cruzan con él.'],
@@ -874,14 +874,8 @@ export const PERSONAJES = [
   ['Bartolomeo', '17', 'supporting', 'バルトロメオ', 'Shoutarou Morikubo',
     'Supernova y fan declarado de Luffy. Su Fruta de la Barrera lo hace casi invulnerable y funda la flota de los Sombrero de Paja.'],
 
-  ['Bellamy', '17', 'supporting', 'ベラミー', 'Wataru Takagi',
-    'Pirata de la Fruta del Resorte que se enfrenta a Luffy en Jaya y Dressrosa. Acaba reconociendo su fuerza y luchando por él.'],
-
   ['Cavendish', '17', 'supporting', 'キャベンディッシュ', 'Akira Ishida',
     'Pirata noble y espadachín bellísimo. Su otra personalidad, Hakuba, lo convierte en un asesino velocísimo.'],
-
-  ['Jesus Burgess', '17', 'antagonist', 'ジェス', 'Tetsu Inada',
-    'Capitán de la primera flota de Barbanegra. Participa en el torneo del Coliseo para conseguir la Fruta del Fuego.'],
 
   ['Fujitora', '17', 'supporting', 'イッショウ', 'Ikuya Sawaki',
     'Almirante de la Marina ciego que controla la gravedad. Llega a Dressrosa para detener a Luffy y acaba enfrentándose a Doflamingo.'],
