@@ -10,8 +10,8 @@ Fecha: 2026-11-02
 
 Se ha eliminado la mayor parte del consumo que se producía al entrar en la web:
 
-- Inicio dejó de cargar episodios, personajes, temporadas y toda la colección de comentarios.
-- La Wiki carga primero solo el catálogo de series; al abrir una ficha pide únicamente los datos de esa serie.
+- Inicio dejó de cargar el catálogo completo de series, episodios, personajes, temporadas y toda la colección de comentarios. Solo pide unas pocas series para la barra lateral.
+- La Wiki carga el catálogo de series; al abrir una ficha pide únicamente los datos de esa serie.
 - Los buscadores y pestañas globales siguen pudiendo cargar el catálogo completo cuando de verdad lo necesitan.
 - Los comentarios se leen por objetivo y solo mientras están abiertos.
 - El historial de chat se carga en tramos de 80 mensajes, manteniendo el listener en tiempo real.
@@ -30,8 +30,8 @@ Instrumentación: `src/lib/firestoreDiagnostics.ts`, activa solo con `import.met
 | Escenario | Documentos devueltos | Lecturas estimadas | Listeners permanentes |
 |---|---:|---:|---:|
 | Antes de diferir el catálogo (medición conservadora) | 11.400 | 11.400 | 13 |
-| Después | **203** | **203** | **1** |
-| Variación | **−11.197 (−98,2 %)** | **−11.197** | **−12** |
+| Después | **37** | **37** | **1** |
+| Variación | **−11.363 (−99,7 %)** | **−11.363** | **−12** |
 
 La medición anterior se tomó después de convertir los listeners estáticos en lecturas, pero antes de diferir el catálogo. No incluía la colección completa de comentarios que el código anterior también escuchaba, por lo que el consumo original real era **igual o superior** a 11.400 documentos.
 
@@ -41,13 +41,12 @@ El único listener permanente de Comunidad en Inicio es el feed de hilos. La ses
 
 | Escenario | Antes | Después |
 |---|---:|---:|
-| Abrir el catálogo de la Wiki | 11.197 documentos | **0 documentos** |
+| Abrir el catálogo de la Wiki | 11.197 documentos | **172 documentos** |
 | Abrir una ficha concreta | 11.197 documentos | **63 documentos** |
 | Volver a abrir una ficha ya visitada | Nueva lectura completa | **0 lecturas nuevas** (caché) |
 | Pestaña global de episodios/personajes o búsqueda | Colección completa | Colección completa **solo al solicitarla** |
 
-La ficha medida fue `Kaguya-sama: Love is War`: 4 temporadas, 14 personajes, 40 episodios y 5 filas de disponibilidad.  
-La reducción de la ficha es del **99,4 %** frente a 11.197 documentos.
+El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue `Kaguya-sama: Love is War`: 4 temporadas, 14 personajes, 40 episodios y 5 filas de disponibilidad; baja un **99,4 %** (11.197 → 63).
 
 ### Comentarios
 
@@ -98,8 +97,9 @@ La reducción de la ficha es del **99,4 %** frente a 11.197 documentos.
 
 ### Comunidad y Wiki
 
-- Catálogo base de Inicio: series, categorías, curiosidades y diálogos de la mascota.
-- Temporadas, episodios y personajes se cargan bajo demanda.
+- Inicio solo carga 6 series para la barra lateral, además de categorías, curiosidades y diálogos de la mascota.
+- El listado completo de series se carga al entrar en la Wiki, el perfil o el panel.
+- Temporadas, episodios y personajes de cada serie se cargan solo al abrir su ficha.
 - `ensureAnimeData(animeId)` carga solo la serie abierta.
 - `ensureCatalogData()` carga el catálogo completo solo para búsqueda global o pestañas globales de episodios/personajes.
 - La caché se invalida desde las escrituras del panel, incluidas las de una serie concreta.
@@ -171,8 +171,8 @@ La reducción de la ficha es del **99,4 %** frente a 11.197 documentos.
 - `npx tsc -p functions/tsconfig.json --noEmit`: correcto.
 - `npm run test:logica`: 35 comprobaciones puras correctas, incluida la nueva prueba de caché.
 - Pruebas manuales en navegador de desarrollo:
-  - Inicio en frío: 203 documentos, 1 listener activo.
-  - Wiki catálogo: 0 lecturas adicionales.
+  - Inicio en frío: 37 documentos, 1 listener activo.
+  - Wiki catálogo: 172 documentos (solo el listado de series).
   - Ficha Kaguya: 63 documentos.
   - Volver a la ficha: 0 lecturas, aciertos de caché.
   - Abrir/cerrar comentarios: 1 documento y 0 listeners al cerrar.
@@ -221,8 +221,8 @@ La reducción de la ficha es del **99,4 %** frente a 11.197 documentos.
 
 ## 9. Ahorro estimado y ahorro real
 
-- **Estimación de lecturas evitadas en rutas medidas:** 11.197 documentos menos en Inicio y hasta 11.134 menos al abrir una ficha de la Wiki.
-- **Porcentaje estimado en esas rutas:** 98,2 % en Inicio y 99,4 % en la ficha.
+- **Estimación de lecturas evitadas en rutas medidas:** 11.363 documentos menos en Inicio, 11.025 menos al abrir el catálogo de la Wiki y hasta 11.134 menos al abrir una ficha.
+- **Porcentaje estimado en esas rutas:** 99,7 % en Inicio, 98,5 % en el catálogo y 99,4 % en la ficha.
 - **Ahorro monetario real:** no medido. Falta contrastar con las métricas de Firebase/Google Cloud tras desplegar.
 - Los documentos devueltos no son una factura: no se deben multiplicar por el precio sin validar las métricas reales.
 

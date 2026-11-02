@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FC, ElementType } from 'react';
 import {
   Shield,
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
+import { useCommunity } from '../../context/CommunityContext';
 import { useQueryState } from '../../hooks/useQueryState';
 import type { UploadProvider } from '../../services/imageUpload';
 
@@ -357,6 +358,11 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
 export function AdminPanel() {
   const catalog = useAdminCatalog();
   const { isAdmin } = useAuth();
+  const { ensureAnimeList } = useCommunity();
+
+  useEffect(() => {
+    ensureAnimeList();
+  }, [ensureAnimeList]);
 
   // La pestaña abierta del panel también vive en la URL, así que
   // recargar no devuelve a Animes cuando lo que se estaba

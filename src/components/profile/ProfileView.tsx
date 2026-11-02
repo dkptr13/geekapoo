@@ -227,8 +227,12 @@ const Perfil: React.FC<{
 
   const { catalogo, equipar, config, loading: cargandoProgreso } = useProgression();
 
-  const { threads, animes, episodes, characters, ensureCatalogData } = useCommunity();
+  const { threads, animes, episodes, characters, ensureCatalogData, ensureAnimeList } = useCommunity();
   const { comments, likedComments } = useProfileComments(perfil.uid);
+
+  useEffect(() => {
+    ensureAnimeList();
+  }, [ensureAnimeList]);
 
   // El catálogo pesado solo hace falta para poner título a comentarios
   // de episodios o personajes. Un perfil sin esa actividad no lo carga.

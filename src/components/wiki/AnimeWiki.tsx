@@ -77,6 +77,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     characters,
     threads,
     ensureCatalogData,
+    ensureAnimeList,
     ensureAnimeData,
     catalogComplete,
     toggleAnimeLike,
@@ -89,6 +90,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
   const { currentUser, requireAuth, isModerator, isAdmin } = useAuth();
   const puedeModerar = isModerator || isAdmin;
+
+  // La Wiki sí necesita todas las series para el catálogo.
+  useEffect(() => {
+    ensureAnimeList();
+  }, [ensureAnimeList]);
 
   // Moderación de comentarios de la wiki. Mismo par de estados que
   // en HomeFeed, y por el mismo motivo: uno para el comentario que

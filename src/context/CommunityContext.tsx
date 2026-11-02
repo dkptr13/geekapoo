@@ -3,6 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import {
   collection,
   getDocs,
+  limit,
   onSnapshot,
   orderBy,
   query,
@@ -76,6 +77,8 @@ export interface CommunityContextType {
   /** Carga temporadas, episodios y personajes la primera vez que se
    *  necesitan (perfil, editor de tier lists...). */
   ensureCatalogData: () => void;
+  /** Carga el catálogo completo de series (la portada solo trae unas pocas). */
+  ensureAnimeList: () => void;
   /** Carga solo los episodios, personajes y temporadas de una serie. */
   ensureAnimeData: (animeId: string) => void;
   /** `true` cuando ya están cargados todos los episodios y personajes. */
@@ -234,6 +237,24 @@ function leerColeccionCached<T>(
   });
 }
 
+/** Unas pocas series para la portada; nunca todo el catálogo. */
+function leerAnimesDestacados(force = false): Promise<Anime[]> {
+  return cachedRead({
+    key: 'community:animes:featured',
+    ttlMs: TTL_CATALOGO,
+    scope: PUBLIC_CACHE,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'animes:destacados', collection: 'animes', origin: 'CommunityContext' },
+        (result) => result.size,
+        () => getDocs(query(collection(db, 'animes'), limit(6))),
+      );
+      return mapWithId<Anime>(snap);
+    },
+  });
+}
+
 /** Lectura de una sola serie, compartida por todas sus visitas. */
 function leerColeccionDeAnime<T>(
   coleccion: string,
@@ -287,6 +308,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const likesPendientes = useRef(new Set<string>());
   const cargarCatalogoRef = useRef<() => void>(() => undefined);
   const cargarAnimeRef = useRef<(animeId: string) => void>(() => undefined);
+  const cargarListaAnimesRef = useRef<() => void>(() => undefined);
 
   // Cuántas fuentes siguen sin responder por primera vez. Solo el
   // feed de hilos conserva listener; el catálogo usa caché pública y
@@ -359,8 +381,39 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return cargar;
     };
 
-    // Lo mínimo para pintar Inicio.
-    registrarCarga<Anime>('animes', 'community:animes', TTL_CATALOGO, setAnimes);
+    // Lo mínimo para pintar Inicio: unas pocas series para la barra
+    // lateral, no todo el catálogo.
+    let animesCompletos = false;
+    let animesCompletosPedido = false;
+    let destacadosInicial = true;
+    const cargarDestacados = (force = false) => {
+      void leerAnimesDestacados(force)
+        .then((lista) => {
+          if (vivo && !animesCompletos) setAnimes(lista);
+          if (destacadosInicial) {
+            destacadosInicial = false;
+            markReady();
+          }
+        })
+        .catch((e: Error) => {
+          mostrarError('animes destacados', e);
+          if (destacadosInicial) {
+            destacadosInicial = false;
+            markReady();
+          }
+        });
+    };
+    recargas.set('community:animes:featured', cargarDestacados);
+    cargarDestacados();
+
+    const cargarAnimesCompletos = () => {
+      if (animesCompletosPedido) return;
+      animesCompletosPedido = true;
+      animesCompletos = true;
+      registrarCarga<Anime>('animes', 'community:animes', TTL_CATALOGO, setAnimes);
+    };
+    cargarListaAnimesRef.current = cargarAnimesCompletos;
+
     registrarCarga<CategoryItem>('categories', 'community:categories', TTL_CONFIGURACION, (lista) => {
       setCategories(mergeCategories(lista));
     });
@@ -379,6 +432,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const cargarCatalogo = () => {
       if (catalogoPedido) return;
       catalogoPedido = true;
+      cargarAnimesCompletos();
 
       const temporadas = registrarCarga<Season>(
         'seasons',
@@ -499,6 +553,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       vivo = false;
       cargarCatalogoRef.current = () => undefined;
       cargarAnimeRef.current = () => undefined;
+      cargarListaAnimesRef.current = () => undefined;
       window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
       unsubs.forEach((u) => u());
     };
@@ -506,6 +561,10 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const ensureCatalogData = useCallback(() => {
     cargarCatalogoRef.current();
+  }, []);
+
+  const ensureAnimeList = useCallback(() => {
+    cargarListaAnimesRef.current();
   }, []);
 
   const ensureAnimeData = useCallback((animeId: string) => {
@@ -887,6 +946,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         triviaExtras,
         mascotDialogues,
         ensureCatalogData,
+        ensureAnimeList,
         ensureAnimeData,
         catalogComplete,
         loading,

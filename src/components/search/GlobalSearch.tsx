@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Search,
   Tv,
@@ -25,8 +25,12 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   onSelectAnime,
   onSelectThread,
 }) => {
-  const { animes, episodes, characters, threads } = useCommunity();
+  const { animes, episodes, characters, threads, ensureCatalogData } = useCommunity();
   const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    ensureCatalogData();
+  }, [ensureCatalogData]);
   const [filterType, setFilterType] = useState<
     'all' | 'anime' | 'episodes' | 'characters' | 'threads' | 'tags'
   >('all');
