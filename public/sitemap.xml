@@ -66,6 +66,18 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://geekapoo.vercel.app/anime/bleach</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geekapoo.vercel.app/anime/bleach-la-guerra-sangrienta-de-los-mil-anos</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://geekapoo.vercel.app/anime/blood</loc>
     <lastmod>2026-10-26</lastmod>
     <changefreq>weekly</changefreq>

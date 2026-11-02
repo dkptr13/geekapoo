@@ -72,7 +72,63 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   </head>
   <body class="bg-zinc-950 text-zinc-100 antialiased selection:bg-violet-500 selection:text-white min-h-screen">
-    <div id="root"></div>
+    <div id="root">
+      <div id="arranque" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#080810;color:#a1a1aa;font-family:Outfit,system-ui,sans-serif">
+        <div style="width:40px;height:40px;border-radius:9999px;border:4px solid #7c3aed;border-top-color:transparent;animation:girar 1s linear infinite"></div>
+        <p style="margin:0;font-size:14px">Cargando Geekapoo...</p>
+      </div>
+    </div>
+    <style>@keyframes girar{to{transform:rotate(360deg)}}</style>
+    <script>
+      // Red de seguridad del arranque.
+      //
+      // Si el HTML que tiene el navegador es viejo (cacheado de un
+      // despliegue anterior) apunta a un JS que ya no existe: el
+      // módulo no carga, React no monta nada y solo se ve el fondo
+      // negro. Aquí se detecta, se recarga una vez para pedir el HTML
+      // nuevo y, si sigue fallando, se muestra un aviso con un botón
+      // en vez de dejar la pantalla vacía.
+      (function () {
+        var avisoDeFallo = function () {
+          var root = document.getElementById('root');
+          if (!root) return;
+          root.innerHTML =
+            '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#080810;color:#e4e4e7;font-family:system-ui,sans-serif;padding:24px;text-align:center">' +
+              '<div style="max-width:440px">' +
+                '<h1 style="font-size:20px;margin:0 0 10px;font-weight:800">No se pudo cargar la web</h1>' +
+                '<p style="font-size:14px;color:#a1a1aa;line-height:1.6;margin:0 0 8px">Suele ser una versión antigua guardada en el navegador o una extensión que bloquea scripts.</p>' +
+                '<p style="font-size:14px;color:#a1a1aa;line-height:1.6;margin:0">Prueba primero en una ventana de incógnito. Si ahí funciona, borra la caché de este sitio.</p>' +
+                '<button onclick="location.reload()" style="margin-top:18px;padding:10px 20px;border:0;border-radius:10px;background:#7c3aed;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Recargar</button>' +
+              '</div>' +
+            '</div>';
+        };
+
+        window.addEventListener('error', function (e) {
+          var objetivo = e.target;
+
+          if (objetivo && objetivo.tagName === 'SCRIPT') {
+            // Una sola recarga automática: la segunda vez se avisa.
+            if (!sessionStorage.getItem('geekapoo-recarga')) {
+              sessionStorage.setItem('geekapoo-recarga', '1');
+              location.reload();
+              return;
+            }
+            avisoDeFallo();
+            return;
+          }
+
+          // Error de JavaScript: solo se avisa si la app no llegó a
+          // montar. Si ya está pintada, no se tapa con un cartel.
+          var root = document.getElementById('root');
+          if (root && root.querySelector('#arranque')) avisoDeFallo();
+        }, true);
+
+        setTimeout(function () {
+          var root = document.getElementById('root');
+          if (root && root.querySelector('#arranque')) avisoDeFallo();
+        }, 12000);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
