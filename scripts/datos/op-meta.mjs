@@ -4,7 +4,7 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las veintiuna primeras temporadas:
+// De momento el catalogo tiene las veintidos primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
@@ -27,6 +27,7 @@
 //   T19 109 capitulos  (abril de 2017 - junio de 2019)
 //   T20 197 capitulos  (julio de 2019 - diciembre de 2023)
 //   T21  67 capitulos  (enero de 2024 - diciembre de 2025)
+//   T22  25 capitulos  (abril - septiembre de 2026)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -81,7 +82,7 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las veintiuna primeras temporadas:
+ * De momento estan cargadas las veintidos primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
@@ -104,11 +105,12 @@ export const RATING_SERIE = 9.0;
  *   T19 109  (abril de 2017 - junio de 2019)
  *   T20 197  (julio de 2019 - diciembre de 2023)
  *   T21  67  (enero de 2024 - diciembre de 2025)
+ *   T22  25  (abril - septiembre de 2026)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 1155;
+export const EPISODIOS_TOTAL = 1180;
 
 /**
  * Donde se emite en Espana.
@@ -383,5 +385,17 @@ export const TEMPORADAS = [
       'para Fuji TV. Es la saga de Egghead: la isla del futuro, el doctor Vegapunk, el pasado de Kuma y ' +
       'Bonney, el asalto de los Cinco Ancianos y la llegada a Elbaph.',
     capitulos: 'T21',
+  },
+  {
+    numero: 22,
+    titulo: '',
+    anio: 2026,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Veinticinco capitulos del 5 de abril al 27 de septiembre de 2026, en Toei Animation para Fuji TV. ' +
+      'Es la llegada a Elbaph: el pais de los gigantes, el encuentro con Loki, el reencuentro de Robin con ' +
+      'Saul y el ataque de los Caballeros de Dios.',
+    capitulos: 'T22',
   },
 ];

@@ -110,10 +110,10 @@ export const PERSONAJES = [
   ['Miss Monday', '2', 'supporting', 'ミス・マンデー', 'Makiko Oomoto',
     'Agente fronterizo de Baroque Works y pareja de Mr. 8. Tiene una fuerza descomunal y se enfrenta a Zoro en Whisky Peak, donde acaba derrotada como el resto de cazarrecompensas.'],
 
-  ['Dorry', '2', 'supporting', 'ドリー', 'Daisuke Gouri',
+  ['Dorry', '2,22', 'supporting', 'ドリー', 'Daisuke Gouri',
     'Guerrero gigante de Elbaf. Lleva cien años batiéndose con Brogy en Little Garden, un duelo que se reanuda cada vez que entra en erupción el volcán de la isla.'],
 
-  ['Brogy', '2', 'supporting', 'ブロギー', 'Tetsu Inada',
+  ['Brogy', '2,22', 'supporting', 'ブロギー', 'Tetsu Inada',
     'Guerrero gigante de Elbaf y rival de Dorry. Pelea con un hacha enorme y mantiene con su compatriota un duelo de cien años que los dos consideran un honor.'],
 
   ['Mr. 3', '2,4,13,14', 'supporting', 'ギャルディーノ', 'Nobuyuki Hiyama',
@@ -128,12 +128,12 @@ export const PERSONAJES = [
   ['Miss Valentine', '2', 'supporting', 'ミキータ', 'Fumiko Orikasa',
     'Compañera de Mr. 5. Comió la Fruta del Peso y cambia su peso a voluntad: puede flotar como una pluma o caer sobre su enemigo como una tonelada.'],
 
-  ['Nico Robin', '2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
+  ['Nico Robin', '2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22', 'supporting', 'ニコ・ロビン', 'Yuriko Yamaguchi',
     'Vicepresidenta de Baroque Works, conocida como Miss All Sunday. Aparece en el barco de los sombrero de paja, les ofrece un eternal pose y demuestra que sabe demasiado sobre ellos. Tras la caída de Crocodile en Arabasta, se une a la tripulación.'],
 
   // ── TEMPORADA 3: la isla de Drum y Tony Tony Chopper ───────────────
 
-  ['Tony Tony Chopper', '3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
+  ['Tony Tony Chopper', '3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22', 'main', 'トニートニー・チョッパー', 'Ikue Ootani',
     'Reno que comió la Fruta Humano-Humano y aprendió a hablar y a caminar como una persona. Quiere ser un médico capaz de curar cualquier enfermedad y se une a la tripulación en la isla de Drum.'],
 
   ['Kureha', '3,19', 'supporting', 'くれは', 'Masako Nozawa',
@@ -436,7 +436,7 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 8: Water Seven y CP9 ───────────────────────────────
 
-  ['Franky', '8,9,14,15,16,17,18,19,20,21', 'main', 'フランキー', 'Kazuki Yao',
+  ['Franky', '8,9,14,15,16,17,18,19,20,21,22', 'main', 'フランキー', 'Kazuki Yao',
     'Cyborg y carpintero de Water Seven, antiguo aprendiz de Tom. Construye el Thousand Sunny y se une a la tripulación como carpintero.'],
 
   ['Iceberg', '8,9', 'supporting', 'アイスバーグ', 'Shinichirou Miki',
@@ -519,8 +519,8 @@ export const PERSONAJES = [
   ['Spandine', '9', 'antagonist', 'スパンダイン', 'Masaya Onosaka',
     'Padre de Spandam y antiguo jefe de CP9. Ordenó el Buster Call sobre Ohara veinte años atrás.'],
 
-  ['Jaguar D. Saul', '9', 'supporting', 'ハグワール･D･サウロ', 'Takeshi Kusao',
-    'Vicealmirante gigante que abandonó la Marina y se hizo amigo de Robin en Ohara. Muere protegiéndola del Buster Call.'],
+  ['Jaguar D. Saul', '9,22', 'supporting', 'ハグワール･D･サウロ', 'Takeshi Kusao',
+    'Vicealmirante gigante que abandonó la Marina y se hizo amigo de Robin en Ohara. Sobrevivió al Buster Call y vive en Elbaph como bibliotecario.'],
 
   ['Nico Olvia', '9', 'supporting', 'ニコ・オルビア', 'Yuriko Yamaguchi',
     'Arqueóloga de Ohara y madre de Robin. Vuelve a la isla para advertir a sus colegas del ataque del Gobierno.'],
@@ -554,7 +554,7 @@ export const PERSONAJES = [
 
   // ── TEMPORADA 10: Thriller Bark ──────────────────────────────────
 
-  ['Brook', '10,11,14,15,16,17,18,19,20,21', 'main', 'ブルック', 'Choo',
+  ['Brook', '10,11,14,15,16,17,18,19,20,21,22', 'main', 'ブルック', 'Choo',
     'Esqueleto músico que comió la Fruta de la Resurrección y perdió su sombra en Thriller Bark. Fue capitán de los Piratas Rumbar y quiere volver a ver a la ballena Laboon.'],
 
   ['Gecko Moria', '10,14', 'antagonist', 'ゲッコー・モリア', 'Katsuhisa Houki',
@@ -610,7 +610,7 @@ export const PERSONAJES = [
   ['Trafalgar Law', '11,14,16,17,18,20', 'supporting', 'トラファルガー・ロー', 'Hiroshi Kamiya',
     'Capitán de los Piratas Heart y una de las Supernovas. Comió la Fruta de la Operación y se alía con Luffy en Sabaody.'],
 
-  ['Jewelry Bonney', '11,14,19,21', 'supporting', 'ジュエリー・ボニー', 'Reiko Kiuchi',
+  ['Jewelry Bonney', '11,14,19,21,22', 'supporting', 'ジュエリー・ボニー', 'Reiko Kiuchi',
     'Capitana de los Piratas de Bonney y una de las Supernovas. Comió la Fruta de la Edad y tiene un apetito enorme.'],
 
   ['X Drake', '11,14,17,20', 'supporting', 'Ｘ・ドレーク', 'Eiji Takemoto',
@@ -680,7 +680,7 @@ export const PERSONAJES = [
   ['Emporio Ivankov', '13,14,21', 'supporting', 'エンポリオ・イワンコフ', 'Mitsuo Iwata',
     'Reina del Reino Kamabakka y comandante del Ejército Revolucionario. Comió la Fruta de las Hormonas y cura a Luffy en el nivel 5.5 de Impel Down.'],
 
-  ['Jimbei', '13,14,15,19,20,21', 'supporting', 'ジンベエ', 'Daisuke Gouri',
+  ['Jimbei', '13,14,15,19,20,21,22', 'supporting', 'ジンベエ', 'Daisuke Gouri',
     'Tiburón ballena y uno de los Siete Señores del Mar, conocido como el Caballero del Mar. Está preso en Impel Down por negarse a luchar contra Barbablanca y se une a Luffy.'],
 
   ['Shiki', '13', 'antagonist', 'シキ', 'Naoto Takenaka',
@@ -895,7 +895,7 @@ export const PERSONAJES = [
   ['Ideo', '17', 'supporting', 'イデオ', 'Masaki Aizawa',
     'Boxeador del Coliseo y capitán de la flota de los Sombrero de Paja. Pelea con puños explosivos.'],
 
-  ['Hajrudin', '17', 'supporting', 'ハイルディン', 'Tsuyoshi Koyama',
+  ['Hajrudin', '17,22', 'supporting', 'ハイルディン', 'Tsuyoshi Koyama',
     'Gigante de Elbaf que participa en el Coliseo. Derrota a Machvise y funda los Nuevos Piratas Gigantes.'],
 
   ['Orlumbus', '17', 'supporting', 'オオロンブス', 'Jirou Saitou',
@@ -1143,7 +1143,7 @@ export const PERSONAJES = [
   ['Shaka', '21', 'supporting', '正', 'Shuuhei Sakaguchi',
     'Satélite de Vegapunk que representa la sabiduría. Ayuda a los Sombrero de Paja en Egghead.'],
 
-  ['Lilith', '21', 'supporting', '悪', 'Aya Hirano',
+  ['Lilith', '21,22', 'supporting', '悪', 'Aya Hirano',
     'Satélite de Vegapunk que representa la maldad. Es la más agresiva y maneja la tecnología de la isla.'],
 
   ['Edison', '21', 'supporting', '想', 'Ryouko Shiraishi',
@@ -1166,4 +1166,36 @@ export const PERSONAJES = [
 
   ['Ginny', '21', 'supporting', 'ジニー', 'Yumiko Kobayashi',
     'Miembro del Ejército Revolucionario y madre adoptiva de Bonney. Fue secuestrada por los Dragones Celestiales.'],
+
+  // ── TEMPORADA 22: Elbaph ────────────────────────────────────────
+
+  ['Loki', '22', 'supporting', 'ロキ', 'Yuuichi Nakamura',
+    'Príncipe maldito de Elbaph, encadenado en el Inframundo. Es hijo de Harald y hermano de Hajrudin; Luffy lo libera para luchar contra los Caballeros de Dios.'],
+
+  ['Scopper Gaban', '22', 'supporting', 'スコッパーギャバン', 'Toshiyuki Morikawa',
+    'Antiguo miembro de los Piratas de Roger y compañero de Rayleigh. Vive en Elbaph como guardián y se enfrenta a Luffy para probarlo.'],
+
+  ['Ripley', '22', 'supporting', 'リプリー', 'Farahnaz Nikray',
+    'Gigante de Elbaph y esposa de Gaban. Ayuda a los Sombrero de Paja y conoce la historia de la isla.'],
+
+  ['Colon', '22', 'supporting', 'コロン', 'Arisa Sekine',
+    'Niño gigante hijo de Gaban y Ripley. Se hace amigo de Luffy y lo acompaña por Elbaph.'],
+
+  ['Jarul', '22', 'supporting', 'ヤルル', 'Masaharu Satou',
+    'Anciano gigante y antiguo capitán de los Piratas Guerreros. Gobierna Elbaph tras la muerte de Harald.'],
+
+  ['Jorul', '22', 'supporting', 'ヨルル', 'Ryouichi Tanaka',
+    'Antiguo capitán de los Piratas Guerreros y hermano de Jarul. Muere en el flashback de la infancia de Big Mom.'],
+
+  ['Figarland Shamrock', '22', 'antagonist', 'フィガーランド・シャムロック', 'Kenjirou Tsuda',
+    'Comandante de los Caballeros de Dios y hermano gemelo de Shanks. Llega a Elbaph para ejecutar el plan del Gobierno Mundial.'],
+
+  ['Gunko', '22', 'antagonist', 'マンマイヤー軍子', 'Sumire Uesaka',
+    'Caballero de Dios con la Fruta de la Flecha. Ataca a los Sombrero de Paja y secuestra a los niños de Elbaph.'],
+
+  ['Shepard Sommers', '22', 'antagonist', 'シェパード・ソマーズ', 'Hiroki Yasumoto',
+    'Caballero de Dios con poderes de regeneración. Juega con los rehenes y se enfrenta a Gaban.'],
+
+  ['Rimoshifu Killingham', '22', 'antagonist', 'リモシフ・キリンガム聖', 'Shinnosuke Tachibana',
+    'Caballero de Dios que convierte las pesadillas en realidad. Ataca Elbaph durante el juego de los rehenes.'],
 ];

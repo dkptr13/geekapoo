@@ -648,6 +648,11 @@ export const TRAMO_TVDB = {
     //
     //   catalogo T21  (1089-1155)  TVDB S22E4..S22E70
     21: [{ temporada: 22, desde: 4, hasta: 70 }],
+    // La T22 son los 25 capitulos del 1156 al 1180, todos seguidos en la
+    // temporada 23 de TVDB (Elbaph).
+    //
+    //   catalogo T22  (1156-1180)  TVDB S23E1..S23E25
+    22: [{ temporada: 23, desde: 1, hasta: 25 }],
   },
 };
 
@@ -1161,6 +1166,9 @@ export const TITULO_TVDB = {
     '友達との共闘！　ルフィとエルバフの戦士': '友達[ダチ]との共闘! ルフィとエルバフの戦士',
     '船を上げろ！　鉄の巨人が動き出す！': '船を出せ！〝鉄の巨人〟始動',
     '父と母の想い！　ボニーの解放のニカパンチ': '父と母の想い! ボニーの解放の拳(ニカパンチ)',
+    // La T22 anade uno: TVDB escribe el titulo del 1156 con un espacio
+    // normal y sin el っ de でっけェ. Es el mismo episodio.
+    '憧れのエルバフ！　再会のでっけェ宴！': '憧れのエルバフ! 再会のでけェ宴',
   },
 };
 
