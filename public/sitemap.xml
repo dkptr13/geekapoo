@@ -522,6 +522,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://geekapoo.vercel.app/anime/horimiya</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://geekapoo.vercel.app/anime/hunter-x-hunter</loc>
     <lastmod>2026-10-22</lastmod>
     <changefreq>weekly</changefreq>
