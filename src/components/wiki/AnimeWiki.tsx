@@ -214,6 +214,20 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
   const isBrowsing = !currentAnime;
 
+  // Enlaces antiguos y avisos que traen el id del documento en vez
+  // del slug: en cuanto el catálogo sabe el slug real, la barra de
+  // direcciones se reescribe. Así una misma serie no vive en dos
+  // URLs distintas, que es justo lo que Google penaliza como
+  // contenido duplicado.
+  useEffect(() => {
+    if (!currentAnime?.slug) return;
+    if (urlAnime === currentAnime.slug) return;
+    setWikiUrl({ anime: currentAnime.slug });
+    // setWikiUrl cambia en cada navegación; con el slug y la URL
+    // actual como dependencias basta para no repetir la escritura.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAnime?.slug, urlAnime]);
+
   // La ficha carga solo su serie. El catálogo completo (miles de
   // episodios y personajes) se reserva para el buscador global.
   useEffect(() => {
@@ -242,7 +256,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   const openAnime = (id: string) => {
     // Abrir una serie limpia la búsqueda: si no, la ficha no se
     // vería, porque los resultados tienen prioridad sobre ella.
-    setWikiUrl({ anime: id, q: null });
+    //
+    // La URL usa el slug y no el id del documento: "/anime/jujutsu-kaisen"
+    // se lee, se comparte y posiciona; "/anime/A1b2C3d4" no. Si la
+    // serie aún no tiene slug se cae al id, que sigue funcionando.
+    const anime = animes.find((a) => a.id === id);
+    setWikiUrl({ anime: anime?.slug || id, q: null });
   };
 
   // Tabs inside selected anime: "info" | "episodes" | "characters"

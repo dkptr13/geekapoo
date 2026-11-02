@@ -46,7 +46,7 @@ import { ArchitectureModal } from './components/docs/ArchitectureModal';
 
 import { AdminPanel } from './components/admin/AdminPanel';
 
-import { useQueryState, useQueryStateBatch } from './hooks/useQueryState';
+import { slugDeRuta, useQueryState, useQueryStateBatch } from './hooks/useQueryState';
 
 import { Thread } from './types';
 
@@ -64,6 +64,25 @@ const {
   loading,
   canManage,
 } = useAuth();
+
+  // Ruta actual. Es lo que distingue una ficha de anime
+  // ("/anime/xxx") del resto de secciones ("/?tab=xxx").
+  const { pathname, search } = useLocation();
+  const navigate = useNavigate();
+  const enFichaAnime = slugDeRuta(pathname) !== null;
+
+  // Compatibilidad con enlaces antiguos. Notificaciones, reportes y
+  // marcadores guardados siguen usando "?tab=wiki&anime=<id>": se
+  // reescriben a la ruta nueva en cuanto se abren, sin recargar y
+  // sin perder el anime que se estaba mirando.
+  useEffect(() => {
+    if (pathname !== '/') return;
+
+    const slug = new URLSearchParams(search).get('anime');
+    if (!slug) return;
+
+    navigate(`/anime/${encodeURIComponent(slug)}`, { replace: true });
+  }, [pathname, search, navigate]);
 
   if (loading) {
     return (
@@ -107,7 +126,15 @@ const {
   // wiki. Los enlaces guardados de antes (marcadores, enlaces
   // compartidos) se redirigen allí en vez de mostrar una página en
   // blanco, porque no hay ninguna sección que case con ese nombre.
-  const currentTab = currentTabParam === 'buscar' ? 'wiki' : currentTabParam;
+  //
+  // Una ficha de anime no lleva "tab": la ruta "/anime/<slug>" ya
+  // dice que es la wiki. Sin esto, la barra de navegación marcaría
+  // "Inicio" mientras se está viendo un anime.
+  const currentTab = enFichaAnime
+    ? 'wiki'
+    : currentTabParam === 'buscar'
+      ? 'wiki'
+      : currentTabParam;
 
   // Analítica: cada cambio de sección cuenta como una página vista,
   // para saber qué partes se usan de verdad. El pageview inicial ya
@@ -748,7 +775,7 @@ const {
 // ======================================================
 
  // ✅ ASÍ DEBE QUEDAR — todo dentro de BrowserRouter
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
 
 // `FollowingUidProvider` es un `FollowsProvider` con el uid del
 // usuario que se está mirando en la URL.
