@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { MessageCircle, Layers, Reply, Heart, ArrowUpRight } from 'lucide-react';
+import { MessageCircle, Layers, Reply, Heart, ArrowUpRight, Loader2 } from 'lucide-react';
 
 import { formatearNumero } from '../../utils/follows';
 import { PASO_PERFIL, type PerfilDatos } from '../../types/profile';
@@ -36,7 +36,16 @@ export const ProfileContent: React.FC<{
   datos: PerfilDatos;
   /** Abre un hilo (y opcionalmente un comentario). */
   onIrA?: (threadId: string, commentId?: string) => void;
-}> = ({ datos, onIrA }) => {
+  hasMoreComments?: boolean;
+  loadingMoreComments?: boolean;
+  onLoadMoreComments?: () => Promise<void>;
+}> = ({
+  datos,
+  onIrA,
+  hasMoreComments = false,
+  loadingMoreComments = false,
+  onLoadMoreComments,
+}) => {
   const [pestana, setPestana] = useState<Pestana>('hilos');
   const [cuantos, setCuantos] = useState(PASO_PERFIL);
 
@@ -137,6 +146,21 @@ export const ProfileContent: React.FC<{
                 <FilaComentario key={c.id} comentario={c} datos={datos} onIrA={onIrA} />
               ))}
       </ul>
+
+      {pestana === 'comentarios' && hasMoreComments && onLoadMoreComments && (
+        <button
+          type="button"
+          disabled={loadingMoreComments}
+          onClick={async () => {
+            await onLoadMoreComments();
+            setCuantos(Number.MAX_SAFE_INTEGER);
+          }}
+          className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-violet-400/40 hover:text-white disabled:opacity-60"
+        >
+          {loadingMoreComments && <Loader2 size={11} className="animate-spin" />}
+          {loadingMoreComments ? 'Cargando...' : 'Cargar comentarios anteriores'}
+        </button>
+      )}
 
       {total > Math.min(cuantos, total) && (
         <button

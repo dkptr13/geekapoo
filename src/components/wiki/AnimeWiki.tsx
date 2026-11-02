@@ -332,12 +332,20 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   const [expandedCharacterId, setExpandedCharacterId] = useState<string | null>(null);
   const {
     comments: comentariosEpisodio,
+    loadingMore: cargandoEpisodioAnteriores,
+    hasMore: hayEpisodioAnteriores,
+    loadMore: cargarEpisodioAnteriores,
     marcarLikeLocal: marcarLikeEpisodioLocal,
   } = useCommentsForTarget(
     expandedEpisodeId ? 'episode' : null,
     expandedEpisodeId,
   );
-  const { comments: comentariosPersonaje } = useCommentsForTarget(
+  const {
+    comments: comentariosPersonaje,
+    loadingMore: cargandoPersonajeAnteriores,
+    hasMore: hayPersonajeAnteriores,
+    loadMore: cargarPersonajeAnteriores,
+  } = useCommentsForTarget(
     expandedCharacterId ? 'character' : null,
     expandedCharacterId,
   );
@@ -1147,6 +1155,22 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                       </button>
                     </form>
 
+                    {hayEpisodioAnteriores && (
+                      <button
+                        type="button"
+                        onClick={() => void cargarEpisodioAnteriores()}
+                        disabled={cargandoEpisodioAnteriores}
+                        className="mx-auto flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-500/40 hover:text-violet-200 disabled:opacity-60"
+                      >
+                        {cargandoEpisodioAnteriores && (
+                          <Loader2 size={11} className="animate-spin" />
+                        )}
+                        {cargandoEpisodioAnteriores
+                          ? 'Cargando...'
+                          : 'Cargar comentarios anteriores'}
+                      </button>
+                    )}
+
                     {/* List */}
                     <div className="space-y-2 pt-1">
                       {epComments.length === 0 ? (
@@ -1431,6 +1455,22 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                             Enviar
                           </button>
                         </form>
+
+                        {hayPersonajeAnteriores && (
+                          <button
+                            type="button"
+                            onClick={() => void cargarPersonajeAnteriores()}
+                            disabled={cargandoPersonajeAnteriores}
+                            className="mx-auto flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-500/40 hover:text-violet-200 disabled:opacity-60"
+                          >
+                            {cargandoPersonajeAnteriores && (
+                              <Loader2 size={11} className="animate-spin" />
+                            )}
+                            {cargandoPersonajeAnteriores
+                              ? 'Cargando...'
+                              : 'Cargar comentarios anteriores'}
+                          </button>
+                        )}
 
                         <div className="space-y-2">
                           {charComments.length === 0 ? (

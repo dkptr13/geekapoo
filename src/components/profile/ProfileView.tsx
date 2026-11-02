@@ -228,7 +228,13 @@ const Perfil: React.FC<{
   const { catalogo, equipar, config, loading: cargandoProgreso } = useProgression();
 
   const { threads, animes, episodes, characters, ensureCatalogData, ensureAnimeList } = useCommunity();
-  const { comments, likedComments } = useProfileComments(perfil.uid);
+  const {
+    comments,
+    likedComments,
+    loadingMore: cargandoMasComentarios,
+    hasMore: hayMasComentarios,
+    loadMore: cargarMasComentarios,
+  } = useProfileComments(perfil.uid);
 
   useEffect(() => {
     ensureAnimeList();
@@ -669,7 +675,15 @@ const Perfil: React.FC<{
       {/* ── PUBLICACIONES Y COMENTARIOS ─────────────
           Las dos listas del usuario, en pestañas, con "ver más"
           para no pintar cientos de filas de golpe. */}
-      {showActivity && <ProfileContent datos={datos} onIrA={onGoToThread} />}
+      {showActivity && (
+        <ProfileContent
+          datos={datos}
+          onIrA={onGoToThread}
+          hasMoreComments={hayMasComentarios}
+          loadingMoreComments={cargandoMasComentarios}
+          onLoadMoreComments={cargarMasComentarios}
+        />
+      )}
 
       {/* ══════════════════════════════════════════════════
           LO QUE LE GUSTA

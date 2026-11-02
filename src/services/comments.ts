@@ -9,6 +9,8 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  startAfter,
+  Timestamp,
   updateDoc,
   where,
 } from 'firebase/firestore';
@@ -31,7 +33,8 @@ export const COMMENTS = 'comments';
 
 const MAX_BODY = 5000;
 const TTL_PERFIL_COMENTARIOS = 2 * 60 * 1000;
-const MAX_COMENTARIOS_PERFIL = 200;
+export const PROFILE_COMMENTS_PAGE_SIZE = 200;
+const MAX_COMENTARIOS_PERFIL = PROFILE_COMMENTS_PAGE_SIZE;
 
 /** Comentarios escritos por una persona, para su perfil. */
 export function getCommentsByAuthor(
@@ -49,7 +52,7 @@ export function getCommentsByAuthor(
         collection(db, COMMENTS),
         where('authorId', '==', authorId),
         orderBy('createdAt', 'desc'),
-        limit(MAX_COMENTARIOS_PERFIL),
+        limit(MAX_COMENTARIOS_PERFIL + 1),
       );
       try {
         const snap = await measureRead(meta, (result) => result.size, () => getDocs(ordenada));
@@ -62,7 +65,7 @@ export function getCommentsByAuthor(
           () => getDocs(query(
             collection(db, COMMENTS),
             where('authorId', '==', authorId),
-            limit(MAX_COMENTARIOS_PERFIL),
+            limit(MAX_COMENTARIOS_PERFIL + 1),
           )),
         );
         return mapWithId<Comment>(snap).sort(
@@ -71,6 +74,33 @@ export function getCommentsByAuthor(
       }
     },
   });
+}
+
+/** Página anterior de comentarios de un perfil. */
+export async function getMoreCommentsByAuthor(
+  authorId: string,
+  beforeIso: string,
+): Promise<{ comments: Comment[]; hasMore: boolean }> {
+  const ms = Date.parse(beforeIso);
+  if (!authorId || Number.isNaN(ms)) return { comments: [], hasMore: false };
+
+  const snap = await measureRead(
+    { name: 'comments:author:anterior', collection: COMMENTS, origin: 'ProfileView' },
+    (result) => result.size,
+    () => getDocs(query(
+      collection(db, COMMENTS),
+      where('authorId', '==', authorId),
+      orderBy('createdAt', 'desc'),
+      startAfter(Timestamp.fromMillis(ms)),
+      limit(MAX_COMENTARIOS_PERFIL + 1),
+    )),
+  );
+
+  const all = mapWithId<Comment>(snap);
+  return {
+    comments: all.slice(0, MAX_COMENTARIOS_PERFIL),
+    hasMore: all.length > MAX_COMENTARIOS_PERFIL,
+  };
 }
 
 /** Comentarios a los que una persona dio "me gusta", para su perfil. */

@@ -56,6 +56,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 | Abrir comentarios de un hilo | Todos los comentarios del proyecto | **1 documento** en el hilo medido |
 | Cerrar los comentarios | Listener global seguía activo | **0 listeners activos** |
 | Abrir otro hilo | Datos ya en memoria global | Listener limitado a ese hilo |
+| Historial muy largo | Todo desde el principio | **200 documentos por pulsación** de “Cargar anteriores” |
 
 ### Límites de estas cifras
 
@@ -72,7 +73,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 4. **Auth:** directorio completo de usuarios en un listener permanente; el login repetía lecturas del perfil público, privado y restricciones que el listener ya iba a solicitar.
 5. **Gamificación:** dos listeners sobre `users/{uid}` para el mismo usuario y `ProgressionProvider` anidados en Logros y Trivia.
 6. **Chats:** historial completo sin límite y varios efectos dependientes del objeto `currentUser`, que se reiniciaban con cada cambio de XP o medalla.
-7. **Clubes:** los listeners de canales y solicitudes se reabrían cuando cambiaba cualquier dato de un club, aunque los ids fueran los mismos.
+7. **Clubes:** había un listener de canales por cada club del usuario, aunque no se estuviera mirando ninguno.
 8. **Seguidos:** listener permanente de hasta 500 documentos aunque las mutaciones ya se aplicaban de forma optimista.
 9. **Panel:** `uniqueSlug` descargaba una colección completa para comprobar un id; los borrados en cascada descargaban episodios/personajes de todos los animes.
 10. **Cloud Functions:** `onCommentCreated` leía dos veces el mismo destino para validar y resolver el anime; `leerConfig` se repetía varias veces por evento.
@@ -104,6 +105,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - `ensureCatalogData()` carga el catálogo completo solo para búsqueda global o pestañas globales de episodios/personajes.
 - La caché se invalida desde las escrituras del panel, incluidas las de una serie concreta.
 - Los comentarios se cargan con `useCommentsForTarget` únicamente al desplegar el objetivo y se limpian al cerrar.
+- El historial anterior del hilo/episodio/personaje se pagina con “Cargar comentarios anteriores”.
 - El perfil consulta solo los comentarios del autor y los que le gustaron, acotados y con caché corta.
 
 ### Chats
@@ -115,7 +117,8 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 ### Clubes y seguidos
 
-- Los listeners de canales y solicitudes ya no se reabren si los ids de clubes no cambian.
+- Solo se escuchan los canales del club abierto; los mensajes de sus canales siguen en vivo a través de los chats.
+- Los listeners de solicitudes no se reabren si los ids de clubes moderados no cambian.
 - La galería de clubes no lanza consultas sin sesión que las reglas van a denegar.
 - La lista de seguidos se carga una vez con caché y se actualiza de forma optimista al seguir/dejar de seguir.
 
@@ -146,7 +149,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 - Chats privados, grupales y de clubes.
 - Mensajes del chat abierto.
-- Canales y solicitudes de clubes.
+- Canales del club abierto y solicitudes de los clubes moderados.
 - Notificaciones.
 - Hilos del feed.
 - Comentarios del objetivo abierto.
@@ -177,6 +180,8 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - Volver a la ficha: 0 lecturas, aciertos de caché.
   - Abrir/cerrar comentarios: 1 documento y 0 listeners al cerrar.
   - Búsqueda/pestañas globales: cargan el catálogo completo solo al pedirlo.
+  - No se creó contenido de prueba con más de 200 comentarios en producción; la paginación nueva está compilada y cubierta por tipos, pero falta probarla con un hilo real de ese tamaño.
+  - La escucha de canales solo para el club abierto está compilada, pero necesita una prueba autenticada real para confirmar el cambio de club y el estado de carga.
 - `npm run test:rules`: se ejecutó durante más de 15 minutos; todos los casos mostrados pasaron, pero el proceso superó el límite de tiempo antes del resumen final. No se observaron fallos. No se presenta como suite completa certificada.
 
 ## 8. Archivos principales modificados
@@ -202,7 +207,10 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - `src/components/wiki/AnimeWiki.tsx`
   - `src/components/wiki/MainTabs.tsx`
   - `src/components/profile/ProfileView.tsx`
+  - `src/components/profile/ProfileContent.tsx`
   - `src/components/chat/ChatView.tsx`
+  - `src/components/search/GlobalSearch.tsx`
+  - `src/components/admin/AdminPanel.tsx`
   - `src/components/tierlists/TierListEditor.tsx`
   - `src/hooks/useStreamingAvailability.ts`
 - Servicios:
@@ -230,11 +238,10 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 1. **Feed de hilos:** sigue escuchando la colección de hilos completa. Debe paginarse por cursor; perfiles, búsqueda y panel necesitan consultas propias antes de recortarlo.
 2. **Catálogo global de episodios/personajes:** al abrir sus pestañas o buscar se sigue descargando completo. La siguiente mejora es búsqueda/paginación del lado del servidor.
-3. **Comentarios:** el objetivo abierto y el perfil están acotados a 200; falta un “cargar anteriores” para historiales muy largos.
+3. **Contadores del perfil:** la lista de comentarios ya pagina, pero el número de estadísticas se calcula sobre la actividad cargada (200 iniciales). Para exactitud histórica conviene usar un contador del servidor o una consulta agregada.
 4. **Panel de administración:** mantiene listeners de todas las colecciones mientras está abierto. Es aceptable por uso restringido, pero se puede pasar a consultas bajo demanda.
-5. **Metadatos de canales de club:** hay un listener por club del usuario. Se puede limitar al club abierto.
-6. **Caché persistente:** la caché actual es en memoria; se reinicia al recargar. Una caché pública persistente en IndexedDB reduciría aún más visitas repetidas, pero no se ha añadido para no introducir datos privados ni complejidad de sincronización sin pruebas dedicadas.
-7. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
+5. **Caché persistente:** la caché actual es en memoria; se reinicia al recargar. Una caché pública persistente en IndexedDB reduciría aún más visitas repetidas, pero no se ha añadido para no introducir datos privados ni complejidad de sincronización sin pruebas dedicadas.
+6. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
 
 ## 11. Despliegue (no ejecutado)
 

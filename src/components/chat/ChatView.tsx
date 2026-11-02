@@ -979,8 +979,14 @@ export const ChatView: React.FC = () => {
   const esChatClub = activeRoom?.type === 'club';
 
   const misClubes = useClubs().misClubes;
-  const { canalesPorClub, canalesLoading, asegurarGeneral, eliminarCanal, moverCanal } =
-    useClubs();
+  const {
+    canalesPorClub,
+    canalesLoading,
+    asegurarGeneral,
+    eliminarCanal,
+    moverCanal,
+    setClubActivo,
+  } = useClubs();
 
   // Solicitudes de acceso pendientes de los clubes que modero.
   // Se leen del contexto de clubes, que ya las tiene.
@@ -1000,6 +1006,13 @@ export const ChatView: React.FC = () => {
     }
     return misClubes.find((c) => c.chatId === activeRoom.id) ?? null;
   }, [esChatClub, misClubes, activeRoom]);
+
+  // El contexto escucha únicamente los canales del club que está
+  // abierto, no los de todos los clubes del usuario.
+  useEffect(() => {
+    setClubActivo(clubDelChat);
+    return () => setClubActivo(null);
+  }, [clubDelChat?.id, setClubActivo]);
 
   // Los permisos de club no tienen nada que ver con el rol
   // global: un moderador de club no es moderador de la web.
@@ -2607,11 +2620,9 @@ export const ChatView: React.FC = () => {
                   // Actividad del club en TODOS sus canales: la fila
                   // enseña lo último que se dijo en cualquiera de
                   // ellos, y marca sin leer si alguno lo está.
-                  const chatsIds = new Set([
-                    club.chatId,
-                    ...(canalesPorClub[club.id] ?? []).map((c) => c.chatId),
-                  ]);
-                  const chatsClub = rooms.filter((r) => chatsIds.has(r.id));
+                  const chatsClub = rooms.filter(
+                    (r) => r.id === club.chatId || r.slug === club.id,
+                  );
                   const ultimo = chatsClub
                     .filter((r) => r.lastMessageAt)
                     .sort((a, b) =>

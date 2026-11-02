@@ -199,51 +199,35 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return unsub;
   }, [currentUser?.uid]);
 
-  const misClubesKey = useMemo(
-    () => misClubes.map((club) => club.id).sort().join('|'),
-    [misClubes],
-  );
-
-  // ── Canales de mis clubes ──────────────────────────
+  // ── Canales del club abierto ───────────────────────
   //
-  // Una escucha por club (pocos clubes por usuario). Se montan
-  // y desmontan con la lista, y se podan las entradas de clubes
-  // que ya no son míos, para no enseñar canales ajenos.
+  // Antes había un listener por cada club del usuario, aunque no se
+  // estuviera mirando ninguno. Ahora solo se escucha el club abierto
+  // en el chat. Los mensajes de todos los canales siguen en vivo a
+  // través de los chats del usuario.
   useEffect(() => {
-    if (!currentUser || misClubes.length === 0) {
-      setCanalesPorClub({});
+    const clubId = clubActivo?.id ?? null;
+    if (!currentUser || !clubId) {
       setCanalesLoading(false);
       return;
     }
 
-    setCanalesPorClub((prev) => {
-      const ids = new Set(misClubes.map((c) => c.id));
-      const podado: Record<string, ClubChannel[]> = {};
-      for (const [id, lista] of Object.entries(prev)) {
-        if (ids.has(id)) podado[id] = lista;
-      }
-      return podado;
-    });
     setCanalesLoading(true);
 
-    const desuscrs = misClubes.map((club) =>
-      subscribeCanales(
-        club.id,
-        (canales) => {
-          setCanalesPorClub((prev) => ({ ...prev, [club.id]: canales }));
-          setCanalesLoading(false);
-        },
-        (e) => {
-          console.error('[Clubes] Error al leer los canales:', e);
-          setCanalesLoading(false);
-        },
-      ),
+    const unsub = subscribeCanales(
+      clubId,
+      (canales) => {
+        setCanalesPorClub((prev) => ({ ...prev, [clubId]: canales }));
+        setCanalesLoading(false);
+      },
+      (e) => {
+        console.error('[Clubes] Error al leer los canales:', e);
+        setCanalesLoading(false);
+      },
     );
 
-    return () => desuscrs.forEach((d) => d());
-    // La firma solo cambia cuando entra o sale un club. Un cambio de
-    // nombre o de portada no vuelve a abrir todos los listeners.
-  }, [misClubesKey, currentUser?.uid]);
+    return unsub;
+  }, [clubActivo?.id, currentUser?.uid]);
 
   // ── Solicitudes de los clubes que modero ─────────────
   //

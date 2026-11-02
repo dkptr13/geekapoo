@@ -222,6 +222,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [expandedThreadId, setExpandedThreadId] = useState<string | null>(null);
   const {
     comments: comentariosHiloAbierto,
+    loadingMore: cargandoComentariosAnteriores,
+    hasMore: hayComentariosAnteriores,
+    loadMore: cargarComentariosAnteriores,
     marcarLikeLocal: marcarLikeComentarioLocal,
   } = useCommentsForTarget(
     expandedThreadId ? 'thread' : null,
@@ -1275,6 +1278,22 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       )}
                     </div>
                   </form>
+
+                  {hayComentariosAnteriores && (
+                    <button
+                      type="button"
+                      onClick={() => void cargarComentariosAnteriores()}
+                      disabled={cargandoComentariosAnteriores}
+                      className="mx-auto flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold text-zinc-400 transition-colors hover:border-violet-400/30 hover:text-violet-200 disabled:opacity-60"
+                    >
+                      {cargandoComentariosAnteriores && (
+                        <Loader2 size={11} className="animate-spin" />
+                      )}
+                      {cargandoComentariosAnteriores
+                        ? 'Cargando...'
+                        : 'Cargar comentarios anteriores'}
+                    </button>
+                  )}
 
                   {/* List of comments & replies */}
                   <div className="space-y-3 pt-2">
