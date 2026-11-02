@@ -1,5 +1,6 @@
 import {
   collection,
+  getDocs,
   limit,
   onSnapshot,
   orderBy,
@@ -10,6 +11,8 @@ import {
 import { httpsCallable } from 'firebase/functions';
 
 import { db, functions } from '../lib/firebase';
+import { cachedRead, invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
+import { measureRead } from '../lib/firestoreDiagnostics';
 import type { NewsItem } from '../types';
 
 // ======================================================
@@ -53,6 +56,51 @@ export const MAX_NOTICIAS = 6;
 
 /** Cuántas se enseñan. */
 export const NOTICIAS_VISIBLES = 5;
+
+const NEWS_KEY = 'news:latest';
+export const NEWS_REFRESH_MS = 15 * 60 * 1000;
+const NEWS_TTL = NEWS_REFRESH_MS;
+
+function mapearNoticias(
+  docs: { id: string; data: () => DocumentData }[],
+): NewsItem[] {
+  return docs
+    .map((d) => {
+      const datos = d.data();
+      return {
+        id: d.id,
+        title: typeof datos.title === 'string' ? datos.title : '',
+        snippet: typeof datos.snippet === 'string' ? datos.snippet : '',
+        link: typeof datos.link === 'string' ? datos.link : '',
+        sourceName: typeof datos.sourceName === 'string' ? datos.sourceName : '',
+        pubDate: typeof datos.pubDate === 'string' ? datos.pubDate : '',
+      };
+    })
+    .filter((n) => n.title !== '' && n.link !== '');
+}
+
+/** Noticias con caché compartida; cambian como mucho cada dos horas. */
+export function getNewsCached(force = false): Promise<NewsItem[]> {
+  return cachedRead({
+    key: NEWS_KEY,
+    scope: PUBLIC_CACHE,
+    ttlMs: NEWS_TTL,
+    force,
+    persist: true,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'news', collection: NEWS, origin: 'NewsWidget' },
+        (result) => result.size,
+        () => getDocs(query(
+          collection(db, NEWS),
+          orderBy('pubDate', 'desc'),
+          limit(MAX_NOTICIAS),
+        )),
+      );
+      return mapearNoticias(snap.docs);
+    },
+  });
+}
 
 /**
  * Escucha las noticias.
@@ -133,5 +181,8 @@ export function sincronizarAhora(): Promise<ResultadoSincronizacion> {
     'sincronizarNoticias',
   );
 
-  return llamar({}).then((r) => r.data);
+  return llamar({}).then((r) => {
+    invalidateCache(NEWS_KEY, PUBLIC_CACHE);
+    return r.data;
+  });
 }

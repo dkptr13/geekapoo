@@ -1,7 +1,9 @@
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
 import { db, functions } from '../lib/firebase';
+import { cachedRead, invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
+import { measureRead } from '../lib/firestoreDiagnostics';
 import { GAMIFICATION, type GamificationConfig } from '../types/gamification';
 import { configDesdeFirestore } from '../utils/progression';
 
@@ -230,6 +232,27 @@ export function escucharProgreso(
  * @param alCambiar  Recibe la configuracion ya rellenada con los
  *                   valores por defecto.
  */
+const CONFIG_KEY = 'gamification:config';
+const CONFIG_TTL = 15 * 60 * 1000;
+
+/** Configuración con caché corta: es un único documento global. */
+export function getConfigCached(force = false): Promise<GamificationConfig> {
+  return cachedRead({
+    key: CONFIG_KEY,
+    scope: PUBLIC_CACHE,
+    ttlMs: CONFIG_TTL,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'gamification:config', collection: 'gamification', origin: 'ProgressionContext' },
+        () => 1,
+        () => getDoc(doc(db, GAMIFICATION.CONFIG_PATH)),
+      );
+      return configDesdeFirestore(snap.data() as Partial<GamificationConfig>);
+    },
+  });
+}
+
 export function escucharConfiguracion(
   alCambiar: (config: GamificationConfig) => void,
 ): () => void {
@@ -313,6 +336,7 @@ export async function configurar(
     'configurarGamificacion',
   );
   const res = await llamar(cambios);
+  invalidateCache(CONFIG_KEY, PUBLIC_CACHE);
   return configDesdeFirestore(res.data);
 }
 

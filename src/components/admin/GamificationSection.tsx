@@ -17,7 +17,7 @@ import {
   ajustarXpAdmin,
   concederMedallaAdmin,
   configurar,
-  escucharConfiguracion,
+  getConfigCached,
   mensajeDeError,
   recalcular,
 } from '../../services/gamification';
@@ -282,23 +282,37 @@ export const GamificationSection: React.FC = () => {
   const [animeMedallas, setAnimeMedallas] = useState<Record<string, string>>({});
 
   /**
-   * La configuración se lee con su propio `onSnapshot`, y no se
-   * coge del `useProgression()`.
-   *
-   * Motivo: este panel va montado dentro del panel de
-   * administración, y el `ProgressionProvider` de ahí sigue al
-   * usuario de la sesión. Si el panel tomara la configuración de
-   * ese contexto, estaría leyendo la de quien está mirando en
-   * vez de la global, que es justo lo que hay que configurar.
+   * La configuración se lee directamente, no del `useProgression()`.
+   * Este panel necesita la configuración global y la caché se
+   * invalida al guardar.
    */
   useEffect(() => {
-    const cancelar = escucharConfiguracion((c) => {
-      setConfig(c);
-      setAnimeMedallas(c.animeMedallas ?? {});
-      setCargando(false);
-    });
+    let activo = true;
+    const cargar = (force = false) => {
+      void getConfigCached(force)
+        .then((c) => {
+          if (!activo) return;
+          setConfig(c);
+          setAnimeMedallas(c.animeMedallas ?? {});
+          setCargando(false);
+        })
+        .catch((e: Error) => {
+          if (!activo) return;
+          console.error('[Gamificacion] No se pudo leer la configuracion:', e);
+          setCargando(false);
+        });
+    };
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key === 'gamification:config') void cargar(true);
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    cargar();
 
-    return cancelar;
+    return () => {
+      activo = false;
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+    };
   }, []);
 
   if (cargando || !config) {

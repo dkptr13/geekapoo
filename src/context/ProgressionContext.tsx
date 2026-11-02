@@ -16,9 +16,9 @@ import {
 } from '../types/gamification';
 import {
   aProgreso,
-  escucharConfiguracion,
   escucharProgreso,
   equiparTitulo,
+  getConfigCached,
   type ProgresoCrudo,
 } from '../services/gamification';
 import {
@@ -153,16 +153,37 @@ export const ProgressionProvider: React.FC<{
   // ====================================================
 
   useEffect(() => {
-    const cancelar = escucharConfiguracion((c) => {
-      setConfig(c);
+    if (!currentUser) {
+      setConfig(CONFIG_POR_DEFECTO);
       setError(null);
-    });
-    return cancelar;
-    // Depende de la sesión: si se montó sin haber entrado, la
-    // primera lectura sale denegada (`isSignedIn()` en las reglas)
-    // y se queda con `activo: false` para siempre, pintando el
-    // aviso aunque el panel ya lo activara. Al entrar se vuelve a
-    // suscribir, ya con token, y el aviso desaparece.
+      return;
+    }
+
+    let activo = true;
+    const cargar = (force = false) => {
+      void getConfigCached(force)
+        .then((c) => {
+          if (!activo) return;
+          setConfig(c);
+          setError(null);
+        })
+        .catch((e: Error) => {
+          console.warn('[Gamificacion] No se pudo leer la configuracion:', e.message);
+        });
+    };
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key === 'gamification:config') void cargar(true);
+    };
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    cargar();
+
+    return () => {
+      activo = false;
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+    };
+    // Depende de la sesión porque la configuración exige usuario
+    // autenticado; al entrar se vuelve a leer con token.
   }, [currentUser?.uid]);
 
   // ====================================================

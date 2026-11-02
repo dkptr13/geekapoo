@@ -30,9 +30,9 @@ Instrumentación: `src/lib/firestoreDiagnostics.ts`, activa solo con `import.met
 | Escenario | Documentos devueltos | Lecturas estimadas | Listeners permanentes |
 |---|---:|---:|---:|
 | Antes de diferir el catálogo (medición conservadora) | 11.400 | 11.400 | 13 |
-| Después, primera visita | **37** | **37** | **1** |
+| Después, primera visita | **43** | **43** | **1** |
 | Después, recarga dentro del TTL | **7** | **7** | **1** |
-| Variación en la primera visita | **−11.363 (−99,7 %)** | **−11.363** | **−12** |
+| Variación en la primera visita | **−11.357 (−99,6 %)** | **−11.357** | **−12** |
 
 La medición anterior se tomó después de convertir los listeners estáticos en lecturas, pero antes de diferir el catálogo. No incluía la colección completa de comentarios que el código anterior también escuchaba, por lo que el consumo original real era **igual o superior** a 11.400 documentos.
 
@@ -140,11 +140,13 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - Editar el perfil actualiza la entrada del directorio en memoria sin descargar todos los usuarios.
 - Se eliminó el listener duplicado de `users/{uid}` en `ProgressionContext` para el usuario propio.
 - Se eliminaron los `ProgressionProvider` anidados de Logros y Trivia.
+- La configuración de gamificación se lee con caché corta y se invalida al guardar, en vez de mantener un listener por sesión y otro en el panel.
 
 ### Configuración y disponibilidad
 
 - Ajustes del sitio y obras semanales usan caché larga con invalidación al guardar.
 - Plataformas, regiones y disponibilidad regional usan caché y consultas puntuales, no listeners permanentes.
+- Las noticias usan caché persistente de 15 minutos; el botón de sincronización manual invalida la entrada.
 - Las páginas que siguen necesitando tiempo real (chats, clubes, notificaciones, hilos, comentarios abiertos, reacciones) lo conservan.
 
 ### Panel y Cloud Functions
@@ -184,7 +186,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - `npx tsc -p functions/tsconfig.json --noEmit`: correcto.
 - `npm run test:logica`: 35 comprobaciones puras correctas, incluida la nueva prueba de caché.
 - Pruebas manuales en navegador de desarrollo:
-  - Inicio en frío: 37 documentos, 1 listener activo.
+  - Inicio en frío: 43 documentos, 1 listener activo.
   - Inicio recargado dentro del TTL: 7 documentos (solo el feed de hilos), 16 aciertos de caché.
   - Wiki catálogo: 172 documentos (solo el listado de series).
   - Ficha Kaguya: 63 documentos.
@@ -217,6 +219,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - Componentes y hooks:
   - `src/App.tsx`
   - `src/components/home/HomeFeed.tsx`
+  - `src/components/home/NewsWidget.tsx`
   - `src/components/wiki/AnimeWiki.tsx`
   - `src/components/wiki/MainTabs.tsx`
   - `src/components/profile/ProfileView.tsx`
@@ -224,6 +227,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - `src/components/chat/ChatView.tsx`
   - `src/components/search/GlobalSearch.tsx`
   - `src/components/admin/AdminPanel.tsx`
+  - `src/components/admin/GamificationSection.tsx`
   - `src/components/tierlists/TierListEditor.tsx`
   - `src/hooks/useStreamingAvailability.ts`
 - Servicios:
@@ -231,6 +235,8 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - `src/services/comments.ts`
   - `src/services/likes.ts`
   - `src/services/notifications.ts`
+  - `src/services/news.ts`
+  - `src/services/gamification.ts`
   - `src/services/catalogAdmin.ts`
   - `src/services/siteContent.ts`
   - `src/services/streamingAvailability.ts`
@@ -245,9 +251,9 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 ## 9. Ahorro estimado y ahorro real
 
-- **Estimación de lecturas evitadas en rutas medidas:** 11.363 documentos menos en Inicio, 11.025 menos al abrir el catálogo de la Wiki y hasta 11.134 menos al abrir una ficha.
-- **Porcentaje estimado en esas rutas:** 99,7 % en Inicio, 98,5 % en el catálogo y 99,4 % en la ficha.
-- **Recargas dentro del TTL:** Inicio baja de 37 a 7 documentos y una ficha ya cacheada de 63 a 7; los 7 son el listener de hilos, no el catálogo.
+- **Estimación de lecturas evitadas en rutas medidas:** 11.357 documentos menos en Inicio, 11.025 menos al abrir el catálogo de la Wiki y hasta 11.134 menos al abrir una ficha.
+- **Porcentaje estimado en esas rutas:** 99,6 % en Inicio, 98,5 % en el catálogo y 99,4 % en la ficha.
+- **Recargas dentro del TTL:** Inicio baja de 43 a 7 documentos y una ficha ya cacheada de 63 a 7; los 7 son el listener de hilos, no el catálogo.
 - **Ahorro monetario real:** no medido. Falta contrastar con las métricas de Firebase/Google Cloud tras desplegar.
 - Los documentos devueltos no son una factura: no se deben multiplicar por el precio sin validar las métricas reales.
 

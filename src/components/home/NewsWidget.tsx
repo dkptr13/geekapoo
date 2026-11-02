@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import type { FC } from 'react';
 import { Newspaper, ExternalLink, AlertCircle, RefreshCw } from 'lucide-react';
 
-import { NOTICIAS_VISIBLES, subscribeNews, sincronizarAhora } from '../../services/news';
+import {
+  getNewsCached,
+  NEWS_REFRESH_MS,
+  NOTICIAS_VISIBLES,
+  sincronizarAhora,
+} from '../../services/news';
 import { useAuth } from '../../context/AuthContext';
 import type { NewsItem } from '../../types';
 
@@ -134,16 +139,48 @@ export const NewsWidget: FC = () => {
   // noticias de una columna que ya no existe cuando se navega a otra
   // página.
   useEffect(() => {
-    return subscribeNews(
-      (lista) => {
-        setNoticias(lista);
-        setError(false);
-      },
-      (e) => {
-        console.error('[Noticias] No se pudieron leer las noticias:', e);
-        setError(true);
-      },
-    );
+    let activo = true;
+    let ultimaCarga = 0;
+
+    const cargar = (force = false) => {
+      void getNewsCached(force)
+        .then((lista) => {
+          if (!activo) return;
+          setNoticias(lista);
+          setError(false);
+          ultimaCarga = Date.now();
+        })
+        .catch((e: Error) => {
+          if (!activo) return;
+          console.error('[Noticias] No se pudieron leer las noticias:', e);
+          setError(true);
+        });
+    };
+
+    // Sin listener permanente: se revisa cada minuto si ya pasó el
+    // TTL, y solo entonces se hace una consulta de 6 documentos.
+    const revisar = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - ultimaCarga < NEWS_REFRESH_MS) return;
+      cargar(true);
+    };
+
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key === 'news:latest') cargar(true);
+    };
+
+    const intervalo = window.setInterval(revisar, 60_000);
+    document.addEventListener('visibilitychange', revisar);
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    cargar();
+
+    return () => {
+      activo = false;
+      window.clearInterval(intervalo);
+      document.removeEventListener('visibilitychange', revisar);
+      window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+    };
   }, []);
 
   return (
