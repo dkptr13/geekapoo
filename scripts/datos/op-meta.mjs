@@ -4,7 +4,7 @@
 // octubre de 1999. Luffy y su tripulacion buscan el tesoro del Rey de
 // los Piratas, Gol D. Roger, en un mundo de islas y piratas.
 //
-// De momento el catalogo tiene las diecinueve primeras temporadas:
+// De momento el catalogo tiene las veintiuna primeras temporadas:
 //
 //   T1   61 capitulos  (octubre de 1999 - marzo de 2001)
 //   T2   16 capitulos  (marzo - agosto de 2001)
@@ -25,6 +25,8 @@
 //   T17 118 capitulos  (enero de 2014 - junio de 2016)
 //   T18  36 capitulos  (junio de 2016 - abril de 2017)
 //   T19 109 capitulos  (abril de 2017 - junio de 2019)
+//   T20 197 capitulos  (julio de 2019 - diciembre de 2023)
+//   T21  67 capitulos  (enero de 2024 - diciembre de 2025)
 //
 // Las demas temporadas se iran anadiendo por tandas.
 //
@@ -79,7 +81,7 @@ export const RATING_SERIE = 9.0;
 /**
  * Capitulos en total.
  *
- * De momento estan cargadas las diecinueve primeras temporadas:
+ * De momento estan cargadas las veintiuna primeras temporadas:
  *
  *   T1   61  (octubre de 1999 - marzo de 2001)
  *   T2   16  (marzo - agosto de 2001)
@@ -100,11 +102,13 @@ export const RATING_SERIE = 9.0;
  *   T17 118  (enero de 2014 - junio de 2016)
  *   T18  36  (junio de 2016 - abril de 2017)
  *   T19 109  (abril de 2017 - junio de 2019)
+ *   T20 197  (julio de 2019 - diciembre de 2023)
+ *   T21  67  (enero de 2024 - diciembre de 2025)
  *
  * El resto de la serie se ira anadiendo por tandas. Las peliculas y los
  * especiales no entran.
  */
-export const EPISODIOS_TOTAL = 891;
+export const EPISODIOS_TOTAL = 1155;
 
 /**
  * Donde se emite en Espana.
@@ -353,5 +357,31 @@ export const TEMPORADAS = [
       'de Totto Land y el combate contra Katakuri. Al final entran el Levely y los primeros capitulos del ' +
       'mar de Wano.',
     capitulos: 'T19',
+  },
+  {
+    numero: 20,
+    titulo: '',
+    anio: 2019,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Ciento noventa y siete capitulos del 7 de julio de 2019 al 17 de diciembre de 2023, en Toei ' +
+      'Animation para Fuji TV. Es la saga de Wano: la llegada al pais de los samurais, la alianza con ' +
+      'Kin\'emon y los Akazaya, la ejecucion de Oden, la batalla de Onigashima y el combate contra Kaido ' +
+      'y Big Mom. Los tres ultimos capitulos abren el arco final con la noticia del nuevo emperador y ' +
+      'el sueno de Luffy.',
+    capitulos: 'T20',
+  },
+  {
+    numero: 21,
+    titulo: '',
+    anio: 2024,
+    estado: 'Finalizado',
+    estudio: 'Toei Animation',
+    synopsis:
+      'Sesenta y siete capitulos del 7 de enero de 2024 al 28 de diciembre de 2025, en Toei Animation ' +
+      'para Fuji TV. Es la saga de Egghead: la isla del futuro, el doctor Vegapunk, el pasado de Kuma y ' +
+      'Bonney, el asalto de los Cinco Ancianos y la llegada a Elbaph.',
+    capitulos: 'T21',
   },
 ];
