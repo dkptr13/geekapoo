@@ -351,6 +351,30 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Red de seguridad contra la pantalla en negro.
+  //
+  // Firestore abre conexiones largas por pestaña. Si el navegador ya
+  // tiene muchas abiertas (varias pestañas de la web, una red que
+  // filtra firestore.googleapis.com, un portátil que vuelve de
+  // suspensión), una lectura puede quedarse esperando indefinidamente
+  // y el `if (loading)` de abajo no se iría nunca: la web se queda en
+  // "Cargando datos de la comunidad..." para siempre.
+  //
+  // A los 8 segundos se pinta con lo que haya. Lo que llegue después
+  // entra solo, porque cada carga actualiza su estado al terminar.
+  useEffect(() => {
+    if (!loading) return;
+
+    const limite = setTimeout(() => {
+      console.warn(
+        '[Community] La carga inicial no terminó en 8 s; se muestra la web con los datos disponibles.',
+      );
+      setLoading(false);
+    }, 8000);
+
+    return () => clearTimeout(limite);
+  }, [loading]);
+
   // Un like por contenido puede estar esperando a Firestore. El
   // corazón cambia en local enseguida; el bloqueo solo evita que un
   // doble toque lance dos transacciones contrarias a la vez.
