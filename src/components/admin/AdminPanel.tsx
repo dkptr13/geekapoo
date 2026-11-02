@@ -358,11 +358,12 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
 export function AdminPanel() {
   const catalog = useAdminCatalog();
   const { isAdmin } = useAuth();
-  const { ensureAnimeList } = useCommunity();
+  const { ensureAnimeList, ensureAllThreads } = useCommunity();
 
   useEffect(() => {
     ensureAnimeList();
-  }, [ensureAnimeList]);
+    ensureAllThreads();
+  }, [ensureAnimeList, ensureAllThreads]);
 
   // La pestaña abierta del panel también vive en la URL, así que
   // recargar no devuelve a Animes cuando lo que se estaba

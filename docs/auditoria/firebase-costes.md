@@ -108,6 +108,9 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 ### Comunidad y Wiki
 
 - Inicio solo carga 6 series para la barra lateral, además de categorías, curiosidades y diálogos de la mascota.
+- El feed carga 50 hilos recientes en tiempo real y pagina el resto con “Cargar publicaciones anteriores”.
+- Los hilos fijados antiguos se consultan aparte para que no desaparezcan al paginar.
+- El histórico completo de hilos se carga solo para perfil, búsqueda, pestaña de hilos, panel o filtros que lo necesitan.
 - El listado completo de series se carga al entrar en la Wiki, el perfil o el panel.
 - Temporadas, episodios y personajes de cada serie se cargan solo al abrir su ficha.
 - `ensureAnimeData(animeId)` carga solo la serie abierta.
@@ -123,10 +126,13 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - Historial inicial de 80 mensajes, no la conversación completa.
 - Botón “Cargar mensajes anteriores” con conservación de la posición del scroll.
 - Los listeners se mantienen en tiempo real.
+- Fuera de la sección de chats no se escuchan mensajes, solicitudes, bloqueos ni mensajes ocultos; solo se mantiene la lista de conversaciones para el aviso de no leídos.
+- Al entrar en Chats se abren los listeners necesarios y se cierran al salir.
 - Se estabilizaron las dependencias por `uid`: un cambio de XP no reabre chats, solicitudes, bloqueos ni mensajes.
 
 ### Clubes y seguidos
 
+- Los clubes, solicitudes y galería solo se cargan mientras la sección de Chats está abierta.
 - Solo se escuchan los canales del club abierto; los mensajes de sus canales siguen en vivo a través de los chats.
 - Los listeners de solicitudes no se reabren si los ids de clubes moderados no cambian.
 - La galería de clubes no lanza consultas sin sesión que las reglas van a denegar.
@@ -262,8 +268,8 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 ## 10. Pendientes y siguientes pasos
 
-1. **Feed de hilos:** sigue escuchando la colección de hilos completa. Debe paginarse por cursor; perfiles, búsqueda y panel necesitan consultas propias antes de recortarlo.
-2. **Catálogo global de episodios/personajes:** al abrir sus pestañas o buscar se sigue descargando completo. La siguiente mejora es búsqueda/paginación del lado del servidor.
+1. **Catálogo global de episodios/personajes:** al abrir sus pestañas o buscar se sigue descargando completo. La siguiente mejora es búsqueda/paginación del lado del servidor.
+2. **Pruebas autenticadas:** chats, clubes, canales, panel de administración, filtros del feed y paginación con datos reales.
 3. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
 
 ## 11. Despliegue

@@ -46,6 +46,7 @@ import {
 } from '../services/clubs';
 
 import { useAuth } from './AuthContext';
+import { useChat } from './ChatContext';
 import type {
   Club,
   ClubCategory,
@@ -155,6 +156,7 @@ const ClubsContext = createContext<ClubsContextType | undefined>(undefined);
 
 export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
+  const { chatOpen } = useChat();
 
   const [misClubes, setMisClubes] = useState<Club[]>([]);
   const [descubrir, setDescubrir] = useState<ClubListing[]>([]);
@@ -179,6 +181,13 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
+    // Los clubes solo se necesitan dentro de Chats. Al salir se
+    // conserva la lista, pero se cierra el listener.
+    if (!chatOpen) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -197,7 +206,7 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     return unsub;
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, chatOpen]);
 
   // ── Canales del club abierto ───────────────────────
   //
@@ -207,7 +216,7 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // través de los chats del usuario.
   useEffect(() => {
     const clubId = clubActivo?.id ?? null;
-    if (!currentUser || !clubId) {
+    if (!currentUser || !chatOpen || !clubId) {
       setCanalesLoading(false);
       return;
     }
@@ -227,7 +236,7 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     return unsub;
-  }, [clubActivo?.id, currentUser?.uid]);
+  }, [clubActivo?.id, currentUser?.uid, chatOpen]);
 
   // ── Solicitudes de los clubes que modero ─────────────
   //
@@ -245,6 +254,7 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 
   useEffect(() => {
+    if (!chatOpen) return;
     if (clubesModerados.length === 0) {
       setSolicitudesPendientes([]);
       return;
@@ -264,13 +274,13 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     return () => desuscrs.forEach((d) => d());
-  }, [clubesModeradosKey]);
+  }, [clubesModeradosKey, chatOpen]);
 
   const refrescarDescubrir = useCallback(
     async (busqueda = '', categoria: ClubCategory | 'todas' = 'todas') => {
       // Las reglas no permiten leer clubes sin sesión; no se lanza
       // una consulta que siempre va a ser denegada.
-      if (!currentUser) {
+      if (!currentUser || !chatOpen) {
         setDescubrir([]);
         return;
       }
@@ -282,10 +292,10 @@ export const ClubsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setError('No se pudo cargar la galería de clubes.');
       }
     },
-    [currentUser?.uid],
+    [currentUser?.uid, chatOpen],
   );
 
-  // La galería se carga al montar, pero solo con una sesión válida.
+  // La galería se carga al montar, pero solo dentro de Chats.
   useEffect(() => {
     void refrescarDescubrir();
   }, [refrescarDescubrir]);

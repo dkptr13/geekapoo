@@ -7,7 +7,10 @@ import {
   onSnapshot,
   orderBy,
   query,
+  startAfter,
   where,
+  type DocumentData,
+  type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
@@ -64,7 +67,14 @@ import { useAuth } from './AuthContext';
 export type CommentTarget = 'thread' | 'anime' | 'episode' | 'character';
 
 export interface CommunityContextType {
+  /** Página reciente del feed, ampliable con `loadMoreThreads`. */
   threads: Thread[];
+  /** Copia completa, para perfil, búsqueda y administración. */
+  allThreads: Thread[];
+  hasMoreThreads: boolean;
+  loadingMoreThreads: boolean;
+  loadMoreThreads: () => Promise<void>;
+  ensureAllThreads: () => void;
   animes: Anime[];
   /** Temporadas de todos los animes. La wiki las agrupa por animeId. */
   seasons: Season[];
@@ -210,6 +220,8 @@ function normalizarHilo(thread: Thread): Thread {
 const TTL_ANIMES = 5 * 60 * 1000;
 const TTL_CATALOGO = 30 * 60 * 1000;
 const TTL_CONFIGURACION = 60 * 60 * 1000;
+const TTL_HILOS = 2 * 60 * 1000;
+const THREAD_PAGE_SIZE = 50;
 
 /** Lectura pública compartida; no abre un listener por cada visita. */
 function leerColeccionCached<T>(
@@ -282,6 +294,35 @@ function leerColeccionDeAnime<T>(
   });
 }
 
+function unirHilos(...listas: Thread[][]): Thread[] {
+  const porId = new Map<string, Thread>();
+  listas.forEach((lista) => lista.forEach((hilo) => porId.set(hilo.id, hilo)));
+  return [...porId.values()].sort(
+    (a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0),
+  );
+}
+
+/**
+ * Todos los hilos, solo para las vistas que necesitan el histórico:
+ * perfil, búsqueda global, pestaña de hilos y panel de administración.
+ */
+function leerTodosLosHilos(force = false): Promise<Thread[]> {
+  return cachedRead({
+    key: 'community:threads:all',
+    scope: PUBLIC_CACHE,
+    ttlMs: TTL_HILOS,
+    force,
+    read: async () => {
+      const snap = await measureRead(
+        { name: 'threads:all', collection: 'threads', origin: 'CommunityContext' },
+        (result) => result.size,
+        () => getDocs(query(collection(db, 'threads'), orderBy('createdAt', 'desc'))),
+      );
+      return mapWithId<Thread>(snap).map(normalizarHilo);
+    },
+  });
+}
+
 // ======================================================
 // PROVIDER
 // ======================================================
@@ -294,6 +335,9 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // ====================================================
 
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [allThreads, setAllThreads] = useState<Thread[]>([]);
+  const [hasMoreThreads, setHasMoreThreads] = useState(false);
+  const [loadingMoreThreads, setLoadingMoreThreads] = useState(false);
   const [animes, setAnimes] = useState<Anime[]>([]);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [episodes, setEpisodes] = useState<Record<string, Episode[]>>({});
@@ -313,6 +357,10 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const cargarCatalogoRef = useRef<() => void>(() => undefined);
   const cargarAnimeRef = useRef<(animeId: string) => void>(() => undefined);
   const cargarListaAnimesRef = useRef<() => void>(() => undefined);
+  const cargarTodosHilosRef = useRef<(force?: boolean) => void>(() => undefined);
+  const threadCursorRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const hayHilosAnterioresRef = useRef(false);
+  const pinnedThreadsRef = useRef<Thread[]>([]);
 
   // Cuántas fuentes siguen sin responder por primera vez. Solo el
   // feed de hilos conserva listener; el catálogo usa caché pública y
@@ -533,6 +581,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const alInvalidar = (event: Event) => {
       const key = (event as CustomEvent<{ key?: string }>).detail?.key;
       if (!key) return;
+      if (key === 'community:threads') cargarTodosHilosRef.current(true);
       recargas.get(key)?.(true);
       recargas.forEach((cargar, registrada) => {
         if (registrada.startsWith(`${key}:`)) cargar(true);
@@ -540,24 +589,74 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
     window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
 
+    const cargarTodosHilos = (force = false) => {
+      void leerTodosLosHilos(force)
+        .then((lista) => {
+          if (vivo) setAllThreads(lista);
+        })
+        .catch((e: Error) => mostrarError('hilos', e));
+    };
+    cargarTodosHilosRef.current = cargarTodosHilos;
+
     const metaThreads = { name: 'threads:recientes', collection: 'threads', origin: 'CommunityContext' };
     const pararThreads = onSnapshot(
-      query(collection(db, 'threads'), orderBy('createdAt', 'desc')),
+      query(
+        collection(db, 'threads'),
+        orderBy('createdAt', 'desc'),
+        limit(THREAD_PAGE_SIZE + 1),
+      ),
       (snap) => {
         recordListenerSnapshot(metaThreads, snap.size, snap.docChanges().length);
         if (!vivo) return;
-        setThreads(mapWithId<Thread>(snap).map(normalizarHilo));
+
+        const docs = snap.docs.slice(0, THREAD_PAGE_SIZE);
+        const filas = mapWithId<Thread>(snap)
+          .slice(0, docs.length)
+          .map(normalizarHilo);
+        const conFijados = unirHilos(filas, pinnedThreadsRef.current);
+
+        setThreads((prev) => {
+          if (!hayHilosAnterioresRef.current) return conFijados;
+          const ids = new Set(conFijados.map((t) => t.id));
+          return unirHilos(conFijados, prev.filter((t) => !ids.has(t.id)));
+        });
+
+        if (!hayHilosAnterioresRef.current) {
+          threadCursorRef.current = docs[docs.length - 1] ?? null;
+          setHasMoreThreads(snap.size > THREAD_PAGE_SIZE);
+        }
         markReady();
       },
       handleError('threads'),
     );
     unsubs.push(trackListener(metaThreads, pararThreads));
 
+    // Los fijados antiguos no tienen por qué entrar en la página
+    // reciente. Se piden aparte una vez; son pocos y así no
+    // desaparecen al paginar el feed.
+    void measureRead(
+      { name: 'threads:fijados', collection: 'threads', origin: 'CommunityContext' },
+      (result) => result.size,
+      () => getDocs(query(
+        collection(db, 'threads'),
+        where('pinned', '==', true),
+        limit(20),
+      )),
+    ).then((snap) => {
+      if (!vivo) return;
+      const fijados = mapWithId<Thread>(snap).map(normalizarHilo);
+      pinnedThreadsRef.current = fijados;
+      setThreads((prev) => unirHilos(fijados, prev));
+    }).catch((e: Error) => {
+      console.warn('[Community] No se pudieron leer los hilos fijados:', e);
+    });
+
     return () => {
       vivo = false;
       cargarCatalogoRef.current = () => undefined;
       cargarAnimeRef.current = () => undefined;
       cargarListaAnimesRef.current = () => undefined;
+      cargarTodosHilosRef.current = () => undefined;
       window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
       unsubs.forEach((u) => u());
     };
@@ -574,6 +673,48 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const ensureAnimeData = useCallback((animeId: string) => {
     cargarAnimeRef.current(animeId);
   }, []);
+
+  const ensureAllThreads = useCallback(() => {
+    cargarTodosHilosRef.current();
+  }, []);
+
+  const loadMoreThreads = useCallback(async (): Promise<void> => {
+    const cursor = threadCursorRef.current;
+    if (!cursor || !hasMoreThreads || loadingMoreThreads) return;
+
+    setLoadingMoreThreads(true);
+    try {
+      const snap = await measureRead(
+        { name: 'threads:anteriores', collection: 'threads', origin: 'CommunityContext' },
+        (result) => result.size,
+        () => getDocs(query(
+          collection(db, 'threads'),
+          orderBy('createdAt', 'desc'),
+          startAfter(cursor),
+          limit(THREAD_PAGE_SIZE + 1),
+        )),
+      );
+
+      const docs = snap.docs.slice(0, THREAD_PAGE_SIZE);
+      const filas = mapWithId<Thread>(snap).slice(0, docs.length).map(normalizarHilo);
+
+      hayHilosAnterioresRef.current = true;
+      threadCursorRef.current = docs[docs.length - 1] ?? cursor;
+      setThreads((prev) => {
+        const porId = new Map(prev.map((t) => [t.id, t]));
+        filas.forEach((t) => porId.set(t.id, t));
+        return [...porId.values()].sort(
+          (a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0),
+        );
+      });
+      setHasMoreThreads(snap.size > THREAD_PAGE_SIZE);
+    } catch (e) {
+      console.error('[Community] No se pudieron cargar hilos anteriores:', e);
+      setError('No se pudieron cargar publicaciones anteriores.');
+    } finally {
+      setLoadingMoreThreads(false);
+    }
+  }, [hasMoreThreads, loadingMoreThreads]);
 
   // ====================================================
   // CREAR HILO
@@ -942,6 +1083,11 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     <CommunityContext.Provider
       value={{
         threads,
+        allThreads,
+        hasMoreThreads,
+        loadingMoreThreads,
+        loadMoreThreads,
+        ensureAllThreads,
         animes,
         seasons,
         episodes,

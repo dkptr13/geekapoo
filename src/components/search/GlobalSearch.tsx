@@ -25,12 +25,20 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
   onSelectAnime,
   onSelectThread,
 }) => {
-  const { animes, episodes, characters, threads, ensureCatalogData } = useCommunity();
+  const {
+    animes,
+    episodes,
+    characters,
+    allThreads,
+    ensureCatalogData,
+    ensureAllThreads,
+  } = useCommunity();
   const [query, setQuery] = useState('');
 
   useEffect(() => {
     ensureCatalogData();
-  }, [ensureCatalogData]);
+    ensureAllThreads();
+  }, [ensureCatalogData, ensureAllThreads]);
   const [filterType, setFilterType] = useState<
     'all' | 'anime' | 'episodes' | 'characters' | 'threads' | 'tags'
   >('all');
@@ -70,7 +78,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
 
   // Search in Threads
   const matchedThreads = cleanQuery
-    ? threads.filter(
+    ? allThreads.filter(
         (t) =>
           matches(t.title, cleanQuery) ||
           matches(t.body, cleanQuery) ||

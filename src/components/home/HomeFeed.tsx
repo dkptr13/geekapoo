@@ -101,6 +101,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const puedeModerar = isModerator || isAdmin;
   const {
     threads,
+    allThreads,
+    hasMoreThreads,
+    loadingMoreThreads,
+    loadMoreThreads,
+    ensureAllThreads,
     createThread,
     toggleThreadLike,
     addComment,
@@ -283,6 +288,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
   // Sorting
   const [feedSort, setFeedSort] = useState<'recent' | 'popular'>('recent');
+
+  // El feed normal usa la página reciente. Filtrar por categoría o
+  // ordenar por popularidad necesita el histórico completo.
+  useEffect(() => {
+    if (selectedCategoryFilter || feedSort === 'popular') ensureAllThreads();
+  }, [selectedCategoryFilter, feedSort, ensureAllThreads]);
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const [highlightCommentId, setHighlightCommentId] = useState<string | null>(null);
   const [highlightThreadId, setHighlightThreadId] = useState<string | null>(null);
@@ -592,7 +603,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   };
 
   // Filter & sort
-  let filtered = [...threads];
+  const usaHistoricoCompleto = Boolean(selectedCategoryFilter) || feedSort === 'popular';
+  let filtered = [...(usaHistoricoCompleto ? allThreads : threads)];
   if (selectedCategoryFilter) {
     filtered = filtered.filter((t) => t.categoryId === selectedCategoryFilter);
   }
@@ -1697,6 +1709,18 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             </article>
           );
         })}
+
+        {!usaHistoricoCompleto && hasMoreThreads && (
+          <button
+            type="button"
+            onClick={() => void loadMoreThreads()}
+            disabled={loadingMoreThreads}
+            className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 text-xs font-bold text-zinc-400 transition-colors hover:border-violet-400/40 hover:text-white disabled:opacity-60"
+          >
+            {loadingMoreThreads && <Loader2 size={13} className="animate-spin" />}
+            {loadingMoreThreads ? 'Cargando...' : 'Cargar publicaciones anteriores'}
+          </button>
+        )}
 
         {/* Aviso de moderación. Va al pie de la lista y no junto
             al comentario: si saliera al lado del botón que se ha

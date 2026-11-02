@@ -227,7 +227,15 @@ const Perfil: React.FC<{
 
   const { catalogo, equipar, config, loading: cargandoProgreso } = useProgression();
 
-  const { threads, animes, episodes, characters, ensureCatalogData, ensureAnimeList } = useCommunity();
+  const {
+    allThreads,
+    animes,
+    episodes,
+    characters,
+    ensureCatalogData,
+    ensureAnimeList,
+    ensureAllThreads,
+  } = useCommunity();
   const {
     comments,
     totalComments,
@@ -239,7 +247,8 @@ const Perfil: React.FC<{
 
   useEffect(() => {
     ensureAnimeList();
-  }, [ensureAnimeList]);
+    ensureAllThreads();
+  }, [ensureAnimeList, ensureAllThreads]);
 
   // El catálogo pesado solo hace falta para poner título a comentarios
   // de episodios o personajes. Un perfil sin esa actividad no lo carga.
@@ -310,7 +319,7 @@ const Perfil: React.FC<{
   const datos: PerfilDatos = useMemo(
     () => ({
       uid: perfil.uid,
-      threads,
+      threads: allThreads,
       comments,
       commentsTotal: totalComments,
       medals: perfil.medals ?? {},
@@ -336,7 +345,7 @@ const Perfil: React.FC<{
       lastLevelUpAt: perfil.lastLevelUpAt ?? null,
       lastLevelUpLevel: perfil.lastLevelUpLevel ?? null,
     }),
-    [perfil, threads, comments, totalComments, catalogo, esPropio, seguidores, seguidos],
+    [perfil, allThreads, comments, totalComments, catalogo, esPropio, seguidores, seguidos],
   );
 
   const stats = useMemo(() => calcularStats(datos), [datos]);
@@ -350,10 +359,10 @@ const Perfil: React.FC<{
   // en la vitrina sería ruido.
   const hilosPropios = useMemo(
     () =>
-      threads
+      allThreads
         .filter((t) => t.authorId === perfil.uid)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    [threads, perfil.uid],
+    [allThreads, perfil.uid],
   );
 
   const hilosDestacados = useMemo(() => {
@@ -400,10 +409,10 @@ const Perfil: React.FC<{
 
   const myLikedThreads = useMemo(
     () =>
-      threads
+      allThreads
         .filter((t) => t.likedBy?.includes(perfil.uid))
         .sort((a, b) => a.title.localeCompare(b.title, 'es')),
-    [threads, perfil.uid],
+    [allThreads, perfil.uid],
   );
 
   const myLikedComments = useMemo(
@@ -429,7 +438,7 @@ const Perfil: React.FC<{
   // anime, en un episodio o en un personaje.
   const targetTitleOf = (c: Comment): string => {
     if (c.targetType === 'thread') {
-      return threads.find((t) => t.id === c.targetId)?.title ?? 'Hilo eliminado';
+      return allThreads.find((t) => t.id === c.targetId)?.title ?? 'Hilo eliminado';
     }
     if (c.targetType === 'anime') {
       return animes.find((a) => a.id === c.targetId)?.title ?? 'Anime eliminado';

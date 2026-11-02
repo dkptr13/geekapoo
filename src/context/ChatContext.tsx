@@ -155,6 +155,8 @@ interface ChatContextType {
     messageId: string,
     parche: Partial<ChatMessage>,
   ) => void;
+  /** `true` mientras la sección de Chats está montada. */
+  chatOpen: boolean;
   setChatOpen: (open: boolean) => void;
   unreadRoomIds: string[];
   hasUnread: boolean;
@@ -201,18 +203,24 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // documento del mensaje no se toca.
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
 
+  // `ChatView` lo pone a true mientras está montado. Fuera de la
+  // sección de chats no se escuchan mensajes, solicitudes, bloqueos
+  // ni mensajes ocultos.
+  const [chatOpen, setChatOpen] = useState(false);
+
   useEffect(() => {
     if (!currentUser) {
       setHiddenIds(new Set());
       return;
     }
+    // Solo hace falta mientras la sección de chats está abierta.
+    if (!chatOpen) return;
 
     return subscribeOcultos(currentUser.uid, setHiddenIds, (e: unknown) =>
       console.error('[Chats] No se pudieron leer los mensajes ocultos:', e),
     );
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, chatOpen]);
 
-  const [chatOpen, setChatOpen] = useState(false);
   const [tabVisible, setTabVisible] = useState(
     () => typeof document !== 'undefined' && document.visibilityState === 'visible',
   );
@@ -279,7 +287,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // ── Solicitudes (recibidas y enviadas) ───────────────
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !chatOpen) return;
 
     return subscribeRequests(
       currentUser.uid,
@@ -294,18 +302,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
       },
     );
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, chatOpen]);
 
   // ── Lista de bloqueados ─────────────────────────────
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !chatOpen) return;
 
     return subscribeBlocked(
       currentUser.uid,
       (ids) => setBlockedIds(ids),
       (e) => console.error('[Chats] Error al leer los bloqueados:', e),
     );
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, chatOpen]);
 
   // Ya no hay un directorio público de grupos: se entra con el
   // CÓDIGO que comparte quien lo creó, porque los nombres se
@@ -356,7 +364,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // ── Mensajes del chat abierto ────────────────────────
   useEffect(() => {
-    if (!activeRoomId || !currentUser) return;
+    if (!activeRoomId || !currentUser || !chatOpen) return;
 
     let cancelled = false;
     let unsub: (() => void) | null = null;
@@ -411,7 +419,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Se pone la marca y no el array "rooms" entero a propósito:
     // rooms cambia con cada mensaje enviado (lastMessageAt), y
     // depender de él resuscribiría el listener constantemente.
-  }, [activeRoomId, currentUser?.uid, myClearedAt]);
+  }, [activeRoomId, currentUser?.uid, myClearedAt, chatOpen]);
 
   // ── Conversaciones con mensajes sin leer ─────────────
   const unreadRoomIds = useMemo(() => {
@@ -1020,6 +1028,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         removeMember,
         isReadByEveryone,
         parchearMensaje,
+        chatOpen,
         setChatOpen,
         unreadRoomIds,
         hasUnread: unreadRoomIds.length > 0,

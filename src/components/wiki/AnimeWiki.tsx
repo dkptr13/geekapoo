@@ -76,8 +76,10 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     episodes,
     characters,
     threads,
+    allThreads,
     ensureCatalogData,
     ensureAnimeList,
+    ensureAllThreads,
     ensureAnimeData,
     catalogComplete,
     toggleAnimeLike,
@@ -275,7 +277,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
       Boolean(searchQuery.trim()) ||
       (isBrowsing && (searchFilter === 'episodes' || searchFilter === 'characters'));
     if (necesitaCatalogoCompleto) ensureCatalogData();
-  }, [searchQuery, searchFilter, isBrowsing, ensureCatalogData]);
+    if (necesitaCatalogoCompleto || searchFilter === 'threads') ensureAllThreads();
+  }, [searchQuery, searchFilter, isBrowsing, ensureCatalogData, ensureAllThreads]);
 
   // Filtros avanzados: refinan la pestaña activa y se combinan
   // con el buscador. No van a la URL para no ensuciarla.
@@ -306,9 +309,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
       movies: pelis,
       episodes: catalogComplete ? Object.values(episodes).flat().length : undefined,
       characters: catalogComplete ? Object.values(characters).flat().length : undefined,
-      threads: threads.length,
+      threads: allThreads.length > 0 ? allThreads.length : threads.length,
     };
-  }, [animes, episodes, characters, threads, catalogComplete]);
+  }, [animes, episodes, characters, allThreads, threads, catalogComplete]);
 
   // Ref al input, para poder ponerle el cursor encima desde fuera.
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -594,7 +597,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           animes={animes}
           episodes={episodes}
           characters={characters}
-          threads={threads}
+          threads={allThreads}
           onSelectAnime={openAnime}
           onSelectThread={onSelectThread}
         />
@@ -610,7 +613,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           animes={animes}
           episodes={episodes}
           characters={characters}
-          threads={threads}
+          threads={allThreads.length > 0 ? allThreads : threads}
           selectedCategory={selectedCategory}
           mainTab={searchFilter}
           filtros={filtros}

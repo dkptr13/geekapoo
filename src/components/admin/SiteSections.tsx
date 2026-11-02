@@ -787,7 +787,7 @@ const WorkForm: FC<{
 // tenga un único sitio con el que hablar.
 
 function useAdminCategories() {
-  const { categories, animes, threads } = useCommunity();
+  const { categories, animes, allThreads: threads } = useCommunity();
 
   const create = async (name: string, description: string, color: string) => {
     try {
