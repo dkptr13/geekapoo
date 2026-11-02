@@ -10,10 +10,10 @@
 // Nombres, kanji y voces vienen de AniList (20464, 20992, 21698,
 // 106625 y 113538). Los resumenes son propios, en castellano.
 //
-// Solo van los protagonistas, los secundarios con peso y los
-// antagonistas de las cuatro temporadas. Los rivales importantes de
-// otros institutos llevan rol 'antagonist'; los companeros de equipo y
-// los entrenadores, 'supporting'.
+// Solo van los protagonistas y los secundarios con peso de las cuatro
+// temporadas. En Haikyuu no hay villanos: los rivales de otros
+// institutos son adversarios deportivos, no antagonistas, asi que todos
+// llevan rol 'supporting'.
 
 export const PERSONAJES = [
   ['Shouyou Hinata', '1,2,3,4', 'main', '日向翔陽', 'Ayumu Murase',
@@ -109,7 +109,7 @@ export const PERSONAJES = [
   ['Yasufumi Nekomata', '2,3,4', 'supporting', '猫又育史', 'Nobuaki Fukuda',
    'El entrenador de Nekoma. Veterano y tranquilo, construye un equipo pensado para ganar a Karasuno.'],
 
-  ['Tooru Oikawa', '1,2,3,4', 'antagonist', '及川徹', 'Daisuke Namikawa',
+  ['Tooru Oikawa', '1,2,3,4', 'supporting', '及川徹', 'Daisuke Namikawa',
    'Capitán y colocador del Aoba Johsai. El mejor del instituto: saca, coloca y lee el juego como nadie. Su rivalidad con Kageyama es personal.'],
 
   ['Hajime Iwaizumi', '1,2,3,4', 'supporting', '岩泉一', 'Hiroyuki Yoshino',
@@ -133,7 +133,7 @@ export const PERSONAJES = [
   ['Shinji Watari', '1,2,3,4', 'supporting', '渡親治', 'Arthur Lounsbery',
    'El líbero del Aoba Johsai. Discreto y seguro, sostiene la recepción para que Oikawa pueda atacar.'],
 
-  ['Kentarou Kyoutani', '2,3', 'antagonist', '京谷賢太郎', 'Shunsuke Takeuchi',
+  ['Kentarou Kyoutani', '2,3', 'supporting', '京谷賢太郎', 'Shunsuke Takeuchi',
    'El as salvaje del Aoba Johsai. Potencia bruta y poca paciencia; su entrada cambia el ritmo del partido, para bien o para mal.'],
 
   ['Nobuteru Irihata', '1,2,3,4', 'supporting', '入畑伸照', 'Mitsuaki Hoshino',
@@ -148,10 +148,10 @@ export const PERSONAJES = [
   ['Yukitaka Izumi', '3', 'supporting', '泉行高', 'Kyousuke Ikeda',
    'Reserva del Aoba Johsai. Trabaja en silencio y espera su oportunidad para ayudar al equipo.'],
 
-  ['Takanobu Aone', '1,2,4', 'antagonist', '青根高伸', 'Hiroki Matsukawa',
+  ['Takanobu Aone', '1,2,4', 'supporting', '青根高伸', 'Hiroki Matsukawa',
    'El central de Date Tech. Su bloqueo es un muro; habla poco y mete miedo con solo estar en la red.'],
 
-  ['Kenji Futakuchi', '1,2,4', 'antagonist', '二口堅治', 'Masatomo Nakazawa',
+  ['Kenji Futakuchi', '1,2,4', 'supporting', '二口堅治', 'Masatomo Nakazawa',
    'Capitán de Date Tech. Provocador y sonriente, dirige el bloqueo más temido de la prefectura.'],
 
   ['Kanji Koganegawa', '2,4', 'supporting', '黄金川貫至', 'Masayuki Shouji',
@@ -163,10 +163,10 @@ export const PERSONAJES = [
   ['Takeharu Futamata', '2', 'supporting', '二岐丈春', 'Junta Terashima',
    'Lateral de Date Tech. Rápido y con buen saque; uno de los apoyos del equipo.'],
 
-  ['Wakatoshi Ushijima', '2,3,4', 'antagonist', '牛島若利', 'Ryouta Takeuchi',
+  ['Wakatoshi Ushijima', '2,3,4', 'supporting', '牛島若利', 'Ryouta Takeuchi',
    'El as de Shiratorizawa. Zurdo, potente y casi imparable; su remate es la referencia de toda la prefectura.'],
 
-  ['Satori Tendou', '3,4', 'antagonist', '天童覚', 'Subaru Kimura',
+  ['Satori Tendou', '3,4', 'supporting', '天童覚', 'Subaru Kimura',
    'Central de Shiratorizawa. Imprevisible y provocador; su bloqueo adivina las trayectorias y desespera a los rivales.'],
 
   ['Kenjirou Shirabu', '3,4', 'supporting', '白布賢二郎', 'Toshiyuki Toyonaga',
@@ -208,34 +208,34 @@ export const PERSONAJES = [
   ['Haruki Komi', '2,3,4', 'supporting', '小見春樹', 'Yukitoshi Kikuchi',
    'Líbero de Fukurodani. Rápido y hablador; pone energía en la defensa.'],
 
-  ['Yuuji Terushima', '2', 'antagonist', '照島遊児', 'Takuya Eguchi',
+  ['Yuuji Terushima', '2', 'supporting', '照島遊児', 'Takuya Eguchi',
    'Capitán de Johzenji. Descarado y creativo; juega por instinto y contagia un estilo caótico.'],
 
   ['Hana Misaki', '2', 'supporting', '三咲華', 'Ayumi Fujimura',
    'Mánager de Johzenji. La voz que pone orden en un equipo impulsivo; su charla cambia al grupo.'],
 
-  ['Atsumu Miya', '4', 'antagonist', '宮侑', 'Mamoru Miyano',
+  ['Atsumu Miya', '4', 'supporting', '宮侑', 'Mamoru Miyano',
    'Colocador de Inarizaki. El mejor de su generación; su saque y su precisión son una amenaza constante.'],
 
-  ['Osamu Miya', '4', 'antagonist', '宮治', 'Hideaki Kabumoto',
+  ['Osamu Miya', '4', 'supporting', '宮治', 'Hideaki Kabumoto',
    'Lateral de Inarizaki y gemelo de Atsumu. Tan bueno como su hermano, pero con un carácter más tranquilo.'],
 
-  ['Rintarou Suna', '4', 'antagonist', '角名倫太郎', 'Nobunaga Shimazaki',
+  ['Rintarou Suna', '4', 'supporting', '角名倫太郎', 'Nobunaga Shimazaki',
    'Central de Inarizaki. Frío y sarcástico; bloquea y ataca con una calma que desespera.'],
 
-  ['Shinsuke Kita', '4', 'antagonist', '北信介', 'Kenji Nojima',
+  ['Shinsuke Kita', '4', 'supporting', '北信介', 'Kenji Nojima',
    'Capitán de Inarizaki. Disciplinado y silencioso; su entrada ordena al equipo y su ejemplo arrastra.'],
 
-  ['Aran Ojiro', '4', 'antagonist', '尾白アラン', 'Jun Kasama',
+  ['Aran Ojiro', '4', 'supporting', '尾白アラン', 'Jun Kasama',
    'El as de Inarizaki. Potencia y experiencia; el remate que sostiene al equipo en los momentos duros.'],
 
-  ['Yuudai Hyakuzawa', '2,4', 'antagonist', '百沢雄大', 'Shouta Yamamoto',
+  ['Yuudai Hyakuzawa', '2,4', 'supporting', '百沢雄大', 'Shouta Yamamoto',
    'Central de Kakugawa. Mide más de dos metros y su altura impone; todavía está aprendiendo a jugar.'],
 
-  ['Takeru Nakashima', '2', 'antagonist', '中島猛', 'Atsushi Abe',
+  ['Takeru Nakashima', '2', 'supporting', '中島猛', 'Atsushi Abe',
    'Capitán de Wakutani. Pequeño y tenaz; su juego de defensa y contraataque pone en apuros a Karasuno.'],
 
-  ['Suguru Daishou', '4', 'antagonist', '大将優', 'Kazuyuki Okitsu',
+  ['Suguru Daishou', '4', 'supporting', '大将優', 'Kazuyuki Okitsu',
    'Capitán de Nohebi. Astuto y provocador; su equipo juega con la paciencia del rival.'],
 
   ['Kanoka Amanai', '4', 'supporting', '天内叶歌', 'Saori Oonishi',
