@@ -68,6 +68,7 @@ export function useStreamingAvailability(
           scope: PUBLIC_CACHE,
           ttlMs: 30 * 60 * 1000,
           force,
+          persist: true,
           read: async () => {
             const snap = await measureRead(
               { name: 'availability', collection: 'streamingAvailability', origin: 'useStreamingAvailability' },

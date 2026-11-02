@@ -94,7 +94,7 @@ export function calcularStats(datos: PerfilDatos): PerfilStats {
 
   return {
     hilos: suyos.length,
-    comentarios: susComentarios.length,
+    comentarios: datos.commentsTotal ?? susComentarios.length,
     meGusta: Math.max(0, datos.likesReceived),
     reacciones: reaccionesDe(suyos, susComentarios),
     xp: Math.max(0, datos.xp),

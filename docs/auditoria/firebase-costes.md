@@ -15,7 +15,7 @@ Se ha eliminado la mayor parte del consumo que se producía al entrar en la web:
 - Los buscadores y pestañas globales siguen pudiendo cargar el catálogo completo cuando de verdad lo necesitan.
 - Los comentarios se leen por objetivo y solo mientras están abiertos.
 - El historial de chat se carga en tramos de 80 mensajes, manteniendo el listener en tiempo real.
-- Se comparte una caché en memoria con TTL, deduplicación de peticiones simultáneas, separación por cuenta e invalidación.
+- Se comparte una caché en memoria y otra persistente en IndexedDB (solo datos públicos) con TTL, deduplicación de peticiones simultáneas, separación por cuenta e invalidación.
 - Se corrigieron dependencias de React que reabrían listeners al cambiar XP, medallas o cualquier dato del perfil.
 - Se eliminó el listener duplicado del documento del usuario en gamificación y los `ProgressionProvider` anidados.
 - Se optimizaron consultas del panel y una lectura duplicada de las Cloud Functions.
@@ -30,8 +30,9 @@ Instrumentación: `src/lib/firestoreDiagnostics.ts`, activa solo con `import.met
 | Escenario | Documentos devueltos | Lecturas estimadas | Listeners permanentes |
 |---|---:|---:|---:|
 | Antes de diferir el catálogo (medición conservadora) | 11.400 | 11.400 | 13 |
-| Después | **37** | **37** | **1** |
-| Variación | **−11.363 (−99,7 %)** | **−11.363** | **−12** |
+| Después, primera visita | **37** | **37** | **1** |
+| Después, recarga dentro del TTL | **7** | **7** | **1** |
+| Variación en la primera visita | **−11.363 (−99,7 %)** | **−11.363** | **−12** |
 
 La medición anterior se tomó después de convertir los listeners estáticos en lecturas, pero antes de diferir el catálogo. No incluía la colección completa de comentarios que el código anterior también escuchaba, por lo que el consumo original real era **igual o superior** a 11.400 documentos.
 
@@ -43,7 +44,8 @@ El único listener permanente de Comunidad en Inicio es el feed de hilos. La ses
 |---|---:|---:|
 | Abrir el catálogo de la Wiki | 11.197 documentos | **172 documentos** |
 | Abrir una ficha concreta | 11.197 documentos | **63 documentos** |
-| Volver a abrir una ficha ya visitada | Nueva lectura completa | **0 lecturas nuevas** (caché) |
+| Volver a abrir una ficha ya visitada | Nueva lectura completa | **0 lecturas nuevas** (caché en memoria) |
+| Recargar la ficha dentro del TTL | Nueva lectura completa | **7 documentos** (solo el feed de hilos) |
 | Pestaña global de episodios/personajes o búsqueda | Colección completa | Colección completa **solo al solicitarla** |
 
 El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue `Kaguya-sama: Love is War`: 4 temporadas, 14 personajes, 40 episodios y 5 filas de disponibilidad; baja un **99,4 %** (11.197 → 63).
@@ -90,6 +92,13 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - Invalidación por clave o prefijo.
   - Protección contra respuestas antiguas que intenten repoblar la caché después de invalidar.
   - Limpieza de datos privados al cambiar o cerrar sesión.
+- `src/lib/persistentCache.ts`
+  - IndexedDB solo para datos públicos.
+  - Nunca guarda perfiles, seguidores, chats, notificaciones ni preferencias privadas.
+  - La invalidación de una clave también borra su copia persistente.
+  - Si IndexedDB falla o está bloqueado, la app sigue usando la caché en memoria.
+  - TTL orientativos: listado de animes, 5 min; fichas/episodios/personajes, 30 min; configuración, 60 min.
+  - El navegador que hace un cambio invalida su propia caché al momento; otros navegadores ven el cambio al caducar su TTL o al limpiar la caché.
 - `src/lib/firestoreDiagnostics.ts`
   - Solo en desarrollo.
   - Registra operación, colección, origen, documentos, tiempo, listeners creados/eliminados y aciertos/fallos de caché.
@@ -106,7 +115,8 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - La caché se invalida desde las escrituras del panel, incluidas las de una serie concreta.
 - Los comentarios se cargan con `useCommentsForTarget` únicamente al desplegar el objetivo y se limpian al cerrar.
 - El historial anterior del hilo/episodio/personaje se pagina con “Cargar comentarios anteriores”.
-- El perfil consulta solo los comentarios del autor y los que le gustaron, acotados y con caché corta.
+- El perfil consulta solo los comentarios del autor y los que le gustaron, con paginación y caché corta.
+- El total de comentarios del perfil usa una consulta agregada del servidor; no se deduce del primer tramo cargado.
 
 ### Chats
 
@@ -175,9 +185,11 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - `npm run test:logica`: 35 comprobaciones puras correctas, incluida la nueva prueba de caché.
 - Pruebas manuales en navegador de desarrollo:
   - Inicio en frío: 37 documentos, 1 listener activo.
+  - Inicio recargado dentro del TTL: 7 documentos (solo el feed de hilos), 16 aciertos de caché.
   - Wiki catálogo: 172 documentos (solo el listado de series).
   - Ficha Kaguya: 63 documentos.
   - Volver a la ficha: 0 lecturas, aciertos de caché.
+  - Recargar la ficha dentro del TTL: 7 documentos, 22 aciertos de caché.
   - Abrir/cerrar comentarios: 1 documento y 0 listeners al cerrar.
   - Búsqueda/pestañas globales: cargan el catálogo completo solo al pedirlo.
   - No se creó contenido de prueba con más de 200 comentarios en producción; la paginación nueva está compilada y cubierta por tipos, pero falta probarla con un hilo real de ese tamaño.
@@ -188,6 +200,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 - Nuevos:
   - `src/lib/firestoreCache.ts`
+  - `src/lib/persistentCache.ts`
   - `src/lib/firestoreDiagnostics.ts`
   - `src/hooks/useCommentsForTarget.ts`
   - `src/hooks/useProfileComments.ts`
@@ -221,6 +234,9 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - `src/services/catalogAdmin.ts`
   - `src/services/siteContent.ts`
   - `src/services/streamingAvailability.ts`
+- Tipos y lógica de perfil:
+  - `src/types/profile.ts`
+  - `src/utils/profile.ts`
 - Backend/configuración/pruebas:
   - `functions/src/index.ts`
   - `firestore.indexes.json`
@@ -231,6 +247,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 - **Estimación de lecturas evitadas en rutas medidas:** 11.363 documentos menos en Inicio, 11.025 menos al abrir el catálogo de la Wiki y hasta 11.134 menos al abrir una ficha.
 - **Porcentaje estimado en esas rutas:** 99,7 % en Inicio, 98,5 % en el catálogo y 99,4 % en la ficha.
+- **Recargas dentro del TTL:** Inicio baja de 37 a 7 documentos y una ficha ya cacheada de 63 a 7; los 7 son el listener de hilos, no el catálogo.
 - **Ahorro monetario real:** no medido. Falta contrastar con las métricas de Firebase/Google Cloud tras desplegar.
 - Los documentos devueltos no son una factura: no se deben multiplicar por el precio sin validar las métricas reales.
 
@@ -238,17 +255,12 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 1. **Feed de hilos:** sigue escuchando la colección de hilos completa. Debe paginarse por cursor; perfiles, búsqueda y panel necesitan consultas propias antes de recortarlo.
 2. **Catálogo global de episodios/personajes:** al abrir sus pestañas o buscar se sigue descargando completo. La siguiente mejora es búsqueda/paginación del lado del servidor.
-3. **Contadores del perfil:** la lista de comentarios ya pagina, pero el número de estadísticas se calcula sobre la actividad cargada (200 iniciales). Para exactitud histórica conviene usar un contador del servidor o una consulta agregada.
-4. **Panel de administración:** mantiene listeners de todas las colecciones mientras está abierto. Es aceptable por uso restringido, pero se puede pasar a consultas bajo demanda.
-5. **Caché persistente:** la caché actual es en memoria; se reinicia al recargar. Una caché pública persistente en IndexedDB reduciría aún más visitas repetidas, pero no se ha añadido para no introducir datos privados ni complejidad de sincronización sin pruebas dedicadas.
-6. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
+3. **Panel de administración:** mantiene listeners de todas las colecciones mientras está abierto. Es aceptable por uso restringido, pero se puede pasar a consultas bajo demanda.
+4. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
 
-## 11. Despliegue (no ejecutado)
+## 11. Despliegue
 
-```bash
-npx firebase deploy --only firestore:indexes
-npx firebase deploy --only functions
-```
+La primera tanda (índices, Functions y frontend) ya fue desplegada por el usuario.  
+Las mejoras posteriores de paginación, canales y caché persistente son **solo frontend**: requieren una nueva publicación en Vercel, sin nuevos índices ni Functions.
 
-Después, desplegar la aplicación cliente con el flujo habitual del proyecto.  
-No se ha desplegado nada automáticamente en producción.
+No se ha desplegado nada automáticamente desde este entorno.

@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getDoc,
   getDocs,
   limit,
@@ -74,6 +75,20 @@ export function getCommentsByAuthor(
       }
     },
   });
+}
+
+/** Recuento exacto de comentarios escritos por una persona. */
+export async function countCommentsByAuthor(authorId: string): Promise<number> {
+  if (!authorId) return 0;
+  const snap = await measureRead(
+    { name: 'comments:author:count', collection: COMMENTS, origin: 'ProfileView' },
+    () => 1,
+    () => getCountFromServer(query(
+      collection(db, COMMENTS),
+      where('authorId', '==', authorId),
+    )),
+  );
+  return snap.data().count;
 }
 
 /** Página anterior de comentarios de un perfil. */

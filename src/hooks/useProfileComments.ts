@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import {
+  countCommentsByAuthor,
   getCommentsByAuthor,
   getCommentsLikedBy,
   getMoreCommentsByAuthor,
@@ -18,6 +19,8 @@ import type { Comment } from '../types';
 
 export interface UseProfileComments {
   comments: Comment[];
+  /** Recuento total, no limitado a la página cargada. */
+  totalComments: number;
   likedComments: Comment[];
   loading: boolean;
   loadingMore: boolean;
@@ -27,6 +30,7 @@ export interface UseProfileComments {
 
 export function useProfileComments(uid: string | null): UseProfileComments {
   const [comments, setComments] = useState<Comment[]>([]);
+  const [totalComments, setTotalComments] = useState(0);
   const [likedComments, setLikedComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -35,6 +39,7 @@ export function useProfileComments(uid: string | null): UseProfileComments {
   useEffect(() => {
     if (!uid) {
       setComments([]);
+      setTotalComments(0);
       setLikedComments([]);
       setLoading(false);
       setLoadingMore(false);
@@ -48,13 +53,15 @@ export function useProfileComments(uid: string | null): UseProfileComments {
 
     const cargar = async (force = false) => {
       try {
-        const [suyos, gustados] = await Promise.all([
+        const [suyos, gustados, total] = await Promise.all([
           getCommentsByAuthor(uid, force),
           getCommentsLikedBy(uid, force),
+          countCommentsByAuthor(uid).catch(() => null),
         ]);
         if (!activo) return;
         setComments(suyos.slice(0, PROFILE_COMMENTS_PAGE_SIZE));
         setHasMore(suyos.length > PROFILE_COMMENTS_PAGE_SIZE);
+        setTotalComments(total ?? suyos.length);
         setLikedComments(gustados);
       } catch (e) {
         console.error('[Profile] No se pudieron leer los comentarios:', e);
@@ -102,5 +109,13 @@ export function useProfileComments(uid: string | null): UseProfileComments {
     }
   }, [uid, comments, hasMore, loadingMore]);
 
-  return { comments, likedComments, loading, loadingMore, hasMore, loadMore };
+  return {
+    comments,
+    totalComments,
+    likedComments,
+    loading,
+    loadingMore,
+    hasMore,
+    loadMore,
+  };
 }

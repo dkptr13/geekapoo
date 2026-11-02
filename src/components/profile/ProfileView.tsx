@@ -230,6 +230,7 @@ const Perfil: React.FC<{
   const { threads, animes, episodes, characters, ensureCatalogData, ensureAnimeList } = useCommunity();
   const {
     comments,
+    totalComments,
     likedComments,
     loadingMore: cargandoMasComentarios,
     hasMore: hayMasComentarios,
@@ -311,6 +312,7 @@ const Perfil: React.FC<{
       uid: perfil.uid,
       threads,
       comments,
+      commentsTotal: totalComments,
       medals: perfil.medals ?? {},
       // El catálogo de la persona que se está mirando. En el perfil
       // propio `catalogo` ya viene resuelto con su estado; en el de
@@ -334,7 +336,7 @@ const Perfil: React.FC<{
       lastLevelUpAt: perfil.lastLevelUpAt ?? null,
       lastLevelUpLevel: perfil.lastLevelUpLevel ?? null,
     }),
-    [perfil, threads, comments, catalogo, esPropio, seguidores, seguidos],
+    [perfil, threads, comments, totalComments, catalogo, esPropio, seguidores, seguidos],
   );
 
   const stats = useMemo(() => calcularStats(datos), [datos]);

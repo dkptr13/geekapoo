@@ -207,6 +207,7 @@ function normalizarHilo(thread: Thread): Thread {
   };
 }
 
+const TTL_ANIMES = 5 * 60 * 1000;
 const TTL_CATALOGO = 30 * 60 * 1000;
 const TTL_CONFIGURACION = 60 * 60 * 1000;
 
@@ -223,6 +224,7 @@ function leerColeccionCached<T>(
     ttlMs,
     scope: PUBLIC_CACHE,
     force,
+    persist: true,
     read: async () => {
       const referencia = ordenada
         ? query(collection(db, coleccion), orderBy('id', 'asc'))
@@ -241,9 +243,10 @@ function leerColeccionCached<T>(
 function leerAnimesDestacados(force = false): Promise<Anime[]> {
   return cachedRead({
     key: 'community:animes:featured',
-    ttlMs: TTL_CATALOGO,
+    ttlMs: TTL_ANIMES,
     scope: PUBLIC_CACHE,
     force,
+    persist: true,
     read: async () => {
       const snap = await measureRead(
         { name: 'animes:destacados', collection: 'animes', origin: 'CommunityContext' },
@@ -267,6 +270,7 @@ function leerColeccionDeAnime<T>(
     ttlMs: TTL_CATALOGO,
     scope: PUBLIC_CACHE,
     force,
+    persist: true,
     read: async () => {
       const snap = await measureRead(
         { name: 'getDocs:anime', collection: coleccion, origin: 'CommunityContext' },
@@ -410,7 +414,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (animesCompletosPedido) return;
       animesCompletosPedido = true;
       animesCompletos = true;
-      registrarCarga<Anime>('animes', 'community:animes', TTL_CATALOGO, setAnimes);
+      registrarCarga<Anime>('animes', 'community:animes', TTL_ANIMES, setAnimes);
     };
     cargarListaAnimesRef.current = cargarAnimesCompletos;
 

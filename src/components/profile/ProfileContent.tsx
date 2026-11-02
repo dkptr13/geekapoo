@@ -108,7 +108,7 @@ export const ProfileContent: React.FC<{
           {(
             [
               ['hilos', 'Publicaciones', hilos.length],
-              ['comentarios', 'Comentarios', comentarios.length],
+              ['comentarios', 'Comentarios', datos.commentsTotal ?? comentarios.length],
             ] as const
           ).map(([id, etiqueta, n]) => (
             <button

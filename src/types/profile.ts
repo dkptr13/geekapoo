@@ -111,6 +111,8 @@ export interface PerfilDatos {
   uid: string;
   threads: Thread[];
   comments: Comment[];
+  /** Recuento exacto si viene del servidor; si falta, se usa la lista. */
+  commentsTotal?: number;
   /** Id de medalla → fecha ISO, tal cual viene en `users/{uid}.medals`. */
   medals: Record<string, string>;
   /**

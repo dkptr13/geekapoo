@@ -1,4 +1,9 @@
 import { recordCache } from './firestoreDiagnostics';
+import {
+  deletePersistentPrefix,
+  readPersistent,
+  writePersistent,
+} from './persistentCache';
 
 // ======================================================
 // CACHÉ COMPARTIDA DE LECTURAS
@@ -20,6 +25,8 @@ interface CachedReadOptions<T> {
   /** `public` por defecto; para datos privados usar `user:${uid}`. */
   scope?: string;
   force?: boolean;
+  /** Persistir en IndexedDB. Solo se permite en el ámbito público. */
+  persist?: boolean;
   read: () => Promise<T>;
 }
 
@@ -41,15 +48,26 @@ export async function cachedRead<T>({
   ttlMs,
   scope = PUBLIC_CACHE,
   force = false,
+  persist = false,
   read,
 }: CachedReadOptions<T>): Promise<T> {
   const id = fullKey(scope, key);
   const now = Date.now();
   const cached = entries.get(id) as CacheEntry<T> | undefined;
+  const puedePersistir = persist && scope === PUBLIC_CACHE;
 
   if (!force && cached && cached.expiresAt > now) {
     recordCache('hit');
     return cached.value;
+  }
+
+  if (!force && puedePersistir) {
+    const enDisco = await readPersistent<T>(id);
+    if (enDisco) {
+      entries.set(id, enDisco);
+      recordCache('hit');
+      return enDisco.value;
+    }
   }
 
   if (!force) {
@@ -65,7 +83,9 @@ export async function cachedRead<T>({
   const request = read()
     .then((value) => {
       if (generation === startedGeneration) {
-        entries.set(id, { value, expiresAt: Date.now() + ttlMs });
+        const expiresAt = Date.now() + ttlMs;
+        entries.set(id, { value, expiresAt });
+        if (puedePersistir) void writePersistent(id, value, expiresAt);
       }
       return value;
     })
@@ -94,6 +114,7 @@ export function invalidateCache(key: string, scope?: string): void {
   for (const id of entries.keys()) {
     if (id === prefix || id.startsWith(prefix)) entries.delete(id);
   }
+  void deletePersistentPrefix(prefix);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('geekapoo:cache-invalidated', {
       detail: { key, scope },

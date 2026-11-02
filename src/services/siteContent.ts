@@ -103,6 +103,7 @@ export function getSiteSettingsCached(force = false): Promise<SiteSettings> {
     scope: PUBLIC_CACHE,
     ttlMs: TTL_AJUSTES,
     force,
+    persist: true,
     read: async () => {
       const snap = await measureRead(
         { name: 'settings', collection: SITE_SETTINGS, origin: 'SiteContentContext' },
@@ -121,6 +122,7 @@ export function getWeeklyWorksCached(force = false): Promise<WeeklyWork[]> {
     scope: PUBLIC_CACHE,
     ttlMs: TTL_OBRAS,
     force,
+    persist: true,
     read: async () => {
       const snap = await measureRead(
         { name: 'weeklyWorks', collection: WEEKLY_WORKS, origin: 'SiteContentContext' },

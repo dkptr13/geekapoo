@@ -128,6 +128,7 @@ export const StreamingCatalogProvider: React.FC<{ children: React.ReactNode }> =
             scope: PUBLIC_CACHE,
             ttlMs: TTL,
             force,
+            persist: true,
             read: async () => {
               const snap = await measureRead(
                 { name: 'platforms', collection: 'streamingPlatforms', origin: 'StreamingCatalogContext' },
@@ -144,6 +145,7 @@ export const StreamingCatalogProvider: React.FC<{ children: React.ReactNode }> =
             scope: PUBLIC_CACHE,
             ttlMs: TTL,
             force,
+            persist: true,
             read: async () => {
               const snap = await measureRead(
                 { name: 'regions', collection: 'streamingRegions', origin: 'StreamingCatalogContext' },
