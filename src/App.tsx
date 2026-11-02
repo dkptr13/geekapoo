@@ -1,4 +1,5 @@
 import React, { startTransition, useEffect, useRef, useState } from 'react';
+import { pageview } from '@vercel/analytics';
 
 import {
   AuthProvider,
@@ -107,6 +108,21 @@ const {
   // compartidos) se redirigen allí en vez de mostrar una página en
   // blanco, porque no hay ninguna sección que case con ese nombre.
   const currentTab = currentTabParam === 'buscar' ? 'wiki' : currentTabParam;
+
+  // Analítica: cada cambio de sección cuenta como una página vista,
+  // para saber qué partes se usan de verdad. El pageview inicial ya
+  // lo manda `inject()` desde main.tsx, así que el primer render se
+  // salta para no contarlo dos veces.
+  const tabAnterior = useRef<string | null>(null);
+  useEffect(() => {
+    if (tabAnterior.current === null) {
+      tabAnterior.current = currentTab;
+      return;
+    }
+    if (tabAnterior.current === currentTab) return;
+    tabAnterior.current = currentTab;
+    pageview({ path: `/?tab=${currentTab}` });
+  }, [currentTab]);
 
   // Estos dos también se guardan. Sin esto, recargar cuando se
   // estaba viendo un anime concreto de la wiki, o filtrando el
