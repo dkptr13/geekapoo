@@ -29,8 +29,9 @@ import { ReportDialog } from '../community/ReportDialog';
 import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
 import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
 import { useCatalogPage, useCollectionCount } from '../../hooks/useCatalogPage';
+import { useAnimeCatalogData } from '../../hooks/useAnimeCatalogData';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
-import { animeCategories } from '../../data/animeCategories';
+import { animeCategories, isInCategory } from '../../data/animeCategories';
 import CatalogBrowser from './CatalogBrowser';
 import CatalogSearch from './CatalogSearch';
 import MainTabs from './MainTabs';
@@ -41,6 +42,7 @@ import {
   contarFiltrosActivos,
   esPelicula,
   generosDisponibles,
+  pasaFiltrosAnime,
   rangoAnios,
   sanearFiltros,
   type FiltrosAvanzados,
@@ -308,45 +310,109 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   const totalEpisodios = useCollectionCount('episodes', isBrowsing);
   const totalPersonajes = useCollectionCount('characters', isBrowsing);
 
-  // El buscador y las pestañas globales con filtros abarcan todas
-  // las series. La navegación normal usa las páginas anteriores.
-  useEffect(() => {
-    const necesitaCatalogoCompleto =
-      Boolean(searchQuery.trim()) ||
-      (isBrowsing &&
-        ((searchFilter === 'episodes' && !paginaEpisodiosActiva) ||
-          (searchFilter === 'characters' && !paginaPersonajesActiva)));
-    if (necesitaCatalogoCompleto) ensureCatalogData();
-    if (necesitaCatalogoCompleto || searchFilter === 'threads') ensureAllThreads();
+  // Los filtros de episodios/personajes son, salvo la nota del
+  // episodio, filtros del anime padre. Se calculan sus ids una vez y
+  // solo se piden las filas de esas series.
+  const animesElegibles = useMemo(() => {
+    if (!isBrowsing || catalogComplete || searchQuery.trim()) return [];
+    if (searchFilter !== 'episodes' && searchFilter !== 'characters') return [];
+    const filtrosSinNota: FiltrosAvanzados = { ...filtros, notaMin: 0 };
+    return animes
+      .filter(
+        (anime) =>
+          (selectedCategory === 'all' || isInCategory(anime, selectedCategory)) &&
+          pasaFiltrosAnime(anime, filtrosSinNota),
+      )
+      .map((anime) => anime.id);
   }, [
-    searchQuery,
-    searchFilter,
+    animes,
+    selectedCategory,
+    filtros,
     isBrowsing,
-    paginaEpisodiosActiva,
-    paginaPersonajesActiva,
-    ensureCatalogData,
-    ensureAllThreads,
+    searchFilter,
+    searchQuery,
+    catalogComplete,
   ]);
 
+  const usarFiltradosEpisodios =
+    isBrowsing &&
+    !catalogComplete &&
+    !searchQuery.trim() &&
+    searchFilter === 'episodes' &&
+    !paginaEpisodiosActiva;
+  const usarFiltradosPersonajes =
+    isBrowsing &&
+    !catalogComplete &&
+    !searchQuery.trim() &&
+    searchFilter === 'characters' &&
+    !paginaPersonajesActiva;
+
+  const filtradosEpisodios = useAnimeCatalogData<Episode>(
+    'episodes',
+    animesElegibles,
+    usarFiltradosEpisodios,
+  );
+  const filtradosPersonajes = useAnimeCatalogData<Character>(
+    'characters',
+    animesElegibles,
+    usarFiltradosPersonajes,
+  );
+
+  // La búsqueda sigue necesitando el catálogo completo: Firestore no
+  // hace búsqueda de texto completo. Los filtros ya no.
+  useEffect(() => {
+    const buscando = Boolean(searchQuery.trim());
+    if (buscando) ensureCatalogData();
+    if (buscando || searchFilter === 'threads') ensureAllThreads();
+  }, [searchQuery, searchFilter, ensureCatalogData, ensureAllThreads]);
+
   const episodiosParaCatalogo = useMemo(() => {
-    if (!paginaEpisodiosActiva) return episodes;
+    if (catalogComplete || searchQuery.trim()) return episodes;
+    const fuente = paginaEpisodiosActiva
+      ? paginaEpisodios.items
+      : usarFiltradosEpisodios
+        ? filtradosEpisodios.items
+        : null;
+    if (!fuente) return episodes;
     const grouped: Record<string, Episode[]> = {};
-    paginaEpisodios.items.forEach((ep) => {
+    fuente.forEach((ep) => {
       if (!grouped[ep.animeId]) grouped[ep.animeId] = [];
       grouped[ep.animeId].push(ep);
     });
     return grouped;
-  }, [paginaEpisodiosActiva, paginaEpisodios.items, episodes]);
+  }, [
+    catalogComplete,
+    searchQuery,
+    paginaEpisodiosActiva,
+    paginaEpisodios.items,
+    usarFiltradosEpisodios,
+    filtradosEpisodios.items,
+    episodes,
+  ]);
 
   const personajesParaCatalogo = useMemo(() => {
-    if (!paginaPersonajesActiva) return characters;
+    if (catalogComplete || searchQuery.trim()) return characters;
+    const fuente = paginaPersonajesActiva
+      ? paginaPersonajes.items
+      : usarFiltradosPersonajes
+        ? filtradosPersonajes.items
+        : null;
+    if (!fuente) return characters;
     const grouped: Record<string, Character[]> = {};
-    paginaPersonajes.items.forEach((personaje) => {
+    fuente.forEach((personaje) => {
       if (!grouped[personaje.animeId]) grouped[personaje.animeId] = [];
       grouped[personaje.animeId].push(personaje);
     });
     return grouped;
-  }, [paginaPersonajesActiva, paginaPersonajes.items, characters]);
+  }, [
+    catalogComplete,
+    searchQuery,
+    paginaPersonajesActiva,
+    paginaPersonajes.items,
+    usarFiltradosPersonajes,
+    filtradosPersonajes.items,
+    characters,
+  ]);
 
   // Opciones del panel, sacadas de los datos reales: si mañana
   // entra un género nuevo, sale solo en el filtro.

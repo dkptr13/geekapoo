@@ -219,6 +219,7 @@ function normalizarHilo(thread: Thread): Thread {
 
 const TTL_ANIMES = 5 * 60 * 1000;
 const TTL_CATALOGO = 30 * 60 * 1000;
+const TTL_CATALOGO_COMPLETO = 60 * 60 * 1000;
 const TTL_CONFIGURACION = 60 * 60 * 1000;
 const TTL_HILOS = 2 * 60 * 1000;
 const THREAD_PAGE_SIZE = 50;
@@ -489,13 +490,13 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const temporadas = registrarCarga<Season>(
         'seasons',
         'community:seasons',
-        TTL_CATALOGO,
+        TTL_CATALOGO_COMPLETO,
         setSeasons,
       );
       const personajes = registrarCarga<Character>(
         'characters',
         'community:characters',
-        TTL_CATALOGO,
+        TTL_CATALOGO_COMPLETO,
         (lista) => {
           const grouped: Record<string, Character[]> = {};
           lista.forEach((char) => {
@@ -508,7 +509,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const episodios = registrarCarga<Episode>(
         'episodes',
         'community:episodes',
-        TTL_CATALOGO,
+        TTL_CATALOGO_COMPLETO,
         (lista) => {
           const grouped: Record<string, Episode[]> = {};
           lista.forEach((ep) => {

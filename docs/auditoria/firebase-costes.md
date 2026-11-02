@@ -48,7 +48,8 @@ El único listener permanente de Comunidad en Inicio es el feed de hilos. La ses
 | Recargar la ficha dentro del TTL | Nueva lectura completa | **7 documentos** (solo el feed de hilos) |
 | Pestaña global de episodios | 6.659 documentos | **61 documentos** por página |
 | Pestaña global de personajes | 4.117 documentos | **61 documentos** por página |
-| Búsqueda o filtros globales | Colección completa | Colección completa **solo al aplicarlos** para no dar resultados incompletos |
+| Filtro por categoría en personajes | 11.204 documentos | **1.449 documentos** |
+| Búsqueda de texto global | Colección completa | Colección completa, cacheada 1 hora |
 
 El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue `Kaguya-sama: Love is War`: 4 temporadas, 14 personajes, 40 episodios y 5 filas de disponibilidad; baja un **99,4 %** (11.197 → 63).
 
@@ -99,7 +100,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - Nunca guarda perfiles, seguidores, chats, notificaciones ni preferencias privadas.
   - La invalidación de una clave también borra su copia persistente.
   - Si IndexedDB falla o está bloqueado, la app sigue usando la caché en memoria.
-  - TTL orientativos: listado de animes, 5 min; fichas/episodios/personajes, 30 min; configuración, 60 min.
+  - TTL orientativos: listado de animes, 5 min; fichas, 30 min; catálogo completo usado por búsqueda, 60 min; configuración, 60 min.
   - El navegador que hace un cambio invalida su propia caché al momento; otros navegadores ven el cambio al caducar su TTL o al limpiar la caché.
 - `src/lib/firestoreDiagnostics.ts`
   - Solo en desarrollo.
@@ -118,7 +119,8 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - `ensureAnimeData(animeId)` carga solo la serie abierta.
 - Las pestañas globales de episodios y personajes cargan 60 elementos por página y tienen “Cargar más”.
 - Los contadores de esas pestañas se obtienen con agregaciones de Firestore, sin descargar las colecciones.
-- `ensureCatalogData()` carga el catálogo completo solo para búsqueda global o cuando se aplican filtros/orden, donde paginar daría resultados incompletos.
+- Los filtros de episodios/personajes consultan solo las series que los cumplen, en bloques de hasta 30 `animeId`; ya no descargan las colecciones completas.
+- La búsqueda de texto completo sigue cargando el catálogo completo porque Firestore no ofrece búsqueda por subcadena. Se mantiene en caché persistente durante una hora.
 - La caché se invalida desde las escrituras del panel, incluidas las de una serie concreta.
 - Los comentarios se cargan con `useCommentsForTarget` únicamente al desplegar el objetivo y se limpian al cerrar.
 - El historial anterior del hilo/episodio/personaje se pagina con “Cargar comentarios anteriores”.
@@ -206,7 +208,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - Abrir/cerrar comentarios: 1 documento y 0 listeners al cerrar.
   - Pestaña global de episodios: 61 documentos iniciales y 61 por “Cargar más”.
   - Pestaña global de personajes: 61 documentos iniciales.
-  - Al aplicar un filtro de categoría: carga completa y el filtrado sigue siendo exacto (11.204 documentos medidos).
+  - Al aplicar un filtro de categoría en personajes: 1.449 documentos y el recuento filtrado sigue siendo exacto (antes se cargaban 11.204).
   - No se creó contenido de prueba con más de 200 comentarios en producción; la paginación nueva está compilada y cubierta por tipos, pero falta probarla con un hilo real de ese tamaño.
   - La escucha de canales solo para el club abierto está compilada, pero necesita una prueba autenticada real para confirmar el cambio de club y el estado de carga.
   - El panel de administración pasó a consultas puntuales; falta confirmar con una cuenta admin que editar, borrar, banear y cambiar tickets refresca cada sección.
@@ -221,6 +223,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
   - `src/hooks/useCommentsForTarget.ts`
   - `src/hooks/useProfileComments.ts`
   - `src/hooks/useCatalogPage.ts`
+  - `src/hooks/useAnimeCatalogData.ts`
   - `tests/logica.cache.ts`
 - Contextos:
   - `src/context/AuthContext.tsx`
@@ -270,13 +273,14 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - **Estimación de lecturas evitadas en rutas medidas:** 11.357 documentos menos en Inicio, 11.025 menos al abrir el catálogo de la Wiki y hasta 11.134 menos al abrir una ficha.
 - **Porcentaje estimado en esas rutas:** 99,6 % en Inicio, 98,5 % en el catálogo y 99,4 % en la ficha.
 - **Pestañas globales:** episodios pasa de 6.659 documentos a 61 (−99,1 %) y personajes de 4.117 a 61 (−98,5 %) en navegación normal.
+- **Filtros globales:** el filtro de categoría medido en personajes baja de 11.204 documentos a 1.449 (−87,1 %) manteniendo el resultado exacto.
 - **Recargas dentro del TTL:** Inicio baja de 43 a 7 documentos y una ficha ya cacheada de 63 a 7; los 7 son el listener de hilos, no el catálogo.
 - **Ahorro monetario real:** no medido. Falta contrastar con las métricas de Firebase/Google Cloud tras desplegar.
 - Los documentos devueltos no son una factura: no se deben multiplicar por el precio sin validar las métricas reales.
 
 ## 10. Pendientes y siguientes pasos
 
-1. **Búsqueda y filtros globales de episodios/personajes:** la navegación normal ya pagina, pero aplicar un filtro u orden descendente sigue cargando el catálogo completo para no mostrar resultados incompletos. La siguiente mejora requiere búsqueda/filtrado del lado del servidor.
+1. **Búsqueda de texto completo global:** sigue necesitando el catálogo completo porque Firestore no permite buscar subcadenas. Para eliminarla haría falta un índice de búsqueda externo o una migración de tokens con Cloud Functions; no se ha cambiado el comportamiento de búsqueda para no perder resultados.
 2. **Pruebas autenticadas:** chats, clubes, canales, panel de administración, filtros del feed y paginación con datos reales.
 3. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
 
