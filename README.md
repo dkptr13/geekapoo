@@ -9,8 +9,8 @@
   Sin censura, sin filtros innecesarios y con una única regla inquebrantable: <b>el respeto mutuo</b>.
 </p>
 
-> **Web en producción:** https://geekapoo.vercel.app
-> **Dominio previsto:** `geekapoo.es` (pendiente de registrar)
+> **Web en producción:** https://www.geekapoo.es
+> **Dominio:** `geekapoo.es` (canónico en `www`)
 > **Importante:** `geekapoo.com` **no** pertenece a este proyecto. No enlazar ni usar en textos.
 
 <p align="center">

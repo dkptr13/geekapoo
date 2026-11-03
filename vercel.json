@@ -1,5 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "geekapoo.vercel.app" }],
+      "destination": "https://www.geekapoo.es/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/anime/:slug", "destination": "/index.html" },
     { "source": "/anime/:slug/", "destination": "/index.html" }

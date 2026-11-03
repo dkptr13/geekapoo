@@ -241,7 +241,7 @@ const ERRORES_POPUP: Record<string, string> = {
   'auth/unauthorized-domain':
     'Este dominio no está autorizado. En la consola de Firebase: Authentication → Settings → ' +
     'Authorized domains, y añade aquí el dominio tal cual aparece en la barra de direcciones ' +
-    'de la web (por ejemplo, geekapoo.vercel.app).',
+    'de la web (por ejemplo, www.geekapoo.es).',
 
   'auth/operation-not-allowed':
     'El método {p} está apagado. En la consola de Firebase: Authentication → Sign-in ' +
