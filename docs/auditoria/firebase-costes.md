@@ -290,7 +290,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 ## 11. Despliegue
 
 La primera tanda (índices, Functions y frontend) fue desplegada por el usuario.  
-La segunda fase se publicó el 2026-11-03 en `main` con los commits `b188129` (navegación de notificaciones), `8833b10` (optimización de Firestore), `163413d` (likes de catálogo en la wiki) y `2bd3161` (este documento). Vercel sirvió el bundle `assets/index-CjAiLObR.js` y `/busqueda/indice.json?v=8833b10…` respondió 200. No se desplegaron índices ni Functions nuevas; las reglas de Firestore actualizadas se publicaron aparte con `firebase deploy --only firestore:rules`.
+La segunda fase se publicó el 2026-11-03 en `main` con los commits `b188129` (navegación de notificaciones), `8833b10` (optimización de Firestore) y `163413d` (likes de catálogo en la wiki); la documentación se actualizó en commits posteriores. Vercel publicó el frontend y `/busqueda/indice.json?v=<sha-del-build>` respondió 200. No se desplegaron índices ni Functions nuevas; las reglas de Firestore actualizadas se publicaron aparte con `firebase deploy --only firestore:rules`.
 
 El detalle de qué se publicó y qué queda pendiente está en la sección 12.9.
 
@@ -402,8 +402,8 @@ El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip**
   - Paginación 60 → 120 en episodios y personajes.
   - Fallback renombrando el índice.
 - Producción (2026-11-03):
-  - Bundle `assets/index-CjAiLObR.js` (incluye el commit de likes `163413d`).
-  - `/busqueda/indice.json?v=8833b10…` → 200.
+  - Bundle de `main`; la primera verificación fue `assets/index-CjAiLObR.js` (incluye el commit de likes `163413d`).
+  - `/busqueda/indice.json?v=<sha-del-build>` → 200.
   - IndexedDB contiene `public:search:index:v1`.
   - Búsqueda correcta y sin errores de consola.
   - Ficha: `Episodios (…)` / `Personajes (…)` hasta abrir la pestaña; después `Episodios (33)` y `Personajes (36)`.
@@ -446,8 +446,7 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
   - `b188129` — navegación estable de notificaciones y hueco reservado para imágenes.
   - `8833b10` — optimización de Firestore (esta fase).
   - `163413d` — likes de catálogo en la wiki (autor: Oscar).
-  - `2bd3161` — este documento.
-- Producción sirve `assets/index-CjAiLObR.js`; `/busqueda/indice.json?v=8833b10…` responde 200.
+- Producción sirve el bundle de `main` (primera verificación: `assets/index-CjAiLObR.js`); `/busqueda/indice.json?v=<sha-del-build>` responde 200.
 - Reglas de Firestore del commit `163413d` publicadas con `firebase deploy --only firestore:rules`. El CLI compiló `firestore.deploy.rules` (155.214 bytes), indicó que la última versión ya estaba al día y liberó el ruleset. No se desplegaron índices ni Functions nuevas.
 - El árbol de trabajo quedó limpio: `firestore.rules`, `tests/firestore.likes.rules.test.cjs`, los likes de `CommunityContext`, `scripts/datos/*`, `scripts/importar-disponibilidad-justwatch.mjs` y `public/sitemap.xml` quedaron incluidos en `163413d`.
 
