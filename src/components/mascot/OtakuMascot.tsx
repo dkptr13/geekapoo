@@ -131,33 +131,18 @@ const BUBBLE_W = 288;
 /**
  * Mantiene a la mascota dentro de la pantalla.
  *
- * Se mide en dos ejes porque el globo de diálogo sale hacia la
- * IZQUIERDA desde la mascota:
- *
- *   - Derecha: la mascota no puede pasar de `anchoPantalla -
- *     ancho - margen`. Si pasara, se salía por la derecha.
- *
- *   - Izquierda: hay que reservar el ancho del globo, o el texto
- *     quedaba fuera de la pantalla al hablar con ella. Como el
- *     globo se ancla a la derecha de la mascota y sobresale por
- *     su izquierda, el hueco que hace falta NO es el ancho entero
- *     del globo, sino el exceso sobre el ancho de la mascota:
- *     `bubbleW - ancho`. Por eso en pantallas anchas la mascota
- *     puede estar bastante a la izquierda sin que el texto se
- *     corte.
- *
- * El límite izquierdo se recorta a lo que hay disponible: en una
- * ventana estrecha no caben el globo entero y la mascota. Si el
- * mínimo acabara por detrás del máximo, el clamp la empujaría al
- * borde derecho y desaparecería, que es justo el fallo que había.
+ * Antes la izquierda reservaba el ancho del globo para que el texto
+ * no se saliera, y eso dejaba un límite invisible: en un escritorio
+ * no se podía arrastrar más allá de unos 200 px del borde. Ahora el
+ * globo se recoloca por su cuenta (se mete dentro de la pantalla y
+ * cambia de lado si hace falta), así que la mascota puede llegar a
+ * los dos bordes.
  */
 const keepOnScreen = (p: Point, width: number, height: number): Point => {
   const maxX = window.innerWidth - width - MARGIN;
-  const needsRoom = Math.max(0, BUBBLE_W - width);
-  const minX = Math.min(MARGIN + needsRoom, maxX);
 
   return {
-    x: clamp(p.x, minX, maxX),
+    x: clamp(p.x, MARGIN, maxX),
     y: clamp(p.y, MIN_TOP, window.innerHeight - height - MARGIN),
   };
 };
@@ -205,6 +190,16 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
   // de vuelta.
   const [fled, setFled] = useState(false);
   const [recallTaps, setRecallTaps] = useState(0);
+
+  // Medidas para colocar el bocadillo sin encerrar a la mascota.
+  // El ancho/alto reales se miden después de montar; los valores de
+  // arranque solo evitan un primer cálculo con cero.
+  const [mascotBox, setMascotBox] = useState({ w: 110, h: 90 });
+  const [viewport, setViewport] = useState(() => ({
+    w: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    h: typeof window !== 'undefined' ? window.innerHeight : 768,
+  }));
+  const [bubbleH, setBubbleH] = useState(280);
 
   const dragStateRef = useRef<DragState | null>(null);
   const dragElRef = useRef<HTMLDivElement>(null);
@@ -536,6 +531,36 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
     // esta escucha se daba de alta y de baja en cada frame.
   }, [isPositioned]);
 
+  // Medidas reales de la mascota. El bocadillo se coloca a partir
+  // de ellas, así que no se usan números inventados para el ancho
+  // del avatar o de la columna de botones.
+  useEffect(() => {
+    const medir = () => {
+      const el = dragElRef.current;
+      if (!el) return;
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      setMascotBox((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+    };
+
+    medir();
+    window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, [isMinimized, fled]);
+
+  // El ancho de la ventana se necesita al calcular dónde cabe el
+  // globo, también cuando la mascota está en su anclaje fijo (sin
+  // `pos`). Sin esto, girar el móvil dejaba el globo con la medida
+  // anterior hasta el siguiente render.
+  useEffect(() => {
+    const onResize = () =>
+      setViewport({ w: window.innerWidth, h: window.innerHeight });
+
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   // ======================================================
   // DESPEDIRSE
   // ======================================================
@@ -750,51 +775,45 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
   };
 
   // ======================================================
-  // RECOLOCAR AL ABRIR EL DIÁLOGO
+  // POSICIÓN DEL BOCADILLO
   // ======================================================
-  // El globo sale hacia la izquierda desde la mascota. Si la
-  // mascota quedó muy a la izquierda, abrir el diálogo lo sacaba
-  // de la pantalla. Aquí, al abrirse, se comprueba su ancho real
-  // y se empuja a la derecha lo justo para que quepa entero.
+  // El globo ya no obliga a la mascota a quedarse a la derecha.
+  // Se calcula un hueco dentro de la ventana, se abre hacia el lado
+  // que tenga sitio y la flecha sigue apuntando al avatar. Así la
+  // mascota puede arrastrarse hasta los dos bordes.
   useEffect(() => {
-    if (!pos || !showBubble || dragging) return;
-
-    const el = dragElRef.current;
+    if (!showBubble) return;
+    const el = bubbleRef.current;
     if (!el) return;
 
-    // Se mide el globo de verdad, no los 288px del CSS: si el
-    // texto es más corto, exigiría más hueco del necesario y
-    // dejaría a la mascota más lejos de la cuenta.
-    const bubble = el.querySelector<HTMLElement>('[data-mascot-bubble]');
-    const bubbleW = bubble?.offsetWidth ?? BUBBLE_W;
+    const alto = el.offsetHeight;
+    setBubbleH((prev) => (prev === alto ? prev : alto));
+  }, [showBubble, mensaje, opciones.length, viewport.w]);
 
-    setPos((p) => {
-      if (!p) return p;
-      const needsRoom = Math.max(0, bubbleW - el.offsetWidth);
-      const nextX = clamp(
-        p.x,
-        MARGIN + needsRoom,
-        window.innerWidth - el.offsetWidth - MARGIN,
-      );
-      // Se devuelve el MISMO objeto cuando no hay nada que mover.
-      // Si no, el efecto volvería a dispararse sin parar: depende
-      // de "pos" y escribirlo con un objeto nuevo siempre provoca
-      // otro render, y otro efecto.
-      if (nextX === p.x) return p;
-      return { x: nextX, y: p.y };
-    });
-    // A propósito NO depende de "pos".
-    //
-    // Esta efecto existe para recolocar la mascota cuando el globo
-    // se abre. Depender de "pos" lo hacía dispararse en cada
-    // movemento del ratón, y cada pasada mide un offsetWidth: un
-    // layout forzado por frame, que es lo que hace que el arrastre
-    // vaya a tirones.
-    //
-    // Mientras se arrastra no hace falta: "keepOnScreen" ya
-    // reserva el hueco del globo en cada movimiento, así que la
-    // mascota nunca sale con el texto cortado.
-  }, [showBubble, dragging]);
+  const anchoBurbuja = Math.min(
+    BUBBLE_W,
+    Math.max(0, viewport.w - MARGIN * 2),
+  );
+  const anchoMascota = mascotBox.w || 110;
+  const altoMascota = mascotBox.h || 90;
+  const mascotaIzquierda = pos
+    ? pos.x
+    : viewport.w - MARGIN - anchoMascota;
+  // El avatar está en el extremo derecho de la caja (a la derecha
+  // de la columna de botones); su centro cae unos 40 px antes del
+  // borde derecho.
+  const centroMascota = mascotaIzquierda + anchoMascota - 40;
+  const izquierdaBurbuja = clamp(
+    centroMascota - anchoBurbuja / 2,
+    MARGIN,
+    Math.max(MARGIN, viewport.w - anchoBurbuja - MARGIN),
+  );
+  const offsetBurbuja = izquierdaBurbuja - mascotaIzquierda;
+  const flechaBurbuja = clamp(
+    centroMascota - izquierdaBurbuja - 6,
+    12,
+    Math.max(12, anchoBurbuja - 12),
+  );
 
   // Posición en estilos: si se ha movido a mano, coordenadas
   // exactas; si no, el anclaje de siempre, que son dos: bajo el
@@ -805,8 +824,13 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
       ? { right: MARGIN, bottom: MARGIN, top: 'auto' }
       : { right: MARGIN, top: DOCK_TOP, bottom: 'auto' };
 
-  // Arriba el globo no cabe: se abre hacia abajo.
-  const bubbleBelow = !pos && !scrolled;
+  // Si se ha arrastrado, se abre al lado que tenga más sitio. En
+  // los anclajes fijos se mantiene el comportamiento de siempre.
+  const espacioAbajo = viewport.h - (pos ? pos.y : DOCK_TOP) - altoMascota;
+  const espacioArriba = pos ? pos.y : 0;
+  const bubbleBelow = pos
+    ? espacioAbajo >= bubbleH + 8 || espacioAbajo > espacioArriba
+    : !scrolled;
 
   const motionClass = dragging
     ? 'select-none touch-none'
@@ -886,8 +910,8 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
     >
       <div ref={dragElRef} {...dragHandlers}>
         {/* El globo va FUERA del flujo normal: en posición
-            absoluta y con "right-0" para que crezca hacia la
-            izquierda, sin empujar nunca a la mascota.
+            absoluta, con una `left` calculada para que quepa en la
+            ventana, sin empujar nunca a la mascota.
 
             Antes estaba en el flujo, así que al abrirse la metía
             hacia abajo y, si estaba cerca del borde inferior, se
@@ -908,7 +932,8 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
               aria-describedby="kapo-mensaje-texto"
               tabIndex={-1}
               onPointerDown={(e) => e.stopPropagation()}
-              className={`absolute right-0 z-10 w-72 max-w-[calc(100vw-2.5rem)] cursor-auto rounded-2xl border border-violet-500/30 bg-zinc-900/95 p-3.5 shadow-2xl shadow-violet-950/50 backdrop-blur-md transition-all focus:outline-none ${
+              style={{ left: offsetBurbuja, right: 'auto' }}
+              className={`absolute z-10 w-72 max-w-[calc(100vw-2.5rem)] cursor-auto rounded-2xl border border-violet-500/30 bg-zinc-900/95 p-3.5 shadow-2xl shadow-violet-950/50 backdrop-blur-md transition-colors focus:outline-none ${
                 bubbleBelow ? 'top-full mt-2' : 'bottom-full mb-2'
               } ${geoEvento}`}
             >
@@ -1009,7 +1034,8 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
                   a la mascota: abajo si el globo cuelga por debajo,
                   arriba si está por encima. */}
               <div
-                className={`absolute right-8 h-3 w-3 rotate-45 bg-zinc-900 ${
+                style={{ left: flechaBurbuja, right: 'auto' }}
+                className={`absolute h-3 w-3 rotate-45 bg-zinc-900 ${
                   bubbleBelow
                     ? '-top-2 border-l border-t border-violet-500/30'
                     : '-bottom-2 border-b border-r border-violet-500/30'
