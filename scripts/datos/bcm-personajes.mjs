@@ -29,4 +29,34 @@ export const PERSONAJES = [
 
   ['Yami Sukehiro', '', 'supporting', 'ヤミ・スケヒロ', 'Junichi Suwabe',
    'Capitán de los Toros Negros. Su magia de oscuridad y su espada buscan detener a Conrad.'],
+
+  ['Klaus Lunettes', '', 'supporting', 'クラウス・リュネット', 'Takuma Terashima',
+   'Noble de los Amaneceres Dorados. Acompaña a Mimosa y ayuda a coordinar la defensa.'],
+
+  ['Mimosa Vermillion', '', 'supporting', 'ミモザ・ヴァーミリオン', 'Asuka Nishi',
+   'Noble de los Vermillion. Su magia de plantas cura a los heridos durante la batalla.'],
+
+  ['Vanessa Enoteca', '', 'supporting', 'バネッサ・エノテーカ', 'Nana Mizuki',
+   'La bruja de los Toros. Sus hilos alteran la suerte y protegen a sus compañeros.'],
+
+  ['Magna Swing', '', 'supporting', 'マグナ・スウィング', 'Genki Muro',
+   'El pistolero de los Toros. Su magia de fuego ataca a distancia y cubre a Asta.'],
+
+  ['Nozel Silva', '', 'supporting', 'ノゼル・シルヴァ', 'Kousuke Toriumi',
+   'Capitán de los Silva. Su magia de plata y su orgullo lo llevan a luchar contra los antiguos Reyes Magos.'],
+
+  ['William Vangeance', '', 'supporting', 'ウィリアム・ヴァンジャンス', 'Daisuke Ono',
+   'Capitán de los Amaneceres Dorados. Su magia de árboles sostiene la defensa del reino.'],
+
+  ['Grey', '', 'supporting', 'グレイ', 'Minami Takahashi',
+   'La tímida de los Toros. Su magia de transformación le permite cambiar de forma y ayudar en combate.'],
+
+  ['Gauche Adlai', '', 'supporting', 'ゴーシュ・アドレイ', 'Satoshi Hino',
+   'El espejo de los Toros. Sus clones y espejos multiplican los ataques del equipo.'],
+
+  ['Charmy Pappitson', '', 'supporting', 'チャーミー・パピットソン', 'Kiyono Yasuno',
+   'La cocinera de los Toros. Su magia de comida le da energía al grupo en plena batalla.'],
+
+  ['Luck Voltia', '', 'supporting', 'ラック・ボルティア', 'Ayumu Murase',
+   'El guerrero eléctrico. Su velocidad y sus rayos buscan a los enemigos más fuertes.'],
 ];

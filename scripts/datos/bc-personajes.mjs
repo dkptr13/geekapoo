@@ -176,4 +176,79 @@ export const PERSONAJES = [
 
   ['Vanica Zogratis', '', 'antagonist', 'ヴァニカ・ゾグラティス', 'Yui Ogura',
    'La Zogratis mujer. Disfruta de la lucha y comparte su cuerpo con Megicula; su magia de sangre es brutal.'],
+
+  ['Gueldre Poizot', '', 'antagonist', 'ゲルドル・ポイゾット', 'Tomokazu Sugita',
+   'Capitán corrupto de los Mantos Verdes. Vende información y usa su magia de permiso para enriquecerse.'],
+
+  ['Heath Grice', '', 'antagonist', 'ヒース・グライス', 'Ryoutarou Okiayu',
+   'Caballero mágico del Reino del Diamante. Su magia de hielo y su frialdad lo enfrentan a Asta.'],
+
+  ['Revchi Salik', '', 'antagonist', 'レブチ', 'Yutaka Aoyama',
+   'Ladrón de grimorios. Ataca a Yuno al principio de la serie y subestima a Asta.'],
+
+  ['Rades Spirito', '', 'antagonist', 'ラデス・スピーリト', 'Masayuki Akasaka',
+   'Nigromante que ataca la capital. Su magia de cadáveres y su rencor lo convierten en un enemigo temprano.'],
+
+  ['Valtos', '', 'antagonist', 'ヴァルトス', 'Daiki Hamano',
+   'Miembro de los Ojos del Sol. Su magia espacial le permite mover a los suyos y huir.'],
+
+  ['Lotus Whomalt', '', 'antagonist', 'ロータス・フーモルト', 'Kenyuu Horiuchi',
+   'Mercenario con magia de humo. Secuestra niños para los experimentos de los Ojos del Sol.'],
+
+  ['Langris Vaude', '', 'supporting', 'ランギルス・ヴォード', 'Kaito Ishikawa',
+   'Vicecapitán de los Amaneceres Dorados y hermano de Finral. Su magia espacial corta todo y su rivalidad con Finral es personal.'],
+
+  ['Finesse Calmreich', '', 'supporting', 'フィーネス・カルムルイヒ', 'Eri Akiyama',
+   'Prometida de William. Su enfermedad y su relación con el capitán muestran su lado más humano.'],
+
+  ['Sol Marron', '', 'supporting', 'ソル・マロン', 'Haruna Kakiage',
+   'Miembro de los Rosas Azules. Adora a Charlotte y no soporta que Yami se acerque a ella.'],
+
+  ['Kahono', '', 'supporting', 'カホノ', 'Megumi Han',
+   'Sacerdotisa del Templo Submarino. Su magia de sonido y su carácter alegre ayudan a Noelle.'],
+
+  ['Kiato', '', 'supporting', 'キアト', 'Yoshimasa Hosoya',
+   'Guerrero del Templo Submarino. Su magia de danza y su espada lo convierten en un rival leal.'],
+
+  ['Theresa Rapual', '', 'supporting', 'テレジア・ラプアール', 'Rei Igarashi',
+   'La bruja del bosque. Entrena a Noelle y a los demás en el control de su magia.'],
+
+  ['Zara Ideale', '', 'supporting', 'ザラ・イデアーレ', 'Hikaru Midorikawa',
+   'Padre de Zora y antiguo caballero mágico. Su muerte marca la venganza de su hijo.'],
+
+  ['Fanzell Kruger', '', 'supporting', 'ファンゼル・クルーガー', 'Satoshi Mikami',
+   'Espadachín y antiguo instructor. Su pasado con los Ojos del Sol lo obliga a enfrentarse a ellos.'],
+
+  ['Mariella', '', 'supporting', 'マリエラ', 'Sayaka Senbongi',
+   'Maga del Reino del Corazón. Su magia de apoyo ayuda a los aliados en la guerra.'],
+
+  ['Dominante Code', '', 'supporting', 'ドミナント・コード', 'Misako Tomioka',
+   'Miembro de los Ojos del Sol. Su magia de código y sus trampas ponen a prueba a los Toros.'],
+
+  ['David Swallow', '', 'supporting', 'ダヴィド・スワロー', 'Makoto Sahara',
+   'Miembro de los Amaneceres Dorados. Su magia de dados y su lealtad lo mantienen en la primera línea.'],
+
+  ['Letoile Becquerel', '', 'supporting', 'レトゥア・ベクレル', 'Yuu Ayase',
+   'Noble de los Amaneceres Dorados. Su magia de brújula orienta y protege a sus compañeros.'],
+
+  ['Siren Tium', '', 'supporting', 'シレン・ティウム', 'Masayuki Akasaka',
+   'Miembro de los Amaneceres Dorados. Su magia de sonido y su disciplina lo hacen un apoyo sólido.'],
+
+  ['Hamon Caseus', '', 'supporting', 'ハモン・カーセウス', 'Kousuke Toriumi',
+   'Miembro de los Amaneceres Dorados. Su magia de fuego y su carácter tranquilo lo convierten en un aliado fiable.'],
+
+  ['Alecdora Sandler', '', 'supporting', 'アレクドラ・サンドラー', 'Genki Okawa',
+   'Noble de los Amaneceres Dorados. Su magia de arena y su orgullo chocan con la humildad de Asta.'],
+
+  ['Cob Portaport', '', 'supporting', 'コブ・ポルタポルト', 'Wataru Tsuyuzaki',
+   'Caballero mágico del Reino del Trébol. Su magia de puertas lo hace útil en la defensa del reino.'],
+
+  ['Xerx Lugner', '', 'supporting', 'ザクス・リューグナー', 'Wataru Tsuyuzaki',
+   'Caballero mágico del Reino del Trébol. Su magia de hielo y su disciplina lo ponen al servicio de Julius.'],
+
+  ['Owen', '', 'supporting', 'オーヴェン', 'Eiichirou Tokumoto',
+   'Médico mágico del Reino del Trébol. Su magia de curación salva a los heridos de la guerra.'],
+
+  ['Licita', '', 'supporting', 'リチタ', 'Kaori Ishihara',
+   'La madre de Asta. Su sacrificio y su relación con el demonio Liebe explican el origen del protagonista.'],
 ];
