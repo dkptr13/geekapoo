@@ -117,10 +117,16 @@ export const EPISODIOS_TOTAL = 1180;
  *
  *   · Crunchyroll -> la serie completa, con subtitulos en castellano.
  *   · Netflix     -> la primera temporada, con doblaje al castellano.
+ *   · Disney+     -> la serie, comprobada en JustWatch.
  */
 export const STREAMING = [
   { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
   { name: 'Netflix', url: 'https://www.netflix.com', badgeColor: '#e50914' },
+  {
+    name: 'Disney+',
+    url: 'https://www.disneyplus.com/es-es',
+    badgeColor: 'bg-blue-500/20 text-blue-300',
+  },
 ];
 
 export const TEMPORADAS = [

@@ -41,8 +41,10 @@ export const RATING_SERIE = 8.2;
 /** Trece episodios, contando el primero emitido en 2024. */
 export const EPISODIOS_TOTAL = 13;
 
-/** Sin oferta española verificada de la serie. */
-export const STREAMING = [];
+/** Disponible en Crunchyroll (España). */
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
 
 export const TEMPORADAS = [
   {

@@ -29,7 +29,7 @@ import {
   type MotivoReporte,
   type ReportableTarget,
 } from '../services/reports';
-import { toggleCatalogLike } from '../services/engagement';
+import { toggleCatalogLike, type LikeableKind } from '../services/engagement';
 import { normalizarPoll, setPollClosed, votePoll } from '../services/polls';
 import {
   changeReactionType,
@@ -226,6 +226,55 @@ function normalizarHilo(thread: Thread): Thread {
     likedBy: Array.isArray(thread.likedBy) ? thread.likedBy : [],
     commentsCount: typeof thread.commentsCount === 'number' ? thread.commentsCount : 0,
   };
+}
+
+/**
+ * Aplica un "me gusta" a los episodios o personajes, que se guardan
+ * agrupados por anime. Devuelve la MISMA referencia si el elemento no
+ * está cargado, para no provocar renders inútiles.
+ */
+function actualizarLikeEnGrupos<T extends { id: string; likedBy?: string[]; likesCount: number }>(
+  grupos: Record<string, T[]>,
+  id: string,
+  uid: string,
+  liked: boolean,
+): Record<string, T[]> {
+  let cambio = false;
+  const siguiente: Record<string, T[]> = {};
+
+  for (const [clave, lista] of Object.entries(grupos)) {
+    const nueva = actualizarLikeEnLista(lista, id, uid, liked);
+    if (nueva !== lista) cambio = true;
+    siguiente[clave] = nueva;
+  }
+
+  return cambio ? siguiente : grupos;
+}
+
+/** La trivia llama `likes` a su contador, no `likesCount`. */
+function actualizarLikeEnTrivia(
+  lista: TriviaExtra[],
+  id: string,
+  uid: string,
+  liked: boolean,
+): TriviaExtra[] {
+  if (!lista.some((item) => item.id === id)) return lista;
+
+  return lista.map((item) => {
+    if (item.id !== id) return item;
+
+    const likedBy = Array.isArray(item.likedBy) ? item.likedBy : [];
+    const yaEstaba = likedBy.includes(uid);
+    if (yaEstaba === liked) return item;
+
+    return {
+      ...item,
+      likedBy: liked
+        ? [...likedBy, uid]
+        : likedBy.filter((actual) => actual !== uid),
+      likes: Math.max(0, item.likes + (liked ? 1 : -1)),
+    };
+  });
 }
 
 const TTL_ANIMES = 5 * 60 * 1000;
@@ -1058,15 +1107,72 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [actualizarLikeLocal, guardUser, threads, allThreads]);
 
-  const runLike = useCallback(async (action: (uid: string) => Promise<boolean>) => {
+  const likeCatalogoActual = useCallback((
+    kind: LikeableKind,
+    id: string,
+    uid: string,
+  ): boolean => {
+    switch (kind) {
+      case 'anime':
+        return animes.find((anime) => anime.id === id)?.likedBy?.includes(uid) ?? false;
+      case 'episode':
+        return Object.values(episodes).some((lista) =>
+          lista.some((ep) => ep.id === id && (ep.likedBy?.includes(uid) ?? false)),
+        );
+      case 'character':
+        return Object.values(characters).some((lista) =>
+          lista.some((char) => char.id === id && (char.likedBy?.includes(uid) ?? false)),
+        );
+      case 'trivia':
+        return triviaExtras.some(
+          (item) => item.id === id && (item.likedBy?.includes(uid) ?? false),
+        );
+    }
+  }, [animes, episodes, characters, triviaExtras]);
+
+  const aplicarLikeCatalogo = useCallback((
+    kind: LikeableKind,
+    id: string,
+    uid: string,
+    liked: boolean,
+  ) => {
+    switch (kind) {
+      case 'anime':
+        setAnimes((prev) => actualizarLikeEnLista(prev, id, uid, liked));
+        break;
+      case 'episode':
+        setEpisodes((prev) => actualizarLikeEnGrupos(prev, id, uid, liked));
+        break;
+      case 'character':
+        setCharacters((prev) => actualizarLikeEnGrupos(prev, id, uid, liked));
+        break;
+      case 'trivia':
+        setTriviaExtras((prev) => actualizarLikeEnTrivia(prev, id, uid, liked));
+        break;
+    }
+  }, []);
+
+  const runLike = useCallback(async (kind: LikeableKind, id: string) => {
     const uid = guardUser();
     if (!uid) return;
+
+    const clave = `catalogo:${kind}:${id}`;
+    if (likesPendientes.current.has(clave)) return;
+
+    const likedAntes = likeCatalogoActual(kind, id, uid);
+    likesPendientes.current.add(clave);
+    aplicarLikeCatalogo(kind, id, uid, !likedAntes);
+
     try {
-      await action(uid);
+      const likedConfirmado = await toggleCatalogLike(kind, id, uid);
+      aplicarLikeCatalogo(kind, id, uid, likedConfirmado);
     } catch (e) {
+      aplicarLikeCatalogo(kind, id, uid, likedAntes);
       console.error('[Community] Error en "me gusta":', e);
+    } finally {
+      likesPendientes.current.delete(clave);
     }
-  }, [guardUser]);
+  }, [guardUser, likeCatalogoActual, aplicarLikeCatalogo]);
 
   const toggleThreadLike = useCallback(
     (threadId: string, likedActual?: boolean) => runThreadLike(
@@ -1093,22 +1199,22 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 
   const toggleAnimeLike = useCallback(
-    (animeId: string) => runLike((uid) => toggleCatalogLike('anime', animeId, uid)),
+    (animeId: string) => runLike('anime', animeId),
     [runLike],
   );
 
   const toggleEpisodeLike = useCallback(
-    (episodeId: string) => runLike((uid) => toggleCatalogLike('episode', episodeId, uid)),
+    (episodeId: string) => runLike('episode', episodeId),
     [runLike],
   );
 
   const toggleCharacterLike = useCallback(
-    (characterId: string) => runLike((uid) => toggleCatalogLike('character', characterId, uid)),
+    (characterId: string) => runLike('character', characterId),
     [runLike],
   );
 
   const toggleTriviaLike = useCallback(
-    (triviaId: string) => runLike((uid) => toggleCatalogLike('trivia', triviaId, uid)),
+    (triviaId: string) => runLike('trivia', triviaId),
     [runLike],
   );
 

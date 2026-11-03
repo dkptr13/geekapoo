@@ -152,6 +152,29 @@ describe('me gusta por usuario y contadores del servidor', () => {
         likesCount: 0,
         likedBy: [],
       });
+      await setDoc(doc(f, 'animes', 'anime2'), {
+        title: 'Anime 2',
+        commentsCount: 0,
+        likesCount: 0,
+        likedBy: [],
+      });
+      await setDoc(doc(f, 'episodes', 'ep1'), {
+        animeId: 'anime1',
+        number: 1,
+        likesCount: 0,
+        likedBy: [],
+      });
+      await setDoc(doc(f, 'characters', 'char1'), {
+        animeId: 'anime1',
+        name: 'Personaje',
+        likesCount: 0,
+        likedBy: [],
+      });
+      await setDoc(doc(f, 'trivia_extras', 'triv1'), {
+        question: '¿Quién es?',
+        likes: 0,
+        likedBy: [],
+      });
     });
   });
 
@@ -451,6 +474,146 @@ describe('me gusta por usuario y contadores del servidor', () => {
       );
       await assertFails(
         getDoc(doc(anon(), 'engagement_ledger', 'com1')),
+      );
+    });
+  });
+
+  // ==========================================================
+  // 4. ME GUSTA DEL CATÁLOGO
+  // ==========================================================
+  //
+  // Animes, episodios y personajes no tienen subcolección: el
+  // cliente escribe `likedBy` y el contador en el propio documento.
+  // La regla tiene que dejar pasar SOLO el uid de quien escribe y
+  // exigir que el contador sea el tamaño de la lista.
+  describe('me gusta del catálogo', () => {
+    it('cada usuario puede dar y quitar su me gusta a un anime', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'animes', 'anime1'), {
+          likedBy: [ALICE],
+          likesCount: 1,
+        }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'animes', 'anime1'), {
+          likedBy: [],
+          likesCount: 0,
+        }),
+      );
+    });
+
+    it('NO se puede añadir el me gusta de otra persona', async () => {
+      await assertFails(
+        updateDoc(doc(db(BOB), 'animes', 'anime1'), {
+          likedBy: [ALICE],
+          likesCount: 1,
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(BOB), 'animes', 'anime2'), {
+          likedBy: [ALICE, BOB],
+          likesCount: 2,
+        }),
+      );
+    });
+
+    it('NO se puede inventar el contador', async () => {
+      await assertFails(
+        updateDoc(doc(db(BOB), 'animes', 'anime2'), {
+          likedBy: [BOB],
+          likesCount: 99,
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(BOB), 'animes', 'anime2'), {
+          likedBy: [BOB],
+          likesCount: 2,
+        }),
+      );
+    });
+
+    it('NO se puede quitar el me gusta de otra persona', async () => {
+      await sembrar(async (f) => {
+        await setDoc(doc(f, 'animes', 'animeAjeno'), {
+          title: 'Ajeno',
+          commentsCount: 0,
+          likesCount: 1,
+          likedBy: [BOB],
+        });
+      });
+
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'animes', 'animeAjeno'), {
+          likedBy: [],
+          likesCount: 0,
+        }),
+      );
+    });
+
+    it('NO se puede tocar ningún otro campo del anime', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'animes', 'anime2'), {
+          title: 'Secuestrado',
+        }),
+      );
+    });
+
+    it('un baneado no puede dar me gusta', async () => {
+      await assertFails(
+        updateDoc(doc(db(BANNED), 'animes', 'anime2'), {
+          likedBy: [BANNED],
+          likesCount: 1,
+        }),
+      );
+    });
+
+    it('sin sesión no se puede dar me gusta', async () => {
+      await assertFails(
+        updateDoc(doc(anon(), 'animes', 'anime2'), {
+          likedBy: [ALICE],
+          likesCount: 1,
+        }),
+      );
+    });
+
+    it('funciona igual en episodios y personajes', async () => {
+      for (const [coleccion, id] of [
+        ['episodes', 'ep1'],
+        ['characters', 'char1'],
+      ]) {
+        await assertSucceeds(
+          updateDoc(doc(db(ALICE), coleccion, id), {
+            likedBy: [ALICE],
+            likesCount: 1,
+          }),
+        );
+        await assertSucceeds(
+          updateDoc(doc(db(ALICE), coleccion, id), {
+            likedBy: [],
+            likesCount: 0,
+          }),
+        );
+      }
+    });
+
+    it('la trivia usa el contador `likes`', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'trivia_extras', 'triv1'), {
+          likedBy: [ALICE],
+          likes: 1,
+        }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'trivia_extras', 'triv1'), {
+          likedBy: [],
+          likes: 0,
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(BOB), 'trivia_extras', 'triv1'), {
+          likedBy: [BOB],
+          likes: 999,
+        }),
       );
     });
   });

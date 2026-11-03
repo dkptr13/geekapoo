@@ -38,8 +38,10 @@ export const RATING_SERIE = 7.8;
 /** 21 episodios de la emision regular, sin el episodio 0. */
 export const EPISODIOS_TOTAL = 21;
 
-/** Sin oferta española verificada de la serie. */
-export const STREAMING = [];
+/** Disponible en Crunchyroll (España). */
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
 
 export const TEMPORADAS = [
   {

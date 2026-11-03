@@ -13,7 +13,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/akame-ga-kill</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -806,6 +806,12 @@
   <url>
     <loc>https://www.geekapoo.es/anime/my-hero-academia</loc>
     <lastmod>2026-10-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/nana</loc>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

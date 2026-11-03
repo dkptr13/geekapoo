@@ -34,8 +34,10 @@ export const RATING_SERIE = 7.6;
 /** La pelicula es el unico capitulo de la ficha. */
 export const EPISODIOS_TOTAL = 1;
 
-/** Sin oferta española verificada de la pelicula. */
-export const STREAMING = [];
+/** Disponible en Crunchyroll (España). */
+export const STREAMING = [
+  { name: 'Crunchyroll', url: 'https://www.crunchyroll.com', badgeColor: '#f47521' },
+];
 
 export const TEMPORADAS = [
   {

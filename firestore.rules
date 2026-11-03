@@ -267,6 +267,50 @@ service cloud.firestore {
                .hasAny(['commentsCount']);
     }
 
+    // Un "me gusta" del catálogo es un cambio de UN solo uid: el de
+    // quien escribe. No se puede añadir ni quitar a otra persona, y
+    // el contador tiene que ser exactamente el tamaño de la lista.
+    //
+    // Es la misma garantía que da la subcolección de hilos y
+    // comentarios, pero sin subcolección: el catálogo guarda el
+    // agregado en el propio documento porque la wiki lo lee al
+    // pintar la ficha.
+    function cambioDeUnSoloLike() {
+      return (request.resource.data.likedBy
+                == resource.data.get('likedBy', []).concat([request.auth.uid])
+              && !(request.auth.uid in resource.data.get('likedBy', [])))
+             ||
+             (request.resource.data.likedBy
+                == resource.data.get('likedBy', []).removeAll([request.auth.uid])
+              && request.auth.uid in resource.data.get('likedBy', []));
+    }
+
+    // Animes, episodios y personajes: contador `likesCount`.
+    function likeDelCatalogoValido() {
+      return isActive()
+             && request.resource.data.diff(resource.data)
+                  .affectedKeys().hasOnly(['likedBy', 'likesCount'])
+             && request.resource.data.likedBy is list
+             && request.resource.data.likedBy.size() <= 100000
+             && request.resource.data.likesCount is number
+             && request.resource.data.likesCount
+                  == request.resource.data.likedBy.size()
+             && cambioDeUnSoloLike();
+    }
+
+    // La trivia llama `likes` a su contador, no `likesCount`.
+    function likeDeTriviaValido() {
+      return isActive()
+             && request.resource.data.diff(resource.data)
+                  .affectedKeys().hasOnly(['likedBy', 'likes'])
+             && request.resource.data.likedBy is list
+             && request.resource.data.likedBy.size() <= 100000
+             && request.resource.data.likes is number
+             && request.resource.data.likes
+                  == request.resource.data.likedBy.size()
+             && cambioDeUnSoloLike();
+    }
+
     // ======================================================
     // ENCUESTAS
     // ======================================================
@@ -2266,8 +2310,9 @@ service cloud.firestore {
                     && (!('commentsCount' in request.resource.data)
                         || (request.resource.data.commentsCount is number
                             && request.resource.data.commentsCount == 0));
-      allow update: if (isAdmin() || isModerator())
-                    && sinContadorDeComentarios();
+      allow update: if ((isAdmin() || isModerator())
+                        && sinContadorDeComentarios())
+                    || likeDelCatalogoValido();
       allow delete: if isAdmin() || isModerator();
     }
 
@@ -2314,12 +2359,14 @@ service cloud.firestore {
 
     match /episodes/{episodeId} {
       allow read: if true;
-      allow write: if isAdmin() || isModerator();
+      allow create, delete: if isAdmin() || isModerator();
+      allow update: if isAdmin() || isModerator() || likeDelCatalogoValido();
     }
 
     match /characters/{characterId} {
       allow read: if true;
-      allow write: if isAdmin() || isModerator();
+      allow create, delete: if isAdmin() || isModerator();
+      allow update: if isAdmin() || isModerator() || likeDelCatalogoValido();
     }
 
     match /categories/{categoryId} {
@@ -2337,7 +2384,8 @@ service cloud.firestore {
 
     match /trivia_extras/{triviaId} {
       allow read: if true;
-      allow write: if isAdmin() || isModerator();
+      allow create, delete: if isAdmin() || isModerator();
+      allow update: if isAdmin() || isModerator() || likeDeTriviaValido();
     }
 
     match /mascot_dialogues/{dialogueId} {

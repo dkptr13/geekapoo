@@ -60,6 +60,71 @@ const HOY = new Date().toISOString().slice(0, 10);
  * @type {Record<string, { id: string | null, titulo: string, anio?: number }>}
  */
 const FICHAS = {
+  bleach: { id: 'ts15151', titulo: 'Bleach', anio: 2004 },
+  'bleach-la-guerra-sangrienta-de-los-mil-anos': {
+    id: 'ts369296',
+    titulo: 'Bleach: Thousand-Year Blood War',
+    anio: 2022,
+  },
+  'code-geass-lelouch-of-the-rebellion-iii-glorification': {
+    id: 'tm351493',
+    titulo: 'Code Geass: Lelouch of the Rebellion III - Glorification',
+    anio: 2018,
+  },
+  'el-castillo-ambulante': { id: 'tm79928', titulo: "Howl's Moving Castle", anio: 2004 },
+  'el-castillo-en-el-cielo': { id: 'tm121105', titulo: 'Castle in the Sky', anio: 1986 },
+  'el-chico-y-la-garza': { id: 'tm1229026', titulo: 'The Boy and the Heron', anio: 2023 },
+  'el-viaje-de-chihiro': { id: 'tm48297', titulo: 'Spirited Away', anio: 2001 },
+  'el-viento-se-levanta': { id: 'tm173459', titulo: 'The Wind Rises', anio: 2013 },
+  'haikyuu-la-batalla-del-basurero': {
+    id: 'tm1390117',
+    titulo: 'Haikyu!! The Dumpster Battle',
+    anio: 2024,
+  },
+  horimiya: { id: 'ts254486', titulo: 'Horimiya', anio: 2021 },
+  'k-on': { id: 'ts23917', titulo: 'K-ON!', anio: 2009 },
+  kampfer: { id: 'ts23934', titulo: 'Kämpfer', anio: 2009 },
+  'kiki-la-aprendiz-de-bruja': {
+    id: 'tm140029',
+    titulo: "Kiki's Delivery Service",
+    anio: 1989,
+  },
+  'kill-la-kill': { id: 'ts34950', titulo: 'Kill la Kill', anio: 2013 },
+  'la-princesa-mononoke': { id: 'tm192569', titulo: 'Princess Mononoke', anio: 1997 },
+  'la-tumba-de-las-luciernagas': {
+    id: 'tm54176',
+    titulo: 'Grave of the Fireflies',
+    anio: 1988,
+  },
+  'love-chunibyo-and-other-delusions': {
+    id: 'ts27994',
+    titulo: 'Love, Chunibyo & Other Delusions!',
+    anio: 2012,
+  },
+  'mi-vecino-totoro': { id: 'tm38744', titulo: 'My Neighbor Totoro', anio: 1988 },
+  'nausicaa-del-valle-del-viento': {
+    id: 'tm170523',
+    titulo: 'Nausicaä of the Valley of the Wind',
+    anio: 1984,
+  },
+  'ponyo-en-el-acantilado': { id: 'tm35255', titulo: 'Ponyo', anio: 2008 },
+  // Series que faltaban en el importador y que tienen oferta en Espana.
+  erased: { id: 'ts42169', titulo: 'Erased', anio: 2016 },
+  'hello-world': { id: 'tm488512', titulo: 'Hello World', anio: 2019 },
+  'made-in-abyss': { id: 'ts58178', titulo: 'Made in Abyss', anio: 2017 },
+  'mirai-nikki': { id: 'ts22232', titulo: 'Mirai Nikki', anio: 2011 },
+  overlord: { id: 'ts37899', titulo: 'Overlord', anio: 2015 },
+  'puella-magi-madoka-magica': {
+    id: 'ts34087',
+    titulo: 'Puella Magi Madoka Magica',
+    anio: 2011,
+  },
+  'ranma-1-2': { id: 'ts20738', titulo: 'Ranma ½', anio: 1989 },
+  'samurai-champloo': { id: 'ts31799', titulo: 'Samurai Champloo', anio: 2004 },
+  shimoneta: { id: 'ts36567', titulo: 'Shimoneta', anio: 2015 },
+  'steins-gate': { id: 'ts22244', titulo: 'Steins;Gate', anio: 2011 },
+  toradora: { id: 'ts26322', titulo: 'Toradora!', anio: 2008 },
+  'your-lie-in-april': { id: 'ts20249', titulo: 'Your Lie in April', anio: 2014 },
   'carnival-phantasm': { id: 'ts8669', titulo: 'カーニバル・ファンタズム', anio: 2011 },
   'emiya-san-chi-no-kyou-no-gohan': {
     id: 'ts77697',
@@ -163,8 +228,9 @@ const FICHAS = {
 /**
  * De que paquete de JustWatch sale cada plataforma del catalogo.
  *
- * Los canales de Amazon de un servicio (Crunchyroll, HIDIVE, dAnime) se
- * quedan con el servicio: el contenido y la suscripcion son los mismos.
+ * Los canales de Amazon de un servicio (Crunchyroll, HIDIVE, dAnime,
+ * AnimeBox) se quedan con el servicio: el contenido y la suscripcion son
+ * los mismos.
  * Las tiendas de compra y alquiler que no interesan aqui (Amazon Video,
  * Fandango, DVDs) no estan en la lista.
  */
@@ -190,6 +256,8 @@ const EXTRA = {
   animedigitalnetwork: 'animation-digital-network',
   amazonanimedigital: 'animation-digital-network',
   itunes: 'apple-tv',
+  animebox: 'animebox',
+  amazonanimeboxchannel: 'animebox',
 };
 
 /** Paises donde opera cada plataforma que no es global. */
@@ -198,10 +266,12 @@ const PAISES_EXTRA = {
   'd-anime-store': ['JP'],
   'animation-digital-network': ['FR', 'DE'],
   'apple-tv': REGIONES,
+  animebox: ['ES'],
 };
 
 /** Como se llama cada plataforma nueva en Firestore. */
 const PLATAFORMAS_NUEVAS = [
+  { id: 'animebox', name: 'AnimeBox', badgeColor: '#e91e63', order: 200 },
   { id: 'd-anime-store', name: 'dAnime Store', badgeColor: '#f39800', order: 210 },
   { id: 'fod', name: 'FOD', badgeColor: '#00a0e9', order: 220 },
   {
