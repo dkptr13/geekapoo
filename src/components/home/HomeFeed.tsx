@@ -1123,7 +1123,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 <div className="flex items-center gap-2 sm:gap-4">
                   {/* Like Button */}
                   <button
-                    onClick={() => toggleThreadLike(thread.id)}
+                    onClick={() => toggleThreadLike(thread.id, isLiked)}
                     className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                       isLiked
                         ? 'border border-pink-400/25 bg-pink-500/15 text-pink-300'

@@ -22,7 +22,7 @@ import {
   debeProcesarLike,
   idsDeLikes,
 } from '../functions/src/likesLogic';
-import { ponerLikeLocal } from '../src/utils/likes';
+import { actualizarLikeEnLista, ponerLikeLocal } from '../src/utils/likes';
 
 // ──────────────────────────────────────────────────────────
 // 1. Qué ha pasado con el documento
@@ -148,6 +148,27 @@ assert.equal(
   ponerLikeLocal({ likedBy: ['alice'], likesCount: 0 }, 'alice', false).likesCount,
   0,
   'un dato antiguo desajustado nunca produce un contador negativo',
+);
+
+// El feed normal y la copia histórica (categorías, búsqueda,
+// populares) tienen que recibir el mismo cambio. Si solo se
+// actualizara una, el corazón no cambiaría al filtrar por categoría.
+const feed = [{ ...hilo }];
+const historico = [{ ...hilo }];
+const feedActualizado = actualizarLikeEnLista(feed, 'hilo-1', 'alice', true);
+const historicoActualizado = actualizarLikeEnLista(historico, 'hilo-1', 'alice', true);
+assert.equal(feedActualizado[0].likesCount, 2);
+assert.equal(historicoActualizado[0].likesCount, 2);
+assert.deepEqual(feedActualizado[0].likedBy, ['bob', 'alice']);
+assert.deepEqual(historicoActualizado[0].likedBy, ['bob', 'alice']);
+
+// Una lista en la que no está el hilo se devuelve tal cual, para no
+// repintar listas ajenas.
+const otraLista = [{ ...hilo, id: 'hilo-2' }];
+assert.equal(
+  actualizarLikeEnLista(otraLista, 'hilo-1', 'alice', true),
+  otraLista,
+  'sin el hilo no se crea una copia nueva',
 );
 
 console.log('OK · lógica de "me gusta" por usuario');

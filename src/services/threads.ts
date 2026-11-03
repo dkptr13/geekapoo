@@ -38,6 +38,15 @@ export interface NewThreadInput {
   body: string;
   categoryId: string;
   categoryName: string;
+  /**
+   * Si la categoría tiene documento en Firestore.
+   *
+   * Las categorías fijas de código (por ejemplo, "Debates") no lo
+   * tienen. En ese caso NO se intenta crear el documento solo para
+   * sumar el contador: las reglas solo dejan crear categorías al
+   * equipo y el lote entero fallaría, impidiendo publicar el hilo.
+   */
+  categoryInFirestore?: boolean;
   tags: string[];
   /** Imagen adjunta, opcional. */
   imageUrl?: string;
@@ -140,7 +149,7 @@ export async function createThread(input: NewThreadInput): Promise<string> {
 
   batch.set(ref, payload);
 
-  if (input.categoryId) {
+  if (input.categoryId && input.categoryInFirestore !== false) {
     batch.set(
       doc(db, 'categories', input.categoryId),
       { threadsCount: increment(1) },
@@ -211,8 +220,13 @@ export async function deleteThread(threadId: string): Promise<void> {
     if (categoryId) {
       const catRef = doc(db, 'categories', categoryId);
       const catSnap = await tx.get(catRef);
-      const current = (catSnap.data()?.threadsCount as number) ?? 0;
-      tx.set(catRef, { threadsCount: Math.max(0, current - 1) }, { merge: true });
+      // Las categorías fijas de código no tienen documento. No se
+      // crea uno vacío solo para restar el contador: la transacción
+      // fallaría y el hilo no se podría borrar.
+      if (catSnap.exists()) {
+        const current = (catSnap.data()?.threadsCount as number) ?? 0;
+        tx.set(catRef, { threadsCount: Math.max(0, current - 1) }, { merge: true });
+      }
     }
 
     tx.delete(ref);

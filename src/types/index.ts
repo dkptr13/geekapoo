@@ -1190,6 +1190,11 @@ export interface CategoryItem {
   animeCount: number;
   threadsCount?: number;
   color: string;
+  /**
+   * Definida en código y no en Firestore. Se mantiene aunque no
+   * exista el documento y no se puede borrar desde el panel.
+   */
+  fixed?: boolean;
 }
 
 export interface TriviaExtra {

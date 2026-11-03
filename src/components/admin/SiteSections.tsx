@@ -360,7 +360,14 @@ export const CategoriesSection: FC = () => {
                   </span>
 
                   <span className="ml-auto flex items-center gap-1">
-                    {isDeleting ? (
+                    {cat.fixed ? (
+                      <span
+                        className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-semibold text-zinc-400"
+                        title="Definida en el código; no se puede borrar desde el panel"
+                      >
+                        Fija
+                      </span>
+                    ) : isDeleting ? (
                       <>
                         <button
                           type="button"

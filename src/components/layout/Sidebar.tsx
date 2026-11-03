@@ -7,6 +7,8 @@ import { NewsWidget } from '../home/NewsWidget';
 import { encuadre } from '../../utils/safeData';
 import { Thread } from '../../types';
 interface SidebarProps {
+  /** Categoría que está filtrando el feed, si hay alguna. */
+  activeCategoryId?: string | null;
   onSelectCategory?: (catId: string) => void;
   onSelectThread?: (thread: Thread) => void;
   onGoToExtras?: () => void;
@@ -14,13 +16,26 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
+  activeCategoryId,
   onSelectCategory,
   onSelectThread,
   onGoToExtras,
   onGoToAnime,
 }) => {
-  const { threads, animes, categories } = useCommunity();
+  const { threads, allThreads, animes, categories } = useCommunity();
   const { weeklyWorks } = useSiteContent();
+
+  // Para las categorías de código no hay contador del servidor. Se
+  // unen el histórico y la página reciente (el reciente pisa al
+  // histórico) para que un hilo recién creado cuente aunque
+  // `allThreads` todavía esté cacheado.
+  const hilosParaConteo = useMemo(() => {
+    if (allThreads.length === 0) return threads;
+    const porId = new Map<string, Thread>();
+    allThreads.forEach((thread) => porId.set(thread.id, thread));
+    threads.forEach((thread) => porId.set(thread.id, thread));
+    return [...porId.values()];
+  }, [allThreads, threads]);
 
   /**
    * Los 3 hilos destacados del DÍA: entre los publicados hoy,
@@ -140,18 +155,48 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => onSelectCategory && onSelectCategory(cat.id)}
-                className="chat-boton group flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 transition-all hover:border-violet-400/40 hover:bg-violet-500/10 hover:text-violet-200"
-              >
-                <span>{cat.name}</span>
-                <span className="rounded-md bg-white/[0.06] px-1.5 py-0.2 font-mono text-[10px] text-violet-300 group-hover:bg-violet-500/20">
-                  {cat.threadsCount ?? 0}
-                </span>
-              </button>
-            ))}
+            {categories.map((cat) => {
+              // Las categorías fijas no tienen documento en
+              // Firestore, así que no llevan contador del servidor.
+              // Se cuenta sobre el histórico si ya está cargado y,
+              // mientras tanto, sobre la página reciente.
+              const total = cat.fixed
+                ? hilosParaConteo.filter(
+                    (thread) => thread.categoryId === cat.id,
+                  ).length
+                : cat.threadsCount ?? 0;
+
+              const activa = activeCategoryId === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => onSelectCategory && onSelectCategory(cat.id)}
+                  aria-pressed={activa}
+                  title={
+                    activa
+                      ? `Quitar el filtro de ${cat.name}`
+                      : `Filtrar los hilos por ${cat.name}`
+                  }
+                  className={`chat-boton group flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs transition-all ${
+                    activa
+                      ? 'border-violet-400/50 bg-violet-500/15 text-violet-100'
+                      : 'border-white/[0.06] bg-white/[0.03] text-zinc-300 hover:border-violet-400/40 hover:bg-violet-500/10 hover:text-violet-200'
+                  }`}
+                >
+                  <span>{cat.name}</span>
+                  <span
+                    className={`rounded-md px-1.5 py-0.2 font-mono text-[10px] ${
+                      activa
+                        ? 'bg-violet-500/25 text-violet-100'
+                        : 'bg-white/[0.06] text-violet-300 group-hover:bg-violet-500/20'
+                    }`}
+                  >
+                    {total}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </section>
 

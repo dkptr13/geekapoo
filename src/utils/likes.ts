@@ -37,3 +37,23 @@ export function ponerLikeLocal<T extends ContadorLike>(
     likesCount: Math.max(0, item.likesCount + (liked ? 1 : -1)),
   };
 }
+
+/**
+ * Aplica el cambio a una lista de hilos.
+ *
+ * El feed normal pinta `threads` y las vistas filtradas pintan
+ * `allThreads`; el mismo cambio tiene que aplicarse a las dos. Esta
+ * función devuelve la MISMA lista cuando el hilo no está, para no
+ * provocar renders ni invalidar memoizaciones sin motivo.
+ */
+export function actualizarLikeEnLista<T extends { id: string } & ContadorLike>(
+  lista: T[],
+  id: string,
+  uid: string,
+  liked: boolean,
+): T[] {
+  if (!lista.some((item) => item.id === id)) return lista;
+  return lista.map((item) =>
+    item.id === id ? ponerLikeLocal(item, uid, liked) : item,
+  );
+}

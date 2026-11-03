@@ -210,7 +210,13 @@ const {
   const handleSelectCategory = (
     catId: string
   ) => {
-    setUrl({ tab: 'inicio', categoria: catId || null });
+    // La misma categoría funciona como interruptor: si ya estaba
+    // activa, el segundo clic quita el filtro.
+    const yaActiva = Boolean(catId) && selectedCategoryFilter === catId;
+    setUrl({
+      tab: 'inicio',
+      categoria: yaActiva ? null : catId || null,
+    });
   };
 
 
@@ -423,6 +429,10 @@ const {
             <div className="min-w-0 lg:sticky lg:top-20 lg:col-span-4 lg:h-[calc(100dvh-6rem)] 2xl:col-span-3">
 
               <Sidebar
+                activeCategoryId={
+                  selectedCategoryFilter
+                }
+
                 onSelectCategory={
                   handleSelectCategory
                 }

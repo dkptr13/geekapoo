@@ -88,6 +88,22 @@ export const ALL_ANIME_CATEGORIES: AnimeCategory[] = [
 ];
 
 /**
+ * Categorías que solo existen en el foro.
+ *
+ * No van en `ALL_ANIME_CATEGORIES` a propósito: "Debates" no es un
+ * género de anime y no debe aparecer en los filtros del catálogo.
+ * `mergeCategories` las añade solo a la lista de categorías de hilos.
+ */
+export const FORUM_CATEGORIES: AnimeCategory[] = [
+  {
+    id: 'debates',
+    name: 'Debates',
+    description: 'Opiniones enfrentadas, teorías y temas de actualidad.',
+    color: 'from-amber-500/20 to-orange-500/20 text-amber-300 border-amber-500/30',
+  },
+];
+
+/**
  * Quita tildes, mayúsculas y símbolos de un texto para poder
  * compararlo con otro sin que un detalle tipográfico los separe.
  *
@@ -127,6 +143,11 @@ export interface StoredCategory {
   animeCount?: number;
   threadsCount?: number;
   color?: string;
+  /**
+   * La categoría está definida en código y no en Firestore. No se
+   * puede borrar desde el panel: volvería a aparecer al recargar.
+   */
+  fixed?: boolean;
 }
 
 /**
@@ -147,19 +168,29 @@ export interface StoredCategory {
  */
 export const mergeCategories = <T extends StoredCategory>(stored: T[]): T[] => {
   const known = new Set(stored.map((c) => normalize(c.name)));
+  // También se comprueba el id: si alguien renombró una categoría
+  // en Firestore conservando el id, no debe aparecer dos veces la
+  // misma clave en el desplegable.
+  const knownIds = new Set(stored.map((c) => c.id));
 
-  const missing = ALL_ANIME_CATEGORIES.filter((c) => !known.has(normalize(c.name))).map(
-    (c) =>
-      ({
-        id: c.id,
-        name: c.name,
-        slug: c.id,
-        description: c.description,
-        animeCount: 0,
-        threadsCount: 0,
-        color: c.color,
-      }) as unknown as T,
-  );
+  const missing = [...ALL_ANIME_CATEGORIES, ...FORUM_CATEGORIES]
+    .filter((c) => !known.has(normalize(c.name)) && !knownIds.has(c.id))
+    .map(
+      (c) =>
+        ({
+          id: c.id,
+          name: c.name,
+          slug: c.id,
+          description: c.description,
+          animeCount: 0,
+          threadsCount: 0,
+          color: c.color,
+          // Las que no están en Firestore no se pueden borrar: el
+          // panel las oculta del borrado y las vuelve a añadir al
+          // recargar.
+          fixed: true,
+        }) as unknown as T,
+    );
 
   return [...stored, ...missing];
 };

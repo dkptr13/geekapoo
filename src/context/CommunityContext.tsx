@@ -30,7 +30,7 @@ import {
   type ReportableTarget,
 } from '../services/reports';
 import { toggleCatalogLike } from '../services/engagement';
-import { setPollClosed, votePoll } from '../services/polls';
+import { normalizarPoll, setPollClosed, votePoll } from '../services/polls';
 import {
   changeReactionType,
   removeReaction,
@@ -38,7 +38,7 @@ import {
 } from '../services/reactions';
 
 import { mergeCategories } from '../data/animeCategories';
-import { ponerLikeLocal } from '../utils/likes';
+import { actualizarLikeEnLista } from '../utils/likes';
 
 import type { ImageDims } from '../utils/imagenes';
 import {
@@ -115,7 +115,13 @@ export interface CommunityContextType {
 
   canEditThread: (thread: Thread) => boolean;
 
-  toggleThreadLike: (threadId: string) => Promise<void>;
+  /**
+   * `likedActual` es opcional: permite usar el estado que se está
+   * viendo en pantalla cuando la lista viene de `allThreads` (por
+   * ejemplo, con una categoría filtrada) y evita depender de la
+   * copia que haya en `threads`.
+   */
+  toggleThreadLike: (threadId: string, likedActual?: boolean) => Promise<void>;
   /** `false` si Firestore rechazó la escritura. */
   toggleCommentLike: (commentId: string) => Promise<boolean>;
   toggleAnimeLike: (animeId: string) => Promise<void>;
@@ -763,10 +769,12 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       // El nombre de la categoría se busca en Firestore en vez de
       // usar el diccionario fijo que había antes en este archivo.
+      // Las categorías marcadas como fijas viven solo en código y
+      // no tienen documento que actualizar.
       const category = categories.find((c) => c.id === categoryId);
 
       try {
-        await createThreadService({
+        const nuevoId = await createThreadService({
           authorId: currentUser.uid,
           authorName: currentUser.displayName || currentUser.username,
           authorAvatar: currentUser.avatarUrl,
@@ -774,12 +782,68 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           body,
           categoryId,
           categoryName: category?.name ?? 'General',
+          categoryInFirestore: Boolean(category && !category.fixed),
           tags,
           imageUrl,
           poll,
           imageDims,
           tierList,
         });
+
+        // Se añade también a la copia local. El listener del feed
+        // actualizará `threads` con el documento real; esto evita
+        // que, con una categoría filtrada (que pinta `allThreads`),
+        // el hilo recién publicado no aparezca hasta recargar.
+        let pollLocal: Poll | undefined;
+        if (poll?.question.trim()) {
+          try {
+            pollLocal = normalizarPoll(poll);
+          } catch {
+            // Si la encuesta no normaliza, el hilo se publica igual
+            // y el listener traerá la copia buena.
+          }
+        }
+
+        const nuevoHilo: Thread = {
+          id: nuevoId,
+          authorId: currentUser.uid,
+          authorName: currentUser.displayName || currentUser.username,
+          authorAvatar: currentUser.avatarUrl,
+          title: title.trim(),
+          body: body.trim(),
+          categoryId,
+          categoryName: category?.name ?? 'General',
+          tags: tags.length > 0 ? tags.slice(0, 6) : ['General', 'Debate'],
+          likesCount: 0,
+          likedBy: [],
+          commentsCount: 0,
+          createdAt: new Date().toISOString(),
+          pinned: false,
+          ...(imageUrl
+            ? {
+                imageUrl,
+                ...(imageDims
+                  ? { imageWidth: imageDims.width, imageHeight: imageDims.height }
+                  : {}),
+              }
+            : {}),
+          ...(pollLocal ? { poll: pollLocal } : {}),
+          ...(tierList ? { tierList } : {}),
+        };
+
+        setThreads((prev) => [
+          nuevoHilo,
+          ...prev.filter((thread) => thread.id !== nuevoId),
+        ]);
+        // Se añade también al histórico local. Si aún no estaba
+        // cargado, la vista filtrada enseña al menos el hilo recién
+        // publicado y `ensureAllThreads` terminará de completar la
+        // lista; si ya estaba, aparece al instante.
+        setAllThreads((prev) => [
+          nuevoHilo,
+          ...prev.filter((thread) => thread.id !== nuevoId),
+        ]);
+
         return true;
       } catch (e) {
         console.error('[Community] Error creando hilo:', e);
@@ -925,14 +989,25 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     uid: string,
     liked: boolean,
   ) => {
-    setThreads((prev) => prev.map((thread) => (
-      thread.id === id ? ponerLikeLocal(thread, uid, liked) : thread
-    )));
+    const actualizar = (lista: Thread[]) =>
+      actualizarLikeEnLista(lista, id, uid, liked);
+
+    // El feed normal pinta `threads`; las categorías, la búsqueda y
+    // los más populares pintan `allThreads`. Si solo se actualizara
+    // una, el corazón no cambiaría al filtrar por categoría.
+    setThreads(actualizar);
+    setAllThreads(actualizar);
+
+    // Los fijados viven en una copia aparte que se vuelve a mezclar
+    // con el feed; si no se actualiza, el siguiente snapshot puede
+    // devolver el estado viejo.
+    pinnedThreadsRef.current = actualizar(pinnedThreadsRef.current);
   }, []);
 
   const runThreadLike = useCallback(async (
     id: string,
     action: (uid: string) => Promise<boolean>,
+    likedActual?: boolean,
   ) => {
     const uid = guardUser();
     if (!uid) return;
@@ -940,8 +1015,13 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const clave = `thread:${id}`;
     if (likesPendientes.current.has(clave)) return;
 
-    const actual = threads.find((thread) => thread.id === id);
-    const likedAntes = actual?.likedBy?.includes(uid) ?? false;
+    // Se usa el estado que está viendo el usuario si lo conoce; si
+    // no, se busca en las dos listas. `threads` es la página viva y
+    // `allThreads` el histórico que alimenta las categorías.
+    const actual =
+      threads.find((thread) => thread.id === id) ??
+      allThreads.find((thread) => thread.id === id);
+    const likedAntes = likedActual ?? actual?.likedBy?.includes(uid) ?? false;
 
     likesPendientes.current.add(clave);
     actualizarLikeLocal(id, uid, !likedAntes);
@@ -957,7 +1037,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } finally {
       likesPendientes.current.delete(clave);
     }
-  }, [actualizarLikeLocal, guardUser, threads]);
+  }, [actualizarLikeLocal, guardUser, threads, allThreads]);
 
   const runLike = useCallback(async (action: (uid: string) => Promise<boolean>) => {
     const uid = guardUser();
@@ -970,9 +1050,10 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [guardUser]);
 
   const toggleThreadLike = useCallback(
-    (threadId: string) => runThreadLike(
+    (threadId: string, likedActual?: boolean) => runThreadLike(
       threadId,
       (uid) => toggleThreadLikeService(threadId, uid),
+      likedActual,
     ),
     [runThreadLike],
   );
