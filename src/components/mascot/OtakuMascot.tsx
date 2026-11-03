@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Sparkles, MessageCircle, X, ChevronUp } from 'lucide-react';
+import {
+  Sparkles,
+  MessageCircle,
+  X,
+  ChevronUp,
+  Bell,
+  BellOff,
+  Minus,
+} from 'lucide-react';
 
 import { useKapo } from '../../context/KapoContext';
+import { etiquetaFrecuencia } from '../../utils/kapoPrefs';
 
 interface OtakuMascotProps {
   currentSection?: string;
@@ -157,14 +166,29 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
   // El texto y el estado de ánimo los decide `KapoContext`, que
   // es quien sabe qué está pasando en la web (qué sección, si
   // subiste de nivel, si hay trivia nueva). Aquí solo se pinta.
-  const { mensaje, animacion, poke, acciones, irA } = useKapo();
+  const {
+    mensaje,
+    animacion,
+    origen,
+    opciones,
+    preferencias,
+    poke,
+    responder,
+    abrirDialogo,
+    cerrarDialogo,
+    alternarEspontaneos,
+    cambiarFrecuencia,
+  } = useKapo();
 
   const [isMinimized, setIsMinimized] = useState(false);
   // El índice de diálogo y el humor ya no se llevan aquí: el
   // humor lo pone el contexto y el texto sale de `mensaje`.
   const [mood, setMood] = useState<'idle' | 'happy' | 'thinking' | 'hype'>('idle');
   const [interactionCount, setInteractionCount] = useState(0);
-  const [showBubble, setShowBubble] = useState(true);
+  // Empieza cerrado y lo abre el primer mensaje real. Así, si el
+  // usuario cerró a Kapo hace poco, no aparece un bocadillo vacío
+  // con el saludo neutro.
+  const [showBubble, setShowBubble] = useState(false);
 
   // ======================================================
   // ARRASTRE
@@ -185,6 +209,14 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
   const dragStateRef = useRef<DragState | null>(null);
   const dragElRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const mascotButtonRef = useRef<HTMLButtonElement>(null);
+  const minimizedButtonRef = useRef<HTMLButtonElement>(null);
+  // Se pone a true cuando el usuario pide hablar: el foco debe ir
+  // al bocadillo para que el teclado y el lector de pantalla lo
+  // alcancen. En los mensajes espontáneos no se roba el foco.
+  const focusBubbleRef = useRef(false);
+  const focusMinimizedRef = useRef(false);
 
   // Vuelo en curso. Se guarda para poder cancelarlo: las
   // animaciones de la huida se crean con "fill: forwards", así que
@@ -512,6 +544,7 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
   // la pantalla por donde tiene el botón de cierre.
   const dismiss = () => {
     if (dragStateRef.current) return;
+    cerrarDialogo();
     fling(260, 520);
   };
 
@@ -537,6 +570,8 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
       setPos(null);
       setIsMinimized(false);
       setShowBubble(true);
+      abrirDialogo();
+      if (mensaje.id === 'fallback') poke();
       return;
     }
     setRecallTaps(next);
@@ -599,9 +634,94 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
     evento === 'achievement' ||
     evento === 'trivia_done' ||
     evento === 'first_thread' ||
-    evento === 'first_comment';
+    evento === 'first_comment' ||
+    evento === 'first_message' ||
+    evento === 'club' ||
+    evento === 'reaction' ||
+    evento === 'login' ||
+    evento === 'register';
 
   const geoEvento = eventoImportante ? 'geo-kapo-brillo' : 'geo-kapo-habla';
+
+  // Un evento importante abre el bocadillo aunque el usuario lo
+  // hubiera cerrado antes: es justo lo que ha pedido ver. Un
+  // espontáneo también se abre, pero el contexto ya se encarga de
+  // respetar el silencio y las frecuencias.
+  useEffect(() => {
+    if (mensaje.id === 'fallback') {
+      setShowBubble(false);
+      return;
+    }
+    // Un evento importante puede sacarla de la píldora minimizada:
+    // el usuario puede querer silencio, pero una medalla o un nivel
+    // son justo lo que pidió ver. Un espontáneo NO la saca.
+    if (origen === 'evento' && mensaje.priority >= 50) {
+      setIsMinimized(false);
+    }
+    setShowBubble(true);
+    abrirDialogo();
+  }, [mensaje, origen, abrirDialogo]);
+
+  // El foco va al bocadillo solo cuando el usuario ha pulsado a
+  // Kapo. Si se moviera en cada respuesta, se perdería el foco del
+  // botón que acaba de elegir.
+  useEffect(() => {
+    if (!focusBubbleRef.current || !showBubble || !bubbleRef.current) return;
+    focusBubbleRef.current = false;
+    // Ya está montado en este commit: no hace falta esperar a otro
+    // frame, y así el foco no se pierde si el mensaje cambia dos
+    // veces seguidas.
+    bubbleRef.current.focus();
+  }, [mensaje, showBubble]);
+
+  // Escape cierra el diálogo, salvo que el usuario esté escribiendo
+  // en otro sitio (un comentario, el chat...), donde Escape puede
+  // significar otra cosa.
+  useEffect(() => {
+    if (!showBubble) return;
+
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const activo = document.activeElement as HTMLElement | null;
+      const esCampo =
+        activo &&
+        (activo.tagName === 'INPUT' ||
+          activo.tagName === 'TEXTAREA' ||
+          activo.tagName === 'SELECT' ||
+          activo.isContentEditable);
+      const dentroDelBocadillo =
+        activo && bubbleRef.current?.contains(activo);
+      if (esCampo && !dentroDelBocadillo) return;
+
+      e.stopPropagation();
+      setShowBubble(false);
+      cerrarDialogo();
+      mascotButtonRef.current?.focus();
+    };
+
+    window.addEventListener('keydown', alPulsar);
+    return () => window.removeEventListener('keydown', alPulsar);
+  }, [showBubble, cerrarDialogo]);
+
+  const cerrarBocadillo = () => {
+    setShowBubble(false);
+    cerrarDialogo();
+    mascotButtonRef.current?.focus();
+  };
+
+  const minimizar = () => {
+    setShowBubble(false);
+    cerrarDialogo();
+    focusMinimizedRef.current = true;
+    setIsMinimized(true);
+  };
+
+  // Al minimizar con el teclado, el foco no debe caer al body.
+  useEffect(() => {
+    if (!isMinimized || !focusMinimizedRef.current) return;
+    focusMinimizedRef.current = false;
+    minimizedButtonRef.current?.focus();
+  }, [isMinimized]);
 
   const handlePoke = () => {
     // Viene de arrastrar, no de tocar.
@@ -613,6 +733,8 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
     // avisa de que le han hablado.
     setInteractionCount((c) => c + 1);
     setShowBubble(true);
+    focusBubbleRef.current = true;
+    abrirDialogo();
     poke();
 
     // Un solo temporizador reutilizado. Crear uno por toque
@@ -728,15 +850,23 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
       >
         <div ref={dragElRef} {...dragHandlers} className="touch-none">
           <button
+            ref={minimizedButtonRef}
             onClick={() => {
               if (suppressClickRef.current) return;
               setIsMinimized(false);
+              setShowBubble(true);
+              focusBubbleRef.current = true;
+              abrirDialogo();
+              // Si nunca ha dicho nada (o se quedó en el saludo
+              // neutro), se le pide algo nuevo al abrirla.
+              if (mensaje.id === 'fallback') poke();
             }}
             className="flex items-center gap-2 rounded-full border border-violet-500/40 bg-zinc-900/90 px-3.5 py-2 text-xs font-semibold text-violet-300 shadow-xl shadow-violet-950/40 backdrop-blur-md transition-all hover:scale-105 hover:border-violet-400"
             title="Abrir mascota Kapo-chan"
+            aria-label="Abrir a Kapo-chan"
           >
             <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-75"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-75 motion-reduce:animate-none"></span>
               <span className="relative inline-flex h-3 w-3 rounded-full bg-violet-500"></span>
             </span>
             <span className="text-sm">🐾</span>
@@ -754,7 +884,7 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
       className={`fixed z-40 cursor-grab active:cursor-grabbing ${motionClass}`}
       style={positionStyle}
     >
-      <div ref={dragElRef} {...dragHandlers} className="touch-none">
+      <div ref={dragElRef} {...dragHandlers}>
         {/* El globo va FUERA del flujo normal: en posición
             absoluta y con "right-0" para que crezca hacia la
             izquierda, sin empujar nunca a la mascota.
@@ -771,53 +901,107 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
                un móvil de 375px no caben los 288px del ancho fijo
                más la mascota. */
             <div
+              ref={bubbleRef}
               data-mascot-bubble=""
-              className={`absolute right-0 z-10 w-72 max-w-[calc(100vw-2.5rem)] rounded-2xl border border-violet-500/30 bg-zinc-900/95 p-3.5 shadow-2xl shadow-violet-950/50 backdrop-blur-md transition-all ${
+              role="dialog"
+              aria-label="Diálogo de Kapo-chan"
+              aria-describedby="kapo-mensaje-texto"
+              tabIndex={-1}
+              onPointerDown={(e) => e.stopPropagation()}
+              className={`absolute right-0 z-10 w-72 max-w-[calc(100vw-2.5rem)] cursor-auto rounded-2xl border border-violet-500/30 bg-zinc-900/95 p-3.5 shadow-2xl shadow-violet-950/50 backdrop-blur-md transition-all focus:outline-none ${
                 bubbleBelow ? 'top-full mt-2' : 'bottom-full mb-2'
               } ${geoEvento}`}
             >
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-violet-400">
-                  <Sparkles size={13} className="animate-pulse text-violet-400" />
-                  <span>Kapo-chan (Mascota Otaku)</span>
+                <div className="flex min-w-0 items-center gap-1.5 text-xs font-bold text-violet-400">
+                  <Sparkles size={13} className="shrink-0 animate-pulse text-violet-400 motion-reduce:animate-none" />
+                  <span className="truncate">Kapo-chan (Mascota Otaku)</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-0.5">
                   <button
-                    onClick={() => setShowBubble(false)}
-                    className="rounded p-0.5 text-zinc-400 transition-colors hover:text-zinc-200"
-                    title="Ocultar diálogo"
+                    type="button"
+                    onClick={alternarEspontaneos}
+                    aria-pressed={preferencias.espontaneos}
+                    aria-label="Comentarios espontáneos de Kapo-chan"
+                    title={
+                      preferencias.espontaneos
+                        ? 'Silenciar comentarios espontáneos'
+                        : 'Activar comentarios espontáneos'
+                    }
+                    className="rounded p-1 text-zinc-400 transition-colors hover:text-violet-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                  >
+                    {preferencias.espontaneos ? <Bell size={12} /> : <BellOff size={12} />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={minimizar}
+                    aria-label="Minimizar a Kapo-chan"
+                    title="Minimizar"
+                    className="rounded p-1 text-zinc-400 transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                  >
+                    <Minus size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cerrarBocadillo}
+                    aria-label="Cerrar el diálogo de Kapo-chan"
+                    title="Cerrar diálogo"
+                    className="rounded p-1 text-zinc-400 transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                   >
                     <X size={12} />
                   </button>
                 </div>
               </div>
 
-              <p className="mt-1.5 text-xs leading-relaxed text-zinc-200">
-                {mensaje.text}
-              </p>
+              <div className="mt-1.5 max-h-[min(45vh,18rem)] touch-pan-y overflow-y-auto overscroll-contain pr-0.5">
+                <p
+                  id="kapo-mensaje-texto"
+                  className="text-xs leading-relaxed text-zinc-200"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  {mensaje.text}
+                </p>
 
-              {/* ── Botones de acceso rápido ──────────────────
-                  Solo salen cuando el usuario le ha hablado
-                  (`acciones` viene vacío en el resto de casos).
-                  Si estuvieran siempre serían parte fija de la
-                  pantalla y taparían contenido, que es lo que no
-                  debe hacer un bocadillo flotante. */}
-              {acciones.length > 0 && (
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  {acciones.map((a) => (
-                    <button
-                      key={a.tab}
-                      type="button"
-                      onClick={() => {
-                        irA(a.tab);
-                        setShowBubble(false);
-                      }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-violet-500/30 bg-violet-500/10 px-2 py-1 text-[11px] font-semibold text-violet-200 transition-colors hover:bg-violet-500/25 hover:text-white"
-                    >
-                      <span aria-hidden="true">{a.emoji}</span>
-                      {a.texto}
-                    </button>
-                  ))}
+                {/* Respuestas de la conversación. Solo salen cuando
+                    el mensaje las trae; no son botones fijos de la
+                    pantalla. */}
+                {opciones.length > 0 && (
+                  <div
+                    className="mt-2.5 flex flex-col gap-1.5"
+                    role="group"
+                    aria-label="Respuestas de Kapo-chan"
+                  >
+                    {opciones.map((opcion) => (
+                      <button
+                        key={opcion.id}
+                        type="button"
+                        onClick={() => responder(opcion.id)}
+                        className="flex w-full items-center gap-2 rounded-lg border border-violet-500/25 bg-violet-500/10 px-2 py-1.5 text-left text-[11px] font-semibold text-violet-100 transition-colors hover:border-violet-400/60 hover:bg-violet-500/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                      >
+                        <span aria-hidden="true">{opcion.emoji}</span>
+                        <span>{opcion.texto}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* El ritmo solo se muestra cuando el usuario ha
+                  abierto la conversación: en un mensaje espontáneo
+                  sería un ajuste de más. El silencio sí queda
+                  siempre a mano en la cabecera. */}
+              {origen === 'usuario' && (
+                <div className="mt-2 flex items-center justify-between border-t border-zinc-800/80 pt-1.5 text-[10px] text-zinc-500">
+                  <span>Ritmo</span>
+                  <button
+                    type="button"
+                    onClick={cambiarFrecuencia}
+                    title="Cambiar cada cuánto habla Kapo-chan por su cuenta"
+                    className="rounded px-1 py-0.5 font-semibold text-violet-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                  >
+                    {etiquetaFrecuencia(preferencias.frecuencia)}
+                  </button>
                 </div>
               )}
 
@@ -837,17 +1021,19 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
           {/* Mascot Avatar and Interactive Controls */}
           <div className="flex items-end justify-end gap-2">
             {/* Action buttons */}
-            <div className="mb-1 flex flex-col gap-1.5">
+            <div className="mb-1 flex touch-none flex-col gap-1.5">
               <button
                 onClick={handlePoke}
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900/90 text-xs text-zinc-300 shadow transition-all hover:border-violet-500 hover:text-violet-300 active:scale-90"
+                aria-label="Abrir conversación con Kapo-chan"
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900/90 text-xs text-zinc-300 shadow transition-all hover:border-violet-500 hover:text-violet-300 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                 title="Hablar con Kapo-chan"
               >
                 <MessageCircle size={14} />
               </button>
               <button
                 onClick={dismiss}
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900/90 text-xs text-zinc-400 shadow transition-all hover:text-zinc-100"
+                aria-label="Echar a Kapo-chan"
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900/90 text-xs text-zinc-400 shadow transition-all hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                 title="Echar a Kapo-chan"
               >
                 <X size={13} />
@@ -856,8 +1042,11 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
 
             {/* Interactive Anime Chibi Character */}
       <button
+        ref={mascotButtonRef}
         onClick={handlePoke}
-        className={`group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-2 shadow-2xl backdrop-blur-md transition-all duration-300 active:scale-95 ${
+        aria-label="Hablar con Kapo-chan"
+        aria-expanded={showBubble}
+        className={`group relative flex touch-none cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-2 shadow-2xl backdrop-blur-md transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
           animacion === 'hype'
             ? 'scale-105 border-fuchsia-500 bg-gradient-to-b from-fuchsia-950/80 to-zinc-900 shadow-fuchsia-900/50'
             : animacion === 'happy'
@@ -937,7 +1126,7 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
 
                 {/* Status pulse badge */}
                 <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60 motion-reduce:animate-none"></span>
                   <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-zinc-900 bg-emerald-500"></span>
                 </span>
               </div>

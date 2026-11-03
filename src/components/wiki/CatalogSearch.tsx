@@ -4,6 +4,7 @@ import { Tv, Users, Film, MessageSquare, SearchX, Clapperboard, Calendar, Star, 
 
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories } from '../../data/animeCategories';
+import { avisarKapo } from '../../utils/kapoEvents';
 import { encuadre, toText, toTextList } from '../../utils/safeData';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import {
@@ -213,6 +214,18 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
     results.episodes.length +
     results.characters.length +
     results.threads.length;
+
+  // Aviso local para Kapo-chan: si la búsqueda se queda vacía
+  // después de una pausa, la mascota puede dar una pista. Se espera
+  // un poco para no disparar mientras la persona aún escribe y no
+  // se hace ninguna lectura nueva: los datos ya están en memoria.
+  useEffect(() => {
+    if (!q.trim() || buscando || total > 0) return;
+    const t = window.setTimeout(() => {
+      avisarKapo('search_empty', { query: query.trim() });
+    }, 1600);
+    return () => window.clearTimeout(t);
+  }, [q, query, buscando, total]);
 
   if (!q) return null;
 

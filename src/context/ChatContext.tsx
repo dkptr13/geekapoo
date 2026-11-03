@@ -38,6 +38,7 @@ import {
 
 import { blockUser, subscribeBlocked, unblockUser } from '../services/blocks';
 import { HEARTBEAT_MS, marcarPresencia } from '../services/presence';
+import { avisarKapo } from '../utils/kapoEvents';
 
 import {
   ChatMessage,
@@ -645,7 +646,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!currentUser || vacio) return;
 
       sendChatMessageService(roomId, currentUser, text, gif, adjunto, respuesta, encuesta, tier)
-        .then(() => setSendError(null))
+        .then(() => {
+          setSendError(null);
+          // Aviso local para Kapo-chan. No es una lectura ni un
+          // listener de Firestore: la mascota ya está montada y
+          // solo necesita saber que el usuario ha enviado algo.
+          avisarKapo('chat_message');
+        })
         .catch((e: unknown) => {
           console.error('[Chats] Error al enviar mensaje:', e);
           setSendError(`No se pudo enviar el mensaje: ${messageOf(e, 'error desconocido')}`);
