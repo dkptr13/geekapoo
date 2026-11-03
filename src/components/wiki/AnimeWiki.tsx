@@ -30,6 +30,10 @@ import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
 import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
 import { useCatalogPage, useCollectionCount } from '../../hooks/useCatalogPage';
 import { useAnimeCatalogData } from '../../hooks/useAnimeCatalogData';
+import {
+  cargarIndiceBusqueda,
+  type IndiceBusqueda,
+} from '../../services/searchIndex';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories, isInCategory } from '../../data/animeCategories';
 import CatalogBrowser from './CatalogBrowser';
@@ -228,12 +232,6 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAnime?.slug, urlAnime]);
 
-  // La ficha carga solo su serie. El catálogo completo (miles de
-  // episodios y personajes) se reserva para el buscador global.
-  useEffect(() => {
-    if (currentAnime?.id) ensureAnimeData(currentAnime.id);
-  }, [currentAnime?.id, ensureAnimeData]);
-
   // Todas las salidas al catálogo se hacen con UNA escritura.
   //
   // Antes cada una llamaba a su propio setUrlAnime y setSearchQuery
@@ -273,6 +271,21 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     : 'info';
   const setActiveTab = (tab: 'info' | 'episodes' | 'characters') => setActiveTabRaw(tab);
 
+  // La ficha carga solo su serie y solo lo que la pestaña abierta
+  // necesita. Abrir "Información" no descarga los 100 episodios y
+  // los 60 personajes de la serie: eso se pide al entrar en su
+  // pestaña. Las temporadas sí se piden siempre porque el selector
+  // de temporada está en la cabecera.
+  useEffect(() => {
+    if (!currentAnime?.id) return;
+
+    const tipos: ('seasons' | 'episodes' | 'characters')[] = ['seasons'];
+    if (activeTab === 'episodes') tipos.push('episodes');
+    if (activeTab === 'characters') tipos.push('characters');
+
+    ensureAnimeData(currentAnime.id, tipos);
+  }, [currentAnime?.id, activeTab, ensureAnimeData]);
+
   // Temporada elegida. Sin valor por defecto en la URL: la que
   // abra la ficha es la primera, y el botón "Todas" ya no está (ver
   // `seasonOfView`), así que siempre hay una.
@@ -307,14 +320,16 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
   const limpiarFiltros = useCallback(() => setFiltros(FILTROS_VACIOS), []);
 
-  // Navegación normal: páginas de 60. Búsqueda o filtros: catálogo
-  // completo, porque filtrar solo la página daría resultados
-  // incompletos.
+  // Navegación normal: páginas de 60. Los filtros que cambian QUÉ
+  // se enseña (género, año, nota...) piden las filas de las series
+  // que pasan el filtro. Cambiar solo el ORDEN no: eso se aplica
+  // sobre la página que ya está en memoria y no justifica leer
+  // miles de episodios.
+  const filtrosSinOrden = { ...filtros, orden: 'defecto' as const };
   const sinFiltrosCatalogo =
     selectedCategory === 'all' &&
     !searchQuery.trim() &&
-    contarFiltrosActivos(filtros) === 0 &&
-    filtros.orden === 'defecto';
+    contarFiltrosActivos(filtrosSinOrden) === 0;
   const paginaEpisodiosActiva =
     isBrowsing && searchFilter === 'episodes' && sinFiltrosCatalogo && !catalogComplete;
   const paginaPersonajesActiva =
@@ -377,13 +392,62 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     usarFiltradosPersonajes,
   );
 
-  // La búsqueda sigue necesitando el catálogo completo: Firestore no
-  // hace búsqueda de texto completo. Los filtros ya no.
+  // ── ÍNDICE LIGERO DE BÚSQUEDA ─────────────────────────────
+  //
+  // Firestore no sabe buscar subcadenas. Antes, la primera
+  // búsqueda descargaba TODOS los episodios, personajes y
+  // temporadas (miles de documentos) para filtrar en memoria.
+  //
+  // Ahora se usa el índice que genera `prebuild` y se sirve como
+  // un archivo estático: cero lecturas de Firestore para buscar,
+  // con los mismos títulos, alias, nombres japoneses y romaji.
+  // Si el archivo no está (desarrollo sin prebuild, despliegue
+  // antiguo o fallo de red), se conserva el camino anterior como
+  // red de seguridad.
+  const [indiceBusqueda, setIndiceBusqueda] = useState<IndiceBusqueda | null>(null);
+  const [cargandoIndice, setCargandoIndice] = useState(false);
+  const indicePedidoRef = useRef(false);
+
   useEffect(() => {
     const buscando = Boolean(searchQuery.trim());
-    if (buscando) ensureCatalogData();
+
+    if (buscando && !indicePedidoRef.current) {
+      indicePedidoRef.current = true;
+      setCargandoIndice(true);
+      void cargarIndiceBusqueda()
+        .then((indice) => {
+          if (indice) setIndiceBusqueda(indice);
+          else ensureCatalogData();
+        })
+        .finally(() => setCargandoIndice(false));
+    }
+
     if (buscando || searchFilter === 'threads') ensureAllThreads();
   }, [searchQuery, searchFilter, ensureCatalogData, ensureAllThreads]);
+
+  // Los resultados se pintan igual que antes, pero las filas de
+  // episodios y personajes vienen del índice estático. Así el
+  // buscador conserva la búsqueda por sinopsis, géneros, alias y
+  // descripciones sin descargar las colecciones.
+  const episodiosBusqueda = useMemo(() => {
+    if (!indiceBusqueda) return episodes;
+    const grouped: Record<string, Episode[]> = {};
+    indiceBusqueda.episodes.forEach((ep) => {
+      if (!grouped[ep.animeId]) grouped[ep.animeId] = [];
+      grouped[ep.animeId].push(ep);
+    });
+    return grouped;
+  }, [indiceBusqueda, episodes]);
+
+  const personajesBusqueda = useMemo(() => {
+    if (!indiceBusqueda) return characters;
+    const grouped: Record<string, Character[]> = {};
+    indiceBusqueda.characters.forEach((personaje) => {
+      if (!grouped[personaje.animeId]) grouped[personaje.animeId] = [];
+      grouped[personaje.animeId].push(personaje);
+    });
+    return grouped;
+  }, [indiceBusqueda, characters]);
 
   const episodiosParaCatalogo = useMemo(() => {
     if (catalogComplete || searchQuery.trim()) return episodes;
@@ -514,6 +578,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // resto del archivo no tenga que comprobarlo en cada sitio.
   const allEpisodes: Episode[] = currentAnime ? episodes[currentAnime.id] || [] : [];
   const allCharacters: Character[] = currentAnime ? characters[currentAnime.id] || [] : [];
+  const cargandoEpisodios = Boolean(currentAnime) && episodes[currentAnime?.id ?? ''] === undefined;
+  const cargandoPersonajes =
+    Boolean(currentAnime) && characters[currentAnime?.id ?? ''] === undefined;
 
   // ====================================================
   // TEMPORADAS
@@ -747,9 +814,13 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           filtros={filtros}
           onLimpiarFiltros={limpiarFiltros}
           animes={animes}
-          episodes={episodes}
-          characters={characters}
+          episodes={episodiosBusqueda}
+          characters={personajesBusqueda}
           threads={allThreads}
+          cargando={
+            cargandoIndice ||
+            (Boolean(searchQuery.trim()) && !indiceBusqueda && !catalogComplete)
+          }
           onSelectAnime={openAnime}
           onSelectThread={onSelectThread}
         />
@@ -773,12 +844,36 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           onSelectAnime={openAnime}
           onSelectThread={onSelectThread}
           onLimpiarFiltros={limpiarFiltros}
-          hasMoreEpisodes={paginaEpisodiosActiva && paginaEpisodios.hasMore}
-          loadingMoreEpisodes={paginaEpisodiosActiva && paginaEpisodios.loadingMore}
-          onLoadMoreEpisodes={paginaEpisodiosActiva ? paginaEpisodios.loadMore : undefined}
-          hasMoreCharacters={paginaPersonajesActiva && paginaPersonajes.hasMore}
-          loadingMoreCharacters={paginaPersonajesActiva && paginaPersonajes.loadingMore}
-          onLoadMoreCharacters={paginaPersonajesActiva ? paginaPersonajes.loadMore : undefined}
+          hasMoreEpisodes={
+            (paginaEpisodiosActiva && paginaEpisodios.hasMore) ||
+            (usarFiltradosEpisodios && filtradosEpisodios.hasMore)
+          }
+          loadingMoreEpisodes={
+            (paginaEpisodiosActiva && paginaEpisodios.loadingMore) ||
+            (usarFiltradosEpisodios && filtradosEpisodios.loadingMore)
+          }
+          onLoadMoreEpisodes={
+            paginaEpisodiosActiva
+              ? paginaEpisodios.loadMore
+              : usarFiltradosEpisodios
+                ? filtradosEpisodios.loadMore
+                : undefined
+          }
+          hasMoreCharacters={
+            (paginaPersonajesActiva && paginaPersonajes.hasMore) ||
+            (usarFiltradosPersonajes && filtradosPersonajes.hasMore)
+          }
+          loadingMoreCharacters={
+            (paginaPersonajesActiva && paginaPersonajes.loadingMore) ||
+            (usarFiltradosPersonajes && filtradosPersonajes.loadingMore)
+          }
+          onLoadMoreCharacters={
+            paginaPersonajesActiva
+              ? paginaPersonajes.loadMore
+              : usarFiltradosPersonajes
+                ? filtradosPersonajes.loadMore
+                : undefined
+          }
         />
       )}
 
@@ -1063,7 +1158,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             }`}
           >
             <Film size={16} />
-            <span>Episodios ({animeEpisodes.length})</span>
+            <span>
+              Episodios ({episodes[currentAnime?.id ?? ''] ? animeEpisodes.length : '…'})
+            </span>
           </button>
 
           <button
@@ -1075,7 +1172,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             }`}
           >
             <Users size={16} />
-            <span>Personajes ({animeCharacters.length})</span>
+            <span>
+              Personajes ({characters[currentAnime?.id ?? ''] ? animeCharacters.length : '…'})
+            </span>
           </button>
         </div>
       </div>
@@ -1183,14 +1282,21 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           </div>
 
           {animeEpisodes.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center">
-              <Film size={22} className="mx-auto text-zinc-700" />
-              <p className="mt-3 text-sm text-zinc-500">
-                {allEpisodes.length === 0
-                  ? 'Esta serie todavía no tiene capítulos publicados.'
-                  : 'No hay capítulos en la temporada elegida.'}
-              </p>
-            </div>
+            cargandoEpisodios ? (
+              <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
+                <Loader2 size={20} className="mx-auto animate-spin text-violet-400" />
+                <p className="mt-3 text-sm text-zinc-500">Cargando episodios…</p>
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center">
+                <Film size={22} className="mx-auto text-zinc-700" />
+                <p className="mt-3 text-sm text-zinc-500">
+                  {allEpisodes.length === 0
+                    ? 'Esta serie todavía no tiene capítulos publicados.'
+                    : 'No hay capítulos en la temporada elegida.'}
+                </p>
+              </div>
+            )
           ) : (
             <div className="space-y-4">
               {animeEpisodes.map((ep) => {
@@ -1488,14 +1594,21 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
           {/* Characters Grid */}
           {filteredCharacters.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center col-span-full">
-              <Users size={22} className="mx-auto text-zinc-700" />
-              <p className="mt-3 text-sm text-zinc-500">
-                {allCharacters.length === 0
-                  ? 'Esta serie todavía no tiene personajes publicados.'
-                  : 'No hay personajes en la temporada elegida.'}
-              </p>
-            </div>
+            cargandoPersonajes ? (
+              <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 text-center col-span-full">
+                <Loader2 size={20} className="mx-auto animate-spin text-violet-400" />
+                <p className="mt-3 text-sm text-zinc-500">Cargando personajes…</p>
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center col-span-full">
+                <Users size={22} className="mx-auto text-zinc-700" />
+                <p className="mt-3 text-sm text-zinc-500">
+                  {allCharacters.length === 0
+                    ? 'Esta serie todavía no tiene personajes publicados.'
+                    : 'No hay personajes en la temporada elegida.'}
+                </p>
+              </div>
+            )
           ) : (
             <div className="grid gap-4 min-[480px]:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
               {filteredCharacters.map((char) => {

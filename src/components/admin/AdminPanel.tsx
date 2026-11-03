@@ -356,14 +356,8 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
 // ======================================================
 
 export function AdminPanel() {
-  const catalog = useAdminCatalog();
   const { isAdmin } = useAuth();
-  const { ensureAnimeList, ensureAllThreads } = useCommunity();
-
-  useEffect(() => {
-    ensureAnimeList();
-    ensureAllThreads();
-  }, [ensureAnimeList, ensureAllThreads]);
+  const { ensureAnimeList } = useCommunity();
 
   // La pestaña abierta del panel también vive en la URL, así que
   // recargar no devuelve a Animes cuando lo que se estaba
@@ -375,6 +369,24 @@ export function AdminPanel() {
     ? (sectionParam as AdminSection)
     : 'animes';
   const setActiveSection = (id: AdminSection) => setSectionParam(id);
+
+  // El panel carga solo la sección abierta. Antes leía todas las
+  // colecciones al montarse, incluidas `episodes` y `characters`
+  // completas, aunque solo se fuera a editar un título.
+  const catalog = useAdminCatalog(activeSection);
+
+  useEffect(() => {
+    // Solo las secciones que leen la lista global de series desde
+    // CommunityContext la necesitan. Animes usa los documentos de
+    // `catalog.animes`, y tickets/usuarios no tocan el catálogo.
+    if (
+      activeSection === 'categories' ||
+      activeSection === 'weeklyWorks' ||
+      activeSection === 'gamificacion'
+    ) {
+      ensureAnimeList();
+    }
+  }, [activeSection, ensureAnimeList]);
   const [provider, setProvider] = useState<UploadProvider>('storage');
 
   const current = SECTIONS.find((s) => s.id === activeSection)!;
@@ -514,8 +526,6 @@ export function AdminPanel() {
           <AnimesSection
             animes={catalog.animes}
             seasons={catalog.seasons}
-            episodes={catalog.episodes}
-            characters={catalog.characters}
             categories={catalog.categories}
             provider={provider}
           />

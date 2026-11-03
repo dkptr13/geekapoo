@@ -12,7 +12,7 @@ import type { UploadProvider } from '../../services/imageUpload';
 import { ALL_ANIME_CATEGORIES, normalize } from '../../data/animeCategories';
 import { estadoCorto } from '../../utils/seasonData';
 
-import { AnimeEditor, type AnimeDoc, type CharacterDoc, type EpisodeDoc, type SeasonDoc } from './AnimeEditor';
+import { AnimeEditor, type AnimeDoc, type SeasonDoc } from './AnimeEditor';
 import { ImageUploader } from './ImageUploader';
 import { ImagePicker } from './ImagePicker';
 import { TextField, TextArea, SelectField, NumberField, MultiSelectField, FocalField } from './fields';
@@ -78,11 +78,9 @@ export const categoriasDe = (a: RawDoc | { category?: unknown; categories?: unkn
 export const AnimesSection: FC<{
   animes: RawDoc[];
   seasons: RawDoc[];
-  episodes: RawDoc[];
-  characters: RawDoc[];
   categories: RawDoc[];
   provider: UploadProvider;
-}> = ({ animes, seasons, episodes, characters, categories, provider }) => {
+}> = ({ animes, seasons, categories, provider }) => {
   const [showNew, setShowNew] = useState(false);
 
   // El desplegable del filtro se arma con la lista canónica de
@@ -134,23 +132,28 @@ export const AnimesSection: FC<{
 
   // Cuántas temporadas y cuántos episodios tiene cada anime, para
   // filtrar y ordenar sin recalcularlo por cada fila.
+  // Los contadores salen del propio anime (`episodesCount`) y de sus
+  // temporadas. Antes esto se calculaba descargando TODOS los
+  // episodios y personajes del proyecto solo para pintar el número
+  // de cada fila. `charactersCount` es opcional: los documentos
+  // antiguos no lo tienen y se quedan en 0 sin romper el filtro.
   const stats = useMemo(() => {
-    const map = new Map<string, { seasons: number; episodes: number; characters: number }>();
-    animes.forEach((a) => map.set(a.id, { seasons: 0, episodes: 0, characters: 0 }));
+    const map = new Map<string, { seasons: number; episodes: number }>();
+    const numero = (v: unknown): number =>
+      typeof v === 'number' && Number.isFinite(v) ? v : 0;
+
+    animes.forEach((a) =>
+      map.set(a.id, {
+        seasons: 0,
+        episodes: numero(a.episodesCount),
+      }),
+    );
     seasons.forEach((s) => {
       const row = map.get(asStr(s.animeId));
       if (row) row.seasons += 1;
     });
-    episodes.forEach((e) => {
-      const row = map.get(asStr(e.animeId));
-      if (row) row.episodes += 1;
-    });
-    characters.forEach((c) => {
-      const row = map.get(asStr(c.animeId));
-      if (row) row.characters += 1;
-    });
     return map;
-  }, [animes, seasons, episodes, characters]);
+  }, [animes, seasons]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -166,8 +169,8 @@ export const AnimesSection: FC<{
       // del filtro "Emitiendo" sin avisar.
       if (status && estadoCorto(asStr(a.status)) !== status) return false;
 
-      const st = stats.get(a.id) ?? { seasons: 0, episodes: 0, characters: 0 };
-      if (content === 'empty' && (st.episodes > 0 || st.characters > 0)) return false;
+      const st = stats.get(a.id) ?? { seasons: 0, episodes: 0 };
+      if (content === 'empty' && (st.episodes > 0 || st.seasons > 0)) return false;
       if (content === 'withEpisodes' && st.episodes === 0) return false;
       if (content === 'multiSeason' && st.seasons === 0) return false;
 
@@ -344,16 +347,6 @@ export const AnimesSection: FC<{
                 key={anime.id}
                 anime={anime as AnimeDoc}
                 seasons={animeSeasons as SeasonDoc[]}
-                episodes={
-                  episodes.filter(
-                    (e) => (e as EpisodeDoc).animeId === anime.id,
-                  ) as EpisodeDoc[]
-                }
-                characters={
-                  characters.filter(
-                    (c) => (c as CharacterDoc).animeId === anime.id,
-                  ) as CharacterDoc[]
-                }
                 provider={provider}
               />
             );

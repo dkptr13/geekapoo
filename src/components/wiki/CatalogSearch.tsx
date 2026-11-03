@@ -56,6 +56,8 @@ interface CatalogSearchProps {
   episodes: Record<string, Episode[]>;
   characters: Record<string, Character[]>;
   threads: Thread[];
+  /** `true` mientras llega el índice de búsqueda o el catálogo de respaldo. */
+  cargando?: boolean;
   onSelectAnime: (id: string) => void;
   onSelectThread?: (thread: Thread) => void;
 }
@@ -70,6 +72,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
   episodes,
   characters,
   threads,
+  cargando = false,
   onSelectAnime,
   onSelectThread,
 }) => {
@@ -280,23 +283,30 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
       )}
 
       {total === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
-          <SearchX size={26} className="mx-auto text-zinc-700" />
-          <p className="mt-3 text-sm text-zinc-400">
-            Nada que coincida con «{query.trim()}»
-          </p>
-          <p className="mt-1 text-xs text-zinc-600">
-            Prueba con el nombre de una serie, un personaje o un hilo del foro.
-          </p>
-          {contarFiltrosActivos(filtros) > 0 && (
-            <button
-              onClick={onLimpiarFiltros}
-              className="mx-auto mt-4 block rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
-            >
-              Limpiar filtros
-            </button>
-          )}
-        </div>
+        cargando ? (
+          <div className="flex items-center justify-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-sm text-zinc-400">
+            <Loader2 size={16} className="animate-spin text-violet-400" />
+            Cargando el índice de búsqueda…
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
+            <SearchX size={26} className="mx-auto text-zinc-700" />
+            <p className="mt-3 text-sm text-zinc-400">
+              Nada que coincida con «{query.trim()}»
+            </p>
+            <p className="mt-1 text-xs text-zinc-600">
+              Prueba con el nombre de una serie, un personaje o un hilo del foro.
+            </p>
+            {contarFiltrosActivos(filtros) > 0 && (
+              <button
+                onClick={onLimpiarFiltros}
+                className="mx-auto mt-4 block rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        )
       ) : (
         <>
           {/* SERIES */}

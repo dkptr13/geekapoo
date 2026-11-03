@@ -7,11 +7,11 @@ import {
   orderBy,
   query,
   startAfter,
-  type DocumentData,
-  type QueryDocumentSnapshot,
+  type QueryConstraint,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
 import { measureRead } from '../lib/firestoreDiagnostics';
 import { mapWithId } from '../services/firestoreUtils';
 
@@ -21,11 +21,16 @@ import { mapWithId } from '../services/firestoreUtils';
 //
 // Episodios y personajes pueden ser miles. La navegación normal
 // carga una página y la amplía bajo demanda; la búsqueda o los
-// filtros siguen usando la carga completa para no dar resultados
+// filtros siguen usando la consulta por anime para no dar resultados
 // incompletos.
+//
+// Cada página pasa por `cachedRead` (5 min, persistido), no solo por
+// un TTL de estado local. Así cambiar de pestaña y volver, o
+// recargar dentro del TTL, no vuelve a leer los mismos 60 documentos.
+// La página siguiente se cachea por el id del último documento.
 
 export const CATALOG_PAGE_SIZE = 60;
-const CATALOG_PAGE_TTL = 2 * 60 * 1000;
+const CATALOG_PAGE_TTL = 5 * 60 * 1000;
 
 export interface CatalogPage<T> {
   items: T[];
@@ -33,6 +38,24 @@ export interface CatalogPage<T> {
   loadingMore: boolean;
   hasMore: boolean;
   loadMore: () => Promise<void>;
+}
+
+interface PageCache<T> {
+  items: T[];
+  hasMore: boolean;
+  /** Último documento de la página, para `startAfter`. */
+  lastId: string;
+  /** Valor del campo de orden, si la consulta ordena por uno. */
+  lastValue?: string;
+}
+
+interface Cursor {
+  id: string;
+  value?: string;
+}
+
+function pageKey(coleccion: string, orderByField?: string): string {
+  return `catalog:page:${coleccion}:${orderByField ?? '__name__'}`;
 }
 
 export function useCatalogPage<T>(
@@ -44,18 +67,69 @@ export function useCatalogPage<T>(
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
-  const cursorRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const cursorRef = useRef<Cursor | null>(null);
   const cargadoEn = useRef(0);
 
-  const consulta = useCallback((despues?: QueryDocumentSnapshot<DocumentData>) => {
-    const partes = orderByField ? [orderBy(orderByField, 'asc')] : [];
-    return query(
-      collection(db, coleccion),
-      ...partes,
-      ...(despues ? [startAfter(despues)] : []),
-      limit(CATALOG_PAGE_SIZE + 1),
-    );
-  }, [coleccion, orderByField]);
+  const leerPagina = useCallback(
+    (despues?: Cursor): Promise<PageCache<T>> => {
+      // `startAfter` necesita que el número de valores no supere el
+      // de `orderBy()`. Firestore añade el id como criterio implícito,
+      // pero para poder pasar el id hay que declararlo.
+      const partes: QueryConstraint[] = orderByField
+        ? [orderBy(orderByField, 'asc'), orderBy('__name__', 'asc')]
+        : [orderBy('__name__', 'asc')];
+
+      if (despues) {
+        // Con `orderBy(field)`, Firestore añade el id del documento
+        // como último criterio. Para la consulta sin orden explícito
+        // el único criterio es el id.
+        partes.push(
+          orderByField
+            ? startAfter(despues.value ?? '', despues.id)
+            : startAfter(despues.id),
+        );
+      }
+      partes.push(limit(CATALOG_PAGE_SIZE + 1));
+
+      const clave = despues
+        ? `${pageKey(coleccion, orderByField)}:after:${despues.id}`
+        : `${pageKey(coleccion, orderByField)}:first`;
+
+      return cachedRead<PageCache<T>>({
+        key: clave,
+        ttlMs: CATALOG_PAGE_TTL,
+        scope: PUBLIC_CACHE,
+        persist: true,
+        read: async () => {
+          const snap = await measureRead(
+            {
+              name: despues ? `${coleccion}:pagina:anterior` : `${coleccion}:pagina`,
+              collection: coleccion,
+              origin: 'useCatalogPage',
+            },
+            (result) => result.size,
+            () => getDocs(query(collection(db, coleccion), ...partes)),
+          );
+
+          const docs = snap.docs.slice(0, CATALOG_PAGE_SIZE);
+          const filas = mapWithId<T>(snap).slice(0, docs.length);
+          const ultimo = filas[filas.length - 1] as
+            | (T & Record<string, unknown>)
+            | undefined;
+
+          return {
+            items: filas,
+            hasMore: snap.size > CATALOG_PAGE_SIZE,
+            lastId: docs[docs.length - 1]?.id ?? '',
+            lastValue: orderByField
+              ? String(ultimo?.[orderByField] ?? '')
+              : undefined,
+          };
+        },
+      });
+    },
+    [coleccion, orderByField],
+  );
 
   useEffect(() => {
     if (!enabled) {
@@ -67,17 +141,14 @@ export function useCatalogPage<T>(
     let activo = true;
     setLoading(true);
 
-    void measureRead(
-      { name: `${coleccion}:pagina`, collection: coleccion, origin: 'useCatalogPage' },
-      (result) => result.size,
-      () => getDocs(consulta()),
-    )
-      .then((snap) => {
+    void leerPagina()
+      .then((pagina) => {
         if (!activo) return;
-        const docs = snap.docs.slice(0, CATALOG_PAGE_SIZE);
-        setItems(mapWithId<T>(snap).slice(0, docs.length));
-        cursorRef.current = docs[docs.length - 1] ?? null;
-        setHasMore(snap.size > CATALOG_PAGE_SIZE);
+        setItems(pagina.items);
+        cursorRef.current = pagina.lastId
+          ? { id: pagina.lastId, value: pagina.lastValue }
+          : null;
+        setHasMore(pagina.hasMore);
         cargadoEn.current = Date.now();
       })
       .catch((e: Error) => {
@@ -91,7 +162,7 @@ export function useCatalogPage<T>(
     return () => {
       activo = false;
     };
-  }, [enabled, items.length, consulta, coleccion]);
+  }, [enabled, items.length, leerPagina, coleccion]);
 
   const loadMore = useCallback(async (): Promise<void> => {
     const cursor = cursorRef.current;
@@ -99,31 +170,26 @@ export function useCatalogPage<T>(
 
     setLoadingMore(true);
     try {
-      const snap = await measureRead(
-        {
-          name: `${coleccion}:pagina:anterior`,
-          collection: coleccion,
-          origin: 'useCatalogPage',
-        },
-        (result) => result.size,
-        () => getDocs(consulta(cursor)),
-      );
-
-      const docs = snap.docs.slice(0, CATALOG_PAGE_SIZE);
-      const nuevos = mapWithId<T>(snap).slice(0, docs.length);
-      cursorRef.current = docs[docs.length - 1] ?? cursor;
+      const pagina = await leerPagina(cursor);
+      const nuevos = pagina.items;
+      const ultimo = nuevos[nuevos.length - 1];
+      cursorRef.current = pagina.lastId
+        ? { id: pagina.lastId, value: pagina.lastValue }
+        : ultimo
+          ? { id: (ultimo as { id?: string }).id ?? '', value: pagina.lastValue }
+          : null;
       setItems((prev) => {
         const vistos = new Set(prev.map((item) => (item as { id?: string }).id));
         return [...prev, ...nuevos.filter((item) => !vistos.has((item as { id?: string }).id))];
       });
-      setHasMore(snap.size > CATALOG_PAGE_SIZE);
+      setHasMore(pagina.hasMore);
       cargadoEn.current = Date.now();
     } catch (e) {
       console.error(`[Wiki] No se pudo cargar más de ${coleccion}:`, e);
     } finally {
       setLoadingMore(false);
     }
-  }, [enabled, hasMore, loadingMore, consulta, coleccion]);
+  }, [enabled, hasMore, loadingMore, leerPagina, coleccion]);
 
   return { items, loading, loadingMore, hasMore, loadMore };
 }
@@ -140,13 +206,20 @@ export function useCollectionCount(coleccion: string, enabled = true): number | 
     if (!enabled || total !== null) return;
     let activo = true;
 
-    void measureRead(
-      { name: `${coleccion}:count`, collection: coleccion, origin: 'useCatalogPage' },
-      () => 1,
-      () => getCountFromServer(collection(db, coleccion)),
-    )
-      .then((snap) => {
-        if (activo) setTotal(snap.data().count);
+    void cachedRead<number>({
+      key: `catalog:count:${coleccion}`,
+      ttlMs: CATALOG_PAGE_TTL,
+      scope: PUBLIC_CACHE,
+      persist: true,
+      read: () =>
+        measureRead(
+          { name: `${coleccion}:count`, collection: coleccion, origin: 'useCatalogPage' },
+          () => 1,
+          () => getCountFromServer(collection(db, coleccion)),
+        ).then((snap) => snap.data().count),
+    })
+      .then((total) => {
+        if (activo) setTotal(total);
       })
       .catch((e: Error) => {
         console.warn(`[Wiki] No se pudo contar ${coleccion}:`, e);

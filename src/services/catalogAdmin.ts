@@ -171,6 +171,11 @@ function invalidarCatalogo(...colecciones: string[]): void {
   colecciones.forEach((coleccion) => {
     const key = CACHE_KEYS[coleccion];
     if (key) invalidateCache(key, PUBLIC_CACHE);
+    // Las páginas de 60 del catálogo y sus recuentos también se
+    // cachean. Si se edita un episodio o un personaje, la página
+    // vieja no puede seguir enseñándose durante cinco minutos.
+    invalidateCache(`catalog:page:${coleccion}`, PUBLIC_CACHE);
+    invalidateCache(`catalog:count:${coleccion}`, PUBLIC_CACHE);
   });
 }
 

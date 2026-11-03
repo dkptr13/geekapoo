@@ -31,6 +31,12 @@ interface CollapsibleSectionProps {
   defaultOpen?: boolean;
   /** 'pink' es el color de los personajes; el resto, neutro. */
   tone?: 'neutral' | 'pink';
+  /**
+   * Avisa al padre de si está abierto. Lo usa el editor de
+   * disponibilidad para no consultar Firestore hasta que alguien
+   * despliega el apartado.
+   */
+  onOpenChange?: (open: boolean) => void;
   children: ReactNode;
 }
 
@@ -40,6 +46,7 @@ export const CollapsibleSection: FC<CollapsibleSectionProps> = ({
   actions,
   defaultOpen = false,
   tone = 'neutral',
+  onOpenChange,
   children,
 }) => {
   const [open, setOpen] = useState(defaultOpen);
@@ -56,7 +63,13 @@ export const CollapsibleSection: FC<CollapsibleSectionProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() =>
+            setOpen((v) => {
+              const siguiente = !v;
+              onOpenChange?.(siguiente);
+              return siguiente;
+            })
+          }
           aria-expanded={open}
           title={open ? `Plegar ${title}` : `Desplegar ${title}`}
           className={`flex items-center gap-1.5 text-left text-[11px] font-bold uppercase tracking-widest transition-colors ${

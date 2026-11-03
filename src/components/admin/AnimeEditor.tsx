@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 import { doc, writeBatch } from 'firebase/firestore';
 import {
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 
 import { db } from '../../lib/firebase';
+import { useCommunity } from '../../context/CommunityContext';
 import {
   createCharacter,
   createEpisode,
@@ -186,19 +187,41 @@ interface FieldErrors {
 interface AnimeEditorProps {
   anime: AnimeDoc;
   seasons: SeasonDoc[];
-  episodes: EpisodeDoc[];
-  characters: CharacterDoc[];
   provider: UploadProvider;
 }
 
 export const AnimeEditor: FC<AnimeEditorProps> = ({
   anime,
   seasons,
-  episodes,
-  characters,
   provider,
 }) => {
   const [open, setOpen] = useState(false);
+
+  // Los episodios y personajes de ESTA serie se piden al desplegar
+  // el editor, no se reciben del panel como listas completas. La
+  // consulta es `animeId ==` y pasa por la caché compartida de
+  // CommunityContext (30 min, IndexedDB), así que abrir el mismo
+  // anime otra vez no vuelve a leerlos.
+  const {
+    episodes: episodiosPorAnime,
+    characters: personajesPorAnime,
+    ensureAnimeData,
+  } = useCommunity();
+
+  useEffect(() => {
+    if (!open) return;
+    ensureAnimeData(anime.id, ['episodes', 'characters']);
+  }, [open, anime.id, ensureAnimeData]);
+
+  // Los tipos de CommunityContext son los públicos (`Episode`,
+  // `Character`); el editor trabaja con documentos en crudo. El
+  // contenido es el mismo, solo cambia el envoltorio de tipos.
+  const episodes = (episodiosPorAnime[anime.id] ?? []) as unknown as EpisodeDoc[];
+  const characters = (personajesPorAnime[anime.id] ?? []) as unknown as CharacterDoc[];
+  const cargandoContenido =
+    open &&
+    episodiosPorAnime[anime.id] === undefined &&
+    personajesPorAnime[anime.id] === undefined;
 
   // Lo único del anime que se edita aquí: lo que es de la serie
   // entera. El año, el estado, el estudio, la puntuación, los
@@ -480,6 +503,13 @@ export const AnimeEditor: FC<AnimeEditorProps> = ({
 
       {open && (
         <div className="space-y-5 border-t border-zinc-800 p-4">
+          {cargandoContenido && (
+            <p className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-[11px] text-zinc-400">
+              <Loader2 size={12} className="animate-spin text-violet-400" />
+              Cargando episodios y personajes de esta serie…
+            </p>
+          )}
+
           {/* ==================================================
               DATOS DE LA SERIE
           ==================================================

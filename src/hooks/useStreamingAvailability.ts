@@ -36,13 +36,15 @@ export interface UseStreamingAvailability {
 export function useStreamingAvailability(
   animeId: string | null | undefined,
   region?: string | null,
+  /** `false` para no consultar hasta que el apartado esté abierto. */
+  enabled = true,
 ): UseStreamingAvailability {
   const [datos, setDatos] = useState<StreamingAvailability[]>([]);
   const [cargando, setCargando] = useState(Boolean(animeId));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!animeId) {
+    if (!animeId || !enabled) {
       setDatos([]);
       setCargando(false);
       setError(null);
@@ -100,7 +102,10 @@ export function useStreamingAvailability(
 
     const alInvalidar = (event: Event) => {
       const invalidada = (event as CustomEvent<{ key?: string }>).detail?.key;
-      if (invalidada?.startsWith('streaming:availability:')) void cargar(true);
+      // Solo se recarga lo que de verdad ha cambiado. Antes
+      // cualquier edición de cualquier obra invalidaba todas las
+      // fichas abiertas y volvía a leer su disponibilidad.
+      if (invalidada === key) void cargar(true);
     };
     window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
     void cargar();
@@ -109,7 +114,7 @@ export function useStreamingAvailability(
       activo = false;
       window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
     };
-  }, [animeId, region]);
+  }, [animeId, region, enabled]);
 
   return { datos, cargando, error };
 }

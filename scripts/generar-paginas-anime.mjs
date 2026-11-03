@@ -282,6 +282,73 @@ async function leerDisponibilidadEspana() {
   return mapa;
 }
 
+/**
+ * Índice que genera `prebuild`.
+ *
+ * Si existe, de aquí salen los animes y los episodios/personajes
+ * principales. Eso evita repetir en el prerender las mismas
+ * lecturas que ya hizo la generación del índice: antes cada build
+ * volvía a leer `animes`, todos los episodios y todos los
+ * personajes principales solo para escribir las fichas estáticas.
+ */
+async function leerIndiceLocal() {
+  try {
+    const textoIndice = await readFile(
+      path.join(RAIZ, 'public', 'busqueda', 'indice.json'),
+      'utf8',
+    );
+    const indice = JSON.parse(textoIndice);
+    if (indice?.version !== 1 || !Array.isArray(indice.animes)) return null;
+    if (!Array.isArray(indice.episodes) || !Array.isArray(indice.characters)) return null;
+
+    // Si el índice tiene más de seis horas, se ignora: puede ser el
+    // de un build anterior y no queremos dejar fuera una serie nueva.
+    const generado = Date.parse(indice.generado);
+    if (!Number.isFinite(generado) || Date.now() - generado > 6 * 60 * 60 * 1000) {
+      return null;
+    }
+
+    return indice;
+  } catch {
+    return null;
+  }
+}
+
+function mapasDesdeIndice(indice) {
+  const episodios = new Map();
+  for (const ep of indice.episodes) {
+    if (!ep.animeId || !ep.title) continue;
+    if (!episodios.has(ep.animeId)) episodios.set(ep.animeId, []);
+    episodios.get(ep.animeId).push({
+      number: ep.number,
+      title: ep.title,
+      airDate: ep.airDate ?? '',
+    });
+  }
+  for (const listaEpisodios of episodios.values()) {
+    listaEpisodios.sort(
+      (a, b) =>
+        (a.airDate || '').localeCompare(b.airDate || '') || a.number - b.number,
+    );
+  }
+
+  const personajes = new Map();
+  for (const p of indice.characters) {
+    if (p.role !== 'main' || !p.animeId || !p.name) continue;
+    if (!personajes.has(p.animeId)) personajes.set(p.animeId, []);
+    personajes.get(p.animeId).push({
+      name: p.name,
+      voiceActor: p.voiceActor ?? '',
+      likes: p.likesCount ?? 0,
+    });
+  }
+  for (const listaPersonajes of personajes.values()) {
+    listaPersonajes.sort((a, b) => b.likes - a.likes);
+  }
+
+  return { episodios, personajes };
+}
+
 async function leerNombresPlataformas() {
   const nombres = { ...PLATAFORMAS };
   try {
@@ -494,20 +561,29 @@ function personalizar(plantilla, anime, extras) {
 
 try {
   const plantilla = await readFile(PLANTILLA, 'utf8');
-  const animes = await leerAnimes();
+  const indice = await leerIndiceLocal();
+  const animes = indice?.animes?.length
+    ? indice.animes.map((a) => ({ ...a, episodes: a.episodesCount ?? 0 }))
+    : await leerAnimes();
+  const desdeIndice = indice ? mapasDesdeIndice(indice) : null;
 
   // Los extras son opcionales: si una colección falla, las fichas
-  // se generan igual con lo que haya.
+  // se generan igual con lo que haya. Si el índice está disponible,
+  // los episodios y personajes salen de ahí y no se vuelven a leer.
   const [episodios, personajes, streaming, nombresPlataformas] =
     await Promise.all([
-      leerEpisodios().catch((e) => {
-        console.warn(`Sin episodios: ${e.message}`);
-        return new Map();
-      }),
-      leerPersonajesPrincipales().catch((e) => {
-        console.warn(`Sin personajes: ${e.message}`);
-        return new Map();
-      }),
+      desdeIndice
+        ? Promise.resolve(desdeIndice.episodios)
+        : leerEpisodios().catch((e) => {
+            console.warn(`Sin episodios: ${e.message}`);
+            return new Map();
+          }),
+      desdeIndice
+        ? Promise.resolve(desdeIndice.personajes)
+        : leerPersonajesPrincipales().catch((e) => {
+            console.warn(`Sin personajes: ${e.message}`);
+            return new Map();
+          }),
       leerDisponibilidadEspana().catch((e) => {
         console.warn(`Sin streaming: ${e.message}`);
         return new Map();

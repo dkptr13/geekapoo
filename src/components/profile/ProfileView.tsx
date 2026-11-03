@@ -24,6 +24,10 @@ import { VITRINAS, VITRINAS_POR_DEFECTO } from '../../data/profileCustomization'
 import type { TipoVitrina } from '../../data/profileCustomization';
 import { CATALOGO_MEDALLAS } from '../../utils/progression';
 import { readPrivacy } from '../../services/accountSettings';
+import {
+  cargarIndiceBusqueda,
+  type IndiceBusqueda,
+} from '../../services/searchIndex';
 import { encuadre } from '../../utils/safeData';
 
 import { ProfileHeader } from './ProfileHeader';
@@ -245,18 +249,31 @@ const Perfil: React.FC<{
     loadMore: cargarMasComentarios,
   } = useProfileComments(perfil.uid);
 
+  const [indiceBusqueda, setIndiceBusqueda] = useState<IndiceBusqueda | null>(null);
+
   useEffect(() => {
     ensureAnimeList();
     ensureAllThreads();
   }, [ensureAnimeList, ensureAllThreads]);
 
-  // El catálogo pesado solo hace falta para poner título a comentarios
-  // de episodios o personajes. Un perfil sin esa actividad no lo carga.
+  // Para poner título a comentarios de episodios o personajes basta
+  // con el índice ligero. La carga completa solo se usa si el
+  // archivo estático no está disponible.
   useEffect(() => {
     const necesitaCatalogo = [...comments, ...likedComments].some(
       (c) => c.targetType === 'episode' || c.targetType === 'character',
     );
-    if (necesitaCatalogo) ensureCatalogData();
+    if (!necesitaCatalogo) return;
+
+    let activo = true;
+    void cargarIndiceBusqueda().then((datos) => {
+      if (!activo) return;
+      if (datos) setIndiceBusqueda(datos);
+      else ensureCatalogData();
+    });
+    return () => {
+      activo = false;
+    };
   }, [comments, likedComments, ensureCatalogData]);
 
   const [copiedId, setCopiedId] = useState(false);
@@ -444,9 +461,9 @@ const Perfil: React.FC<{
       return animes.find((a) => a.id === c.targetId)?.title ?? 'Anime eliminado';
     }
     if (c.targetType === 'episode') {
-      const found = Object.values(episodes)
-        .flat()
-        .find((e) => e.id === c.targetId);
+      const found = indiceBusqueda
+        ? indiceBusqueda.episodes.find((e) => e.id === c.targetId)
+        : Object.values(episodes).flat().find((e) => e.id === c.targetId);
       const anime = found
         ? animes.find((a) => a.id === found.animeId)?.title
         : undefined;
@@ -454,9 +471,9 @@ const Perfil: React.FC<{
         ? `${anime ?? ''} · Ep.${found.number} ${found.title}`.trim()
         : 'Episodio eliminado';
     }
-    const found = Object.values(characters)
-      .flat()
-      .find((ch) => ch.id === c.targetId);
+    const found = indiceBusqueda
+      ? indiceBusqueda.characters.find((ch) => ch.id === c.targetId)
+      : Object.values(characters).flat().find((ch) => ch.id === c.targetId);
     return found?.name ?? 'Personaje eliminado';
   };
 

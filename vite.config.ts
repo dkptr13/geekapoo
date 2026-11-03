@@ -6,6 +6,13 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    // Identificador del despliegue. Se usa para que la URL del
+    // índice de búsqueda cambie en cada build de Vercel y el
+    // navegador no reutilice una respuesta HTTP antigua. La caché
+    // propia de la app tiene su TTL y se encarga del resto.
+    define: {
+      __BUILD_ID__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA || 'dev'),
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

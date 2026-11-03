@@ -209,19 +209,50 @@ export async function guardarDisponibilidad(
 
   const id = idDisponibilidad(animeId, platformId, region);
   await setDoc(doc(db, COLECCION_DISPONIBILIDAD, id), data);
-  invalidateCache('streaming:availability:', PUBLIC_CACHE);
+
+  // Se invalida SOLO esta obra y esta región. Antes se borraban
+  // todas las claves `streaming:availability:` y cualquier ficha
+  // abierta (de otra serie) volvía a leer su disponibilidad.
+  invalidateCache(`streaming:availability:${animeId}:all`, PUBLIC_CACHE);
+  invalidateCache(`streaming:availability:${animeId}:${region}`, PUBLIC_CACHE);
 
   return id;
 }
 
-/** Borra una fila regional. No toca el anime ni las demás filas. */
-export async function eliminarDisponibilidad(id: string): Promise<void> {
+/**
+ * Borra una fila regional. No toca el anime ni las demás filas.
+ *
+ * El contexto (`animeId` + `region`) evita una lectura extra: el
+ * editor ya tiene la fila en memoria. Si no se pasa, se lee el
+ * documento antes de borrarlo para poder invalidar la caché exacta.
+ */
+export async function eliminarDisponibilidad(
+  id: string,
+  contexto?: { animeId?: string; region?: string },
+): Promise<void> {
   const limpio = texto(id);
   if (!limpio || limpio.includes('/')) {
     throw new Error('La fila de disponibilidad no es válida.');
   }
 
+  let animeId = texto(contexto?.animeId);
+  let region = normalizarCodigoRegion(contexto?.region);
+
+  if (!animeId || !region) {
+    const snap = await getDoc(doc(db, COLECCION_DISPONIBILIDAD, limpio));
+    const fila = snap.data();
+    animeId = texto(fila?.animeId);
+    region = normalizarCodigoRegion(fila?.region);
+  }
+
   await deleteDoc(doc(db, COLECCION_DISPONIBILIDAD, limpio));
+
+  if (animeId) {
+    invalidateCache(`streaming:availability:${animeId}:all`, PUBLIC_CACHE);
+    if (region) {
+      invalidateCache(`streaming:availability:${animeId}:${region}`, PUBLIC_CACHE);
+    }
+  }
 }
 
 /** Reexporta el normalizador para que el panel y la wiki usen el mismo. */

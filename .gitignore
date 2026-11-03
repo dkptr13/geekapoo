@@ -33,5 +33,10 @@ scripts/.cache-alias/
 # solas con scripts/mirar-miniaturas.mjs y no se suben.
 scripts/.miniaturas/
 
+# Índice de búsqueda generado en `prebuild` a partir del catálogo
+# público. Se sirve como archivo estático, pero no se versiona: en
+# cada build se regenera con los datos actuales.
+public/busqueda/indice.json
+
 # Copia de seguridad local de src/ (creada antes de migrar a Firestore)
 _backup/

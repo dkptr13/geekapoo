@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getDocs,
   updateDoc,
 } from 'firebase/firestore';
@@ -107,6 +108,53 @@ const SECTION_BY_CACHE_KEY: Record<string, ListenedSection> = {
   'community:threads': 'threads',
 };
 
+/**
+ * Qué colecciones necesita cada pestaña.
+ *
+ * Antes el panel leía las nueve secciones al abrirse, incluidas
+ * `episodes` y `characters` completas, aunque el admin solo fuera a
+ * cambiar un título. Ahora cada pestaña pide lo suyo: Animes carga
+ * animes, temporadas y categorías; los episodios y personajes de
+ * una serie se piden al desplegar su editor.
+ */
+const SECTION_DEPS: Record<AdminSection, ListenedSection[]> = {
+  animes: ['animes', 'seasons', 'categories'],
+  seasons: ['seasons'],
+  characters: ['characters'],
+  episodes: ['episodes'],
+  trivia: ['trivia'],
+  triviaDiaria: [],
+  categories: ['categories'],
+  weeklyWorks: [],
+  settings: [],
+  users: ['users'],
+  threads: ['threads'],
+  tickets: ['tickets'],
+  reportes: [],
+  gamificacion: [],
+};
+
+/**
+ * Recuento exacto de una sección sin descargar sus documentos.
+ *
+ * Firestore cobra las agregaciones aparte y suelen ser mucho más
+ * baratas que traer miles de fichas solo para enseñar el número de
+ * la pestaña. Se cachea cinco minutos por usuario.
+ */
+function leerConteoAdmin(uid: string, section: ListenedSection): Promise<number> {
+  const nombre = COLLECTION_MAP[section];
+  return cachedRead<number>({
+    key: `admin:count:${section}`,
+    scope: userCacheScope(uid),
+    ttlMs: 5 * 60 * 1000,
+    read: () => measureRead(
+      { name: `admin:count:${section}`, collection: nombre, origin: 'useAdminCatalog' },
+      () => 1,
+      () => getCountFromServer(collection(db, nombre)),
+    ).then((snap) => snap.data().count),
+  });
+}
+
 function leerSeccionAdmin(
   uid: string,
   section: ListenedSection,
@@ -177,9 +225,10 @@ function leerPrivadosAdmin(
   });
 }
 
-export function useAdminCatalog() {
+export function useAdminCatalog(activeSection: AdminSection = 'animes') {
   const { currentUser } = useAuth();
   const [docs, setDocs] = useState<Record<ListenedSection, RawDoc[]>>(EMPTY);
+  const [conteos, setConteos] = useState<Partial<Record<ListenedSection, number>>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -194,12 +243,46 @@ export function useAdminCatalog() {
 
   const uid = currentUser?.uid ?? null;
   const role = currentUser?.role;
+  const secciones = useMemo(
+    () => SECTION_DEPS[activeSection] ?? [],
+    [activeSection],
+  );
+
+  // Los contadores de las pestañas se piden con agregaciones, no
+  // con los documentos. Así se pueden enseñar todos los números sin
+  // descargar las nueve colecciones.
+  useEffect(() => {
+    if (!uid) {
+      setConteos({});
+      return;
+    }
+
+    let activo = true;
+    void Promise.allSettled(
+      LISTENED_SECTIONS.map(async (section) => {
+        try {
+          const total = await leerConteoAdmin(uid, section);
+          if (activo) setConteos((prev) => ({ ...prev, [section]: total }));
+        } catch (e) {
+          // Una colección sin permiso de agregación no debe romper
+          // el panel: la pestaña se queda con el número que ya
+          // tuviera.
+          console.warn(`[Admin] No se pudo contar "${COLLECTION_MAP[section]}":`, e);
+        }
+      }),
+    );
+
+    return () => {
+      activo = false;
+    };
+  }, [uid]);
 
   const refrescarSeccion = useCallback(async (section: ListenedSection, force = true) => {
     if (!uid) return;
     try {
       const datos = await leerSeccionAdmin(uid, section, force);
       setDocs((prev) => ({ ...prev, [section]: datos }));
+      setConteos((prev) => ({ ...prev, [section]: datos.length }));
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e));
       console.error(`[Admin] Error leyendo "${COLLECTION_MAP[section]}":`, error);
@@ -241,13 +324,16 @@ export function useAdminCatalog() {
     }
 
     let activo = true;
-    setLoading(true);
+    const necesitaUsuarios = activeSection === 'users';
+    setLoading(secciones.length > 0);
     setError(null);
 
-    const tareas: Promise<unknown>[] = LISTENED_SECTIONS.map(async (section) => {
+    const tareas: Promise<unknown>[] = secciones.map(async (section) => {
       try {
         const datos = await leerSeccionAdmin(uid, section);
-        if (activo) setDocs((prev) => ({ ...prev, [section]: datos }));
+        if (!activo) return;
+        setDocs((prev) => ({ ...prev, [section]: datos }));
+        setConteos((prev) => ({ ...prev, [section]: datos.length }));
       } catch (e) {
         if (!activo) return;
         const error = e instanceof Error ? e : new Error(String(e));
@@ -259,30 +345,38 @@ export function useAdminCatalog() {
       }
     });
 
-    tareas.push(
-      leerRestriccionesAdmin(uid)
-        .then((datos) => { if (activo) setRestricciones(datos); })
-        .catch((e: Error) => { if (activo) console.error('[Admin] No se pudo leer accountRestrictions:', e); }),
-    );
-
-    // El correo y el resto de preferencias privadas solo los puede
-    // listar un admin. Si una sesión pasa de admin a moderador, se
-    // vacía lo que ya se había leído para no dejar estado residual.
-    if (role === 'admin') {
+    // Los datos de gestión de usuarios solo se piden al abrir esa
+    // pestaña. Antes se leían siempre, aunque el admin estuviera
+    // editando un anime.
+    if (necesitaUsuarios) {
       tareas.push(
-        leerPrivadosAdmin(uid)
-          .then((datos) => { if (activo) setPrivados(datos); })
+        leerRestriccionesAdmin(uid)
+          .then((datos) => { if (activo) setRestricciones(datos); })
           .catch((e: Error) => {
-            if (!activo) return;
-            console.error('[Admin] No se pudo leer userPrivate:', e);
-            setError(
-              `No se pudieron leer los datos privados de los usuarios: ${e.message}. ` +
-              'Comprueba que tienes rol admin y que las reglas están desplegadas.',
-            );
+            if (activo) console.error('[Admin] No se pudo leer accountRestrictions:', e);
           }),
       );
+
+      // El correo y el resto de preferencias privadas solo los puede
+      // listar un admin. Si una sesión pasa de admin a moderador, se
+      // vacía lo que ya se había leído para no dejar estado residual.
+      if (role === 'admin') {
+        tareas.push(
+          leerPrivadosAdmin(uid)
+            .then((datos) => { if (activo) setPrivados(datos); })
+            .catch((e: Error) => {
+              if (!activo) return;
+              console.error('[Admin] No se pudo leer userPrivate:', e);
+              setError(
+                `No se pudieron leer los datos privados de los usuarios: ${e.message}. ` +
+                'Comprueba que tienes rol admin y que las reglas están desplegadas.',
+              );
+            }),
+        );
+      }
     } else {
       setPrivados({});
+      setRestricciones({});
     }
 
     void Promise.allSettled(tareas).then(() => {
@@ -292,32 +386,38 @@ export function useAdminCatalog() {
     return () => {
       activo = false;
     };
-  }, [uid, role]);
+  }, [uid, role, activeSection, secciones]);
 
   // Los editores del catálogo invalidan su colección al guardar. El
-  // panel recarga solo esa sección en vez de mantener nueve listeners.
+  // panel recarga solo la sección que está cargada. Las que no se
+  // han abierto no se leen "por si acaso": se pedirán al entrar.
   useEffect(() => {
     const alInvalidar = (event: Event) => {
       const key = (event as CustomEvent<{ key?: string }>).detail?.key;
       if (!key) return;
       const section = SECTION_BY_CACHE_KEY[key];
-      if (section) void refrescarSeccion(section, true);
+      if (section && secciones.includes(section)) {
+        void refrescarSeccion(section, true);
+      }
     };
     window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
     return () => window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
-  }, [refrescarSeccion]);
+  }, [refrescarSeccion, secciones]);
 
   const counts = useMemo(() => {
     const out = {} as Record<AdminSection, number>;
     LISTENED_SECTIONS.forEach((s) => {
-      out[s] = docs[s].length;
+      out[s] = conteos[s] ?? docs[s].length;
     });
-    // Estas dos no se escuchan aquí; la pestaña las pinta a 0 y
-    // sus datos vienen de SiteContentContext.
+    // Estas no se escuchan aquí; la pestaña las pinta a 0 y sus
+    // datos vienen de SiteContentContext o de otras secciones.
     out.weeklyWorks = 0;
     out.settings = 0;
+    out.triviaDiaria = 0;
+    out.reportes = 0;
+    out.gamificacion = 0;
     return out;
-  }, [docs]);
+  }, [conteos, docs]);
 
   // ── Gestión de usuarios ─────────────────────────────
 

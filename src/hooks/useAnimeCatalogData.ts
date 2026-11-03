@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   collection,
   getDocs,
@@ -7,6 +7,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
 import { measureRead } from '../lib/firestoreDiagnostics';
 import { mapWithId } from '../services/firestoreUtils';
 
@@ -18,12 +19,44 @@ import { mapWithId } from '../services/firestoreUtils';
 // personajes del proyecto: basta con los de las series que pasan
 // esos filtros. Se consulta en bloques de 30 `animeId`, el máximo de
 // un `in` de Firestore.
+//
+// ── LO QUE CAMBIÓ EN LA SEGUNDA FASE ───────────────────────
+//
+//   - Cada bloque pasa por `cachedRead` (30 min, persistido en
+//     IndexedDB). Cambiar de filtro y volver al anterior ya no
+//     vuelve a leer los mismos documentos, y dos componentes que
+//     piden el mismo bloque comparten la misma petición.
+//   - Los bloques se cargan de uno en uno. El primero pinta la
+//     pestaña; los siguientes se piden con "Cargar más". Antes se
+//     lanzaban todos a la vez: con 195 series eran ~2.000 lecturas
+//     para enseñar la primera pantalla.
+//   - La clave empieza por `community:episodes` /
+//     `community:characters`, así que la invalidación del panel
+//     (`invalidateCache('community:episodes')`) borra también estos
+//     bloques. No hay una segunda caché que se quede vieja.
 
-const CHUNK = 30;
+// 10 series por bloque. Firestore permite hasta 30 en un `in`,
+// pero con 30 el primer bloque devolvía ~600 episodios y la pestaña
+// seguía leyendo de más antes de que el usuario pidiera "Ver más".
+// Con 10 la primera pantalla cuesta ~200 y el resto se pide a mano.
+const CHUNK = 10;
+const TTL_FILTRADOS = 30 * 60 * 1000;
 
 export interface AnimeCatalogData<T> {
   items: T[];
   loading: boolean;
+  loadingMore: boolean;
+  hasMore: boolean;
+  /** Pide el siguiente bloque de 30 series. */
+  loadMore: () => Promise<void>;
+}
+
+/** Une dos listas sin repetir ids, conservando el orden de llegada. */
+function unir<T extends { id: string }>(base: T[], extra: T[]): T[] {
+  if (extra.length === 0) return base;
+  const vistos = new Set(base.map((item) => item.id));
+  const nuevos = extra.filter((item) => !vistos.has(item.id));
+  return nuevos.length > 0 ? [...base, ...nuevos] : base;
 }
 
 export function useAnimeCatalogData<T extends { id: string }>(
@@ -33,65 +66,134 @@ export function useAnimeCatalogData<T extends { id: string }>(
 ): AnimeCatalogData<T> {
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const peticionRef = useRef(0);
+  const bloquesRef = useRef<string[][]>([]);
+  const siguienteRef = useRef(0);
+  const activoRef = useRef(true);
 
   // Una firma estable evita relanzar las consultas cuando el array
   // se reconstruye con los mismos ids.
   const firma = animeIds.slice().sort().join('|');
 
+  const leerBloque = useCallback(
+    (grupo: string[]): Promise<T[]> => {
+      const ids = grupo.slice().sort();
+      return cachedRead<T[]>({
+        key: `community:${coleccion}:filtrados:${ids.join(',')}`,
+        ttlMs: TTL_FILTRADOS,
+        scope: PUBLIC_CACHE,
+        persist: true,
+        read: async () => {
+          const snap = await measureRead(
+            {
+              name: `${coleccion}:filtrados`,
+              collection: coleccion,
+              origin: 'useAnimeCatalogData',
+            },
+            (result) => result.size,
+            () =>
+              getDocs(
+                query(
+                  collection(db, coleccion),
+                  where('animeId', 'in', grupo),
+                ),
+              ),
+          );
+          return mapWithId<T>(snap);
+        },
+      });
+    },
+    [coleccion],
+  );
+
   useEffect(() => {
+    activoRef.current = true;
+
     if (!enabled) {
+      peticionRef.current += 1;
+      bloquesRef.current = [];
+      siguienteRef.current = 0;
+      setItems([]);
       setLoading(false);
+      setLoadingMore(false);
+      setHasMore(false);
       return;
     }
 
     const ids = firma ? firma.split('|') : [];
     if (ids.length === 0) {
+      peticionRef.current += 1;
+      bloquesRef.current = [];
+      siguienteRef.current = 0;
       setItems([]);
       setLoading(false);
+      setLoadingMore(false);
+      setHasMore(false);
       return;
     }
 
     const peticion = ++peticionRef.current;
-    let activo = true;
-    setLoading(true);
-
-    const trozos: string[][] = [];
+    const bloques: string[][] = [];
     for (let i = 0; i < ids.length; i += CHUNK) {
-      trozos.push(ids.slice(i, i + CHUNK));
+      bloques.push(ids.slice(i, i + CHUNK));
     }
 
-    void Promise.all(
-      trozos.map((grupo) => measureRead(
-        { name: `${coleccion}:filtrados`, collection: coleccion, origin: 'useAnimeCatalogData' },
-        (result) => result.size,
-        () => getDocs(query(
-          collection(db, coleccion),
-          where('animeId', 'in', grupo),
-        )),
-      )),
-    )
-      .then((snaps) => {
-        if (!activo || peticion !== peticionRef.current) return;
-        const porId = new Map<string, T>();
-        snaps.forEach((snap) => {
-          mapWithId<T>(snap).forEach((item) => porId.set(item.id, item));
-        });
-        setItems([...porId.values()]);
+    bloquesRef.current = bloques;
+    siguienteRef.current = 0;
+    setItems([]);
+    setLoading(true);
+    setLoadingMore(false);
+    setHasMore(false);
+
+    void leerBloque(bloques[0])
+      .then((lista) => {
+        if (!activoRef.current || peticion !== peticionRef.current) return;
+        siguienteRef.current = 1;
+        setItems(unir([], lista));
+        setHasMore(bloques.length > 1);
       })
       .catch((e: Error) => {
-        if (!activo || peticion !== peticionRef.current) return;
+        if (!activoRef.current || peticion !== peticionRef.current) return;
         console.error(`[Wiki] No se pudieron filtrar ${coleccion}:`, e);
         setItems([]);
+        setHasMore(false);
       })
       .finally(() => {
-        if (activo && peticion === peticionRef.current) setLoading(false);
+        if (activoRef.current && peticion === peticionRef.current) setLoading(false);
       });
 
     return () => {
-      activo = false;
+      activoRef.current = false;
     };
-  }, [coleccion, enabled, firma]);
+  }, [coleccion, enabled, firma, leerBloque]);
 
-  return { items, loading };
+  const loadMore = useCallback(async (): Promise<void> => {
+    if (!enabled || loading || loadingMore) return;
+
+    const bloques = bloquesRef.current;
+    const indice = siguienteRef.current;
+    if (indice >= bloques.length) {
+      setHasMore(false);
+      return;
+    }
+
+    const peticion = peticionRef.current;
+    setLoadingMore(true);
+    try {
+      const lista = await leerBloque(bloques[indice]);
+      if (!activoRef.current || peticion !== peticionRef.current) return;
+      siguienteRef.current = indice + 1;
+      setItems((prev) => unir(prev, lista));
+      setHasMore(indice + 1 < bloques.length);
+    } catch (e) {
+      console.error(`[Wiki] No se pudo cargar más de ${coleccion}:`, e);
+      if (peticion === peticionRef.current) setHasMore(false);
+    } finally {
+      if (activoRef.current && peticion === peticionRef.current) setLoadingMore(false);
+    }
+  }, [coleccion, enabled, leerBloque, loading, loadingMore]);
+
+  return { items, loading, loadingMore, hasMore, loadMore };
 }

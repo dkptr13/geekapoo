@@ -14,6 +14,10 @@ import {
 import { useCommunity } from '../../context/CommunityContext';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { anyMatches, encuadre, matchesText as matches, toText } from '../../utils/safeData';
+import {
+  cargarIndiceBusqueda,
+  type IndiceBusqueda,
+} from '../../services/searchIndex';
 import { Anime, Character, Episode, Thread } from '../../types';
 
 interface GlobalSearchProps {
@@ -34,10 +38,21 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
     ensureAllThreads,
   } = useCommunity();
   const [query, setQuery] = useState('');
+  const [indice, setIndice] = useState<IndiceBusqueda | null>(null);
 
   useEffect(() => {
-    ensureCatalogData();
+    let activo = true;
+    void cargarIndiceBusqueda().then((datos) => {
+      if (!activo) return;
+      if (datos) setIndice(datos);
+      // Si el archivo estático no está, se conserva la carga
+      // completa como red de seguridad.
+      else ensureCatalogData();
+    });
     ensureAllThreads();
+    return () => {
+      activo = false;
+    };
   }, [ensureCatalogData, ensureAllThreads]);
   const [filterType, setFilterType] = useState<
     'all' | 'anime' | 'episodes' | 'characters' | 'threads' | 'tags'
@@ -57,7 +72,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
     : [];
 
   // Search in Episodes
-  const allEpisodes: Episode[] = Object.values(episodes).flat();
+  const allEpisodes: Episode[] = indice
+    ? indice.episodes
+    : Object.values(episodes).flat();
   const matchedEpisodes = cleanQuery
     ? allEpisodes.filter(
         (ep) =>
@@ -66,7 +83,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
     : [];
 
   // Search in Characters
-  const allCharacters: Character[] = Object.values(characters).flat();
+  const allCharacters: Character[] = indice
+    ? indice.characters
+    : Object.values(characters).flat();
   const matchedCharacters = cleanQuery
     ? allCharacters.filter(
         (c) =>
@@ -263,7 +282,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                         {c.name}
                       </h4>
                       <p className="text-[11px] text-zinc-400 line-clamp-1">{c.description}</p>
-                      <span className="text-[10px] text-zinc-500">♥ {c.likesCount} votos</span>
+                      <span className="text-[10px] text-zinc-500">♥ {c.likesCount ?? 0} votos</span>
                     </div>
                   </div>
                 ))}

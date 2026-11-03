@@ -94,7 +94,16 @@ export const StreamingAvailabilityEditor: React.FC<StreamingAvailabilityEditorPr
     loading: catalogLoading,
     error: catalogError,
   } = useStreamingCatalog();
-  const { datos, cargando, error: loadError } = useStreamingAvailability(animeId);
+  // No se consulta hasta que el apartado está abierto. El editor
+  // del anime se abre para cambiar el título muchas veces; leer
+  // todas las regiones de la obra en ese momento era un gasto que
+  // no hacía falta.
+  const [abierto, setAbierto] = useState(false);
+  const { datos, cargando, error: loadError } = useStreamingAvailability(
+    animeId,
+    undefined,
+    abierto,
+  );
 
   const [platformId, setPlatformId] = useState('');
   const [region, setRegion] = useState(REGION_POR_DEFECTO);
@@ -253,7 +262,11 @@ export const StreamingAvailabilityEditor: React.FC<StreamingAvailabilityEditorPr
     setFormError('');
     setOkMessage('');
     try {
-      await eliminarDisponibilidad(id);
+      const fila = datos.find((row) => row.id === id);
+      await eliminarDisponibilidad(
+        id,
+        fila ? { animeId, region: fila.region } : undefined,
+      );
       setOkMessage('Disponibilidad eliminada.');
       setConfirmDeleteId(null);
       if (editingId === id) limpiarFormulario();
@@ -321,8 +334,9 @@ export const StreamingAvailabilityEditor: React.FC<StreamingAvailabilityEditorPr
 
   return (
     <CollapsibleSection
-      title={`Disponibilidad regional (${datos.length})`}
+      title={abierto ? `Disponibilidad regional (${datos.length})` : 'Disponibilidad regional'}
       icon={<Globe2 size={12} />}
+      onOpenChange={setAbierto}
     >
       <p className="text-[10px] leading-relaxed text-zinc-500">
         Cada fila relaciona esta obra con una plataforma y un país. Solo las filas con estado

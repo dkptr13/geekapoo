@@ -23,6 +23,10 @@ import {
 
 import { useAuth } from '../../context/AuthContext';
 import { useCommunity } from '../../context/CommunityContext';
+import {
+  cargarIndiceBusqueda,
+  type IndiceBusqueda,
+} from '../../services/searchIndex';
 import { uploadCommunityImage } from '../../services/imageUpload';
 import { cargarImagen } from '../../services/imageCanvas';
 import { dimsValidas, type ImageDims } from '../../utils/imagenes';
@@ -117,9 +121,21 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
 }) => {
   const { currentUser, requireAuth } = useAuth();
   const { animes, characters, ensureCatalogData } = useCommunity();
+  const [indice, setIndice] = useState<IndiceBusqueda | null>(null);
 
   useEffect(() => {
-    ensureCatalogData();
+    // El editor solo necesita la lista de series y los nombres e
+    // imágenes de los personajes. Eso está en el índice estático; la
+    // carga completa queda como red de seguridad.
+    let activo = true;
+    void cargarIndiceBusqueda().then((datos) => {
+      if (!activo) return;
+      if (datos) setIndice(datos);
+      else ensureCatalogData();
+    });
+    return () => {
+      activo = false;
+    };
   }, [ensureCatalogData]);
 
   const [draft, setDraft] = useState<EditorDraft>(() => ({
@@ -328,12 +344,16 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
   const [pestana, setPestana] = useState<'personajes' | 'anime' | 'subir'>('personajes');
   const [busqueda, setBusqueda] = useState('');
 
-  const catalogoPersonajes = useMemo(() => Object.values(characters).flat(), [characters]);
+  const catalogoPersonajes = useMemo(
+    () => (indice ? indice.characters : Object.values(characters).flat()),
+    [indice, characters],
+  );
 
   const resultados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     if (pestana === 'anime') {
-      return animes
+      const fuente = indice ? indice.animes : animes;
+      return fuente
         .filter((a) => !q || a.title.toLowerCase().includes(q))
         .slice(0, 30)
         .map((a) => ({ id: `anime:${a.id}`, nombre: a.title, imagen: a.coverUrl }));
@@ -342,7 +362,7 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
       .filter((p) => !q || p.name.toLowerCase().includes(q))
       .slice(0, 30)
       .map((p) => ({ id: `character:${p.id}`, nombre: p.name, imagen: p.imageUrl }));
-  }, [pestana, busqueda, animes, catalogoPersonajes]);
+  }, [pestana, busqueda, animes, catalogoPersonajes, indice]);
 
   const anadirDelCatalogo = (refId: string, nombre: string, imagen: string) => {
     const [kind, id] = refId.split(':');

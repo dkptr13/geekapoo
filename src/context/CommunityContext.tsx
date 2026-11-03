@@ -65,6 +65,7 @@ import { useAuth } from './AuthContext';
 // ======================================================
 
 export type CommentTarget = 'thread' | 'anime' | 'episode' | 'character';
+export type AnimeDataKind = 'seasons' | 'episodes' | 'characters';
 
 export interface CommunityContextType {
   /** Página reciente del feed, ampliable con `loadMoreThreads`. */
@@ -89,8 +90,12 @@ export interface CommunityContextType {
   ensureCatalogData: () => void;
   /** Carga el catálogo completo de series (la portada solo trae unas pocas). */
   ensureAnimeList: () => void;
-  /** Carga solo los episodios, personajes y temporadas de una serie. */
-  ensureAnimeData: (animeId: string) => void;
+  /**
+   * Carga solo lo que se pide de una serie. Sin `kinds`, carga las
+   * tres cosas (compatibilidad). La ficha pide temporadas al abrir
+   * y episodios/personajes al entrar en su pestaña.
+   */
+  ensureAnimeData: (animeId: string, kinds?: AnimeDataKind[]) => void;
   /** `true` cuando ya están cargados todos los episodios y personajes. */
   catalogComplete: boolean;
 
@@ -386,7 +391,9 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // doble toque lance dos transacciones contrarias a la vez.
   const likesPendientes = useRef(new Set<string>());
   const cargarCatalogoRef = useRef<() => void>(() => undefined);
-  const cargarAnimeRef = useRef<(animeId: string) => void>(() => undefined);
+  const cargarAnimeRef = useRef<(animeId: string, kinds?: AnimeDataKind[]) => void>(
+    () => undefined,
+  );
   const cargarListaAnimesRef = useRef<() => void>(() => undefined);
   const cargarTodosHilosRef = useRef<(force?: boolean) => void>(() => undefined);
   const threadCursorRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
@@ -558,14 +565,16 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
     cargarCatalogoRef.current = cargarCatalogo;
 
-    const animesPedidos = new Set<string>();
-    const cargarAnime = (animeId: string) => {
-      if (!animeId || catalogoPedido || animesPedidos.has(animeId)) return;
-      animesPedidos.add(animeId);
+    const cargarAnime = (
+      animeId: string,
+      kinds: AnimeDataKind[] = ['seasons', 'episodes', 'characters'],
+    ) => {
+      if (!animeId) return;
 
       const seasonKey = `community:seasons:${animeId}`;
       const characterKey = `community:characters:${animeId}`;
       const episodeKey = `community:episodes:${animeId}`;
+      const pedir = new Set(kinds);
 
       const cargarTemporadas = (force = false) => {
         void leerColeccionDeAnime<Season>('seasons', seasonKey, animeId, force)
@@ -598,12 +607,22 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           .catch((e: Error) => mostrarError('episodios', e));
       };
 
-      recargas.set(seasonKey, cargarTemporadas);
-      recargas.set(characterKey, cargarPersonajes);
-      recargas.set(episodeKey, cargarEpisodios);
-      cargarTemporadas();
-      cargarPersonajes();
-      cargarEpisodios();
+      // Las claves de recarga se registran siempre que se pide ese
+      // tipo, para que una edición del panel refresque justo lo que
+      // está en pantalla. `cachedRead` deduplica y sirve de caché si
+      // la misma pestaña vuelve a pedirlo.
+      if (pedir.has('seasons')) {
+        recargas.set(seasonKey, cargarTemporadas);
+        cargarTemporadas();
+      }
+      if (pedir.has('characters')) {
+        recargas.set(characterKey, cargarPersonajes);
+        cargarPersonajes();
+      }
+      if (pedir.has('episodes')) {
+        recargas.set(episodeKey, cargarEpisodios);
+        cargarEpisodios();
+      }
     };
     cargarAnimeRef.current = cargarAnime;
 
@@ -701,8 +720,8 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     cargarListaAnimesRef.current();
   }, []);
 
-  const ensureAnimeData = useCallback((animeId: string) => {
-    cargarAnimeRef.current(animeId);
+  const ensureAnimeData = useCallback((animeId: string, kinds?: AnimeDataKind[]) => {
+    cargarAnimeRef.current(animeId, kinds);
   }, []);
 
   const ensureAllThreads = useCallback(() => {
