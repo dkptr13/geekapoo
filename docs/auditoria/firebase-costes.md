@@ -323,8 +323,9 @@ La atribución se ha hecho por forma de consulta, media de lecturas por ejecuci�
 - **Panel de administración**
   - `useAdminCatalog(activeSection)` carga solo las colecciones de la pestaña activa.
   - Los contadores de las pestañas usan `getCountFromServer`, no descargas completas.
-  - Los episodios/personajes de una serie se piden al desplegar su editor, con la caché pública de `CommunityContext`.
-  - La sección Animes sigue cargando animes y temporadas; no carga episodios ni personajes completos.
+  - Los episodios/personajes/temporadas de una serie se piden al desplegar su editor, con la caché pública de `CommunityContext`.
+  - La sección Animes carga solo animes y categorías. El filtro «Con temporadas» y su orden usan `seasonsCount`, un contador desnormalizado en el anime; ya no se descargan las 481 temporadas.
+  - `createSeason` incrementa `seasonsCount`; `deleteSeasonCascade` lo decrementa; `createAnime` nace con 0. `scripts/actualizar-seasons-count.mjs` rellenó los 195 animes existentes (481 temporadas contadas) sin tocar otros campos.
 - **Streaming**
   - `guardarDisponibilidad` invalida solo `streaming:availability:<animeId>:all` y `:<region>`.
   - `eliminarDisponibilidad` lee la fila (o recibe el contexto) e invalida las mismas claves exactas.
@@ -387,7 +388,7 @@ Mediciones con `firestoreDiagnostics` (estimación del SDK, **no facturación**)
 | Filtro de categoría + Episodios, primer bloque | 685 (624 filtrados + 61 página) | **242** (181 + 61) | 443 |
 | Volver al mismo filtro tras recarga | Se repetía la consulta del bloque | **0** | 181 por bloque |
 | Página de personajes, 60 → 120 tras recarga | 61 + 61 | **0 + 61** | 61 por revisita |
-| Panel de administración | 8.549 eps + 4.935 personajes + 481 temporadas + 195 animes + usuarios/hilos/tickets | Solo sección activa + agregaciones | **≥13.484 documentos** que ya no se descargan |
+| Panel de administración | 8.549 eps + 4.935 personajes + 481 temporadas + 195 animes + usuarios/hilos/tickets | Solo sección activa + agregaciones | **≥13.965 documentos** que ya no se descargan |
 | Fallback si falta el índice | — | 13.975 y resultados correctos | Se conserva la red de seguridad |
 
 El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip** y **~0,91 MiB brotli**. En producción Vercel sirvió una transferencia de ~1,28 MB para `indice.json?v=8833b10…`.
@@ -397,6 +398,7 @@ El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip**
 - `npm run lint`: correcto.
 - `npm run test:logica`: todas las suites correctas, incluida `tests/logica.cache.ts` con la prueba de `patchCached`.
 - `npm run build`: correcto (sitemap, índice y 195 páginas de anime).
+- Backfill `seasonsCount`: simulación y escritura sobre 195 animes y 481 temporadas; verificado en `ataque-a-los-titanes` (7), `one-piece` (22) y `nana` (1).
 - Navegador de desarrollo:
   - Búsqueda por «Ataque a los Titanes», «Shingeki no Kyojin» y «Shingeki no Kyoujin».
   - Búsqueda de «Eren», «Frieren» y «Kaguya».
@@ -459,7 +461,7 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
 2. Probar el panel autenticado: abrir Animes, editar un anime sin tocar streaming, desplegar disponibilidad, guardar/borrar y comprobar invalidación.
 3. Frescura del índice: se regenera en cada build; una edición del panel se refleja en el buscador en el siguiente despliegue y un navegador puede tardar hasta 1 h en verlo. Para actualización instantánea sin desplegar haría falta un índice en Firestore mantenido por Cloud Functions (1 lectura + 1 escritura por edición), no implementado para no añadir escrituras ni reglas.
 4. Las páginas, contadores y filtros montados ya escuchan la invalidación y se recargan; las fichas ya lo hacían y los likes parchean la caché en sitio. No se pretende actualización en tiempo real entre pestañas/usuarios: el resto de navegadores ve el cambio al caducar su TTL.
-5. El panel sigue cargando todas las temporadas y animes de la pestaña Animes; se podría reducir con un `seasonsCount` en el anime y carga por serie.
+5. El panel ya no carga todas las temporadas: usa `seasonsCount` y pide las de cada serie al abrir su editor. Los scripts de importación masiva deben rellenar `seasonsCount` o ejecutar `npm run datos:seasons-count -- --escribir` después.
 6. El índice de búsqueda es un solo archivo de ~0,9 MiB comprimido; si el tráfico crece, conviene dividirlo por tipo y cargarlo bajo demanda.
 7. Las descripciones del índice se recortan a 160 caracteres (episodios) y 240 (personajes) para no disparar el tamaño. La búsqueda por título, japonés, romaji, alias y la mayor parte de la descripción sigue funcionando; una palabra al final de una descripción muy larga podría no encontrarse.
 8. `GlobalSearch.tsx` no está montado; la búsqueda activa es `AnimeWiki` + `CatalogSearch`. Se adaptó al índice por si se vuelve a montar.

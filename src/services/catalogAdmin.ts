@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   query,
   serverTimestamp,
   setDoc,
@@ -253,6 +254,9 @@ export async function createAnime(input: NewAnimeInput): Promise<string> {
     // omitirlos, para que la wiki no tenga que comprobar si existen.
     rating: 0,
     episodesCount: 0,
+    // El panel usa este contador para el filtro "Con temporadas"
+    // sin descargar toda la colección `seasons`.
+    seasonsCount: 0,
     streaming: [],
     likesCount: 0,
     likedBy: [],
@@ -455,7 +459,17 @@ export async function createSeason(input: NewSeasonInput): Promise<string> {
     createdAt: serverTimestamp(),
   });
 
-  invalidarCatalogo('seasons');
+  // Contador desnormalizado para que la lista del panel no tenga
+  // que leer las 481 temporadas solo para filtrar por "tiene
+  // temporadas". `increment` es atómico y funciona aunque el campo
+  // no existiera.
+  await setDoc(
+    doc(db, 'animes', animeId),
+    { seasonsCount: increment(1) },
+    { merge: true },
+  );
+
+  invalidarCatalogo('seasons', 'animes');
   return id;
 }
 
@@ -763,6 +777,11 @@ export async function deleteAnimeCascade(animeId: string): Promise<{
 export async function deleteSeasonCascade(
   seasonId: string,
 ): Promise<{ episodes: number; characters: number }> {
+  const seasonSnap = await getDoc(doc(db, 'seasons', seasonId));
+  const animeId = typeof seasonSnap.data()?.animeId === 'string'
+    ? String(seasonSnap.data()?.animeId)
+    : '';
+
   const [episodeSnap, charactersNew, charactersLegacy] = await Promise.all([
     getDocs(query(collection(db, 'episodes'), where('seasonId', '==', seasonId))),
     getDocs(query(collection(db, 'characters'), where('seasonIds', 'array-contains', seasonId))),
@@ -797,7 +816,18 @@ export async function deleteSeasonCascade(
   );
 
   await batch.commit();
-  invalidarCatalogo('seasons', 'episodes', 'characters');
+
+  if (animeId) {
+    const animeRef = doc(db, 'animes', animeId);
+    const animeSnap = await getDoc(animeRef);
+    if (animeSnap.exists()) {
+      const actual = Number(animeSnap.data()?.seasonsCount);
+      const siguiente = Number.isFinite(actual) && actual > 0 ? actual - 1 : 0;
+      await updateDoc(animeRef, { seasonsCount: siguiente });
+    }
+  }
+
+  invalidarCatalogo('seasons', 'episodes', 'characters', 'animes');
 
   return { episodes: episodeDocs.length, characters: personajes.length };
 }

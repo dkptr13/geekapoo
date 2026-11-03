@@ -525,7 +525,6 @@ export function AdminPanel() {
         ) : activeSection === 'animes' ? (
           <AnimesSection
             animes={catalog.animes}
-            seasons={catalog.seasons}
             categories={catalog.categories}
             provider={provider}
           />

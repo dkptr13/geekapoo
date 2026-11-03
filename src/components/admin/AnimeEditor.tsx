@@ -186,23 +186,22 @@ interface FieldErrors {
 
 interface AnimeEditorProps {
   anime: AnimeDoc;
-  seasons: SeasonDoc[];
   provider: UploadProvider;
 }
 
 export const AnimeEditor: FC<AnimeEditorProps> = ({
   anime,
-  seasons,
   provider,
 }) => {
   const [open, setOpen] = useState(false);
 
-  // Los episodios y personajes de ESTA serie se piden al desplegar
-  // el editor, no se reciben del panel como listas completas. La
-  // consulta es `animeId ==` y pasa por la caché compartida de
-  // CommunityContext (30 min, IndexedDB), así que abrir el mismo
-  // anime otra vez no vuelve a leerlos.
+  // Las temporadas, episodios y personajes de ESTA serie se piden al
+  // desplegar el editor, no se reciben del panel como listas
+  // completas. La consulta es `animeId ==` y pasa por la caché
+  // compartida de CommunityContext (30 min, IndexedDB), así que abrir
+  // el mismo anime otra vez no vuelve a leerlos.
   const {
+    seasons: temporadas,
     episodes: episodiosPorAnime,
     characters: personajesPorAnime,
     ensureAnimeData,
@@ -210,12 +209,16 @@ export const AnimeEditor: FC<AnimeEditorProps> = ({
 
   useEffect(() => {
     if (!open) return;
-    ensureAnimeData(anime.id, ['episodes', 'characters']);
+    ensureAnimeData(anime.id, ['seasons', 'episodes', 'characters']);
   }, [open, anime.id, ensureAnimeData]);
 
-  // Los tipos de CommunityContext son los públicos (`Episode`,
-  // `Character`); el editor trabaja con documentos en crudo. El
-  // contenido es el mismo, solo cambia el envoltorio de tipos.
+  // Los tipos de CommunityContext son los públicos (`Season`,
+  // `Episode`, `Character`); el editor trabaja con documentos en
+  // crudo. El contenido es el mismo, solo cambia el envoltorio.
+  const seasons = useMemo(
+    () => temporadas.filter((s) => s.animeId === anime.id) as unknown as SeasonDoc[],
+    [temporadas, anime.id],
+  );
   const episodes = (episodiosPorAnime[anime.id] ?? []) as unknown as EpisodeDoc[];
   const characters = (personajesPorAnime[anime.id] ?? []) as unknown as CharacterDoc[];
   const cargandoContenido =

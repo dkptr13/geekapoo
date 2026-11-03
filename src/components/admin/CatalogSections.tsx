@@ -12,7 +12,7 @@ import type { UploadProvider } from '../../services/imageUpload';
 import { ALL_ANIME_CATEGORIES, normalize } from '../../data/animeCategories';
 import { estadoCorto } from '../../utils/seasonData';
 
-import { AnimeEditor, type AnimeDoc, type SeasonDoc } from './AnimeEditor';
+import { AnimeEditor, type AnimeDoc } from './AnimeEditor';
 import { ImageUploader } from './ImageUploader';
 import { ImagePicker } from './ImagePicker';
 import { TextField, TextArea, SelectField, NumberField, MultiSelectField, FocalField } from './fields';
@@ -77,10 +77,9 @@ export const categoriasDe = (a: RawDoc | { category?: unknown; categories?: unkn
 
 export const AnimesSection: FC<{
   animes: RawDoc[];
-  seasons: RawDoc[];
   categories: RawDoc[];
   provider: UploadProvider;
-}> = ({ animes, seasons, categories, provider }) => {
+}> = ({ animes, categories, provider }) => {
   const [showNew, setShowNew] = useState(false);
 
   // El desplegable del filtro se arma con la lista canónica de
@@ -132,11 +131,10 @@ export const AnimesSection: FC<{
 
   // Cuántas temporadas y cuántos episodios tiene cada anime, para
   // filtrar y ordenar sin recalcularlo por cada fila.
-  // Los contadores salen del propio anime (`episodesCount`) y de sus
-  // temporadas. Antes esto se calculaba descargando TODOS los
-  // episodios y personajes del proyecto solo para pintar el número
-  // de cada fila. `charactersCount` es opcional: los documentos
-  // antiguos no lo tienen y se quedan en 0 sin romper el filtro.
+  // Los contadores salen del propio anime: `episodesCount` y
+  // `seasonsCount`. Antes esto descargaba TODOS los episodios,
+  // personajes y temporadas del proyecto solo para pintar la lista
+  // y sus filtros.
   const stats = useMemo(() => {
     const map = new Map<string, { seasons: number; episodes: number }>();
     const numero = (v: unknown): number =>
@@ -144,16 +142,12 @@ export const AnimesSection: FC<{
 
     animes.forEach((a) =>
       map.set(a.id, {
-        seasons: 0,
+        seasons: numero(a.seasonsCount),
         episodes: numero(a.episodesCount),
       }),
     );
-    seasons.forEach((s) => {
-      const row = map.get(asStr(s.animeId));
-      if (row) row.seasons += 1;
-    });
     return map;
-  }, [animes, seasons]);
+  }, [animes]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -340,17 +334,13 @@ export const AnimesSection: FC<{
         </p>
       ) : (
         <div className="space-y-2">
-          {filtered.map((anime) => {
-            const animeSeasons = seasons.filter((s) => asStr(s.animeId) === anime.id);
-            return (
-              <AnimeEditor
-                key={anime.id}
-                anime={anime as AnimeDoc}
-                seasons={animeSeasons as SeasonDoc[]}
-                provider={provider}
-              />
-            );
-          })}
+          {filtered.map((anime) => (
+            <AnimeEditor
+              key={anime.id}
+              anime={anime as AnimeDoc}
+              provider={provider}
+            />
+          ))}
         </div>
       )}
     </div>

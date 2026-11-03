@@ -118,7 +118,9 @@ const SECTION_BY_CACHE_KEY: Record<string, ListenedSection> = {
  * una serie se piden al desplegar su editor.
  */
 const SECTION_DEPS: Record<AdminSection, ListenedSection[]> = {
-  animes: ['animes', 'seasons', 'categories'],
+  // Las temporadas ya no se descargan enteras: el anime guarda
+  // `seasonsCount` y el editor pide las suyas al abrirse.
+  animes: ['animes', 'categories'],
   seasons: ['seasons'],
   characters: ['characters'],
   episodes: ['episodes'],
