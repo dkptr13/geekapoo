@@ -1,0 +1,37 @@
+// ETIQUETAS - Fairy Tail
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+
+export const TAGS = {
+  'Lucy Heartfilia': ['Protagonista', 'Maga celestial', 'Valentía'],
+  'Natsu Dragneel': ['Protagonista', 'Fuego', 'Lealtad'],
+  'Happy': ['Gato', 'Vuelo', 'Humor'],
+  'Gray Fullbuster': ['Hielo', 'Rival', 'Pilar'],
+  'Erza Scarlet': ['Reequipamiento', 'Fuerza', 'Liderazgo'],
+  'Wendy Marvell': ['Cielo', 'Sanación', 'Crecimiento'],
+  'Carla': ['Gata', 'Vuelo', 'Protectora'],
+  'Juvia Lockser': ['Agua', 'Amor', 'Drama'],
+  'Gajeel Redfox': ['Hierro', 'Rival', 'Lealtad'],
+  'Mirajane Strauss': ['Demonio', 'Hermana', 'Poder'],
+  'Makarov Dreyar': ['Maestro', 'Familia', 'Autoridad'],
+  'Cana Alberona': ['Cartas', 'Hija', 'Búsqueda'],
+  'Elfman Strauss': ['Transformación', 'Hermano', 'Protección'],
+  'Laxus Dreyar': ['Rayos', 'Nieto', 'Orgullo'],
+  'Loke': ['Espíritu', 'León', 'Lealtad'],
+  'Mystogan': ['Misterio', 'Máscara', 'Edolas'],
+  'Jellal Fernandes': ['Antiguo rival', 'Culpa', 'Amor'],
+  'Ultear Milkovich': ['Tiempo', 'Redención', 'Maga'],
+  'Lyon Vastia': ['Hielo', 'Rival', 'Hermano'],
+  'Levy McGarden': ['Letras', 'Inteligencia', 'Equipo'],
+  'Gildarts Clive': ['Fuerza', 'Padre', 'Ejemplo'],
+  'Bickslow': ['Muñecos', 'Almas', 'Lealtad'],
+  'Freed Justine': ['Runas', 'Barreras', 'Lealtad'],
+  'Evergreen': ['Hadas', 'Vanidad', 'Poder'],
+  'Lisanna Strauss': ['Hermana', 'Edolas', 'Familia'],
+  'Romeo Conbolt': ['Hijo', 'Admiración', 'Futuro'],
+  'Porlyusica': ['Sanadora', 'Sabiduría', 'Gruñona'],
+  'Pantherlily': ['Exceed', 'Guerrero', 'Lealtad'],
+  'Zeref': ['Villano', 'Mago negro', 'Maldición'],
+  'Igneel': ['Dragón', 'Padre', 'Fuego'],
+  'Hades': ['Villano', 'Grimoire Heart', 'Pasado'],
+};
