@@ -290,9 +290,9 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 ## 11. Despliegue
 
 La primera tanda (índices, Functions y frontend) fue desplegada por el usuario.  
-La segunda fase se publicó el 2026-11-03 en `main` con los commits `b188129` (navegación de notificaciones) y `8833b10` (optimización de Firestore). Vercel sirvió el bundle `assets/index-ByPlMq0T.js` y `/busqueda/indice.json?v=8833b10…` respondió 200. Es **solo frontend**: no se desplegaron reglas, índices ni Functions nuevas.
+La segunda fase se publicó el 2026-11-03 en `main` con los commits `b188129` (navegación de notificaciones), `8833b10` (optimización de Firestore), `163413d` (likes de catálogo en la wiki) y `2bd3161` (este documento). Vercel sirvió el bundle `assets/index-CjAiLObR.js` y `/busqueda/indice.json?v=8833b10…` respondió 200. No se desplegaron índices ni Functions nuevas; las reglas de Firestore actualizadas se publicaron aparte con `firebase deploy --only firestore:rules`.
 
-No se desplegaron automáticamente los cambios de likes de catálogo ni las reglas que siguen sin commit; ver sección 12.9.
+El detalle de qué se publicó y qué queda pendiente está en la sección 12.9.
 
 ## 12. Segunda fase: episodios, personajes, streaming y búsqueda (2026-11-03)
 
@@ -402,7 +402,7 @@ El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip**
   - Paginación 60 → 120 en episodios y personajes.
   - Fallback renombrando el índice.
 - Producción (2026-11-03):
-  - Bundle `assets/index-ByPlMq0T.js`.
+  - Bundle `assets/index-CjAiLObR.js` (incluye el commit de likes `163413d`).
   - `/busqueda/indice.json?v=8833b10…` → 200.
   - IndexedDB contiene `public:search:index:v1`.
   - Búsqueda correcta y sin errores de consola.
@@ -440,18 +440,16 @@ Con la tarifa estándar de referencia de Firestore Native de **0,06 USD por 100.
 
 Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota, picos, latencia y riesgo de agotar límites. El ahorro real de facturación no se puede medir hasta consultar Billing/Query Insights tras un periodo equivalente.
 
-### 12.9 Estado de despliegue y cambios no incluidos
+### 12.9 Estado de despliegue
 
 - Publicado en `main` el 2026-11-03:
   - `b188129` — navegación estable de notificaciones y hueco reservado para imágenes.
   - `8833b10` — optimización de Firestore (esta fase).
-- Producción sirve `assets/index-ByPlMq0T.js`; `/busqueda/indice.json` responde 200.
-- No se desplegaron reglas, índices ni Functions nuevas.
-- Quedan sin commit y fuera de este despliegue:
-  - `firestore.rules` y `tests/firestore.likes.rules.test.cjs`.
-  - Los likes de catálogo en `src/context/CommunityContext.tsx`.
-  - `scripts/datos/*` y `scripts/importar-disponibilidad-justwatch.mjs`.
-  - `public/sitemap.xml` (regenerado por el build).
+  - `163413d` — likes de catálogo en la wiki (autor: Oscar).
+  - `2bd3161` — este documento.
+- Producción sirve `assets/index-CjAiLObR.js`; `/busqueda/indice.json?v=8833b10…` responde 200.
+- Reglas de Firestore del commit `163413d` publicadas con `firebase deploy --only firestore:rules`. El CLI compiló `firestore.deploy.rules` (155.214 bytes), indicó que la última versión ya estaba al día y liberó el ruleset. No se desplegaron índices ni Functions nuevas.
+- El árbol de trabajo quedó limpio: `firestore.rules`, `tests/firestore.likes.rules.test.cjs`, los likes de `CommunityContext`, `scripts/datos/*`, `scripts/importar-disponibilidad-justwatch.mjs` y `public/sitemap.xml` quedaron incluidos en `163413d`.
 
 ### 12.10 Pendientes de la segunda fase
 
