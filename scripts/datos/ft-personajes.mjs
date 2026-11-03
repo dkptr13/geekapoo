@@ -122,4 +122,79 @@ export const PERSONAJES = [
 
   ['Orga Nanagear', '', 'supporting', 'オルガ・ナナギア', 'Masafumi Kimura',
    'Mago de Sabertooth conocido como el Dios del Trueno. Su magia eléctrica y su fuerza lo hacen temible.'],
+
+  ['Minerva Orland', '', 'antagonist', 'ミネルバ・オーランド', 'Kikuko Inoue',
+   'Maestra de Sabertooth. Fría, orgullosa y brutal; su magia espacial la convierte en una rival temible.'],
+
+  ['Yukino Aguria', '', 'supporting', 'ユキノ・アグリア', 'Fuyuka Ooura',
+   'Maga celestial de Sabertooth. Amable y leal, sus espíritus la ayudan en combate.'],
+
+  ['Kagura Mikazuchi', '', 'supporting', 'カグラ・ミカヅチ', 'Saori Hayami',
+   'Espadachina de Mermaid Heel. Busca vengar a su hermano y su fuerza con la espada es enorme.'],
+
+  ['Chelia Blendy', '', 'supporting', 'シェリア・ブレンディ', 'Yuka Iguchi',
+   'Maga del cielo de Lamia Scale. Alegre y optimista, es amiga de Wendy y rival en el torneo.'],
+
+  ['Hisui E. Fiore', '', 'supporting', 'ヒスイ・E・フィオーレ', 'Suzuko Mimori',
+   'Princesa del Reino de Fiore. Intenta proteger su país y toma decisiones difíciles durante la guerra.'],
+
+  ['Zera', '', 'supporting', 'ゼーラ', 'Kana Hanazawa',
+   'Personaje de Fairy Tail Zero. Su existencia y su vínculo con Mavis explican el origen del gremio.'],
+
+  ['Yuri Dreyar', '', 'supporting', 'ユーリ・ドレアー', 'Katsuyuki Konishi',
+   'Padre de Makarov y uno de los fundadores de Fairy Tail. Aventurero y testarudo, busca su propio camino.'],
+
+  ['Warrod Sequen', '', 'supporting', 'ウォーロッド・シーケン', 'Hiroshi Shirokuma',
+   'Uno de los fundadores de Fairy Tail y miembro de los Cuatro Dioses de Ishgar. Su magia de árboles es colosal.'],
+
+  ['Brandish', '', 'antagonist', 'ブランディッシュ', 'Manami Numakura',
+   'Miembro de los Spriggan 12. Su magia de tamaño puede encoger o agrandar cualquier cosa, incluso órganos.'],
+
+  ['Irene Belserion', '', 'antagonist', 'アイリーン・ベルせリオン', 'Takako Honda',
+   'La reina de los dragones y miembro de los Spriggan. Su magia y su pasado con Erza la hacen letal.'],
+
+  ['August', '', 'antagonist', 'オーガスト', 'Yoshito Yasuhara',
+   'El rey de la magia y miembro de los Spriggan. Domina tantos tipos de magia que parece invencible.'],
+
+  ['Dimaria Yesta', '', 'antagonist', 'ディマリア・イエスタ', 'Natsumi Fujiwara',
+   'Spriggan con magia de tiempo. Puede detener el tiempo y atacar sin que nadie pueda responder.'],
+
+  ['Ajeel Ramal', '', 'antagonist', 'アジィール・ラムル', 'Hiromichi Tezuka',
+   'Spriggan con magia de arena. Su desierto puede tragar ciudades enteras.'],
+
+  ['Wahl Icht', '', 'antagonist', 'ワール・イーヒト', 'You Kitazawa',
+   'Spriggan con magia de máquinas. Su cuerpo y sus armas están diseñados para explotar las debilidades del rival.'],
+
+  ['Larcade Dragneel', '', 'antagonist', 'ラーケイド・ドラグニル', 'Kenshou Ono',
+   'Spriggan con magia de placer. Su poder afecta a los instintos y a la voluntad de sus enemigos.'],
+
+  ['Jacob Lessio', '', 'antagonist', 'ジェイコブ・レッシオ', 'Makoto Tamura',
+   'Spriggan y asesino. Su magia puede borrar objetos y personas de la existencia.'],
+
+  ['God Serena', '', 'antagonist', 'ゴッドセレナ', 'Kazuyuki Okitsu',
+   'El mago más fuerte de Ishgar y miembro de los Spriggan. Domina varias magias de dragón.'],
+
+  ['Bloodman', '', 'antagonist', 'ブラッドマン', 'Kenichirou Matsuda',
+   'Spriggan con partículas malditas. Su cuerpo es un arma biológica que mata por contacto.'],
+
+  ['Neinhart', '', 'antagonist', 'ナインハルト', 'Kousuke Oonishi',
+   'Spriggan con magia de historia. Puede materializar a los muertos y usar los recuerdos de sus rivales.'],
+
+  ['Kyouka', '', 'antagonist', 'キョウカ)', 'Ai Kayano',
+   'Demonio de Tartaros. Su magia de maldición y su sadismo la convierten en una enemiga brutal.'],
+
+  ['Keyes', '', 'antagonist', 'キース', 'Jouji Nakata',
+   'Necromante de Tartaros. Controla cadáveres y experimenta con la muerte.'],
+
+  ['Ezel', '', 'antagonist', 'エゼル', 'Hiroshi Tsuchida',
+   'Demonio de Tartaros con magia de madera. Su cuerpo y sus ataques son tan duros como un árbol.'],
+
+  ['Meredy', '', 'supporting', 'メルディ', 'Saori Gotou',
+   'Miembro de Crime Sorcière. Su magia de vínculo sensorial le permite compartir dolor y emociones.'],
+
+  ['Cobra', '', 'supporting', 'コブラ', 'Atsushi Imaruoka',
+   'Miembro de Crime Sorcière y antiguo asesino. Su magia de veneno y su oído le permiten anticipar ataques.'],
+
+  ['Jura Neekis', '', 'supporting', 'ジュラ・ネェキス', 'Yutaka Aoyama',
+   'Uno de los Diez Magos Santos de Ishgar. Su magia de tierra y su experiencia lo convierten en un aliado sólido.'],
 ];
