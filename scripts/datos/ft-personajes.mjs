@@ -2,8 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la serie. Nombres, kanji y voces vienen de AniList
-// (6702). Los resumenes son propios, en castellano.
+// '' = sale en toda la serie. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Lucy Heartfilia', '', 'main', 'ルーシィ・ハートフィリア', 'Aya Hirano',
@@ -98,4 +98,28 @@ export const PERSONAJES = [
 
   ['Hades', '', 'antagonist', 'ハデス', 'Masashi Hirose',
    'Fundador de Grimoire Heart y antiguo maestro de Fairy Tail. Busca el poder de Zeref.'],
+
+  ['Mavis Vermillion', '', 'supporting', 'メイビス・ヴァーミリオン', 'Mamiko Noto',
+   'La fundadora de Fairy Tail. Su inteligencia y su magia la convierten en una figura clave del gremio y de la historia de Zeref.'],
+
+  ['Acnologia', '', 'antagonist', 'アクノロギア', 'Kousuke Toriumi',
+   'El Rey Dragón de la Apocalipsis. Un dragón que odia a los humanos y a los dragones, y el enemigo final de la serie.'],
+
+  ['Sting Eucliffe', '', 'supporting', 'スティング・ユークリフ', 'Takahiro Sakurai',
+   'Capitán de Sabertooth y dragón blanco. Rival de Natsu que aprende el verdadero significado de un gremio.'],
+
+  ['Rogue Cheney', '', 'supporting', 'ローグ・チェーニ', 'Kenichi Suzumura',
+   'Dragón de sombras de Sabertooth. Compañero de Sting y hermano de Frosch, con un futuro oscuro que intenta evitar.'],
+
+  ['Frosch', '', 'supporting', 'フロッシュ', 'Satomi Koorogi',
+   'Exceed de Rogue. Pequeño, tierno y inseparable de su compañero; su muerte futura marca a Rogue.'],
+
+  ['Lector', '', 'supporting', 'レクター', 'Akiko Yajima',
+   'Exceed de Sting. Valiente y leal, ayuda a su compañero en los combates de Sabertooth.'],
+
+  ['Rufus Lore', '', 'supporting', 'ルーファス・ロア', 'Tsubasa Yonaga',
+   'Mago de Sabertooth con memoria perfecta. Su magia de recuerdos le permite copiar y borrar ataques.'],
+
+  ['Orga Nanagear', '', 'supporting', 'オルガ・ナナギア', 'Masafumi Kimura',
+   'Mago de Sabertooth conocido como el Dios del Trueno. Su magia eléctrica y su fuerza lo hacen temible.'],
 ];

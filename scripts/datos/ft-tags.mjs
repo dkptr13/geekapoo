@@ -34,4 +34,12 @@ export const TAGS = {
   'Zeref': ['Villano', 'Mago negro', 'Maldición'],
   'Igneel': ['Dragón', 'Padre', 'Fuego'],
   'Hades': ['Villano', 'Grimoire Heart', 'Pasado'],
+  'Mavis Vermillion': ['Fundadora', 'Estrategia', 'Pasado'],
+  'Acnologia': ['Villano', 'Dragón', 'Apocalipsis'],
+  'Sting Eucliffe': ['Sabertooth', 'Dragón blanco', 'Rival'],
+  'Rogue Cheney': ['Sabertooth', 'Sombras', 'Futuro'],
+  'Frosch': ['Exceed', 'Compañero', 'Ternura'],
+  'Lector': ['Exceed', 'Lealtad', 'Valentía'],
+  'Rufus Lore': ['Memoria', 'Sabertooth', 'Elegancia'],
+  'Orga Nanagear': ['Trueno', 'Sabertooth', 'Fuerza'],
 };
