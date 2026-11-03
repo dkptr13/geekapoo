@@ -1,10 +1,12 @@
 # Auditoría y reducción del consumo de Firebase
 
-Fecha: 2026-11-02  
+Fecha: 2026-11-02 (primera fase). Actualizado: 2026-11-03 (segunda fase).  
 Ámbito: cliente React, contextos, servicios, chats, notificaciones, Wiki, perfiles, panel, Cloud Functions, reglas e índices.
 
 > Este documento separa siempre **llamadas al SDK**, **documentos devueltos** y **estimación de lecturas**.
 > No se presentan como facturación real. La factura depende de métricas de Firebase/Google Cloud y de las reglas.
+
+> **Nota de vigencia:** las secciones 1–11 describen la primera fase. La sección 12 documenta la segunda fase y sustituye lo que allí se decía sobre búsqueda con catálogo completo, bloques de 30 series, panel de administración y editor de streaming.
 
 ## 1. Resumen ejecutivo
 
@@ -19,6 +21,7 @@ Se ha eliminado la mayor parte del consumo que se producía al entrar en la web:
 - Se corrigieron dependencias de React que reabrían listeners al cambiar XP, medallas o cualquier dato del perfil.
 - Se eliminó el listener duplicado del documento del usuario en gamificación y los `ProgressionProvider` anidados.
 - Se optimizaron consultas del panel y una lectura duplicada de las Cloud Functions.
+- **Segunda fase (2026-11-03):** la búsqueda usa un índice estático servido desde el propio sitio; los filtros de episodios/personajes se cachean y pagina en bloques de 10 series; el panel carga solo la pestaña activa; el editor de streaming no consulta hasta abrir su apartado; las páginas de 60 y sus contadores usan caché persistente. Ver sección 12.
 
 ## 2. Línea base y mediciones
 
@@ -116,11 +119,11 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 - El histórico completo de hilos se carga solo para perfil, búsqueda, pestaña de hilos, panel o filtros que lo necesitan.
 - El listado completo de series se carga al entrar en la Wiki, el perfil o el panel.
 - Temporadas, episodios y personajes de cada serie se cargan solo al abrir su ficha.
-- `ensureAnimeData(animeId)` carga solo la serie abierta.
+- `ensureAnimeData(animeId, kinds)` carga solo la serie abierta y, desde la segunda fase, solo los tipos que pide la pestaña.
 - Las pestañas globales de episodios y personajes cargan 60 elementos por página y tienen “Cargar más”.
 - Los contadores de esas pestañas se obtienen con agregaciones de Firestore, sin descargar las colecciones.
-- Los filtros de episodios/personajes consultan solo las series que los cumplen, en bloques de hasta 30 `animeId`; ya no descargan las colecciones completas.
-- La búsqueda de texto completo sigue cargando el catálogo completo porque Firestore no ofrece búsqueda por subcadena. Se mantiene en caché persistente durante una hora.
+- Los filtros de episodios/personajes consultan solo las series que los cumplen. En la segunda fase los bloques son de 10 `animeId`, se cachean y se piden de uno en uno.
+- La búsqueda de texto completo **ya no carga el catálogo completo** desde la segunda fase: usa el índice estático de la sección 12. El camino antiguo queda solo como respaldo si el índice no está disponible.
 - La caché se invalida desde las escrituras del panel, incluidas las de una serie concreta.
 - Los comentarios se cargan con `useCommentsForTarget` únicamente al desplegar el objetivo y se limpian al cerrar.
 - El historial anterior del hilo/episodio/personaje se pagina con “Cargar comentarios anteriores”.
@@ -163,7 +166,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 ### Panel y Cloud Functions
 
-- El panel de administración ya no mantiene un listener por colección: carga una vez con caché privada de 2 minutos y recarga solo la sección afectada tras cada escritura.
+- El panel de administración ya no mantiene un listener por colección: carga una vez con caché privada de 2 minutos y recarga solo la sección afectada tras cada escritura. Desde la segunda fase carga **solo la pestaña activa** y pide los contadores con agregaciones; los episodios/personajes de una serie se leen al desplegar su editor.
 - `uniqueSlug` comprueba ids concretos, no descarga la colección.
 - Los borrados en cascada filtran por `animeId` o `seasonId`.
 - `onCommentCreated` reutiliza una sola lectura del destino para validar y resolver el anime.
@@ -280,13 +283,183 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 
 ## 10. Pendientes y siguientes pasos
 
-1. **Búsqueda de texto completo global:** sigue necesitando el catálogo completo porque Firestore no permite buscar subcadenas. Para eliminarla haría falta un índice de búsqueda externo o una migración de tokens con Cloud Functions; no se ha cambiado el comportamiento de búsqueda para no perder resultados.
+1. **Búsqueda de texto completo global:** resuelta en la segunda fase con un índice estático; ver sección 12. Queda como pendiente la actualización instantánea del índice tras una edición del panel sin desplegar.
 2. **Pruebas autenticadas:** chats, clubes, canales, panel de administración, filtros del feed y paginación con datos reales.
-3. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase.
+3. **Medición real:** ejecutar los mismos escenarios con una cuenta de prueba y comparar con las métricas de Firebase/Query Insights.
 
 ## 11. Despliegue
 
-La primera tanda (índices, Functions y frontend) ya fue desplegada por el usuario.  
-Las mejoras posteriores de paginación, canales y caché persistente son **solo frontend**: requieren una nueva publicación en Vercel, sin nuevos índices ni Functions.
+La primera tanda (índices, Functions y frontend) fue desplegada por el usuario.  
+La segunda fase se publicó el 2026-11-03 en `main` con los commits `b188129` (navegación de notificaciones) y `8833b10` (optimización de Firestore). Vercel sirvió el bundle `assets/index-ByPlMq0T.js` y `/busqueda/indice.json?v=8833b10…` respondió 200. Es **solo frontend**: no se desplegaron reglas, índices ni Functions nuevas.
 
-No se ha desplegado nada automáticamente desde este entorno.
+No se desplegaron automáticamente los cambios de likes de catálogo ni las reglas que siguen sin commit; ver sección 12.9.
+
+## 12. Segunda fase: episodios, personajes, streaming y búsqueda (2026-11-03)
+
+### 12.1 Consultas de Query Insights y origen exacto
+
+La atribución se ha hecho por forma de consulta, media de lecturas por ejecución y código. No se dispone de acceso a Firebase Console para leer la huella literal; no se presenta como una lectura directa de Query Insights.
+
+| Consulta | Lecturas / ejecuciones | Media | Origen | Por qué se ejecuta |
+|---|---:|---:|---|---|
+| `/episodes SELECT animeId,...` | 145.734 / 497 | ~293 | `src/hooks/useAnimeCatalogData.ts` | Filtros de la Wiki: `where('animeId','in',...)` para las series que pasan el filtro. Antes, bloques de 30, sin caché y todos a la vez; también al cambiar solo el orden. |
+| `/streamingAvailability WHERE...` | 128.944 / 439 | ~294 | `src/hooks/useStreamingAvailability.ts`, `WhereToWatch.tsx`, `StreamingAvailabilityEditor.tsx` y `scripts/generar-paginas-anime.mjs` | La wiki pide una obra + una región. El editor pide todas las regiones de una obra. El prerender pide todas las filas de España una vez por build. |
+| `/characters PageSize 1000` | 106.494 / 365 | ~292 | `CommunityContext.cargarCatalogo` (`ensureCatalogData`) y `useAdminCatalog.leerSeccionAdmin` | Búsqueda/perfiles descargaban la colección completa; el panel descargaba todas las secciones al abrirse. |
+| `/episodes PageSize 1000` | 100.936 / 340 | ~297 | Los mismos dos caminos | Igual: carga completa para buscar o abrir el panel. |
+| `/characters WHERE role = ?` | 14.688 / 18 | 816 | `scripts/generar-paginas-anime.mjs`, `leerPersonajesPrincipales()` | Prerender de fichas: `consultar('characters','role','main')`. Son 18 builds, no 18 usuarios. |
+| `/animes SELECT slug, title,...` | 4.058 / 21 | ~193 | `scripts/generar-sitemap.mjs` | Sitemap en `prebuild`, una vez por build. |
+| `/animes SELECT id, slug, title,...` | 4.252 / 22 | ~193 | `scripts/generar-paginas-anime.mjs`, `leerAnimes()` | Prerender en `postbuild`, una vez por build. |
+| `/animes PageSize 1000` | 4.114 / 22 | ~187 | `CommunityContext.leerColeccionCached('animes')` / `useAdminCatalog` | Lista completa de series para la Wiki o el panel. |
+
+**Separación:** las consultas `role`, `slug/title` y parte de `streamingAvailability` son de build, no de usuarios. La tabla histórica mezcla ambos tipos; no se deben atribuir todas al código nuevo ni a errores de programación.
+
+### 12.2 Cambios aplicados
+
+- **Episodios y personajes**
+  - `useAnimeCatalogData` usa `cachedRead` (30 min, IndexedDB), bloques de 10 series y carga progresiva con `loadMore`.
+  - Las claves empiezan por `community:episodes` / `community:characters`, así que la invalidación del panel las borra.
+  - La ficha pide temporadas al abrir y episodios/personajes solo al entrar en su pestaña. `ensureAnimeData(animeId, kinds)` permite elegir el tipo.
+  - Los filtros que solo cambian el orden ya no disparan la consulta por anime.
+- **Panel de administración**
+  - `useAdminCatalog(activeSection)` carga solo las colecciones de la pestaña activa.
+  - Los contadores de las pestañas usan `getCountFromServer`, no descargas completas.
+  - Los episodios/personajes de una serie se piden al desplegar su editor, con la caché pública de `CommunityContext`.
+  - La sección Animes sigue cargando animes y temporadas; no carga episodios ni personajes completos.
+- **Streaming**
+  - `guardarDisponibilidad` invalida solo `streaming:availability:<animeId>:all` y `:<region>`.
+  - `eliminarDisponibilidad` lee la fila (o recibe el contexto) e invalida las mismas claves exactas.
+  - `useStreamingAvailability` acepta `enabled`; el editor no consulta hasta desplegar su apartado y solo recarga si coincide su clave exacta.
+- **Búsqueda**
+  - `scripts/generar-indice-busqueda.mjs` genera `public/busqueda/indice.json` en `prebuild` con animes, episodios y personajes (títulos, japonés, romaji, alias, sinopsis/géneros/estudio, descripciones, imágenes, notas y claves).
+  - `src/services/searchIndex.ts` lo lee con `cachedRead` (1 h, IndexedDB) y valida la versión. Si falta o falla, `AnimeWiki` conserva la carga completa anterior como red de seguridad.
+  - `ProfileView`, `TierListEditor` y `GlobalSearch` resuelven títulos/nombres y catálogos con el índice, no con las colecciones completas.
+  - `generar-paginas-anime.mjs` reutiliza el índice para animes, episodios y personajes del prerender; deja de repetir esas lecturas por build.
+- **Páginas y contadores**
+  - `useCatalogPage` cachea la primera página y las siguientes por cursor (5 min, IndexedDB).
+  - `useCollectionCount` cachea la agregación (5 min, IndexedDB).
+  - `catalogAdmin` invalida `catalog:page:<coleccion>` y `catalog:count:<coleccion>` al editar.
+- **Build**
+  - `prebuild` ejecuta sitemap + índice; la URL del índice lleva el SHA de Vercel para no reutilizar una respuesta HTTP antigua.
+  - El índice generado está ignorado por Git y se regenera en cada build.
+
+### 12.3 Caché
+
+| Clave | Ámbito | TTL | Persistente |
+|---|---|---:|---|
+| `community:animes` | público | 5 min | Sí |
+| `community:seasons:<animeId>` | público | 30 min | Sí |
+| `community:episodes:<animeId>` | público | 30 min | Sí |
+| `community:characters:<animeId>` | público | 30 min | Sí |
+| `community:episodes:filtrados:<ids>` | público | 30 min | Sí |
+| `community:characters:filtrados:<ids>` | público | 30 min | Sí |
+| `catalog:page:<coleccion>:...` | público | 5 min | Sí |
+| `catalog:count:<coleccion>` | público | 5 min | Sí |
+| `streaming:availability:<animeId>:<region\|all>` | público | 30 min | Sí |
+| `search:index:v1` | público | 1 h | Sí |
+| `admin:section:<seccion>` | privado por uid | 2 min | No |
+| `admin:count:<seccion>` | privado por uid | 5 min | No |
+
+No se ha creado un segundo sistema de caché: todo pasa por `firestoreCache.ts` y `persistentCache.ts`. Se mantiene la separación público/privado y la invalidación exacta de streaming.
+
+### 12.4 Paginación
+
+- Catálogo global de episodios/personajes: 60 por página; “Cargar más” y caché persistente. Verificado 60 → 120 tras recargar.
+- Catálogo filtrado: bloques de 10 series; primer bloque y “Cargar más”. El filtro se aplica a cada bloque y todos los resultados siguen accesibles.
+- Ficha: temporadas siempre; episodios/personajes al abrir su pestaña. El filtro por temporada es local sobre los datos de esa serie, sin consultar otras series.
+- Comentarios: 200 por página (sin cambios).
+- Feed: 50 hilos por página (sin cambios).
+- Búsqueda: 30 tarjetas por sección con “Ver más” local; no hay paginación de Firestore porque el índice ya está en memoria.
+
+### 12.5 Mediciones locales antes/después
+
+Mediciones con `firestoreDiagnostics` (estimación del SDK, **no facturación**) en Vite de desarrollo, sesión de visitante, Firestore de producción.
+
+| Escenario | Antes | Después | Evitadas |
+|---|---:|---:|---:|
+| Primera búsqueda de la Wiki, caché vacía | 13.975 (8.549 eps + 4.935 personajes + 481 temporadas + 10 hilos) | **10** (solo hilos) | **13.965 (99,93 %)** |
+| Repetir búsqueda dentro del TTL | 0 | 0 | 0 |
+| Abrir ficha, pestaña Información | 176 (7 temporadas + 61 personajes + 102 episodios + 6 streaming) | **13** (7 + 6) | **163 (92,6 %)** |
+| Misma ficha, pestaña Episodios | 176 | **115** | 61 |
+| Misma ficha, pestaña Personajes | 176 | **74** | 102 |
+| Filtro de categoría + Episodios, primer bloque | 685 (624 filtrados + 61 página) | **242** (181 + 61) | 443 |
+| Volver al mismo filtro tras recarga | Se repetía la consulta del bloque | **0** | 181 por bloque |
+| Página de personajes, 60 → 120 tras recarga | 61 + 61 | **0 + 61** | 61 por revisita |
+| Panel de administración | 8.549 eps + 4.935 personajes + 481 temporadas + 195 animes + usuarios/hilos/tickets | Solo sección activa + agregaciones | **≥13.484 documentos** que ya no se descargan |
+| Fallback si falta el índice | — | 13.975 y resultados correctos | Se conserva la red de seguridad |
+
+El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip** y **~0,91 MiB brotli**. En producción Vercel sirvió una transferencia de ~1,28 MB para `indice.json?v=8833b10…`.
+
+### 12.6 Pruebas
+
+- `npm run lint`: correcto.
+- `npm run test:logica`: todas las suites correctas.
+- `npm run build`: correcto (sitemap, índice y 195 páginas de anime).
+- Navegador de desarrollo:
+  - Búsqueda por «Ataque a los Titanes», «Shingeki no Kyojin» y «Shingeki no Kyoujin».
+  - Búsqueda de «Eren», «Frieren» y «Kaguya».
+  - Abrir ficha, cambiar temporada y entrar en Episodios/Personajes.
+  - Filtro por categoría, «Cargar más» y recarga.
+  - Paginación 60 → 120 en episodios y personajes.
+  - Fallback renombrando el índice.
+- Producción (2026-11-03):
+  - Bundle `assets/index-ByPlMq0T.js`.
+  - `/busqueda/indice.json?v=8833b10…` → 200.
+  - IndexedDB contiene `public:search:index:v1`.
+  - Búsqueda correcta y sin errores de consola.
+  - Ficha: `Episodios (…)` / `Personajes (…)` hasta abrir la pestaña; después `Episodios (33)` y `Personajes (36)`.
+  - Catálogo: 60 → 120 con «Ver más» + «Cargar más».
+- No probado end-to-end: panel autenticado, edición/borrado real de streaming y flujos completos con cuenta admin (sin credenciales).
+
+### 12.7 Query Insights después del despliegue
+
+No hay cifras «después» porque no se dispone de acceso a Query Insights. Para comparar correctamente:
+
+1. Esperar un periodo equivalente al de la tabla original.
+2. Filtrar por colección y huella.
+3. Comparar ejecuciones y lecturas medias por ejecución, no solo el total.
+4. Separar consultas de build de consultas de usuarios.
+
+Qué debería cambiar:
+- `/characters PageSize 1000` y `/episodes PageSize 1000`: caída casi a cero desde usuarios normales; solo queda el fallback si falta el índice.
+- `/episodes SELECT animeId,...`: puede seguir existiendo, pero con bloques de 10 y caché; menos ejecuciones y menos lecturas por ejecución.
+- `/streamingAvailability WHERE...`: baja al no consultar el editor hasta abrirlo y al invalidar solo la obra/región.
+- `/characters WHERE role = ?`: desaparece de los builds si el índice está fresco.
+- `/animes SELECT id, slug, title,...`: desaparece del prerender si usa el índice; el sitemap mantiene su consulta de slug/title una vez por build.
+- Aparecerán consultas de agregación (`getCountFromServer`) y páginas de 60/300, más baratas que las descargas completas.
+
+### 12.8 Ahorro estimado
+
+Con la tarifa estándar de referencia de Firestore Native de **0,06 USD por 100.000 lecturas** (confirmar la de la región/proyecto):
+
+| Escenario | Lecturas evitadas | Ahorro estimado |
+|---|---:|---:|
+| Primera búsqueda por navegador | 13.965 | ~0,0084 USD |
+| Ficha en pestaña Información | 163 | ~0,0001 USD |
+| Apertura del panel sin editar anime | 13.484 | ~0,0081 USD |
+| Tabla histórica completa | 509.220 | ~0,31 USD para el periodo que cubra la tabla |
+
+Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota, picos, latencia y riesgo de agotar límites. El ahorro real de facturación no se puede medir hasta consultar Billing/Query Insights tras un periodo equivalente.
+
+### 12.9 Estado de despliegue y cambios no incluidos
+
+- Publicado en `main` el 2026-11-03:
+  - `b188129` — navegación estable de notificaciones y hueco reservado para imágenes.
+  - `8833b10` — optimización de Firestore (esta fase).
+- Producción sirve `assets/index-ByPlMq0T.js`; `/busqueda/indice.json` responde 200.
+- No se desplegaron reglas, índices ni Functions nuevas.
+- Quedan sin commit y fuera de este despliegue:
+  - `firestore.rules` y `tests/firestore.likes.rules.test.cjs`.
+  - Los likes de catálogo en `src/context/CommunityContext.tsx`.
+  - `scripts/datos/*` y `scripts/importar-disponibilidad-justwatch.mjs`.
+  - `public/sitemap.xml` (regenerado por el build).
+
+### 12.10 Pendientes de la segunda fase
+
+1. Medir Query Insights tras un periodo equivalente y comparar con la tabla histórica.
+2. Probar el panel autenticado: abrir Animes, editar un anime sin tocar streaming, desplegar disponibilidad, guardar/borrar y comprobar invalidación.
+3. Frescura del índice: se regenera en cada build; una edición del panel se refleja en el buscador en el siguiente despliegue y un navegador puede tardar hasta 1 h en verlo. Para actualización instantánea sin desplegar haría falta un índice en Firestore mantenido por Cloud Functions (1 lectura + 1 escritura por edición), no implementado para no añadir escrituras ni reglas.
+4. Las vistas ya montadas no se actualizan en tiempo real tras una edición: como máximo esperan su TTL (5 min para páginas/contadores, 30 min para fichas/filtros). La caché se invalida, pero el componente no tiene listener de invalidación.
+5. El panel sigue cargando todas las temporadas y animes de la pestaña Animes; se podría reducir con un `seasonsCount` en el anime y carga por serie.
+6. El índice de búsqueda es un solo archivo de ~0,9 MiB comprimido; si el tráfico crece, conviene dividirlo por tipo y cargarlo bajo demanda.
+7. Las descripciones del índice se recortan a 160 caracteres (episodios) y 240 (personajes) para no disparar el tamaño. La búsqueda por título, japonés, romaji, alias y la mayor parte de la descripción sigue funcionando; una palabra al final de una descripción muy larga podría no encontrarse.
+8. `GlobalSearch.tsx` no está montado; la búsqueda activa es `AnimeWiki` + `CatalogSearch`. Se adaptó al índice por si se vuelve a montar.
