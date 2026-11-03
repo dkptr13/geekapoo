@@ -123,6 +123,11 @@
             }
           });
           observador.observe(root, { childList: true });
+
+          // Las fichas de anime llegan ya renderizadas desde el
+          // servidor: si #root trae contenido, no hay nada que
+          // esperar y el cartel se quita de inmediato.
+          if (root.childElementCount > 0) quitarArranque();
         }
 
         window.addEventListener('error', function (e) {
