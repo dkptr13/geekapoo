@@ -197,4 +197,208 @@ export const PERSONAJES = [
 
   ['Jura Neekis', '', 'supporting', 'ジュラ・ネェキス', 'Yutaka Aoyama',
    'Uno de los Diez Magos Santos de Ishgar. Su magia de tierra y su experiencia lo convierten en un aliado sólido.'],
+
+  ['Ul', '', 'supporting', 'ウル', 'Miyuki Sawashiro',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Aquarius', '', 'supporting', 'アクエリアス', 'Eri Kitamura',
+   'Espíritu celestial de Lucy. Ayuda en combate con su magia y su carácter.'],
+
+  ['Virgo', '', 'supporting', 'バルゴ', 'Miyuki Sawashiro',
+   'Espíritu celestial de Lucy. Ayuda en combate con su magia y su carácter.'],
+
+  ['Taurus', '', 'supporting', 'タウロス', 'Eiji Sekiguchi',
+   'Espíritu celestial de Lucy. Ayuda en combate con su magia y su carácter.'],
+
+  ['Alzack Connell', '', 'supporting', 'アルザック・コネル', 'Yoshimitsu Shimoyama',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Bisca Mulan', '', 'supporting', 'ビスカ・ムーラン', 'Satomi Arai',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Angel', '', 'supporting', 'エンジェル ', 'Fuyuka Ooura',
+   'Miembro de Crime Sorcière. Lucha contra los gremios oscuros y busca redimirse.'],
+
+  ['Midnight', '', 'supporting', 'ミッドナイト', 'Kouki Uchiyama',
+   'Miembro de Crime Sorcière. Lucha contra los gremios oscuros y busca redimirse.'],
+
+  ['Ikaruga', '', 'supporting', '斑鳩', 'Naomi Shindou',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Jet', '', 'supporting', 'ジェット', 'Masaki Kawanabe',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Droy', '', 'supporting', 'ドロイ', 'Eiji Sekiguchi',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Macao Conbolt', '', 'supporting', 'マカオ・コンボルト ', 'Masaki Kawanabe',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Nab Lasaro', '', 'supporting', 'ナブ・ラサロ ', 'Daisuke Endou',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Vijeeter Ecor', '', 'supporting', 'ビジター・エコー ', 'Eiji Sekiguchi',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Reedus Jonah', '', 'supporting', 'リーダス・ジョナー', 'Eiji Sekiguchi',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Yuka Suzuki', '', 'supporting', 'ユウカ・スズキ', 'Masaki Kawanabe',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Toby Horhorta', '', 'supporting', 'トビー・オルオルタ', 'Daisuke Kishio',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Max Alors', '', 'supporting', 'マックス・アローゼ', 'Yuuichi Iguchi',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Warren Rocko', '', 'supporting', 'ウォーレン・ラッコー', 'Daisuke Kageura',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Laki Olietta', '', 'supporting', 'ラキ・オリエッタ', 'Ikumi Hayama',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Simon', '', 'supporting', 'シモン', 'Yasuyuki Kase',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Millianna', '', 'supporting', 'ミリアーナ', 'Yukiyo Fujii',
+   'Miembro de Mermaid Heel. Compite en los Juegos Mágicos y apoya a sus compañeras.'],
+
+  ['Hibiki Laytis', '', 'supporting', 'ヒビキ・レイティス', 'Takashi Kondou',
+   'Miembro de Blue Pegasus. Compite en los Juegos Mágicos y apoya a su gremio.'],
+
+  ['Narrator', '', 'supporting', 'ナレーター', 'Hidekatsu Shibata',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Ren Akatsuki', '', 'supporting', 'レン・アカツキ', 'Masaya Matsukaze',
+   'Miembro de Blue Pegasus. Compite en los Juegos Mágicos y apoya a su gremio.'],
+
+  ['Eve Tilm', '', 'supporting', 'イヴ・ティルム', 'Fuyuka Ooura',
+   'Miembro de Blue Pegasus. Compite en los Juegos Mágicos y apoya a su gremio.'],
+
+  ['Ichiya Vandalay Kotobuki', '', 'supporting', '一夜=ヴァンダレイ=寿 ', 'Shou Hayami',
+   'Miembro de Blue Pegasus. Compite en los Juegos Mágicos y apoya a su gremio.'],
+
+  ['Racer', '', 'supporting', 'レーサー', 'Junji Majima',
+   'Miembro de Crime Sorcière. Lucha contra los gremios oscuros y busca redimirse.'],
+
+  ['Hoteye', '', 'supporting', 'ホットアイ', 'Kazuya Ichijou',
+   'Miembro de Crime Sorcière. Lucha contra los gremios oscuros y busca redimirse.'],
+
+  ['Layla Heartfilia', '', 'supporting', 'レイラ・ハートフィリア', 'Aya Hirano',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Zancrow', '', 'supporting', 'ザンクロウ', 'Tetsu Shiratori',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Azuma', '', 'supporting', 'アズマ', 'Hiroshi Shirokuma',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Kinana', '', 'supporting', 'キナナ', 'Natsue Sasamoto',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Bluenote Stinger', '', 'supporting', 'ブルーノート・スティンガー', 'Shirou Saitou',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Asuka Connell', '', 'supporting', 'アスカ・コネル', 'Satomi Arai',
+   'Miembro del gremio de Fairy Tail. Participa en las misiones y en la defensa de sus compañeros.'],
+
+  ['Jenny Realight', '', 'supporting', 'ジェニー・リアライト', 'Kaori Nazuka',
+   'Miembro de Blue Pegasus. Compite en los Juegos Mágicos y apoya a su gremio.'],
+
+  ['Arania Web', '', 'supporting', 'アラーニャ・ウェブ', 'Harumi Sakurai',
+   'Miembro de Mermaid Heel. Compite en los Juegos Mágicos y apoya a sus compañeras.'],
+
+  ['Arcadios', '', 'supporting', 'アルカディオス', 'Takaya Kuroda',
+   'Miembro del Reino de Fiore. Aparece en los arcos políticos y militares de la serie.'],
+
+  ['Zoldeo', '', 'supporting', 'ゾルディオ', 'Shouta Yamamoto',
+   'Miembro del Reino de Fiore. Aparece en los arcos políticos y militares de la serie.'],
+
+  ['Beth Vanderwood', '', 'supporting', 'ベス・バンダーウッド', 'Rie Murakawa',
+   'Miembro de Mermaid Heel. Compite en los Juegos Mágicos y apoya a sus compañeras.'],
+
+  ['Risley Law', '', 'supporting', 'リズリー・ロー', 'Miki Narahashi',
+   'Miembro de Mermaid Heel. Compite en los Juegos Mágicos y apoya a sus compañeras.'],
+
+  ['Ooba Babasaama', '', 'supporting', 'オーバ・ババサーマ', 'Ako Mayama',
+   'Miembro de Lamia Scale. Participa en los Juegos Mágicos y en las misiones del gremio.'],
+
+  ['Toma E. Fiore', '', 'supporting', 'トーマ・E・フィオーレ', 'Keiji Fujiwara',
+   'Miembro del Reino de Fiore. Aparece en los arcos políticos y militares de la serie.'],
+
+  ['Darton', '', 'supporting', 'ダートン', 'Yoshihisa Kawahara',
+   'Miembro del Reino de Fiore. Aparece en los arcos políticos y militares de la serie.'],
+
+  ['Invel Yura', '', 'supporting', 'インベル・ユラ', 'Tomoaki Maeno',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['D-6', '', 'supporting', 'D-6', 'Takayuki Nakatsukasa',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Goumon', '', 'supporting', '豪門', 'Yuuki Sanpei',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Mary', '', 'supporting', 'メアリー', 'Eri Suzuki',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Jerome', '', 'supporting', 'ジェローム', 'Yoshiaki Hasegawa',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Briar', '', 'supporting', 'ブライヤ', 'Megumi Satou',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Abel', '', 'supporting', 'アベル', 'Misaki Kuno',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Arlock', '', 'supporting', 'アーロック', 'Takashi Matsuyama',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Anna Heartfilia', '', 'supporting', 'アンナ・ハートフィリア', 'Aya Endou',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Wolfheim', '', 'supporting', 'ウルフヘイム', 'Shinya Takahashi',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Yajeel', '', 'supporting', 'ヤジール', 'Takashi Matsuyama',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Draculos Hyberion', '', 'supporting', 'ドラキュロス・ハイベリオン', 'Hiroki Yasumoto',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Marin Hollow', '', 'supporting', 'マリン・ホーロウ', 'Tomohiro Yamaguchi',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Grammi', '', 'supporting', 'グラミー', 'Manami Numakura',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Belserion', '', 'supporting', 'ベルせリオン', 'Takuya Kirimoto',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Juliet Sun', '', 'supporting', 'ジュリエット・サン', 'Aiko  Ninomiya',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Orochi Head', '', 'supporting', 'オロチヘッド', 'Atsushi Tamaru',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Heine Lunasea', '', 'supporting', 'ハイネ・ルナシー', 'Manami Hanawa',
+   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+
+  ['Rita Dreyar', '', 'supporting', 'リタ . ドレアー', 'Eri Inagawa',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Bakel', '', 'supporting', 'バケル', 'Tarou Kiuchi',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Kareem', '', 'supporting', 'カリーム', 'Shinichirou Kamio',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Chronos', '', 'supporting', 'クロノス', 'Natsumi Fujiwara',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Rung', '', 'supporting', 'ラング', 'Takuya Nakashima',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
+
+  ['Mest Gryder', '', 'supporting', 'メスト・グライダ', 'Shuuhei Sakaguchi',
+   'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
 ];
