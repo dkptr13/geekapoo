@@ -13,9 +13,8 @@
 //   · canonical y Open Graph apuntando a esa ficha
 //   · JSON-LD (TVSeries + migas de pan) para los resultados
 //     enriquecidos de Google
-//   · un bloque de contenido real dentro de #root, que React
-//     sustituye al montar. Si el JS falla, el usuario sigue viendo
-//     la sinopsis en vez de una pantalla vacía.
+//   · contenido real dentro de #root, que React sustituye al montar:
+//     sinopsis, episodios, dónde verla en España y personajes.
 //
 // Vercel sirve el archivo estático antes que la reescritura de
 // vercel.json, así que la ficha sale ya renderizada desde el primer
@@ -34,7 +33,8 @@ const SITIO = (
   process.env.VITE_SITE_URL || 'https://www.geekapoo.es'
 ).replace(/\/+$/, '');
 
-const COLECCION = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents/animes`;
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents`;
+const COLECCION = `${BASE}/animes`;
 
 const CAMPOS = [
   'id',
@@ -58,6 +58,24 @@ const ESTADOS = {
   emitiendo: 'En emisión',
   ongoing: 'En emisión',
   upcoming: 'Próximamente',
+};
+
+// Nombres de las plataformas de la semilla. La colección
+// `streamingPlatforms` los pisa si tiene el mismo id.
+const PLATAFORMAS = {
+  netflix: 'Netflix',
+  crunchyroll: 'Crunchyroll',
+  'disney-plus': 'Disney+',
+  'amazon-prime-video': 'Amazon Prime Video',
+  max: 'Max',
+  hulu: 'Hulu',
+  'apple-tv-plus': 'Apple TV+',
+  youtube: 'YouTube',
+  filmin: 'Filmin',
+  'selecta-vision': 'Selecta Visión',
+  'movistar-plus': 'Movistar Plus+',
+  atresplayer: 'Atresplayer',
+  'rtve-play': 'RTVE Play',
 };
 
 const escaparHtml = (valor) =>
@@ -116,6 +134,7 @@ async function leerAnimes() {
       if (!slug || !title) continue;
 
       animes.push({
+        id: texto(f.id) || doc.name.split('/').pop(),
         slug,
         title,
         japaneseTitle: texto(f.japaneseTitle),
@@ -137,7 +156,203 @@ async function leerAnimes() {
   return animes;
 }
 
-function contenidoEstatico(anime) {
+/** Lee una colección entera paginando de 300 en 300. */
+async function leerColeccion(coleccion, campos) {
+  const docs = [];
+  let token = '';
+
+  do {
+    const url = new URL(`${BASE}/${coleccion}`);
+    url.searchParams.set('pageSize', '300');
+    for (const campo of campos) {
+      url.searchParams.append('mask.fieldPaths', campo);
+    }
+    if (token) url.searchParams.set('pageToken', token);
+
+    const respuesta = await fetch(url);
+    if (!respuesta.ok) throw new Error(`${coleccion}: ${respuesta.status}`);
+
+    const datos = await respuesta.json();
+    docs.push(...(datos.documents ?? []));
+    token = datos.nextPageToken ?? '';
+  } while (token);
+
+  return docs;
+}
+
+/** Consulta con un único filtro de igualdad (sin índices compuestos). */
+async function consultar(coleccion, campoFiltro, valor) {
+  const respuesta = await fetch(`${BASE}:runQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      structuredQuery: {
+        from: [{ collectionId: coleccion }],
+        where: {
+          fieldFilter: {
+            field: { fieldPath: campoFiltro },
+            op: 'EQUAL',
+            value: { stringValue: valor },
+          },
+        },
+      },
+    }),
+  });
+
+  if (!respuesta.ok) throw new Error(`${coleccion}: ${respuesta.status}`);
+
+  const filas = await respuesta.json();
+  return filas.filter((f) => f.document).map((f) => f.document);
+}
+
+async function leerEpisodios() {
+  const docs = await leerColeccion('episodes', [
+    'animeId',
+    'number',
+    'title',
+    'airDate',
+  ]);
+  const mapa = new Map();
+
+  for (const doc of docs) {
+    const f = doc.fields ?? {};
+    const animeId = texto(f.animeId);
+    const number = numero(f.number);
+    const title = texto(f.title);
+    if (!animeId || number == null || !title) continue;
+
+    if (!mapa.has(animeId)) mapa.set(animeId, []);
+    mapa.get(animeId).push({ number, title, airDate: texto(f.airDate) });
+  }
+
+  for (const listaEpisodios of mapa.values()) {
+    listaEpisodios.sort(
+      (a, b) =>
+        (a.airDate || '').localeCompare(b.airDate || '') || a.number - b.number,
+    );
+  }
+
+  return mapa;
+}
+
+async function leerPersonajesPrincipales() {
+  const docs = await consultar('characters', 'role', 'main');
+  const mapa = new Map();
+
+  for (const doc of docs) {
+    const f = doc.fields ?? {};
+    const animeId = texto(f.animeId);
+    const name = texto(f.name);
+    if (!animeId || !name) continue;
+
+    if (!mapa.has(animeId)) mapa.set(animeId, []);
+    mapa.get(animeId).push({
+      name,
+      voiceActor: texto(f.voiceActor),
+      likes: numero(f.likesCount) ?? 0,
+    });
+  }
+
+  for (const listaPersonajes of mapa.values()) {
+    listaPersonajes.sort((a, b) => b.likes - a.likes);
+  }
+
+  return mapa;
+}
+
+async function leerDisponibilidadEspana() {
+  const docs = await consultar('streamingAvailability', 'region', 'ES');
+  const mapa = new Map();
+
+  for (const doc of docs) {
+    const f = doc.fields ?? {};
+    if (texto(f.status) !== 'available') continue;
+
+    const animeId = texto(f.animeId);
+    const platformId = texto(f.platformId);
+    if (!animeId || !platformId) continue;
+
+    if (!mapa.has(animeId)) mapa.set(animeId, []);
+    mapa.get(animeId).push({
+      platformId,
+      url: texto(f.url),
+    });
+  }
+
+  return mapa;
+}
+
+async function leerNombresPlataformas() {
+  const nombres = { ...PLATAFORMAS };
+  try {
+    const docs = await leerColeccion('streamingPlatforms', ['name']);
+    for (const doc of docs) {
+      const id = doc.name.split('/').pop();
+      const name = texto(doc.fields?.name);
+      if (id && name) nombres[id] = name;
+    }
+  } catch {
+    // La semilla local basta si la colección no responde.
+  }
+  return nombres;
+}
+
+function bloqueEpisodios(episodios) {
+  if (!episodios?.length) return '';
+
+  const visibles = episodios.slice(0, 24);
+  const filas = visibles
+    .map(
+      (e) =>
+        `<li style="margin:0 0 6px;color:#d4d4d8">Episodio ${e.number}: ${escaparHtml(e.title)}</li>`,
+    )
+    .join('');
+
+  const resto =
+    episodios.length > visibles.length
+      ? `<p style="margin:8px 0 0;font-size:13px;color:#71717a">Y ${episodios.length - visibles.length} episodios más en la ficha completa.</p>`
+      : '';
+
+  return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Episodios (${episodios.length})</h2>
+    <ol style="margin:0;padding-left:20px;font-size:14px;line-height:1.6">${filas}</ol>${resto}`;
+}
+
+function bloqueStreaming(plataformas, nombres) {
+  if (!plataformas?.length) return '';
+
+  const filas = plataformas
+    .map((p) => {
+      const nombre = nombres[p.platformId] ?? p.platformId;
+      return p.url
+        ? `<li style="margin:0 0 6px"><a href="${escaparHtml(p.url)}" style="color:#a78bfa">${escaparHtml(nombre)}</a></li>`
+        : `<li style="margin:0 0 6px;color:#d4d4d8">${escaparHtml(nombre)}</li>`;
+    })
+    .join('');
+
+  return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Dónde verla en España</h2>
+    <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.7">${filas}</ul>`;
+}
+
+function bloquePersonajes(personajes) {
+  if (!personajes?.length) return '';
+
+  const visibles = personajes.slice(0, 8);
+  const filas = visibles
+    .map(
+      (p) =>
+        `<li style="margin:0 0 6px;color:#d4d4d8">${escaparHtml(p.name)}${
+          p.voiceActor
+            ? ` <span style="color:#71717a">(voz: ${escaparHtml(p.voiceActor)})</span>`
+            : ''
+        }</li>`,
+    )
+    .join('');
+
+  return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Personajes principales</h2>
+    <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.7">${filas}</ul>`;
+}
+
+function contenidoEstatico(anime, extras) {
   const estado = ESTADOS[anime.status] ?? (anime.status || '');
   const meta = [
     anime.year,
@@ -169,7 +384,10 @@ function contenidoEstatico(anime) {
     <h2 style="margin:26px 0 8px;font-size:18px;font-weight:700">Sinopsis</h2>
     <p style="margin:0 0 20px;font-size:15px;line-height:1.75;color:#d4d4d8">${escaparHtml(anime.synopsis)}</p>
     ${generos}
-    <a href="/?tab=wiki" style="display:inline-block;margin-top:8px;padding:11px 20px;border-radius:12px;background:#7c3aed;color:#fff;font-size:14px;font-weight:700;text-decoration:none">Explorar la wiki completa</a>
+    ${bloqueStreaming(extras.streaming, extras.nombresPlataformas)}
+    ${bloqueEpisodios(extras.episodios)}
+    ${bloquePersonajes(extras.personajes)}
+    <a href="/?tab=wiki" style="display:inline-block;margin-top:26px;padding:11px 20px;border-radius:12px;background:#7c3aed;color:#fff;font-size:14px;font-weight:700;text-decoration:none">Explorar la wiki completa</a>
   </div>
 </div>`;
 }
@@ -187,9 +405,6 @@ function jsonLd(anime) {
     image: imagen,
     inLanguage: 'ja',
     ...(anime.japaneseTitle ? { alternateName: anime.japaneseTitle } : {}),
-    ...(anime.alternativeTitles.length
-      ? { alternateName: [anime.japaneseTitle, ...anime.alternativeTitles].filter(Boolean) }
-      : {}),
     ...(anime.year ? { datePublished: anime.year } : {}),
     ...(anime.genres.length ? { genre: anime.genres } : {}),
     ...(anime.episodes ? { numberOfEpisodes: anime.episodes } : {}),
@@ -217,7 +432,7 @@ function jsonLd(anime) {
 <script type="application/ld+json">${escaparJson(migas)}</script>`;
 }
 
-function personalizar(plantilla, anime) {
+function personalizar(plantilla, anime, extras) {
   const url = `${SITIO}/anime/${encodeURIComponent(anime.slug)}`;
   const titulo = `${anime.title} — Sinopsis, episodios y dónde verla | Geekapoo`;
   const descripcion = descripcionCorta(anime.synopsis, anime.title);
@@ -271,7 +486,7 @@ function personalizar(plantilla, anime) {
   html = html.replace('</head>', `${jsonLd(anime)}\n  </head>`);
   html = html.replace(
     '<div id="root"></div>',
-    `<div id="root">${contenidoEstatico(anime)}</div>`,
+    `<div id="root">${contenidoEstatico(anime, extras)}</div>`,
   );
 
   return html;
@@ -281,16 +496,49 @@ try {
   const plantilla = await readFile(PLANTILLA, 'utf8');
   const animes = await leerAnimes();
 
+  // Los extras son opcionales: si una colección falla, las fichas
+  // se generan igual con lo que haya.
+  const [episodios, personajes, streaming, nombresPlataformas] =
+    await Promise.all([
+      leerEpisodios().catch((e) => {
+        console.warn(`Sin episodios: ${e.message}`);
+        return new Map();
+      }),
+      leerPersonajesPrincipales().catch((e) => {
+        console.warn(`Sin personajes: ${e.message}`);
+        return new Map();
+      }),
+      leerDisponibilidadEspana().catch((e) => {
+        console.warn(`Sin streaming: ${e.message}`);
+        return new Map();
+      }),
+      leerNombresPlataformas(),
+    ]);
+
   let generadas = 0;
   for (const anime of animes) {
-    const html = personalizar(plantilla, anime);
+    const extras = {
+      episodios: episodios.get(anime.id) ?? [],
+      personajes: personajes.get(anime.id) ?? [],
+      streaming: (streaming.get(anime.id) ?? []).sort((a, b) =>
+        (nombresPlataformas[a.platformId] ?? a.platformId).localeCompare(
+          nombresPlataformas[b.platformId] ?? b.platformId,
+          'es',
+        ),
+      ),
+      nombresPlataformas,
+    };
+
+    const html = personalizar(plantilla, anime, extras);
     const carpeta = path.join(DIST, 'anime', anime.slug);
     await mkdir(carpeta, { recursive: true });
     await writeFile(path.join(carpeta, 'index.html'), html, 'utf8');
     generadas += 1;
   }
 
-  console.log(`páginas de anime: ${generadas} generadas en dist/anime/`);
+  console.log(
+    `páginas de anime: ${generadas} generadas (${episodios.size} con episodios, ${streaming.size} con streaming ES)`,
+  );
 } catch (error) {
   // Un fallo aquí no debe tumbar el despliegue: se sirve la SPA de
   // siempre y se avisa para poder revisarlo.
