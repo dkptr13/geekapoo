@@ -1,8 +1,7 @@
 // ETIQUETAS - Nausicaä del Valle del Viento
 //
 // Formato: 'nombre del personaje': ['etiqueta', ...]
-//
-// Maximo 40 caracteres por etiqueta.
+
 export const TAGS = {
   'Nausicaä': ['Princesa', 'Empatía', 'Bosque'],
   'Asbel': ['Príncipe', 'Aliado', 'Aventura'],
@@ -11,4 +10,11 @@ export const TAGS = {
   'Mito': ['Soldado', 'Lealtad', 'Prudencia'],
   'Obaba': ['Anciana', 'Leyendas', 'Memoria'],
   'Kurotowa': ['Ayudante', 'Cinismo', 'Astucia'],
+  'Lastelle': ['Princesa', 'Pejite', 'Mensaje'],
+  'Alcalde de Pejite': ['Gobernante', 'Venganza', 'Pejite'],
+  'Toeto': ['Pejite', 'Cuidado', 'Pueblo'],
+  'Jihl': ['Soldado', 'Tolmekia', 'Invasión'],
+  'Gikuri': ['Consejero', 'Tolmekia', 'Guerra'],
+  'Madre de Lastelle': ['Madre', 'Duelo', 'Pejite'],
+  'Gol': ['Anciano', 'Valle', 'Memoria'],
 };

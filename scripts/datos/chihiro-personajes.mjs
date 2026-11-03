@@ -2,11 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la pelicula. Solo hay una temporada.
-//
-// Nombres, kanji y voces vienen de AniList. Los resumenes son propios,
-// en castellano. Los nombres van en la forma con la que se conocen en
-// castellano cuando la hay.
+// '' = sale en toda la pelicula. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Chihiro Ogino', '', 'main', '荻野千尋', 'Rumi Hiiragi',
@@ -29,4 +26,19 @@ export const PERSONAJES = [
 
   ['Zeniba', '', 'supporting', '銭婆', 'Mari Natsuki',
    'La hermana gemela de Yubaba. Vive apartada y guarda uno de los secretos que pueden salvar a Haku.'],
+
+  ['Akio Ogino', '', 'supporting', '荻野明夫', 'Takashi Naitou',
+   'El padre de Chihiro. Alegre y algo imprudente, se come la comida del mundo de los espíritus y acaba convertido en cerdo.'],
+
+  ['Yuko Ogino', '', 'supporting', '荻野悠子', 'Yasuko Sawaguchi',
+   'La madre de Chihiro. Práctica y cariñosa, comparte con su marido el error de comer en el puesto abandonado.'],
+
+  ['Boh', '', 'supporting', '坊', 'Ryuunosuke Kamiki',
+   'El hijo de Yubaba. Malcriado y enorme, se encariña con Chihiro y la ayuda a escapar.'],
+
+  ['Dios del Río', '', 'supporting', '河の神', 'Koba Hayashi',
+   'Un espíritu enorme y sucio que llega a la casa de baños. Chihiro y los demás lo limpian y descubren que es un dios del río.'],
+
+  ['Rana', '', 'supporting', '青蛙', 'Tatsuya Gashuin',
+   'Trabajador de la casa de baños. Cotilla y asustadizo, pone algo de humor en el mundo de Yubaba.'],
 ];

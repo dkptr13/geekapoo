@@ -2,11 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la pelicula. Solo hay una temporada.
-//
-// Nombres, kanji y voces vienen de AniList. Los resumenes son propios,
-// en castellano. Los nombres van en la forma con la que se conocen en
-// castellano cuando la hay.
+// '' = sale en toda la pelicula. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Mahito Maki', '', 'main', '牧眞人', 'Souma Santoki',
@@ -26,4 +23,28 @@ export const PERSONAJES = [
 
   ['El anciano', '', 'supporting', '大伯父', 'Shouhei Hino',
    'El anciano que construye el mundo de la torre. Le ofrece a Mahito una elección sobre su futuro.'],
+
+  ['Shouichi', '', 'supporting', '正一', 'Takuya Kimura',
+   'El padre de Mahito. Industrial y práctico, intenta reconstruir su vida tras la guerra.'],
+
+  ['Pelícano Viejo', '', 'supporting', '老ペリカン', 'Kaoru Kobayashi',
+   'Un pelícano que habla en el mundo fantástico. Su hambre y su desesperación muestran el lado oscuro de ese mundo.'],
+
+  ['Rey de los Loros', '', 'supporting', 'インコ大王', 'Jun Kunimura',
+   'El líder de los loros. Quiere controlar el mundo de la torre y desconfía de Mahito.'],
+
+  ['Aiko', '', 'supporting', 'あいこ', 'Shinobu Ootake',
+   'Una de las mujeres de la casa. Ayuda a Natsuko y cuida de Mahito.'],
+
+  ['Izumi', '', 'supporting', 'いずみ', 'Keiko Takeshita',
+   'Una mujer mayor de la familia. Su presencia aporta calma y memoria.'],
+
+  ['Eriko', '', 'supporting', 'えりこ', 'Sawako Agawa',
+   'Una de las mujeres de la casa. Práctica y observadora, participa en la vida cotidiana.'],
+
+  ['Utako', '', 'supporting', 'うたこ', 'Jun Fubuki',
+   'Una mujer de la familia que ayuda en la casa. Aporta experiencia y calidez.'],
+
+  ['Warawara', '', 'supporting', 'ワラワラ', 'Karen Takizawa',
+   'Pequeños espíritus blancos que acompañan a Mahito en el mundo de la torre.'],
 ];

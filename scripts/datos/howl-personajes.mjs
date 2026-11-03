@@ -2,11 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la pelicula. Solo hay una temporada.
-//
-// Nombres, kanji y voces vienen de AniList. Los resumenes son propios,
-// en castellano. Los nombres van en la forma con la que se conocen en
-// castellano cuando la hay.
+// '' = sale en toda la pelicula. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Sophie Hatter', '', 'main', 'ソフィーハッター', 'Chieko Baishou',
@@ -29,4 +26,19 @@ export const PERSONAJES = [
 
   ['Madame Suliman', '', 'supporting', 'サリマン', 'Haruko Katou',
    'La hechicera real que protege el reino. Conoce el pasado de Howl y no confía en él.'],
+
+  ['Heen', '', 'supporting', 'ヒン', 'Daijiro Harada',
+   'El perro de Madame Suliman. Pequeño y rencoroso, sigue a Sophie y acaba siendo un aliado inesperado.'],
+
+  ['Rey', '', 'supporting', '国王', 'Akio Ootsuka',
+   'El rey de Ingary. Vanidoso y manipulable, depende de Suliman y de Howl para sostener la guerra.'],
+
+  ['Madge', '', 'supporting', 'マッジ', 'Rio Kanno',
+   'Una de las sombrereras del taller de Sophie. Compañera de trabajo y amiga.'],
+
+  ['Lettie Hatter', '', 'supporting', 'レティー・ハッター', 'Yayoi Kazuki',
+   'La hermana pequeña de Sophie. Trabaja en la panadería de Cesari y quiere labrarse su propio camino.'],
+
+  ['Honey', '', 'supporting', 'ハニー', 'Mayuno Yasokawa',
+   'Una de las clientas del taller. Coqueta y habladora, ayuda a mostrar la vida cotidiana de Sophie.'],
 ];

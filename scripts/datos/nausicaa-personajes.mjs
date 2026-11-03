@@ -2,11 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la pelicula. Solo hay una temporada.
-//
-// Nombres, kanji y voces vienen de AniList. Los resumenes son propios,
-// en castellano. Los nombres van en la forma con la que se conocen en
-// castellano cuando la hay.
+// '' = sale en toda la pelicula. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Nausicaä', '', 'main', 'ナウシカ', 'Sumi Shimamoto',
@@ -29,4 +26,25 @@ export const PERSONAJES = [
 
   ['Kurotowa', '', 'supporting', 'クロトワ', 'Iemasa Kayumi',
    'El ayudante de Kushana. Cínico y oportunista, pero más prudente que su señora.'],
+
+  ['Lastelle', '', 'supporting', 'ラステル', 'Miina Tominaga',
+   'Princesa de Pejite. Su muerte y su mensaje ponen a Nausicaä en el centro del conflicto.'],
+
+  ['Alcalde de Pejite', '', 'supporting', 'ペジテ市長', 'Mugihito',
+   'El gobernante de Pejite. Quiere vengar la destrucción de su reino y no duda en usar el bosque.'],
+
+  ['Toeto', '', 'supporting', 'トエト', 'Rihoko Yoshida',
+   'Una mujer de Pejite que cuida de Nausicaä. Representa a la gente que sufre la guerra.'],
+
+  ['Jihl', '', 'supporting', 'ジル', 'Mahito Tsujimura',
+   'Un soldado de Tolmekia. Acompaña a Kushana y participa en la invasión del Valle.'],
+
+  ['Gikuri', '', 'supporting', 'ギックリ', 'Jouji Yanami',
+   'Un consejero de Tolmekia. Pragmático y desconfiado, aconseja a Kushana en la guerra.'],
+
+  ['Madre de Lastelle', '', 'supporting', 'ラステルの母', 'Akiko Tsuboi',
+   'La madre de Lastelle. Llora la muerte de su hija y muestra el coste humano del conflicto.'],
+
+  ['Gol', '', 'supporting', 'ゴル', 'Kouhei Miyauchi',
+   'Un anciano del Valle del Viento. Ayuda a Nausicaä y representa la memoria del pueblo.'],
 ];

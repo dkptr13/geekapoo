@@ -2,11 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la pelicula. Solo hay una temporada.
-//
-// Nombres, kanji y voces vienen de AniList. Los resumenes son propios,
-// en castellano. Los nombres van en la forma con la que se conocen en
-// castellano cuando la hay.
+// '' = sale en toda la pelicula. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Kiki', '', 'main', 'キキ', 'Minami Takayama',
@@ -26,4 +23,10 @@ export const PERSONAJES = [
 
   ['La anciana', '', 'supporting', '老婦人', 'Haruko Katou',
    'Una anciana clienta de Kiki. Le encarga un pastel y le enseña el valor de los pequeños favores.'],
+
+  ['Bertha', '', 'supporting', 'バーサ', 'Hiroko Seki',
+   'La panadera de la ciudad. Trabaja con Osono y ayuda a Kiki en sus repartos.'],
+
+  ['Kokiri', '', 'supporting', 'コキリ', 'Mieko Nobusawa',
+   'Una joven de la panadería. Alegre y curiosa, se hace amiga de Kiki.'],
 ];

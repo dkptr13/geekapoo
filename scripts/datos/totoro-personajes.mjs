@@ -2,11 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la pelicula. Solo hay una temporada.
-//
-// Nombres, kanji y voces vienen de AniList. Los resumenes son propios,
-// en castellano. Los nombres van en la forma con la que se conocen en
-// castellano cuando la hay.
+// '' = sale en toda la pelicula. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Satsuki Kusakabe', '', 'main', '草壁サツキ', 'Noriko Hidaka',
@@ -29,4 +26,7 @@ export const PERSONAJES = [
 
   ['Gatobús', '', 'supporting', 'ネコバス', 'Hitoshi Takagi',
    'El autobús gato. Un espíritu que aparece cuando hace falta y lleva a los niños a donde necesitan ir.'],
+
+  ['Abuela de Kanta', '', 'supporting', 'カンタのおばあちゃん', 'Tanie Kitabayashi',
+   'La abuela de Kanta. Conoce el campo y las costumbres del lugar, y ayuda a Satsuki y Mei cuando lo necesitan.'],
 ];

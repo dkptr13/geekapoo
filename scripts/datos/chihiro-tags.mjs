@@ -1,8 +1,7 @@
 // ETIQUETAS - El viaje de Chihiro
 //
 // Formato: 'nombre del personaje': ['etiqueta', ...]
-//
-// Maximo 40 caracteres por etiqueta.
+
 export const TAGS = {
   'Chihiro Ogino': ['Protagonista', 'Valentía', 'Crecimiento'],
   'Haku': ['Misterio', 'Dragón', 'Aliado'],
@@ -11,4 +10,9 @@ export const TAGS = {
   'Rin': ['Trabajadora', 'Dureza', 'Compañerismo'],
   'Sin Cara': ['Solitario', 'Oro', 'Caos'],
   'Zeniba': ['Hermana', 'Sabiduría', 'Magia'],
+  'Akio Ogino': ['Padre', 'Imprudencia', 'Cerdo'],
+  'Yuko Ogino': ['Madre', 'Familia', 'Error'],
+  'Boh': ['Hijo', 'Malcriado', 'Amistad'],
+  'Dios del Río': ['Espíritu', 'Río', 'Limpieza'],
+  'Rana': ['Rana', 'Humor', 'Trabajador'],
 };

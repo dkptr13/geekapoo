@@ -2,11 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la pelicula. Solo hay una temporada.
-//
-// Nombres, kanji y voces vienen de AniList. Los resumenes son propios,
-// en castellano. Los nombres van en la forma con la que se conocen en
-// castellano cuando la hay.
+// '' = sale en toda la pelicula. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Ashitaka', '', 'main', 'アシタカ', 'Youji Matsuda',
@@ -29,4 +26,19 @@ export const PERSONAJES = [
 
   ['Kaya', '', 'supporting', 'カヤ', 'Yuriko Ishida',
    'Una joven de la aldea de Ashitaka. Su recuerdo lo acompaña durante el viaje.'],
+
+  ['Okkotonushi', '', 'supporting', '乙事主', 'Hisaya Morishige',
+   'El dios jabalí. Ciego y furioso, lidera a los jabalíes contra los humanos y busca la cabeza del dios del bosque.'],
+
+  ['Gonza', '', 'supporting', 'ゴンザ', 'Tsunehiko Kamijou',
+   'Un cazador de la Ciudad de Hierro. Leal a Lady Eboshi, sigue sus órdenes aunque no siempre las comparta.'],
+
+  ['Kohroku', '', 'supporting', '甲六', 'Masahiko Nishimura',
+   'Un leñador que trabaja para la Ciudad de Hierro. Su miedo y su torpeza contrastan con la guerra que le rodea.'],
+
+  ['Dios del Bosque', '', 'supporting', 'シシ神', 'Satoi iiuma',
+   'El espíritu que habita el bosque. Su cabeza da la vida y su muerte desata la catástrofe final.'],
+
+  ['Hii-sama', '', 'supporting', 'ヒイさま', 'Mitsuko Mori',
+   'La anciana de la aldea de Ashitaka. Interpreta los sueños y las señales que anuncian la desgracia.'],
 ];

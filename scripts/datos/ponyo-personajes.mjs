@@ -2,11 +2,8 @@
 //
 // Formato: [nombre, temporada, rol, nombre japones, voz, resumen]
 //
-// '' = sale en toda la pelicula. Solo hay una temporada.
-//
-// Nombres, kanji y voces vienen de AniList. Los resumenes son propios,
-// en castellano. Los nombres van en la forma con la que se conocen en
-// castellano cuando la hay.
+// '' = sale en toda la pelicula. Nombres, kanji y voces vienen de AniList.
+// Los resumenes son propios, en castellano.
 
 export const PERSONAJES = [
   ['Ponyo', '', 'main', 'ポニョ', 'Yuria Kouzuki',
@@ -26,4 +23,19 @@ export const PERSONAJES = [
 
   ['Koichi', '', 'supporting', 'こういち', 'Kazushige Nagashima',
    'El padre de Sosuke, marinero. Aparece al final para ayudar en la tormenta.'],
+
+  ['Yoshie', '', 'supporting', 'ヨシエ', 'Tomoko Naraoka',
+   'Una anciana del pueblo que cuida de los niños durante la tormenta. Su calma contrasta con el caos del mar.'],
+
+  ['Karen', '', 'supporting', 'カレン', 'Nozomi Oohashi',
+   'Una residente de la residencia donde trabaja Lisa. Amable y atenta con Sosuke.'],
+
+  ['Kumiko', '', 'supporting', 'クミコ', 'Eimi Hiraoka',
+   'Una mujer del pueblo que ayuda durante la tormenta. Práctica y protectora.'],
+
+  ['Toki', '', 'supporting', 'トキ', 'Kazuko Yoshiyuki',
+   'Una anciana de la residencia. Gruñona pero cariñosa, forma parte de la vida cotidiana de Sosuke.'],
+
+  ['Noriko', '', 'supporting', 'ノリコ', 'Tokie Hidari',
+   'Una mujer del pueblo que se refugia de la tormenta. Representa a la gente corriente que observa el desastre.'],
 ];
