@@ -42,6 +42,17 @@ export function useGoToNotification(): (n: AppNotification) => string | null {
       if (!search) return sinDestino ?? 'Ese aviso ya no lleva a ningún sitio.';
 
       navigate({ pathname: '/', search });
+
+      // Los avisos con hilo tienen su propio anclaje (HomeFeed espera
+      // a que el hilo y el comentario existan). El resto empieza
+      // arriba: un perfil, un chat o la wiki no deben heredar la
+      // posición de la página desde la que se pulsó la campana.
+      const tieneAncla = new URLSearchParams(search).get('hilo');
+      if (!tieneAncla) {
+        window.requestAnimationFrame(() => {
+          window.scrollTo({ top: 0, behavior: 'auto' });
+        });
+      }
       return null;
     },
     [navigate],

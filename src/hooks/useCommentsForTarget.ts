@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   limit,
   onSnapshot,
@@ -18,7 +20,7 @@ import {
   recordListenerSnapshot,
   trackListener,
 } from '../lib/firestoreDiagnostics';
-import { mapWithId } from '../services/firestoreUtils';
+import { mapWithId, toIsoString } from '../services/firestoreUtils';
 import { ponerLikeLocal } from '../utils/likes';
 import type { Comment } from '../types';
 
@@ -49,11 +51,20 @@ function ordenarYUnir(a: Comment[], b: Comment[]): Comment[] {
 export interface UseCommentsForTarget {
   comments: Comment[];
   loading: boolean;
+  /** `true` cuando la primera página ya ha respondido (o ha fallado). */
+  loaded: boolean;
   loadingMore: boolean;
   hasMore: boolean;
   error: string | null;
   /** Carga el tramo anterior al más antiguo que ya está en pantalla. */
   loadMore: () => Promise<void>;
+  /**
+   * Asegura un comentario concreto aunque esté fuera de la primera
+   * página. Se usa al llegar desde una notificación: si el aviso
+   * apunta a un comentario antiguo, se lee solo ese documento (y su
+   * padre si es una respuesta) en vez de paginar toda la historia.
+   */
+  ensureComment: (commentId: string) => Promise<boolean>;
   /** Cambia el corazón y el contador locales sin esperar al servidor. */
   marcarLikeLocal: (commentId: string, uid: string, liked: boolean) => void;
 }
@@ -65,6 +76,7 @@ export function useCommentsForTarget(
   const [pagina, setPagina] = useState<Comment[]>([]);
   const [anteriores, setAnteriores] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +86,16 @@ export function useCommentsForTarget(
   // timestamp.
   const cursorRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
   const hayAnterioresRef = useRef(false);
+  // Qué objetivo está abierto ahora. Una lectura puntual de un
+  // comentario puede terminar después de cerrar el hilo; así no se
+  // cuela en otro objetivo.
+  const objetivoActualRef = useRef<{ tipo: Comment['targetType']; id: string } | null>(null);
+
+  useEffect(() => {
+    objetivoActualRef.current = targetType && targetId
+      ? { tipo: targetType, id: targetId }
+      : null;
+  }, [targetType, targetId]);
 
   useEffect(() => {
     if (!targetType || !targetId) {
@@ -81,6 +103,7 @@ export function useCommentsForTarget(
       setAnteriores([]);
       setHasMore(false);
       setLoading(false);
+      setLoaded(false);
       setLoadingMore(false);
       setError(null);
       cursorRef.current = null;
@@ -90,6 +113,7 @@ export function useCommentsForTarget(
 
     let activo = true;
     setLoading(true);
+    setLoaded(false);
     setPagina([]);
     setAnteriores([]);
     setHasMore(false);
@@ -143,6 +167,7 @@ export function useCommentsForTarget(
           setPagina(filas);
           setHasMore(ordenada && snap.size > COMMENTS_PAGE_SIZE);
           setLoading(false);
+          setLoaded(true);
           setError(null);
 
           if (!hayAnterioresRef.current) {
@@ -161,6 +186,7 @@ export function useCommentsForTarget(
           console.error('[Comments] No se pudieron leer los comentarios:', e);
           setError('No se pudieron cargar los comentarios.');
           setLoading(false);
+          setLoaded(true);
         },
       ));
     };
@@ -221,6 +247,58 @@ export function useCommentsForTarget(
     }
   }, [targetType, targetId, hasMore, loadingMore]);
 
+  const ensureComment = useCallback(
+    async (commentId: string): Promise<boolean> => {
+      if (!targetType || !targetId) return false;
+      if (comments.some((comment) => comment.id === commentId)) return true;
+
+      const leer = async (id: string): Promise<Comment | null> => {
+        const snap = await getDoc(doc(db, 'comments', id));
+        if (!snap.exists()) return null;
+
+        const data = snap.data() as Record<string, unknown>;
+        // El aviso no es una llave maestra: el comentario tiene que
+        // pertenecer al hilo que se está mirando.
+        if (data.targetType !== targetType || data.targetId !== targetId) {
+          return null;
+        }
+
+        return {
+          ...(data as unknown as Comment),
+          id: snap.id,
+          createdAt: toIsoString(data.createdAt),
+          likedBy: Array.isArray(data.likedBy) ? (data.likedBy as string[]) : [],
+          likesCount: typeof data.likesCount === 'number' ? data.likesCount : 0,
+        };
+      };
+
+      try {
+        const objetivo = await leer(commentId);
+        if (!objetivo) return false;
+
+        const actual = objetivoActualRef.current;
+        if (!actual || actual.tipo !== targetType || actual.id !== targetId) {
+          return false;
+        }
+
+        const extras: Comment[] = [objetivo];
+        // Una respuesta no se pinta si no está su comentario padre.
+        // Se lee también, y solo entonces, cuando hace falta.
+        if (objetivo.parentId) {
+          const padre = await leer(objetivo.parentId);
+          if (padre) extras.push(padre);
+        }
+
+        setAnteriores((prev) => ordenarYUnir(prev, extras));
+        return true;
+      } catch (e) {
+        console.error('[Comments] No se pudo cargar el comentario del aviso:', e);
+        return false;
+      }
+    },
+    [comments, targetType, targetId],
+  );
+
   const marcarLikeLocal = useCallback(
     (commentId: string, uid: string, liked: boolean) => {
       const cambiar = (prev: Comment[]) => prev.map((c) => (
@@ -235,10 +313,12 @@ export function useCommentsForTarget(
   return {
     comments,
     loading,
+    loaded,
     loadingMore,
     hasMore,
     error,
     loadMore,
+    ensureComment,
     marcarLikeLocal,
   };
 }

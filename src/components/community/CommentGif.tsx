@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { FC } from 'react';
+import type { CSSProperties, FC } from 'react';
 import { ExternalLink } from 'lucide-react';
 
 import { ATRIBUCION, ORIGEN } from '../../services/gifs';
@@ -19,6 +19,10 @@ import type { GifAttachment } from '../../types';
 // `gif.url`), y si esa URL falla se cae a la pequeña
 // (`previewUrl`): con una sola pasada, porque si fallan las dos
 // ya no hay nada que reintentar y se enseña el aviso.
+//
+// Igual que las fotos, un GIF antiguo sin medidas no puede
+// dejar que el comentario cambie de altura al cargar: se reserva
+// una caja estable y el GIF se ve entero dentro.
 
 interface CommentGifProps {
   gif: GifAttachment;
@@ -35,10 +39,29 @@ export const CommentGif: FC<CommentGifProps> = ({ gif, className = '', eager = f
   const src = fallback ? gif.previewUrl : gif.url;
   const reservado = dimsValidas(gif.width, gif.height);
 
+  // GIFs antiguos sin medidas: una caja de 16:9 con un ancho
+  // máximo razonable. No es la proporción exacta del archivo,
+  // pero el comentario ya no salta cuando termina de cargar.
+  const estiloReserva: CSSProperties | undefined = reservado
+    ? undefined
+    : {
+        aspectRatio: '16 / 9',
+        width: '100%',
+        maxWidth: '360px',
+        maxHeight: '288px',
+      };
+
+  const estiloImagen: CSSProperties | undefined = reservado
+    ? undefined
+    : { width: '100%', height: '100%', objectFit: 'contain' };
+
   return (
     <figure className={`mt-1 ${className}`}>
       {roto ? (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[11px] text-zinc-500">
+        <div
+          style={estiloReserva}
+          className="flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[11px] text-zinc-500"
+        >
           Este GIF ya no está disponible en {ATRIBUCION[gif.provider]}.
         </div>
       ) : (
@@ -47,7 +70,10 @@ export const CommentGif: FC<CommentGifProps> = ({ gif, className = '', eager = f
           target="_blank"
           rel="noreferrer noopener"
           title={`Abrir el GIF en ${ORIGEN[gif.provider]}`}
-          className="group relative inline-block"
+          style={estiloReserva}
+          className={`group relative max-w-full ${
+            reservado ? 'inline-block' : 'block'
+          }`}
         >
           {/* `object-contain` y NO `object-cover`: la ficha guarda
               las medidas de una variante reducida mientras `url`
@@ -60,6 +86,9 @@ export const CommentGif: FC<CommentGifProps> = ({ gif, className = '', eager = f
             alt={gif.title ?? 'GIF del comentario'}
             {...(reservado ? { width: gif.width, height: gif.height } : {})}
             loading={eager ? 'eager' : 'lazy'}
+            fetchPriority={eager ? 'high' : undefined}
+            decoding="async"
+            style={estiloImagen}
             onError={() => {
               if (!fallback && gif.previewUrl && gif.previewUrl !== gif.url) {
                 setFallback(true);

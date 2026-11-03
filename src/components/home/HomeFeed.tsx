@@ -26,6 +26,7 @@ import { useCommunity } from '../../context/CommunityContext';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { reaccionesDe, useReacciones } from '../../hooks/useReacciones';
 import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
+import { useStableScrollTarget } from '../../hooks/useStableScrollTarget';
 import { reactionKey } from '../../services/reactions';
 import { normalizarPoll } from '../../services/polls';
 import { AttachImage } from '../community/AttachImage';
@@ -227,9 +228,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [expandedThreadId, setExpandedThreadId] = useState<string | null>(null);
   const {
     comments: comentariosHiloAbierto,
+    loading: cargandoComentarios,
+    loaded: comentariosCargados,
     loadingMore: cargandoComentariosAnteriores,
     hasMore: hayComentariosAnteriores,
     loadMore: cargarComentariosAnteriores,
+    ensureComment: asegurarComentario,
     marcarLikeLocal: marcarLikeComentarioLocal,
   } = useCommentsForTarget(
     expandedThreadId ? 'thread' : null,
@@ -297,6 +301,20 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const [highlightCommentId, setHighlightCommentId] = useState<string | null>(null);
   const [highlightThreadId, setHighlightThreadId] = useState<string | null>(null);
+  // Se mantiene después de consumir la URL: la lista filtrada usa
+  // `allThreads` y el hilo enfocado no debe desaparecer del DOM al
+  // limpiar `?hilo=`, porque eso movería la página recién colocada.
+  const [hiloEnfocado, setHiloEnfocado] = useState<string | null>(
+    focusTarget?.threadId ?? null,
+  );
+  // Se mantiene para que las imágenes del destino sigan cargándose
+  // con prioridad aunque el resaltado visual ya se haya apagado.
+  const [comentarioEnfocadoPersistente, setComentarioEnfocadoPersistente] =
+    useState<string | null>(focusTarget?.commentId ?? null);
+  // El comentario del aviso puede haberse borrado. En ese caso se
+  // coloca al menos el hilo, en vez de esperar a un elemento que ya
+  // no va a existir.
+  const [comentarioEnfocadoFallido, setComentarioEnfocadoFallido] = useState(false);
 
   // ── Ir a un hilo concreto ───────────────────────────
   //
@@ -310,6 +328,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   // Se depende de "nonce" y no solo del id para que pulsar
   // dos veces sobre el mismo sitio lo vuelva a ejecutar: con
   // solo el id no cambiaría ninguna dependencia.
+  const comentarioSolicitadoRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!focusTarget) return;
 
@@ -318,85 +338,65 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     setExpandedThreadId(threadId);
     setReplyingToCommentId(null);
     setHighlightThreadId(threadId);
-    if (commentId) setHighlightCommentId(commentId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusTarget?.nonce]);
+    setHighlightCommentId(commentId ?? null);
+    // El hilo se queda como fuente del feed aunque luego se borre
+    // `?hilo=`: si no, al consumir la URL la lista volvería a la
+    // página reciente y el hilo antiguo desaparecería del DOM.
+    setHiloEnfocado(threadId);
+    setComentarioEnfocadoPersistente(commentId ?? null);
+    setComentarioEnfocadoFallido(false);
+    comentarioSolicitadoRef.current = null;
 
-  // Desplaza hasta la tarjeta del hilo. Va en un efecto aparte
-  // porque el de arriba corre antes de que el hilo se haya
-  // pintado, y entonces el elemento aún no existe en el DOM.
-  //
-  // Sin `setTimeout` fijo: se espera al ELEMENTO (hasta ~4 s,
-  // fotograma a fotograma), no a un número de milisegundos
-  // inventado. En una conexión lenta 250 ms no bastan y en una
-  // rápida sobran; aquí el salto ocurre en cuanto se puede
-  // pintar el destino, exista o no su imagen descargada (el
-  // sitio ya está reservado, así que la posición no se mueve).
+    // El hilo del aviso puede ser más antiguo que la página
+    // reciente del feed. Solo se pide el histórico si no está ya en
+    // la página que tenemos cargada.
+    if (!threads.some((t) => t.id === threadId)) ensureAllThreads();
+
+    // Solo es cosmético: si tarda en cargar, el scroll se hace
+    // igualmente; simplemente deja de estar resaltado.
+    const t = window.setTimeout(() => {
+      setHighlightThreadId(null);
+      setHighlightCommentId(null);
+    }, 5000);
+    return () => window.clearTimeout(t);
+  }, [focusTarget?.nonce, ensureAllThreads]);
+
+  // Si el comentario del aviso no está en la primera página (200),
+  // se lee solo ese documento (y su padre si es una respuesta) en
+  // vez de paginar todo el hilo. Es una lectura puntual, no un
+  // listener nuevo.
+  const comentarioEnfocado = focusTarget?.commentId ?? null;
+
   useEffect(() => {
-    if (!highlightThreadId) return;
+    if (!comentarioEnfocado) return;
+    if (!expandedThreadId || !comentariosCargados || cargandoComentarios) return;
+    if (comentariosHiloAbierto.some((c) => c.id === comentarioEnfocado)) return;
+    if (comentarioSolicitadoRef.current === comentarioEnfocado) return;
 
-    let vivo = true;
-    let raf = 0;
-    let intentos = 0;
+    comentarioSolicitadoRef.current = comentarioEnfocado;
+    void asegurarComentario(comentarioEnfocado).then((encontrado) => {
+      if (!encontrado) setComentarioEnfocadoFallido(true);
+    });
+  }, [
+    comentarioEnfocado,
+    expandedThreadId,
+    comentariosCargados,
+    cargandoComentarios,
+    comentariosHiloAbierto,
+    asegurarComentario,
+  ]);
 
-    const paso = () => {
-      if (!vivo) return;
-      const el = document.getElementById(`thread-${highlightThreadId}`);
-      if (el || ++intentos > 240) {
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Llegado (o rendido): se consume el destino para que
-        // volver o remontar no repita el salto.
-        if (el) onLimpiarFoco?.();
-        return;
-      }
-      raf = requestAnimationFrame(paso);
-    };
-    raf = requestAnimationFrame(paso);
+  const objetivoScroll = focusTarget
+    ? focusTarget.commentId && !comentarioEnfocadoFallido
+      ? `comment-${focusTarget.commentId}`
+      : `thread-${focusTarget.threadId}`
+    : null;
 
-    const clear = setTimeout(() => setHighlightThreadId(null), 1500);
-
-    return () => {
-      vivo = false;
-      cancelAnimationFrame(raf);
-      clearTimeout(clear);
-    };
-  }, [highlightThreadId, expandedThreadId]);
-
-  // Cuando el hilo ya está abierto en pantalla, se desplaza
-  // hasta el comentario. Efecto aparte por el mismo motivo que
-  // el de arriba: primero se pinta, luego se busca el elemento.
-  //
-  // Los comentarios llegan por suscripción DESPUÉS de abrir el
-  // hilo, así que aquí la espera al elemento es lo esencial:
-  // con el temporizador fijo se desplazaba antes de que el
-  // comentario existiera y el aviso "no hacía nada".
-  useEffect(() => {
-    if (!highlightCommentId) return;
-
-    let vivo = true;
-    let raf = 0;
-    let intentos = 0;
-
-    const paso = () => {
-      if (!vivo) return;
-      const el = document.getElementById(`comment-${highlightCommentId}`);
-      if (el || ++intentos > 240) {
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if (el) onLimpiarFoco?.();
-        return;
-      }
-      raf = requestAnimationFrame(paso);
-    };
-    raf = requestAnimationFrame(paso);
-
-    const clear = setTimeout(() => setHighlightCommentId(null), 4000);
-
-    return () => {
-      vivo = false;
-      cancelAnimationFrame(raf);
-      clearTimeout(clear);
-    };
-  }, [highlightCommentId, expandedThreadId]);
+  useStableScrollTarget({
+    targetId: objetivoScroll,
+    token: focusTarget?.nonce ?? 0,
+    onDone: onLimpiarFoco,
+  });
 
   // ── Tier lists: guardar desde el editor ──────────
   //
@@ -607,8 +607,28 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   };
 
   // Filter & sort
-  const usaHistoricoCompleto = Boolean(selectedCategoryFilter) || feedSort === 'popular';
-  let filtered = [...(usaHistoricoCompleto ? allThreads : threads)];
+  const usaHistoricoCompleto =
+    Boolean(selectedCategoryFilter) || feedSort === 'popular';
+
+  // En vez de cambiar todo el feed al histórico cuando llega un
+  // aviso, se añade SOLO el hilo enfocado a la página reciente. Así
+  // un hilo antiguo aparece sin renderizar cientos de tarjetas.
+  const hiloDestacado = hiloEnfocado
+    ? allThreads.find((t) => t.id === hiloEnfocado) ??
+      threads.find((t) => t.id === hiloEnfocado) ??
+      null
+    : null;
+
+  let fuenteHilos: Thread[];
+  if (usaHistoricoCompleto && allThreads.length > 0) {
+    fuenteHilos = allThreads;
+  } else if (hiloDestacado && !threads.some((t) => t.id === hiloDestacado.id)) {
+    fuenteHilos = [hiloDestacado, ...threads];
+  } else {
+    fuenteHilos = threads;
+  }
+
+  let filtered = [...fuenteHilos];
   if (selectedCategoryFilter) {
     filtered = filtered.filter((t) => t.categoryId === selectedCategoryFilter);
   }
@@ -1055,9 +1075,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     alt="Imagen adjunta al hilo"
                     width={thread.imageWidth}
                     height={thread.imageHeight}
+                    unknownRatio="16 / 9"
                     className="block h-auto max-w-full rounded-2xl border border-white/[0.06] object-contain"
                     wrapperClassName="mt-3 overflow-hidden rounded-2xl"
-                    eager={highlightThreadId === thread.id}
+                    eager={hiloEnfocado === thread.id}
                   />
                 )}
 
@@ -1371,7 +1392,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                               <CommentGif
                                 gif={comment.gif}
                                 className="pl-8"
-                                eager={highlightCommentId === comment.id}
+                                eager={comentarioEnfocadoPersistente === comment.id}
                               />
                             )}
 
@@ -1406,13 +1427,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                   alt="Imagen adjunta al comentario"
                                   width={comment.imageWidth}
                                   height={comment.imageHeight}
+                                  unknownRatio="4 / 3"
                                   // 288 = el `max-h-72` de siempre: la
                                   // reserva se capa igual que la imagen
                                   // final para no reservar de más.
                                   maxHeight={288}
                                   className="block h-auto max-h-72 max-w-full rounded-xl border border-white/[0.06] object-contain"
                                   wrapperClassName="ml-8 mt-1 overflow-hidden rounded-xl"
-                                  eager={highlightCommentId === comment.id}
+                                  eager={comentarioEnfocadoPersistente === comment.id}
                                 />
                               )}
 
@@ -1598,7 +1620,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                          <CommentGif
                                            gif={reply.gif}
                                            className="pl-5"
-                                           eager={highlightCommentId === reply.id}
+                                           eager={comentarioEnfocadoPersistente === reply.id}
                                          />
                                        )}
                                        {/* Las respuestas ya no suben
@@ -1611,10 +1633,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                            alt="Imagen adjunta a la respuesta"
                                            width={reply.imageWidth}
                                            height={reply.imageHeight}
+                                            unknownRatio="4 / 3"
                                            maxHeight={288}
                                            className="block h-auto max-h-72 max-w-full rounded-xl border border-white/[0.06] object-contain"
                                            wrapperClassName="ml-5 overflow-hidden rounded-xl"
-                                           eager={highlightCommentId === reply.id}
+                                           eager={comentarioEnfocadoPersistente === reply.id}
                                          />
                                        )}
                                        <div className="flex flex-wrap items-center gap-3 pl-5 pt-1">

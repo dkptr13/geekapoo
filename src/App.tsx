@@ -47,6 +47,7 @@ import { ArchitectureModal } from './components/docs/ArchitectureModal';
 import { AdminPanel } from './components/admin/AdminPanel';
 
 import { slugDeRuta, useQueryState, useQueryStateBatch } from './hooks/useQueryState';
+import { useScrollRestoration } from './hooks/useScrollRestoration';
 
 import { Thread } from './types';
 
@@ -196,6 +197,11 @@ const {
   const [hiloParam] = useQueryState('hilo', '');
   const [comentarioParam] = useQueryState('comentario', '');
 
+  // Restaura la posición al volver atrás, salvo cuando la URL trae
+  // un destino de aviso: en ese caso manda el anclaje al hilo o al
+  // comentario que hace HomeFeed.
+  useScrollRestoration(Boolean(hiloParam || comentarioParam));
+
   // Cada pulsación de "Buscar" incrementa este contador, y la wiki
   // lo usa para ponerse el cursor en el buscador. Es un contador y
   // no un booleano porque así dos pulsaciones seguidas funcionan
@@ -256,11 +262,19 @@ const {
   // no cambiaría, ninguna dependencia se movería, y el hilo ni se
   // abriría ni se desplazaría.
   const [focusNonce, setFocusNonce] = useState(0);
+  // El foco inicial ya viene en la URL y no necesita un nonce extra:
+  // así HomeFeed monta una sola vez su efecto de colocación. Los
+  // cambios posteriores de destino sí incrementan el nonce para
+  // volver a ejecutarlo.
+  const focoKey = hiloParam ? `${hiloParam}|${comentarioParam}` : '';
+  const focoAnteriorRef = useRef(focoKey);
 
   useEffect(() => {
-    if (!hiloParam) return;
+    const anterior = focoAnteriorRef.current;
+    focoAnteriorRef.current = focoKey;
+    if (!focoKey || anterior === focoKey) return;
     setFocusNonce((n) => n + 1);
-  }, [hiloParam, comentarioParam]);
+  }, [focoKey]);
 
   const focusTarget = hiloParam
     ? {
@@ -269,6 +283,8 @@ const {
         nonce: focusNonce,
       }
     : null;
+
+
 
   /**
    * Consume el destino una vez llegado: borra `hilo` y
