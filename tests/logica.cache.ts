@@ -14,6 +14,7 @@ import {
   clearPrivateCaches,
   clearUserCache,
   invalidateCache,
+  patchCached,
   setCached,
   userCacheScope,
 } from '../src/lib/firestoreCache';
@@ -149,6 +150,43 @@ async function main(): Promise<void> {
     }),
     ['publico'],
     'los datos públicos sobreviven al cierre de sesión',
+  );
+
+  // Un "me gusta" parchea las copias ya cacheadas sin invalidar la
+  // ficha entera ni volver a leer Firestore.
+  clearFirestoreCache();
+  type Fila = { id: string; likedBy: string[]; likesCount: number };
+  const episodio: Fila = { id: 'ep1', likedBy: [], likesCount: 0 };
+  setCached<Fila[]>('community:episodes:anime1', [episodio], 60_000);
+  setCached<Fila[]>('community:episodes:filtrados:anime1', [episodio], 60_000);
+
+  patchCached<Fila[]>('community:episodes', (lista) =>
+    lista.map((fila) =>
+      fila.id === 'ep1'
+        ? { ...fila, likedBy: ['ana'], likesCount: 1 }
+        : fila,
+    ),
+  );
+
+  assert.deepEqual(
+    await cachedRead({
+      key: 'community:episodes:anime1',
+      ttlMs: 60_000,
+      read: async () => {
+        throw new Error('no debería leer');
+      },
+    }),
+    [{ id: 'ep1', likedBy: ['ana'], likesCount: 1 }],
+  );
+  assert.deepEqual(
+    await cachedRead({
+      key: 'community:episodes:filtrados:anime1',
+      ttlMs: 60_000,
+      read: async () => {
+        throw new Error('no debería leer');
+      },
+    }),
+    [{ id: 'ep1', likedBy: ['ana'], likesCount: 1 }],
   );
 
   console.log('OK · caché compartida y separación por cuenta');

@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
-import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
+import { cachedRead, patchCached, PUBLIC_CACHE } from '../lib/firestoreCache';
 import {
   measureRead,
   recordListenerSnapshot,
@@ -1139,15 +1139,30 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     switch (kind) {
       case 'anime':
         setAnimes((prev) => actualizarLikeEnLista(prev, id, uid, liked));
+        // El listado público y los destacados guardan el mismo
+        // documento. Se parchean en sitio para que volver a la Wiki
+        // dentro del TTL no muestre el corazón anterior.
+        patchCached<Anime[]>('community:animes', (lista) =>
+          actualizarLikeEnLista(lista, id, uid, liked),
+        );
         break;
       case 'episode':
         setEpisodes((prev) => actualizarLikeEnGrupos(prev, id, uid, liked));
+        patchCached<Episode[]>('community:episodes', (lista) =>
+          actualizarLikeEnLista(lista, id, uid, liked),
+        );
         break;
       case 'character':
         setCharacters((prev) => actualizarLikeEnGrupos(prev, id, uid, liked));
+        patchCached<Character[]>('community:characters', (lista) =>
+          actualizarLikeEnLista(lista, id, uid, liked),
+        );
         break;
       case 'trivia':
         setTriviaExtras((prev) => actualizarLikeEnTrivia(prev, id, uid, liked));
+        patchCached<TriviaExtra[]>('community:trivia-extras', (lista) =>
+          actualizarLikeEnTrivia(lista, id, uid, liked),
+        );
         break;
     }
   }, []);

@@ -107,6 +107,34 @@ export function setCached<T>(
   entries.set(fullKey(scope, key), { value, expiresAt: Date.now() + ttlMs });
 }
 
+/**
+ * Aplica un cambio local a las entradas ya cacheadas bajo un prefijo.
+ *
+ * Se usa para los "me gusta" del catálogo: el documento cambia, pero
+ * no queremos invalidar la ficha entera (eso volvería a leer todos
+ * sus episodios y personajes). La entrada de memoria y su copia en
+ * IndexedDB se actualizan con el mismo valor que ya está en pantalla.
+ */
+export function patchCached<T>(
+  keyPrefix: string,
+  patch: (value: T) => T,
+  scope = PUBLIC_CACHE,
+): void {
+  const prefix = fullKey(scope, keyPrefix);
+
+  for (const [id, entry] of entries) {
+    if (id !== prefix && !id.startsWith(prefix)) continue;
+
+    const siguiente = patch(entry.value as T);
+    if (siguiente === entry.value) continue;
+
+    entry.value = siguiente;
+    if (scope === PUBLIC_CACHE) {
+      void writePersistent(id, siguiente, entry.expiresAt);
+    }
+  }
+}
+
 /** Invalida una clave exacta o todas las que empiezan por ese prefijo. */
 export function invalidateCache(key: string, scope?: string): void {
   generation += 1;

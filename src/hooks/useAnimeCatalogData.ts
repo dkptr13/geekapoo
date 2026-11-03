@@ -68,6 +68,7 @@ export function useAnimeCatalogData<T extends { id: string }>(
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [refresco, setRefresco] = useState(0);
   const peticionRef = useRef(0);
   const bloquesRef = useRef<string[][]>([]);
   const siguienteRef = useRef(0);
@@ -167,7 +168,20 @@ export function useAnimeCatalogData<T extends { id: string }>(
     return () => {
       activoRef.current = false;
     };
-  }, [coleccion, enabled, firma, leerBloque]);
+  }, [coleccion, enabled, firma, leerBloque, refresco]);
+
+  // El panel invalida `community:episodes` o `community:characters`
+  // al editar. Si esta vista filtrada está montada, se vuelve a pedir
+  // el primer bloque en vez de esperar al TTL de 30 minutos.
+  useEffect(() => {
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key === `community:${coleccion}`) setRefresco((n) => n + 1);
+    };
+
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    return () => window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+  }, [coleccion]);
 
   const loadMore = useCallback(async (): Promise<void> => {
     if (!enabled || loading || loadingMore) return;

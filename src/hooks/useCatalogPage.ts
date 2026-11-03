@@ -67,6 +67,7 @@ export function useCatalogPage<T>(
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [refresco, setRefresco] = useState(0);
   const cursorRef = useRef<Cursor | null>(null);
   const cargadoEn = useRef(0);
 
@@ -162,7 +163,26 @@ export function useCatalogPage<T>(
     return () => {
       activo = false;
     };
-  }, [enabled, items.length, leerPagina, coleccion]);
+  }, [enabled, items.length, leerPagina, coleccion, refresco]);
+
+  // Si el panel edita esta colección, la página abierta se vuelve a
+  // pedir. La caché ya se ha invalidado desde `catalogAdmin`; esto
+  // solo evita que la vista montada siga enseñando la copia vieja
+  // hasta que el usuario cambie de pestaña.
+  useEffect(() => {
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key !== `catalog:page:${coleccion}`) return;
+      setItems([]);
+      cursorRef.current = null;
+      cargadoEn.current = 0;
+      setHasMore(false);
+      setRefresco((n) => n + 1);
+    };
+
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    return () => window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+  }, [coleccion]);
 
   const loadMore = useCallback(async (): Promise<void> => {
     const cursor = cursorRef.current;
@@ -229,6 +249,16 @@ export function useCollectionCount(coleccion: string, enabled = true): number | 
       activo = false;
     };
   }, [coleccion, enabled, total]);
+
+  useEffect(() => {
+    const alInvalidar = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key;
+      if (key === `catalog:count:${coleccion}`) setTotal(null);
+    };
+
+    window.addEventListener('geekapoo:cache-invalidated', alInvalidar);
+    return () => window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
+  }, [coleccion]);
 
   return total;
 }

@@ -338,6 +338,9 @@ La atribución se ha hecho por forma de consulta, media de lecturas por ejecuci�
   - `useCatalogPage` cachea la primera página y las siguientes por cursor (5 min, IndexedDB).
   - `useCollectionCount` cachea la agregación (5 min, IndexedDB).
   - `catalogAdmin` invalida `catalog:page:<coleccion>` y `catalog:count:<coleccion>` al editar.
+  - Las páginas, los contadores y los filtros montados escuchan `geekapoo:cache-invalidated` y se vuelven a pedir en vez de esperar al TTL.
+- **Likes de catálogo**
+  - `patchCached` actualiza en sitio las copias de memoria e IndexedDB de animes, episodios, personajes y trivia al dar o quitar un like. No invalida la ficha entera ni vuelve a leer Firestore.
 - **Build**
   - `prebuild` ejecuta sitemap + índice; la URL del índice lleva el SHA de Vercel para no reutilizar una respuesta HTTP antigua.
   - El índice generado está ignorado por Git y se regenera en cada build.
@@ -392,7 +395,7 @@ El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip**
 ### 12.6 Pruebas
 
 - `npm run lint`: correcto.
-- `npm run test:logica`: todas las suites correctas.
+- `npm run test:logica`: todas las suites correctas, incluida `tests/logica.cache.ts` con la prueba de `patchCached`.
 - `npm run build`: correcto (sitemap, índice y 195 páginas de anime).
 - Navegador de desarrollo:
   - Búsqueda por «Ataque a los Titanes», «Shingeki no Kyojin» y «Shingeki no Kyoujin».
@@ -455,7 +458,7 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
 1. Medir Query Insights tras un periodo equivalente y comparar con la tabla histórica.
 2. Probar el panel autenticado: abrir Animes, editar un anime sin tocar streaming, desplegar disponibilidad, guardar/borrar y comprobar invalidación.
 3. Frescura del índice: se regenera en cada build; una edición del panel se refleja en el buscador en el siguiente despliegue y un navegador puede tardar hasta 1 h en verlo. Para actualización instantánea sin desplegar haría falta un índice en Firestore mantenido por Cloud Functions (1 lectura + 1 escritura por edición), no implementado para no añadir escrituras ni reglas.
-4. Las vistas ya montadas no se actualizan en tiempo real tras una edición: como máximo esperan su TTL (5 min para páginas/contadores, 30 min para fichas/filtros). La caché se invalida, pero el componente no tiene listener de invalidación.
+4. Las páginas, contadores y filtros montados ya escuchan la invalidación y se recargan; las fichas ya lo hacían y los likes parchean la caché en sitio. No se pretende actualización en tiempo real entre pestañas/usuarios: el resto de navegadores ve el cambio al caducar su TTL.
 5. El panel sigue cargando todas las temporadas y animes de la pestaña Animes; se podría reducir con un `seasonsCount` en el anime y carga por serie.
 6. El índice de búsqueda es un solo archivo de ~0,9 MiB comprimido; si el tráfico crece, conviene dividirlo por tipo y cargarlo bajo demanda.
 7. Las descripciones del índice se recortan a 160 caracteres (episodios) y 240 (personajes) para no disparar el tamaño. La búsqueda por título, japonés, romaji, alias y la mayor parte de la descripción sigue funcionando; una palabra al final de una descripción muy larga podría no encontrarse.
