@@ -14,7 +14,7 @@ Se ha eliminado la mayor parte del consumo que se producía al entrar en la web:
 
 - Inicio dejó de cargar el catálogo completo de series, episodios, personajes, temporadas y toda la colección de comentarios. Solo pide unas pocas series para la barra lateral.
 - La Wiki carga el catálogo de series; al abrir una ficha pide únicamente los datos de esa serie.
-- Los buscadores y pestañas globales siguen pudiendo cargar el catálogo completo cuando de verdad lo necesitan.
+- Los buscadores y pestañas globales usan el índice estático desde la segunda fase; la carga completa queda solo como respaldo si el índice no está disponible.
 - Los comentarios se leen por objetivo y solo mientras están abiertos.
 - El historial de chat se carga en tramos de 80 mensajes, manteniendo el listener en tiempo real.
 - Se comparte una caché en memoria y otra persistente en IndexedDB (solo datos públicos) con TTL, deduplicación de peticiones simultáneas, separación por cuenta e invalidación.
@@ -290,7 +290,7 @@ El catálogo de la Wiki baja un **98,5 %** (11.197 → 172). La ficha medida fue
 ## 11. Despliegue
 
 La primera tanda (índices, Functions y frontend) fue desplegada por el usuario.  
-La segunda fase se publicó el 2026-11-03 en `main` con los commits `b188129` (navegación de notificaciones), `8833b10` (optimización de Firestore) y `163413d` (likes de catálogo en la wiki); la documentación se actualizó en commits posteriores. Vercel publicó el frontend y `/busqueda/indice.json?v=<sha-del-build>` respondió 200. No se desplegaron índices ni Functions nuevas; las reglas de Firestore actualizadas se publicaron aparte con `firebase deploy --only firestore:rules`.
+La segunda fase se publicó el 2026-11-03 en `main` con los commits `b188129` (navegación de notificaciones), `8833b10` (optimización de Firestore), `163413d` (likes de catálogo en la wiki), `4cec74e` (caché de likes y refresco de vistas) y `4a6d123` (panel con `seasonsCount`); la documentación se actualizó en commits posteriores. Vercel publicó el frontend y `/busqueda/indice.json?v=<sha-del-build>` respondió 200. No se desplegaron índices ni Functions nuevas; las reglas de Firestore actualizadas se publicaron aparte con `firebase deploy --only firestore:rules`.
 
 El detalle de qué se publicó y qué queda pendiente está en la sección 12.9.
 
@@ -407,7 +407,7 @@ El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip**
   - Paginación 60 → 120 en episodios y personajes.
   - Fallback renombrando el índice.
 - Producción (2026-11-03):
-  - Bundle de `main`; la primera verificación fue `assets/index-CjAiLObR.js` (incluye el commit de likes `163413d`).
+  - Bundle de `main`; la primera verificación fue `assets/index-CjAiLObR.js` y la última `assets/index-s37spvH-.js` (incluye likes y panel por serie).
   - `/busqueda/indice.json?v=<sha-del-build>` → 200.
   - IndexedDB contiene `public:search:index:v1`.
   - Búsqueda correcta y sin errores de consola.
@@ -440,7 +440,7 @@ Con la tarifa estándar de referencia de Firestore Native de **0,06 USD por 100.
 |---|---:|---:|
 | Primera búsqueda por navegador | 13.965 | ~0,0084 USD |
 | Ficha en pestaña Información | 163 | ~0,0001 USD |
-| Apertura del panel sin editar anime | 13.484 | ~0,0081 USD |
+| Apertura del panel sin editar anime | 13.965 | ~0,0084 USD |
 | Tabla histórica completa | 509.220 | ~0,31 USD para el periodo que cubra la tabla |
 
 Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota, picos, latencia y riesgo de agotar límites. El ahorro real de facturación no se puede medir hasta consultar Billing/Query Insights tras un periodo equivalente.
@@ -451,7 +451,9 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
   - `b188129` — navegación estable de notificaciones y hueco reservado para imágenes.
   - `8833b10` — optimización de Firestore (esta fase).
   - `163413d` — likes de catálogo en la wiki (autor: Oscar).
-- Producción sirve el bundle de `main` (primera verificación: `assets/index-CjAiLObR.js`); `/busqueda/indice.json?v=<sha-del-build>` responde 200.
+  - `4cec74e` — parcheo de caché para likes y refresco de vistas montadas.
+  - `4a6d123` — panel de administración con `seasonsCount` y temporadas por serie.
+- Producción sirve el bundle de `main` (última verificación: `assets/index-s37spvH-.js`); `/busqueda/indice.json?v=<sha-del-build>` responde 200.
 - Reglas de Firestore del commit `163413d` publicadas con `firebase deploy --only firestore:rules`. El CLI compiló `firestore.deploy.rules` (155.214 bytes), indicó que la última versión ya estaba al día y liberó el ruleset. No se desplegaron índices ni Functions nuevas.
 - El árbol de trabajo quedó limpio: `firestore.rules`, `tests/firestore.likes.rules.test.cjs`, los likes de `CommunityContext`, `scripts/datos/*`, `scripts/importar-disponibilidad-justwatch.mjs` y `public/sitemap.xml` quedaron incluidos en `163413d`.
 
