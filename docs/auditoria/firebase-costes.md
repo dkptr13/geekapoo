@@ -602,7 +602,7 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
   - solo devuelve los avisos de ese comentario, no la colección de cada usuario;
   - los borra en lotes de 500.
 - Los avisos de otros comentarios del mismo hilo tienen otro `commentId` y no se tocan.
-- Índice necesario: `notifications` (COLLECTION_GROUP) `commentId ASC`. Añadido a `firestore.indexes.json`; **hay que desplegarlo antes que la función**.
+- Índice necesario: `notifications.commentId` con ámbito de grupo de colecciones. Va en `fieldOverrides` de `firestore.indexes.json` (los índices de un solo campo no se declaran en `indexes[]`); **hay que desplegarlo antes que la función**.
 - Los avisos antiguos que ya apuntaban a comentarios borrados se revisan con `scripts/limpiar-notificaciones-huerfanas.mjs`:
   - simulación por defecto;
   - `--escribir` borra los huérfanos;
@@ -635,6 +635,6 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - Reglas: lectura solo del dueño; creación cerrada; actualización solo `read`/`readAt` y solo hacia leído; borrado solo del dueño.
 - Cloud Function: usa Admin SDK y deduce el comentario del evento; no acepta IDs de usuario del cliente.
 - Sin listeners nuevos: se reutiliza el `onSnapshot` existente; solo se añade una agregación de contador por instantánea (y al abrir el panel).
-- Orden de despliegue: primero `firebase deploy --only firestore:indexes` y esperar el índice de `notifications`; después `firebase deploy --only functions`; por último `firebase deploy --only firestore:rules`. La parte de notificaciones no se ha desplegado.
+- Orden de despliegue: primero `firebase deploy --only firestore:indexes` y esperar el índice de `notifications.commentId`; después `firebase deploy --only functions`; por último `firebase deploy --only firestore:rules`. La parte de notificaciones no se ha desplegado.
 - Coste: borrar una notificación = 1 escritura; borrar todas = 1 lectura + 1 escritura por aviso, en páginas de 500; limpieza por comentario = 1 consulta acotada + 1 borrado por aviso; contador = 1 lectura de agregación por cambio.
 - **Pruebas:** `npm run lint`, `npm --prefix functions run build` y las **29** pruebas de reglas de notificaciones (`firebase emulators:exec --only firestore ...`) pasan, incluidas lectura, borrado propio/ajeno, borrado en lote y agregación del contador. El trigger real se probó con Functions Emulator (`npm run test:notificaciones`): se sembraron dos comentarios y sus avisos, se borró uno y desapareció solo su aviso. No se probó el panel autenticado en navegador (sin sesión).

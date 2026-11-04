@@ -1,14 +1,6 @@
 {
   "indexes": [
     {
-      "_comment": "Limpieza: avisos de usuarios que apuntan al comentario borrado.",
-      "collectionGroup": "notifications",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "commentId", "order": "ASCENDING" }
-      ]
-    },
-    {
       "_comment": "Barra pública de reacciones: un hilo o comentario se consulta por targetType + targetId in.",
       "collectionGroup": "reactions",
       "queryScope": "COLLECTION",
@@ -211,6 +203,17 @@
       "_comment": "Recalculo: collectionGroup(messages).where(senderId==). Un solo campo no va en indexes[], sino aqui.",
       "collectionGroup": "messages",
       "fieldPath": "senderId",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "_comment": "Limpieza: collectionGroup(notifications).where(commentId==). Índice de un solo campo.",
+      "collectionGroup": "notifications",
+      "fieldPath": "commentId",
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION" },
         { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
