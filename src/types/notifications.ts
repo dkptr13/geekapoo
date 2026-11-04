@@ -20,12 +20,13 @@ import type { ReactionType } from './index';
  *
  * ── Quién escribe ──────────────────────────────────────────
  *
- * SOLO el servidor (Cloud Functions con Admin SDK). El cliente no
- * puede crear ni borrar notificaciones, y solo puede tocar el
- * campo `read` de las suyas. Está en las reglas, y es lo que
+ * SOLO el servidor (Cloud Functions con Admin SDK) las CREA. El
+ * cliente no puede crear notificaciones, y solo puede tocar el
+ * campo `read` o borrar las suyas. Está en las reglas, y es lo que
  * impide la TONtería de las menciones: si el navegador pudiera
  * escribir, bastaría un `for` para mandarle cien notificaciones a
- * otro usuario.
+ * otro usuario. Borrar una notificación propia no borra el
+ * contenido original al que apunta.
  *
  * ── Los ids son deterministas ───────────────────────────────
  *

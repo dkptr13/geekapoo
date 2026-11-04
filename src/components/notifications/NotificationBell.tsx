@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bell, CheckCheck, X, ChevronRight } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Bell, CheckCheck, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 
 import { useNotifications } from '../../context/NotificationsContext';
 import { tiempoRelativo, iconoDe, textoDe, esNotificacionImportante } from '../../utils/notificaciones';
@@ -24,12 +25,18 @@ export const NotificationBell: React.FC = () => {
     error,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
+    deleteAllNotifications,
     openPanel,
     setOpenPanel,
   } = useNotifications();
 
   const [tiempoRefresh, setTiempoRefresh] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
+  const [confirmarBorrarTodas, setConfirmarBorrarTodas] = useState(false);
+  const [borrandoTodas, setBorrandoTodas] = useState(false);
+  const [errorAccion, setErrorAccion] = useState('');
+  const [saliendo, setSaliendo] = useState<Set<string>>(new Set());
 
   // ── Ir al contenido del aviso ──────────────────────────
   const irA = useGoToNotification();
@@ -55,13 +62,19 @@ export const NotificationBell: React.FC = () => {
     if (!openPanel) return;
 
     const cerrarFuera = (e: MouseEvent) => {
+      if (confirmarBorrarTodas) return;
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpenPanel(false);
       }
     };
 
     const cerrarEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenPanel(false);
+      if (e.key !== 'Escape') return;
+      if (confirmarBorrarTodas) {
+        if (!borrandoTodas) setConfirmarBorrarTodas(false);
+        return;
+      }
+      setOpenPanel(false);
     };
 
     document.addEventListener('mousedown', cerrarFuera);
@@ -71,7 +84,21 @@ export const NotificationBell: React.FC = () => {
       document.removeEventListener('mousedown', cerrarFuera);
       window.removeEventListener('keydown', cerrarEscape);
     };
-  }, [openPanel, setOpenPanel]);
+  }, [openPanel, setOpenPanel, confirmarBorrarTodas, borrandoTodas]);
+
+  // Al abrir el panel se limpia el error de la acción anterior.
+  useEffect(() => {
+    if (openPanel) setErrorAccion('');
+  }, [openPanel]);
+
+  // Si el panel se cierra por cualquier vía, el diálogo no debe
+  // quedarse flotando por encima de la página.
+  useEffect(() => {
+    if (!openPanel) {
+      setConfirmarBorrarTodas(false);
+      setBorrandoTodas(false);
+    }
+  }, [openPanel]);
 
   // ====================================================
   // REFRESCAR TIEMPOS RELATIVOS CADA MINUTO
@@ -111,6 +138,38 @@ export const NotificationBell: React.FC = () => {
         avisoTimer.current = null;
         setAviso('');
       }, 4000);
+    }
+  };
+
+  const borrarUna = async (id: string) => {
+    if (saliendo.has(id)) return;
+
+    setErrorAccion('');
+    setSaliendo((prev) => new Set(prev).add(id));
+
+    const ok = await deleteNotification(id);
+    setSaliendo((prev) => {
+      const siguiente = new Set(prev);
+      siguiente.delete(id);
+      return siguiente;
+    });
+
+    if (!ok) {
+      setErrorAccion('No se pudo eliminar la notificación.');
+    }
+  };
+
+  const eliminarTodas = async () => {
+    setBorrandoTodas(true);
+    setErrorAccion('');
+
+    const ok = await deleteAllNotifications();
+    setBorrandoTodas(false);
+
+    if (ok) {
+      setConfirmarBorrarTodas(false);
+    } else {
+      setErrorAccion('No se pudieron eliminar todas las notificaciones.');
     }
   };
 
@@ -158,7 +217,7 @@ export const NotificationBell: React.FC = () => {
               CABECERA
           ============================================== */}
 
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] px-4 py-3">
             <div className="flex items-center gap-2">
               <Bell size={15} className="text-violet-300" />
               <h3 className="text-sm font-bold text-white">Notificaciones</h3>
@@ -170,17 +229,39 @@ export const NotificationBell: React.FC = () => {
               )}
             </div>
 
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={markAllAsRead}
-                className="chat-boton flex items-center gap-1 text-[11px] font-semibold text-violet-300 transition-colors hover:text-violet-200"
-              >
-                <CheckCheck size={12} />
-                Marcar todas como leídas
-              </button>
-            )}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllAsRead}
+                  className="chat-boton flex items-center gap-1 text-[11px] font-semibold text-violet-300 transition-colors hover:text-violet-200"
+                >
+                  <CheckCheck size={12} />
+                  Marcar todas como leídas
+                </button>
+              )}
+
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorAccion('');
+                    setConfirmarBorrarTodas(true);
+                  }}
+                  className="chat-boton flex items-center gap-1 text-[11px] font-semibold text-rose-300 transition-colors hover:text-rose-200"
+                >
+                  <Trash2 size={12} />
+                  Eliminar todas
+                </button>
+              )}
+            </div>
           </div>
+
+          {errorAccion && (
+            <div className="border-b border-rose-500/15 bg-rose-500/10 px-4 py-2 text-[11px] font-semibold text-rose-200">
+              {errorAccion}
+            </div>
+          )}
 
           {/* ==============================================
               LISTA
@@ -213,63 +294,81 @@ export const NotificationBell: React.FC = () => {
                 const noLeida = !n.read;
 
                 return (
-                  <button
+                  <div
                     key={n.id}
-                    type="button"
-                    onClick={() => handleClick(n)}
-                    className={`chat-boton flex w-full items-start gap-3 border-b border-white/[0.04] px-4 py-3 text-left transition-colors hover:bg-white/[0.04] ${
+                    className={`flex w-full items-start gap-1 border-b border-white/[0.04] transition-all duration-200 ${
                       noLeida ? 'bg-violet-500/5' : ''
+                    } ${
+                      saliendo.has(n.id)
+                        ? 'pointer-events-none -translate-x-2 opacity-0'
+                        : ''
                     }`}
                   >
-                    {/* Avatar */}
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.04] text-xs text-zinc-400">
-                      {n.actorAvatar ? (
-                        <img
-                          src={n.actorAvatar}
-                          alt={n.actorName}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-sm">{iconoDe(n)}</span>
-                      )}
-                    </div>
-
-                    {/* Contenido */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">{iconoDe(n)}</span>
-                        <span className="truncate text-sm sm:text-xs font-semibold text-white">
-                          {n.actorName}
-                        </span>
+                    <button
+                      type="button"
+                      onClick={() => handleClick(n)}
+                      className="chat-boton flex min-w-0 flex-1 items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.04]"
+                    >
+                      {/* Avatar */}
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.04] text-xs text-zinc-400">
+                        {n.actorAvatar ? (
+                          <img
+                            src={n.actorAvatar}
+                            alt={n.actorName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm">{iconoDe(n)}</span>
+                        )}
                       </div>
 
-                      <p
-                        className={`mt-0.5 text-sm sm:text-xs leading-relaxed ${
-                          noLeida ? 'text-gray-200' : 'text-gray-400'
-                        }`}
-                      >
-                        {textoDe(n)}
-                      </p>
+                      {/* Contenido */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm">{iconoDe(n)}</span>
+                          <span className="truncate text-sm sm:text-xs font-semibold text-white">
+                            {n.actorName}
+                          </span>
+                        </div>
 
-                      {n.snippet && (
-                        <p className="mt-1 line-clamp-1 text-[11px] text-gray-500">
-                          &quot;{n.snippet}&quot;
+                        <p
+                          className={`mt-0.5 text-sm sm:text-xs leading-relaxed ${
+                            noLeida ? 'text-gray-200' : 'text-gray-400'
+                          }`}
+                        >
+                          {textoDe(n)}
                         </p>
-                      )}
 
-                      <p className="mt-1 text-[10px] text-zinc-500">
-                        {tiempoRelativo(n.createdAt)}
-                      </p>
-                    </div>
+                        {n.snippet && (
+                          <p className="mt-1 line-clamp-1 text-[11px] text-gray-500">
+                            &quot;{n.snippet}&quot;
+                          </p>
+                        )}
 
-                    {/* Indicador no leído + flecha */}
-                    <div className="flex flex-shrink-0 flex-col items-end gap-1">
-                      {noLeida && (
-                        <span className="h-2 w-2 rounded-full bg-violet-500" />
-                      )}
-                      <ChevronRight size={12} className="text-gray-600" />
-                    </div>
-                  </button>
+                        <p className="mt-1 text-[10px] text-zinc-500">
+                          {tiempoRelativo(n.createdAt)}
+                        </p>
+                      </div>
+
+                      {/* Indicador no leído + flecha */}
+                      <div className="flex flex-shrink-0 flex-col items-end gap-1">
+                        {noLeida && (
+                          <span className="h-2 w-2 rounded-full bg-violet-500" />
+                        )}
+                        <ChevronRight size={12} className="text-gray-600" />
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => void borrarUna(n.id)}
+                      aria-label="Eliminar notificación"
+                      title="Eliminar notificación"
+                      className="chat-boton mr-2 mt-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-rose-500/10 hover:text-rose-300 focus-visible:outline-2 focus-visible:outline-rose-400"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 );
               })}
           </div>
@@ -287,6 +386,70 @@ export const NotificationBell: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* ================================================
+          CONFIRMACIÓN: eliminar todas
+      ================================================
+          Va en un portal para que el `backdrop-blur` del navbar no
+          recorte el overlay fijo. */}
+      {confirmarBorrarTodas &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-eliminar-notificaciones"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget && !borrandoTodas) {
+                setConfirmarBorrarTodas(false);
+              }
+            }}
+          >
+            <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[#0c0c14] p-5 shadow-2xl">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-300">
+                  <AlertTriangle size={18} />
+                </span>
+                <div className="min-w-0">
+                  <h4 id="titulo-eliminar-notificaciones" className="text-sm font-bold text-white">
+                    ¿Eliminar todas las notificaciones?
+                  </h4>
+                  <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                    Se borrarán todas las notificaciones de tu cuenta. No se eliminarán los
+                    hilos, comentarios, mensajes ni el contenido original.
+                  </p>
+                </div>
+              </div>
+
+              {errorAccion && (
+                <p className="mt-3 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-[11px] font-semibold text-rose-200">
+                  {errorAccion}
+                </p>
+              )}
+
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmarBorrarTodas(false)}
+                  disabled={borrandoTodas}
+                  className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-semibold text-zinc-300 transition-colors hover:bg-white/[0.06] disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void eliminarTodas()}
+                  disabled={borrandoTodas}
+                  className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-rose-500 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {borrandoTodas ? 'Eliminando...' : 'Sí, eliminar todas'}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {/* ================================================
           AVISO: "este aviso ya no lleva a ningún sitio"

@@ -1896,11 +1896,10 @@ service cloud.firestore {
                            .affectedKeys().hasOnly(['read', 'readAt'])
                       && request.resource.data.read == true;
 
-        // El usuario no borra sus avisos: si pudiera, un "marcar
-        // todas como leídas" podría acabar vaciando el histórico y el
-        // contador dejaría de reflejar lo que pasó. Quitar los
-        // antiguos es tarea del mantenimiento, con el Admin SDK.
-        allow delete: if false;
+        // El usuario puede borrar SUS avisos, uno a uno o todos.
+        // La ruta ya lo limita a su carpeta: con otro `uid` la regla
+        // no pasa. No se toca el contenido original, solo el aviso.
+        allow delete: if isSignedIn() && request.auth.uid == uid;
       }
 
       // Mensajes ocultos solo para su dueño ("eliminar solo para

@@ -1804,12 +1804,50 @@ export const onThreadDeleted = onDocumentDeleted(
 );
 
 /**
- * Un comentario borrado: baja el contador del destino y retira el XP
- * de sus "me gusta".
+ * Borra los avisos que apuntaban a un comentario concreto.
  *
- * Las dos cosas van en bloques separados: si falla el contador, el
- * XP se retira igual, y al revés. Un reintento de cualquiera de los
- * dos es idempotente (libro del contador y libro de recompensas).
+ * Se consulta el grupo de colecciones `notifications` por
+ * `commentId`: una sola consulta acotada, no toda la colección de
+ * cada usuario. Los avisos de otros comentarios del mismo hilo
+ * llevan otro `commentId` y se quedan.
+ *
+ * El índice de grupo de colecciones está en `firestore.indexes.json`.
+ */
+async function eliminarAvisosDeComentario(commentId: string): Promise<void> {
+  const avisos = await db
+    .collectionGroup(NOTIFICACIONES)
+    .where('commentId', '==', commentId)
+    .get();
+
+  if (avisos.empty) return;
+
+  // Los lotes de Firestore admiten 500 operaciones.
+  let lote = db.batch();
+  let operaciones = 0;
+
+  for (const aviso of avisos.docs) {
+    lote.delete(aviso.ref);
+    operaciones += 1;
+
+    if (operaciones === 500) {
+      await lote.commit();
+      lote = db.batch();
+      operaciones = 0;
+    }
+  }
+
+  if (operaciones > 0) await lote.commit();
+}
+
+/**
+ * Un comentario borrado: baja el contador del destino, retira el XP
+ * de sus "me gusta" y elimina los avisos que apuntaban a ese
+ * comentario.
+ *
+ * Las tres cosas van en bloques separados: si falla una, las otras
+ * se intentan igual. Un reintento de las dos primeras es idempotente
+ * (libro del contador y libro de recompensas); borrar avisos también
+ * lo es.
  */
 export const onCommentDeleted = onDocumentDeleted(
   { document: `${COMMENTS}/{commentId}`, region: REGION_TRIGGERS },
@@ -1835,6 +1873,15 @@ export const onCommentDeleted = onDocumentDeleted(
       await retirarLikesDeContenido(COMMENTS, commentId, data);
     } catch (e) {
       logger.error('Fallo retirando el XP de un comentario borrado', {
+        commentId,
+        error: e,
+      });
+    }
+
+    try {
+      await eliminarAvisosDeComentario(commentId);
+    } catch (e) {
+      logger.error('Fallo eliminando los avisos de un comentario borrado', {
         commentId,
         error: e,
       });

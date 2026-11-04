@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "_comment": "Limpieza: avisos de usuarios que apuntan al comentario borrado.",
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "commentId", "order": "ASCENDING" }
+      ]
+    },
+    {
       "_comment": "Barra pública de reacciones: un hilo o comentario se consulta por targetType + targetId in.",
       "collectionGroup": "reactions",
       "queryScope": "COLLECTION",

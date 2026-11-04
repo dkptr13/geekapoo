@@ -20,8 +20,8 @@
  *   - El dueño solo puede pasar un aviso a "leído". No puede
  *     reescribir el actor (el aviso parecería de otra persona) ni
  *     volver a ponerlo en no-leído (el contador volvería a subir).
- *   - Nadie los borra: si pudiera, "marcar todas como leídas"
- *     acabaría vaciando el histórico.
+ *   - Solo el dueño los borra. La ruta ya limita a su carpeta, así
+ *     que no puede tocar los de otra cuenta ni el contenido original.
  *
  *   npm run test:rules
  */
@@ -38,8 +38,11 @@ const {
   deleteDoc,
   getDoc,
   getDocs,
+  getCountFromServer,
   query,
   orderBy,
+  where,
+  writeBatch,
   Timestamp,
 } = require('firebase/firestore');
 
@@ -117,7 +120,15 @@ describe('notificaciones', () => {
     await sembrarUsuario(ADMIN, false);
 
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await updateDoc(doc(ctx.firestore(), 'users', ADMIN), { role: 'admin' });
+      const base = ctx.firestore();
+      await updateDoc(doc(base, 'users', ADMIN), { role: 'admin' });
+      // Contenido original que NO debe desaparecer al borrar el aviso.
+      await setDoc(doc(base, 'comments', 'c1'), {
+        authorId: BOB,
+        targetType: 'thread',
+        targetId: 't1',
+        body: 'Comentario original',
+      });
     });
   });
 
@@ -273,17 +284,14 @@ describe('notificaciones', () => {
   });
 
   // ==========================================================
-  // 5. BORRADO: nadie, desde el cliente
+  // 5. BORRADO: solo el dueño
   // ==========================================================
-  describe('el cliente no puede borrar avisos', () => {
-    it('ni el dueno', async () => {
-      // Si pudiera, "marcar todas como leidas" podria acabar
-      // vaciando el historico y el contador dejaria de reflejar lo
-      // que pasó. La limpieza es tarea del mantenimiento.
-      await assertFails(deleteDoc(rutaAviso(db(ALICE), ALICE)));
+  describe('solo el dueño borra sus avisos', () => {
+    it('otro usuario no puede borrar el aviso de Alice', async () => {
+      await assertFails(deleteDoc(rutaAviso(db(BOB), ALICE)));
     });
 
-    it('ni el admin', async () => {
+    it('el admin tampoco puede borrar el aviso de otro desde el cliente', async () => {
       await assertFails(deleteDoc(rutaAviso(db(ADMIN), ALICE)));
     });
 
@@ -291,9 +299,87 @@ describe('notificaciones', () => {
       await assertFails(deleteDoc(rutaAviso(anon(), ALICE)));
     });
 
-    it('el aviso sigue ahi', async () => {
-      const snap = await getDoc(rutaAviso(db(ALICE), ALICE));
+    it('Alice borra su aviso sin leer y desaparece', async () => {
+      const snapAntes = await getDoc(rutaAviso(db(ALICE), ALICE));
+      assert.equal(snapAntes.data().read, false, 'el caso cubre un aviso sin leer');
+
+      await assertSucceeds(deleteDoc(rutaAviso(db(ALICE), ALICE)));
+
+      const snapDespues = await getDoc(rutaAviso(db(ALICE), ALICE));
+      assert.equal(snapDespues.exists(), false);
+    });
+
+    it('el aviso de Bob sigue intacto', async () => {
+      const snap = await getDoc(rutaAviso(db(BOB), BOB));
       assert(snap.exists());
+    });
+
+    it('borrar el aviso no borra el comentario original', async () => {
+      const base = testEnv.authenticatedContext(ALICE).firestore();
+      const comentario = await getDoc(doc(base, 'comments', 'c1'));
+      assert(comentario.exists());
+      assert.equal(comentario.data().body, 'Comentario original');
+    });
+  });
+
+  // ==========================================================
+  // 6. CONTADOR Y BORRADO EN LOTE
+  // ==========================================================
+  describe('contador y borrado en lote', () => {
+    it('el dueño cuenta sus notificaciones sin leer', async () => {
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        const base = ctx.firestore();
+        for (const id of ['n1', 'n2', 'n3']) {
+          await setDoc(
+            doc(base, 'users', ALICE, 'notifications', id),
+            nuevoAviso(ALICE, { type: 'follow', read: false }),
+          );
+        }
+      });
+
+      const conteo = await assertSucceeds(
+        getCountFromServer(
+          query(
+            collection(db(ALICE), 'users', ALICE, 'notifications'),
+            where('read', '==', false),
+          ),
+        ),
+      );
+      assert.equal(conteo.data().count, 3);
+    });
+
+    it('otro usuario no puede contar los avisos de Alice', async () => {
+      await assertFails(
+        getCountFromServer(
+          query(
+            collection(db(BOB), 'users', ALICE, 'notifications'),
+            where('read', '==', false),
+          ),
+        ),
+      );
+    });
+
+    it('Alice borra sus avisos en lote y el de Bob sigue', async () => {
+      const fdb = db(ALICE);
+      const snap = await getDocs(collection(fdb, 'users', ALICE, 'notifications'));
+      const batch = writeBatch(fdb);
+      snap.docs.forEach((aviso) => batch.delete(aviso.ref));
+      await assertSucceeds(batch.commit());
+
+      const despues = await getDocs(collection(fdb, 'users', ALICE, 'notifications'));
+      assert(despues.empty);
+
+      const bob = await getDoc(rutaAviso(db(BOB), BOB));
+      assert(bob.exists());
+    });
+
+    it('Bob también puede borrar su aviso ya leído', async () => {
+      const ruta = rutaAviso(db(BOB), BOB);
+      const antes = await getDoc(ruta);
+      assert.equal(antes.data().read, true, 'el aviso de Bob ya estaba leído');
+
+      await assertSucceeds(deleteDoc(ruta));
+      assert.equal((await getDoc(ruta)).exists(), false);
     });
   });
 });

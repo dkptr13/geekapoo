@@ -1,14 +1,17 @@
 import {
   collection,
+  deleteDoc,
   doc,
+  getCountFromServer,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
   startAfter,
   limit as limitQuery,
   updateDoc,
+  where,
   writeBatch,
-  Timestamp,
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
@@ -76,6 +79,9 @@ export function escucharNotificaciones(
     const q = query(collection(db, 'users', uid, NOTIFICATIONS), ...constraints);
     const meta = { name: 'notifications', collection: 'notifications', origin: 'NotificationsContext' };
 
+    let cancelado = false;
+    let peticionContador = 0;
+
     const unsubscribe = onSnapshot(
       q,
       (snap) => {
@@ -88,14 +94,34 @@ export function escucharNotificaciones(
           ultimoCreado = (ultimo.data().createdAt as string) ?? null;
         }
 
+        // La lista tiene solo la primera página, así que su cuenta
+        // puede quedarse corta. Se pinta ya con la cuenta local y se
+        // corrige con una agregación exacta (1 lectura por 1.000
+        // documentos, no un documento por notificación).
         alCambiar({
           notifications: notificaciones,
           unreadCount,
           loading: false,
           error: null,
         });
+
+        const peticion = ++peticionContador;
+        void contarNoLeidas(uid)
+          .then((exactas) => {
+            if (cancelado || peticion !== peticionContador) return;
+            alCambiar({
+              notifications: notificaciones,
+              unreadCount: exactas,
+              loading: false,
+              error: null,
+            });
+          })
+          .catch(() => {
+            // Si la agregación falla, se conserva la cuenta local.
+          });
       },
       (error) => {
+        cancelado = true;
         console.error('[Notifications] Error leyendo notificaciones:', error);
         alCambiar({
           notifications: [],
@@ -106,7 +132,10 @@ export function escucharNotificaciones(
       },
     );
 
-    return trackListener(meta, unsubscribe);
+    return trackListener(meta, () => {
+      cancelado = true;
+      unsubscribe();
+    });
   };
 
   const unsubscribe = cargar();
@@ -167,31 +196,81 @@ export async function marcarComoLeida(
 }
 
 /**
- * Marca TODAS las notificaciones no leídas de un usuario como leídas.
+ * Cuenta exacta de notificaciones sin leer.
  *
- * Lo hace en un lote de hasta 500 (el límite de Firestore).
+ * La lista del panel solo trae las 20 más recientes; contar esas
+ * mismas dejaría el badge corto cuando hay más. `getCountFromServer`
+ * cuenta todas sin descargarlas.
  */
-export async function marcarTodasComoLeidas(
-  uid: string,
-  notificaciones: WithId<AppNotification>[],
-): Promise<void> {
-  const pendientes = notificaciones.filter((n) => !n.read);
+export function contarNoLeidas(uid: string): Promise<number> {
+  return getCountFromServer(
+    query(
+      collection(db, 'users', uid, NOTIFICATIONS),
+      where('read', '==', false),
+    ),
+  ).then((snap) => snap.data().count);
+}
 
-  if (pendientes.length === 0) return;
-
+/**
+ * Marca TODAS las notificaciones no leídas de un usuario como leídas,
+ * no solo las que caben en el panel.
+ *
+ * Va por páginas de 500 (límite de un lote de Firestore). Si el
+ * usuario tiene muchas, se repiten las páginas hasta vaciar las
+ * pendientes.
+ */
+export async function marcarTodasComoLeidas(uid: string): Promise<void> {
   const ahora = new Date().toISOString();
 
-  // Firestore limita los lotes a 500 operaciones.
-  const lotes: WithId<AppNotification>[][] = [];
-  for (let i = 0; i < pendientes.length; i += 500) {
-    lotes.push(pendientes.slice(i, i + 500));
-  }
+  for (;;) {
+    const pendientes = await getDocs(
+      query(
+        collection(db, 'users', uid, NOTIFICATIONS),
+        where('read', '==', false),
+        limitQuery(500),
+      ),
+    );
 
-  for (const lote of lotes) {
+    if (pendientes.empty) return;
+
     const batch = writeBatch(db);
-    lote.forEach((n) => {
-      const ref = doc(db, 'users', uid, NOTIFICATIONS, n.id);
-      batch.update(ref, { read: true, readAt: ahora });
+    pendientes.docs.forEach((notificacion) => {
+      batch.update(notificacion.ref, { read: true, readAt: ahora });
+    });
+    await batch.commit();
+  }
+}
+
+/** Borra una notificación concreta del usuario. */
+export async function eliminarNotificacion(
+  uid: string,
+  notificationId: string,
+): Promise<void> {
+  await deleteDoc(doc(db, 'users', uid, NOTIFICATIONS, notificationId));
+}
+
+/**
+ * Borra TODAS las notificaciones de un usuario por páginas.
+ *
+ * No carga la colección entera: pide 500, las borra en un lote y
+ * repite hasta que no queda ninguna. Las notificaciones que lleguen
+ * mientras tanto pueden entrar en una página posterior; el resultado
+ * sigue siendo coherente porque el listener reconstruye la lista.
+ */
+export async function eliminarTodasNotificaciones(uid: string): Promise<void> {
+  for (;;) {
+    const pagina = await getDocs(
+      query(
+        collection(db, 'users', uid, NOTIFICATIONS),
+        limitQuery(500),
+      ),
+    );
+
+    if (pagina.empty) return;
+
+    const batch = writeBatch(db);
+    pagina.docs.forEach((notificacion) => {
+      batch.delete(notificacion.ref);
     });
     await batch.commit();
   }

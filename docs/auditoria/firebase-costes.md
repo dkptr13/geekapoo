@@ -591,3 +591,50 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - `createThread`, `deleteThread` y los likes de hilo invalidan `profile:threads:` y el hook recarga las dos consultas; editar desde el panel sigue invalidando `community:threads`. El resto del perfil (comentarios, medallas, seguidores) no cambia.
 - **Ahorro:** una visita al perfil ya no lee la colección `threads` entera; lee solo los hilos del autor, los que le gustan y los títulos puntuales de sus comentarios. Con el foro actual son pocos documentos, pero la lectura deja de crecer con el foro.
 - **Pruebas:** `npm run lint` y `npm run build` correctos. No se pudo probar el perfil autenticado en el navegador porque el entorno de pruebas no tiene sesión iniciada.
+
+## 14. Notificaciones: limpieza y gestión (2026-11-04)
+
+### 14.1 Limpieza automática al borrar un comentario
+
+- `onCommentDeleted` sigue bajando el contador y retirando el XP de los likes.
+- Además ejecuta `eliminarAvisosDeComentario(commentId)`:
+  - una consulta de grupo de colecciones `notifications` con `where('commentId', '==', commentId)`;
+  - solo devuelve los avisos de ese comentario, no la colección de cada usuario;
+  - los borra en lotes de 500.
+- Los avisos de otros comentarios del mismo hilo tienen otro `commentId` y no se tocan.
+- Índice necesario: `notifications` (COLLECTION_GROUP) `commentId ASC`. Añadido a `firestore.indexes.json`; **hay que desplegarlo antes que la función**.
+- Los avisos antiguos que ya apuntaban a comentarios borrados se revisan con `scripts/limpiar-notificaciones-huerfanas.mjs`:
+  - simulación por defecto;
+  - `--escribir` borra los huérfanos;
+  - solo mira avisos de comentario con `commentId`; los antiguos sin ese campo no se tocan.
+  - Primera simulación: 88 avisos, 30 de comentario, **9 huérfanos**, 1 sin `commentId`. No se ha borrado nada todavía.
+
+### 14.2 Eliminación individual
+
+- Servicio: `eliminarNotificacion(uid, id)` usa `deleteDoc` sobre `users/{uid}/notifications/{id}`: 1 escritura y 0 lecturas.
+- La regla solo permite borrar si `request.auth.uid == uid`; no se puede borrar el aviso de otra cuenta ni el contenido original.
+- La UI quita el aviso de la lista inmediatamente y descuenta el contador si estaba sin leer; si Firestore falla, se restaura y se muestra el error.
+- El botón de papelera es hermano del botón principal, así que no dispara la navegación.
+
+### 14.3 Eliminación masiva
+
+- `eliminarTodasNotificaciones(uid)` pide páginas de 500 (`getDocs` + `limit(500)`), las borra con `writeBatch` y repite hasta que no queda ninguna. No descarga la colección entera de golpe.
+- La UI pide confirmación con un diálogo que explica que no se borra el contenido original.
+- Optimista: la lista se vacía y el contador se pone a 0; si falla, se restaura la lista y se vuelve a montar el listener.
+- Si llega una notificación durante el proceso, puede caer en una página posterior; el listener reconstruye la lista y el contador exacto manda.
+
+### 14.4 Contador exacto
+
+- `contarNoLeidas(uid)` usa `getCountFromServer` con `where('read', '==', false)`. El panel solo carga 20 avisos, pero el badge cuenta todos.
+- El listener pinta primero la cuenta local de la página y la corrige con la agregación (1 lectura por cada 1.000 documentos, no una por aviso).
+- «Marcar todas como leídas» ahora pagina todas las pendientes de 500 en 500, no solo las 20 visibles.
+- Las mutaciones actualizan el contador de forma optimista; la siguiente instantánea/agregación lo confirma. No hay un segundo contador persistido que pueda desincronizarse.
+
+### 14.5 Seguridad y coste
+
+- Reglas: lectura solo del dueño; creación cerrada; actualización solo `read`/`readAt` y solo hacia leído; borrado solo del dueño.
+- Cloud Function: usa Admin SDK y deduce el comentario del evento; no acepta IDs de usuario del cliente.
+- Sin listeners nuevos: se reutiliza el `onSnapshot` existente; solo se añade una agregación de contador por instantánea (y al abrir el panel).
+- Orden de despliegue: primero `firebase deploy --only firestore:indexes` y esperar el índice de `notifications`; después `firebase deploy --only functions`; por último `firebase deploy --only firestore:rules`. La parte de notificaciones no se ha desplegado.
+- Coste: borrar una notificación = 1 escritura; borrar todas = 1 lectura + 1 escritura por aviso, en páginas de 500; limpieza por comentario = 1 consulta acotada + 1 borrado por aviso; contador = 1 lectura de agregación por cambio.
+- **Pruebas:** `npm run lint`, `npm --prefix functions run build` y las **29** pruebas de reglas de notificaciones (`firebase emulators:exec --only firestore ...`) pasan, incluidas lectura, borrado propio/ajeno, borrado en lote y agregación del contador. El trigger real se probó con Functions Emulator (`npm run test:notificaciones`): se sembraron dos comentarios y sus avisos, se borró uno y desapareció solo su aviso. No se probó el panel autenticado en navegador (sin sesión).
