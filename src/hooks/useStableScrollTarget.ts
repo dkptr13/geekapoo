@@ -194,11 +194,14 @@ export function useStableScrollTarget({
       const bloque = el.id.startsWith('thread-') ? 'start' : 'center';
 
       const mover = () => {
+        const sinAnimacion =
+          typeof window.matchMedia === 'function' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
         el.scrollIntoView({
-          // Auto y no smooth: el aviso tiene que quedar en el sitio
-          // exacto, no a mitad de una animación que otra carga pueda
-          // interrumpir.
-          behavior: 'auto',
+          // Deslizamiento suave al llegar. Si el sistema pide menos
+          // movimiento, se salta directo para no marear.
+          behavior: sinAnimacion ? 'auto' : 'smooth',
           block: bloque,
           inline: 'nearest',
         });

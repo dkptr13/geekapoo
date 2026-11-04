@@ -315,6 +315,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   // coloca al menos el hilo, en vez de esperar a un elemento que ya
   // no va a existir.
   const [comentarioEnfocadoFallido, setComentarioEnfocadoFallido] = useState(false);
+  // El resaltado del destino es temporal. Vive en un ref y no en el
+  // cleanup del efecto de foco: al consumir la URL, `focusTarget`
+  // pasa a null, el cleanup cancelaría el temporizador y la tarjeta
+  // se quedaría brillando para siempre.
+  const highlightTimer = useRef<number | null>(null);
 
   // ── Ir a un hilo concreto ───────────────────────────
   //
@@ -353,13 +358,27 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     if (!threads.some((t) => t.id === threadId)) ensureAllThreads();
 
     // Solo es cosmético: si tarda en cargar, el scroll se hace
-    // igualmente; simplemente deja de estar resaltado.
-    const t = window.setTimeout(() => {
+    // igualmente; simplemente deja de estar resaltado. El
+    // temporizador no se limpia al consumir la URL; se apaga solo.
+    if (highlightTimer.current !== null) {
+      window.clearTimeout(highlightTimer.current);
+    }
+    highlightTimer.current = window.setTimeout(() => {
+      highlightTimer.current = null;
       setHighlightThreadId(null);
       setHighlightCommentId(null);
     }, 5000);
-    return () => window.clearTimeout(t);
   }, [focusTarget?.nonce, ensureAllThreads]);
+
+  useEffect(
+    () => () => {
+      if (highlightTimer.current !== null) {
+        window.clearTimeout(highlightTimer.current);
+        highlightTimer.current = null;
+      }
+    },
+    [],
+  );
 
   // Si el comentario del aviso no está en la primera página (200),
   // se lee solo ese documento (y su padre si es una respuesta) en
@@ -1350,7 +1369,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             // El `scroll-mt` lo deja visible bajo el
                             // navbar fijo.
                             id={`comment-${comment.id}`}
-                            className={`scroll-mt-20 rounded-2xl border p-4 space-y-2.5 transition-colors ${
+                            className={`scroll-mt-20 rounded-2xl border p-4 space-y-2.5 transition-all ${
                               highlightCommentId === comment.id
                                 ? 'border-violet-400 ring-2 ring-violet-400/30 bg-violet-500/10'
                                 : 'border-white/[0.06] bg-white/[0.03]'
