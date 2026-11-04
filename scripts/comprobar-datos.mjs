@@ -102,7 +102,7 @@ const ANGELESAS = [
  * en la Wikipedia en espanol, en el doblaje y en las fichas de la serie.
  * Traducirlo a "Mucho" seria inventarse un nombre que nadie usa.
  */
-const PROPIOS_EN_INGLES = ['power', 'green', 'light', 'much'];
+const PROPIOS_EN_INGLES = ['power', 'green', 'light', 'much', 'the'];
 
 /**
  * Si una palabra inglesa sale como NOMBRE PROPIO y no como palabra.
