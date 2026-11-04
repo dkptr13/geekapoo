@@ -834,6 +834,12 @@ export interface Anime {
   status: 'emitiendo' | 'finished' | 'upcoming' | 'En emisión' | 'Finalizado' | 'Próximamente';
   episodesCount: number;
   /**
+   * Número de temporadas guardadas. Se mantiene al crear/borrar una
+   * temporada y sirve para que la ficha detecte si su lista estática
+   * se ha quedado corta y tenga que preguntar a Firestore.
+   */
+  seasonsCount?: number;
+  /**
    * Categoría principal. Se sigue escribiendo para no romper lo
    * que ya había: el filtro del catálogo y las fichas la usan.
    *

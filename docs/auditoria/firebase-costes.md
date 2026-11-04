@@ -23,7 +23,7 @@ Se ha eliminado la mayor parte del consumo que se producía al entrar en la web:
 - Se eliminó el listener duplicado del documento del usuario en gamificación y los `ProgressionProvider` anidados.
 - Se optimizaron consultas del panel y una lectura duplicada de las Cloud Functions.
 - **Segunda fase (2026-11-03):** la búsqueda usa un índice estático servido desde el propio sitio; los filtros de episodios/personajes se cachean y pagina en bloques de 10 series; el panel carga solo la pestaña activa; el editor de streaming no consulta hasta abrir su apartado; las páginas de 60 y sus contadores usan caché persistente. Ver sección 12.
-- **Tercera fase (2026-11-04):** la Wiki y los perfiles pintan los 195 animes desde `animes.json` (0 lecturas de la colección); al abrir una ficha se lee solo su documento. Los personajes se filtran por temporada en Firestore con `seasonKeys` y sus contadores, igual que los de episodios, se ven sin abrir la pestaña. Ver sección 13.
+- **Tercera fase (2026-11-04):** la Wiki y los perfiles pintan los 195 animes desde `animes.json` (0 lecturas de la colección); al abrir una ficha se lee solo su documento. Las temporadas vienen de `temporadas.json`, los personajes se filtran por temporada en Firestore con `seasonKeys` y los contadores, igual que los de episodios, se ven sin abrir la pestaña. Ver sección 13.
 
 ## 2. Línea base y mediciones
 
@@ -347,7 +347,7 @@ La atribución se ha hecho por forma de consulta, media de lecturas por ejecuci�
 - **Likes de catálogo**
   - `patchCached` actualiza en sitio las copias de memoria e IndexedDB de animes, episodios, personajes y trivia al dar o quitar un like. No invalida la ficha entera ni vuelve a leer Firestore.
 - **Build**
-  - El índice de búsqueda está **comprimido y versionado** en `public/busqueda/indice.json.gz` (~1,28 MB). `prebuild` lo descomprime y no lee Firestore.
+  - El índice de búsqueda está **comprimido y versionado** en `public/busqueda/indice.json.gz` (~1,37 MB tras añadir temporadas; ~1,28 MB en la segunda fase). `prebuild` lo descomprime y no lee Firestore.
   - El sitemap reutiliza los animes del índice: 0 lecturas de animes.
   - El prerender pide solo las filas de `streamingAvailability` de España con estado `available`: 207 en la última medición, frente a 786 filas de España que descargaba antes y filtraba en memoria.
   - **Coste por push medido: 0 lecturas del catálogo + 207 filas de streaming + 7 plataformas ≈ 214 lecturas.** Antes era ≈14.469.
@@ -377,7 +377,7 @@ No se ha creado un segundo sistema de caché: todo pasa por `firestoreCache.ts` 
 
 - Catálogo global de episodios/personajes: 60 por página; “Cargar más” y caché persistente. Verificado 60 → 120 tras recargar.
 - Catálogo filtrado: bloques de 10 series; primer bloque y “Cargar más”. El filtro se aplica a cada bloque y todos los resultados siguen accesibles.
-- Ficha: temporadas siempre; episodios/personajes al abrir su pestaña. Los episodios se filtran por temporada en Firestore; los personajes también, con `array-contains-any` sobre `seasonKeys` (incluye `'*'` para los compartidos). Los contadores se piden siempre al abrir la ficha, sin esperar a la pestaña.
+- Ficha: temporadas desde `temporadas.json` (sección 13); episodios/personajes al abrir su pestaña. Los episodios se filtran por temporada en Firestore; los personajes también, con `array-contains-any` sobre `seasonKeys` (incluye `'*'` para los compartidos). Los contadores se piden siempre al abrir la ficha, sin esperar a la pestaña.
 - Comentarios: 200 por página (sin cambios).
 - Feed: 50 hilos por página (sin cambios).
 - Búsqueda: 30 tarjetas por sección con “Ver más” local; no hay paginación de Firestore porque el índice ya está en memoria.
@@ -475,7 +475,7 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
 
 1. Medir Query Insights tras un periodo equivalente y comparar con la tabla histórica.
 2. Probar el panel autenticado: abrir Animes, editar un anime sin tocar streaming, desplegar disponibilidad, guardar/borrar y comprobar invalidación.
-3. Frescura del índice: ahora está cacheado en `public/busqueda/indice.json.gz`. Una edición del panel no se refleja hasta ejecutar `npm run index:buscar`, commitear el `.gz` y desplegar. Es el precio de no leer 13.481 documentos en cada push. Para actualización automática e instantánea haría falta un índice en Firestore/Storage mantenido por Cloud Functions (1 lectura + 1 escritura por edición), no implementado para no añadir escrituras ni reglas.
+3. Frescura del índice: ahora está cacheado en `public/busqueda/indice.json.gz`. Una edición del panel no se refleja hasta ejecutar `npm run index:buscar`, commitear el `.gz` y desplegar. Es el precio de no leer ~13.962 documentos en cada push. Para actualización automática e instantánea haría falta un índice en Firestore/Storage mantenido por Cloud Functions (1 lectura + 1 escritura por edición), no implementado para no añadir escrituras ni reglas.
 4. Las páginas, contadores y filtros montados ya escuchan la invalidación y se recargan; las fichas ya lo hacían y los likes parchean la caché en sitio. No se pretende actualización en tiempo real entre pestañas/usuarios: el resto de navegadores ve el cambio al caducar su TTL.
 5. El panel ya no carga todas las temporadas: usa `seasonsCount` y pide las de cada serie al abrir su editor. Los scripts de importación masiva deben rellenar `seasonsCount` o ejecutar `npm run datos:seasons-count -- --escribir` después.
 6. El índice de búsqueda es un solo archivo de ~0,9 MiB comprimido; si el tráfico crece, conviene dividirlo por tipo y cargarlo bajo demanda.
@@ -490,7 +490,7 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
 ### 13.1 Cambios aplicados
 
 - **Animes estáticos en Wiki y Perfiles**
-  - `scripts/generar-indice-busqueda.mjs` genera además `public/busqueda/animes.json` (~255 KB) con el array de animes del índice. Incluye `likesCount` para que los perfiles no pierdan el contador; `likedBy` se deja vacío y la ficha usa su documento completo. Se crea tanto al refrescar como al reutilizar el `.gz` cacheado; está ignorado por Git.
+  - `scripts/generar-indice-busqueda.mjs` genera además `public/busqueda/animes.json` (~259 KB) con el array de animes del índice. Incluye `likesCount` para que los perfiles no pierdan el contador y `seasonsCount` para detectar temporadas nuevas; `likedBy` se deja vacío y la ficha usa su documento completo. Se crea tanto al refrescar como al reutilizar el `.gz` cacheado; está ignorado por Git.
   - `cargarAnimesIndice()` en `src/services/searchIndex.ts` lo descarga con `cachedRead` (clave `search:animes:v1`, 1 h, IndexedDB). Si falta o falla, `CommunityContext` conserva la lectura completa de Firestore como red de seguridad.
   - La rejilla de la Wiki, los perfiles, las tier lists y los selectores que solo necesitan título/portada usan esa lista: **0 lecturas de la colección `animes`**.
   - Al abrir una ficha, `useAnimeDoc` lee únicamente `animes/<id>` (clave `anime-doc:<id>`, 2 min, IndexedDB). Si el slug no está en la lista, busca por `slug` y permite abrir series nuevas antes de refrescar el índice.
@@ -503,6 +503,10 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
   - La clave de caché de la página incluye la temporada, así que dos temporadas no comparten la misma página.
   - Índice compuesto desplegado: `characters: animeId ASC + seasonKeys CONTAINS + __name__ ASC`, estado **READY**.
   - Migración `scripts/actualizar-season-keys.mjs` (`npm run datos:season-keys`): **4.935 personajes actualizados**, **2.593 compartidos**. Ya ejecutada en producción; no hay que repetirla.
+- **Temporadas estáticas en la ficha**
+  - `temporadas.json` agrupa las 481 temporadas por anime. La ficha ya no pide la colección `seasons` al abrirse: usa este archivo y solo cae a Firestore si falta, si no conoce la serie o si el contador `seasonsCount` del anime no coincide con la lista.
+  - `seasonsCount` se incluye en `animes.json` y se mantiene al crear/borrar temporadas; es lo que detecta una lista estática antigua sin descargar nada.
+  - El archivo se genera en `predev`/`prebuild` desde el índice cacheado, así que un push normal sigue sin leer temporadas.
 - **Contadores visibles sin abrir la pestaña**
   - `useAnimeCollectionCount` se ejecuta al abrir la ficha, no cuando se activa la pestaña. Episodios filtra por `animeId` + `seasonId`; personajes por `animeId` + `seasonKeys`.
   - La etiqueta muestra la agregación en cuanto llega; mientras tanto enseña la longitud de la página cargada o `…`. Ya no se queda en `…` hasta entrar en Episodios/Personajes.
@@ -514,23 +518,26 @@ Medición con `firestoreDiagnostics` en Vite de desarrollo, IndexedDB vaciada, s
 
 | Escenario | Antes | Después |
 |---|---:|---:|
-| Pintar la rejilla de la Wiki (195 animes) | 195 lecturas de `animes` | **0** (solo `animes.json`, 255.594 bytes) |
-| Abrir la ficha de One Piece | Lectura de la colección + datos de la serie | **1** lectura (`anime:doc`) + temporadas/episodios que ya se pedían |
+| Pintar la rejilla de la Wiki (195 animes) | 195 lecturas de `animes` | **0** (solo `animes.json`, 258.613 bytes) |
+| Abrir la ficha de One Piece | Lectura de la colección + datos de la serie | **1** lectura (`anime:doc`) + episodios/personajes que ya se pedían |
+| Temporadas de la ficha (One Piece) | 22 lecturas (`getDocs:anime`) | **0** (solo `temporadas.json`, 383.865 bytes) |
 | Contador de episodios al abrir la ficha | `…` hasta entrar en la pestaña | **61** en cuanto responde la agregación |
 | Contador de personajes al abrir la ficha | `…` hasta entrar en la pestaña | **41** en cuanto responde la agregación |
 | Personajes de One Piece, temporada 1 | 61 de toda la serie, filtrados en local | **41** filtrados en Firestore |
 | Navegar a la Wiki tras la ficha | — | 195 animes, **0 lecturas** |
 
-En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agregaciones por contador (`episodes:ficha:count#2`, `characters:ficha:count#2`); en producción el efecto se ejecuta una vez. La operación `getDocs:anime` con 22 documentos es la carga de temporadas de One Piece que ya existía.
+En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agregaciones por contador (`episodes:ficha:count#2`, `characters:ficha:count#2`); en producción el efecto se ejecuta una vez. Con las temporadas estáticas, Shingeki no Kyojin abre con 7 temporadas desde `temporadas.json` y **sin ninguna operación `getDocs:anime`**.
 
 ### 13.3 Pruebas
 
 - `npm run lint`: correcto.
-- `npm run build`: correcto. El log muestra `indice-busqueda: usa cache local (195 animes, 8351 episodios, 4935 personajes)`, `sitemap: reutiliza el indice de busqueda`, `streaming ES: 207 filas disponibles` y 195 páginas de anime generadas. **0 lecturas del catálogo en el push.**
+- `npm run build`: correcto. El log muestra `indice-busqueda: usa cache local (195 animes, 481 temporadas, 8351 episodios, 4935 personajes)`, `sitemap: reutiliza el indice de busqueda`, `streaming ES: 207 filas disponibles` y 195 páginas de anime generadas. **0 lecturas del catálogo en el push.**
 - Navegador limpio:
   - `/anime/one-piece` muestra `Episodios (61)` y `Personajes (41)` sin pulsar ninguna pestaña.
   - La pestaña de personajes muestra solo los de la temporada 1 (incluidos los compartidos) y no descarga las demás temporadas.
   - La rejilla de la Wiki muestra `Todo 195` con 0 lecturas de Firestore.
+  - `/anime/shingeki-no-kyojin` muestra sus 7 temporadas desde `temporadas.json` y `Episodios (33)` / `Personajes (36)`; al cambiar a la T2, `Episodios (12)` y `Personajes (30)`.
+  - En la ficha de Shingeki no aparece `getDocs:anime`: la colección `seasons` no se lee.
   - Cambiar de temporada actualiza el contador y la página de personajes.
   - No hay errores de consola distintos del aviso de `requestStorageAccess`.
 - No probado end-to-end: like autenticado del anime, panel autenticado y Query Insights (sin credenciales/acceso a la consola).
@@ -540,4 +547,6 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - Commits locales de esta fase: `786250e` (índice cacheado), `804089b` (guía) y el commit de esta tercera fase. **Sin push**: lo hará el usuario.
 - El índice `characters: animeId + seasonKeys[CONTAINS] + __name__` y la migración de `seasonKeys` ya están aplicados en producción.
 - Si se añade o renombra un anime, hay que ejecutar `npm run index:buscar` antes de desplegar para que aparezca en la rejilla de la Wiki/Perfil y en el sitemap. La ficha directa por slug sí funciona sin refrescar.
+- Si cambia una temporada, conviene refrescar el índice antes de desplegar. Si solo cambia el número de temporadas, `seasonsCount` hace que la ficha pida la lista real a Firestore; los cambios de título, portada o sinopsis no se ven hasta el refresco.
+- El refresco del índice ahora lee también las 481 temporadas: ≈13.962 documentos.
 - Query Insights sigue pendiente de acceso a Firebase Console y de un periodo equivalente.

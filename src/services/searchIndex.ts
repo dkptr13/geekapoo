@@ -1,5 +1,5 @@
 import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
-import type { Anime, Character, Episode } from '../types';
+import type { Anime, Character, Episode, Season } from '../types';
 
 // ======================================================
 // ÍNDICE DE BÚSQUEDA
@@ -32,13 +32,18 @@ export interface IndiceBusqueda {
   version: number;
   generado: string;
   animes: Anime[];
+  seasons?: Season[];
   episodes: Episode[];
   characters: Character[];
 }
 
+/** Temporadas de cada anime, indexadas por id del anime. */
+export type TemporadasPorAnime = Record<string, Season[]>;
+
 const BUILD_ID = typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev';
 const INDEX_URL = `/busqueda/indice.json?v=${encodeURIComponent(BUILD_ID)}`;
 const ANIMES_URL = `/busqueda/animes.json?v=${encodeURIComponent(BUILD_ID)}`;
+const TEMPORADAS_URL = `/busqueda/temporadas.json?v=${encodeURIComponent(BUILD_ID)}`;
 // Una hora: si se publica un catálogo nuevo, como mucho se tarda
 // una hora en verlo en un navegador que ya había buscado. Mantener
 // la clave estable evita acumular copias de 5 MB en IndexedDB en
@@ -86,6 +91,57 @@ export async function cargarAnimesIndice(): Promise<Anime[] | null> {
     });
   } catch (error) {
     console.warn('[Wiki] No se pudo cargar la lista estática de animes:', error);
+    return null;
+  }
+}
+
+function esTemporadasValidas(value: unknown): value is TemporadasPorAnime {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+
+  return Object.entries(value).every(
+    ([, lista]) =>
+      Array.isArray(lista) &&
+      lista.every(
+        (temporada) =>
+          temporada &&
+          typeof temporada === 'object' &&
+          typeof (temporada as Season).id === 'string' &&
+          typeof (temporada as Season).animeId === 'string',
+      ),
+  );
+}
+
+/**
+ * Temporadas agrupadas por anime para la ficha.
+ *
+ * La ficha necesita el selector y la ficha de cada temporada nada
+ * más abrirse. Antes se pedían a Firestore (hasta 22 documentos en
+ * One Piece); ahora vienen de este archivo y la colección solo se
+ * lee como respaldo si el archivo falta o no conoce la serie.
+ */
+export async function cargarTemporadasIndice(): Promise<TemporadasPorAnime | null> {
+  try {
+    return await cachedRead<TemporadasPorAnime>({
+      key: 'search:temporadas:v1',
+      ttlMs: INDEX_TTL,
+      scope: PUBLIC_CACHE,
+      persist: true,
+      read: async () => {
+        const respuesta = await fetch(TEMPORADAS_URL, { cache: 'no-cache' });
+        if (!respuesta.ok) {
+          throw new Error(`temporadas: HTTP ${respuesta.status}`);
+        }
+
+        const datos: unknown = await respuesta.json();
+        if (!esTemporadasValidas(datos)) {
+          throw new Error('temporadas: formato no válido');
+        }
+
+        return datos;
+      },
+    });
+  } catch (error) {
+    console.warn('[Wiki] No se pudo cargar la lista estática de temporadas:', error);
     return null;
   }
 }

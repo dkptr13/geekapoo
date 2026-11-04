@@ -38,7 +38,9 @@ import { useAnimeDoc } from '../../hooks/useAnimeDoc';
 import { invalidateCache, PUBLIC_CACHE } from '../../lib/firestoreCache';
 import {
   cargarIndiceBusqueda,
+  cargarTemporadasIndice,
   type IndiceBusqueda,
+  type TemporadasPorAnime,
 } from '../../services/searchIndex';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories, isInCategory } from '../../data/animeCategories';
@@ -230,6 +232,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   );
   const currentAnime = animeDoc ?? staticAnime;
 
+  // Temporadas de la ficha. Vienen de `temporadas.json`; si el
+  // archivo no está o no conoce esta serie, se piden a Firestore.
+  const [temporadasIndice, setTemporadasIndice] =
+    useState<TemporadasPorAnime | null>(null);
+
   // La ficha completa se lee aparte, así que el corazón del anime se
   // actualiza en local y se invalida la copia de ese documento.
   const [animeLikeLocal, setAnimeLikeLocal] = useState<{
@@ -342,12 +349,49 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   const setActiveTab = (tab: 'info' | 'episodes' | 'characters') => setActiveTabRaw(tab);
 
   // La ficha pide las temporadas al abrirse porque el selector está
-  // en la cabecera. Los episodios y personajes ya no se descargan
-  // enteros: cada pestaña usa su propia página de 60 y "Cargar más".
+  // en la cabecera. Primero intenta el archivo estático; Firestore
+  // queda como respaldo si el archivo falta o no conoce esta serie
+  // (por ejemplo, un anime creado después del último refresco).
   useEffect(() => {
     if (!currentAnime?.id) return;
-    ensureAnimeData(currentAnime.id, ['seasons']);
+
+    let activo = true;
+    void cargarTemporadasIndice().then((mapa) => {
+      if (!activo) return;
+      if (mapa) {
+        setTemporadasIndice(mapa);
+        return;
+      }
+      ensureAnimeData(currentAnime.id, ['seasons']);
+    });
+
+    return () => {
+      activo = false;
+    };
   }, [currentAnime?.id, ensureAnimeData]);
+
+  useEffect(() => {
+    if (!currentAnime?.id || !temporadasIndice) return;
+
+    const lista = temporadasIndice[currentAnime.id];
+    if (!Array.isArray(lista)) {
+      ensureAnimeData(currentAnime.id, ['seasons']);
+      return;
+    }
+
+    // El contador desnormalizado del anime detecta una lista
+    // estática antigua: si se creó o borró una temporada después
+    // del último refresco, se pide la lista real.
+    const esperadas = currentAnime.seasonsCount;
+    if (typeof esperadas === 'number' && esperadas !== lista.length) {
+      ensureAnimeData(currentAnime.id, ['seasons']);
+    }
+  }, [
+    currentAnime?.id,
+    currentAnime?.seasonsCount,
+    temporadasIndice,
+    ensureAnimeData,
+  ]);
 
   // Temporada elegida. Sin valor por defecto en la URL: la que
   // abra la ficha es la primera, y el botón "Todas" ya no está (ver
@@ -642,9 +686,20 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // Solo hay temporadas si alguien las ha creado en el panel.
   // Un anime sin ellas se comporta exactamente igual que antes:
   // sus capítulos y personajes son los que ya había.
-  const animeSeasons: Season[] = currentAnime
-    ? seasons.filter((s) => s.animeId === currentAnime.id).sort((a, b) => a.number - b.number)
-    : [];
+  const temporadasDeEsteAnime = currentAnime
+    ? temporadasIndice?.[currentAnime.id]
+    : undefined;
+  const fuenteTemporadas: Season[] =
+    temporadasDeEsteAnime &&
+    (typeof currentAnime?.seasonsCount !== 'number' ||
+      currentAnime.seasonsCount === temporadasDeEsteAnime.length)
+      ? temporadasDeEsteAnime
+      : currentAnime
+        ? seasons.filter((s) => s.animeId === currentAnime.id)
+        : [];
+  const animeSeasons: Season[] = fuenteTemporadas
+    .slice()
+    .sort((a, b) => a.number - b.number);
 
   // Los personajes son distintos a propósito: Kaguya está en las
   // tres temporadas y repetirla tres veces obligaría a crear un

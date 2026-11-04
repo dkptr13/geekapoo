@@ -38,6 +38,9 @@ const SALIDA_GZ = `${SALIDA}.gz`;
 // Lista ligera solo de animes, para que la Wiki y los perfiles no
 // tengan que leer los 195 documentos de Firestore.
 const SALIDA_ANIMES = path.join(RAIZ, 'public', 'busqueda', 'animes.json');
+// Temporadas agrupadas por anime. La ficha solo necesita las de la
+// serie abierta; así no descarga la colección `seasons` cada vez.
+const SALIDA_TEMPORADAS = path.join(RAIZ, 'public', 'busqueda', 'temporadas.json');
 const PROYECTO = process.env.VITE_FIREBASE_PROJECT_ID || 'geekapoo-7624d';
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents`;
 const REFRESCAR = process.argv.includes('--refresh');
@@ -57,6 +60,7 @@ const CAMPOS = {
     'status',
     'rating',
     'episodesCount',
+    'seasonsCount',
     'likesCount',
     'coverUrl',
     'bannerUrl',
@@ -90,6 +94,22 @@ const CAMPOS = {
     'voiceActor',
     'likesCount',
     'tags',
+  ],
+  seasons: [
+    'animeId',
+    'number',
+    'title',
+    'synopsis',
+    'year',
+    'status',
+    'studio',
+    'rating',
+    'episodesCount',
+    'posterUrl',
+    'bannerUrl',
+    'posterFocus',
+    'bannerFocus',
+    'createdAt',
   ],
 };
 
@@ -177,6 +197,7 @@ function animeDe(doc) {
     status: texto(valor(f.status)),
     rating: numero(valor(f.rating)),
     episodesCount: numero(valor(f.episodesCount)),
+    seasonsCount: numero(valor(f.seasonsCount)),
     coverUrl: texto(valor(f.coverUrl)),
     bannerUrl: texto(valor(f.bannerUrl)),
     ...(objeto(valor(f.coverFocus)) ? { coverFocus: objeto(valor(f.coverFocus)) } : {}),
@@ -237,6 +258,53 @@ function personajeDe(doc) {
   };
 }
 
+function temporadaDe(doc) {
+  const f = doc.f;
+  return {
+    id: doc.id,
+    animeId: texto(valor(f.animeId)),
+    number: numero(valor(f.number)),
+    title: texto(valor(f.title)),
+    synopsis: texto(valor(f.synopsis)),
+    year: numero(valor(f.year)),
+    status: texto(valor(f.status)),
+    studio: texto(valor(f.studio)),
+    rating: numero(valor(f.rating)),
+    episodesCount: numero(valor(f.episodesCount)),
+    posterUrl: texto(valor(f.posterUrl)),
+    bannerUrl: texto(valor(f.bannerUrl)),
+    ...(objeto(valor(f.posterFocus))
+      ? { posterFocus: objeto(valor(f.posterFocus)) }
+      : {}),
+    ...(objeto(valor(f.bannerFocus))
+      ? { bannerFocus: objeto(valor(f.bannerFocus)) }
+      : {}),
+    createdAt: texto(valor(f.createdAt)),
+  };
+}
+
+/**
+ * Agrupa las temporadas por anime. Incluye una entrada vacía para
+ * cada anime del índice, para que el cliente sepa que «no tiene
+ * temporadas» no es lo mismo que «el archivo es antiguo y no lo
+ * conoce»: en el segundo caso cae a Firestore.
+ */
+function mapaDeTemporadas(animes, temporadas) {
+  const mapa = Object.fromEntries(animes.map((anime) => [anime.id, []]));
+
+  for (const temporada of temporadas) {
+    if (!temporada.animeId) continue;
+    if (!mapa[temporada.animeId]) mapa[temporada.animeId] = [];
+    mapa[temporada.animeId].push(temporada);
+  }
+
+  for (const lista of Object.values(mapa)) {
+    lista.sort((a, b) => a.number - b.number);
+  }
+
+  return mapa;
+}
+
 async function tamanoPrevio() {
   try {
     const info = await stat(SALIDA);
@@ -274,6 +342,13 @@ async function usarIndiceCacheado() {
     await writeFile(SALIDA, texto, 'utf8');
     await writeFile(SALIDA_ANIMES, JSON.stringify(indice.animes), 'utf8');
 
+    const temporadas = Array.isArray(indice.seasons) ? indice.seasons : [];
+    await writeFile(
+      SALIDA_TEMPORADAS,
+      JSON.stringify(mapaDeTemporadas(indice.animes, temporadas)),
+      'utf8',
+    );
+
     const generado = Date.parse(indice.generado);
     const dias = Number.isFinite(generado)
       ? Math.floor((Date.now() - generado) / (24 * 60 * 60 * 1000))
@@ -281,7 +356,8 @@ async function usarIndiceCacheado() {
 
     console.log(
       `indice-busqueda: usa cache local (${indice.animes.length} animes, ` +
-        `${indice.episodes.length} episodios, ${indice.characters.length} personajes` +
+        `${temporadas.length} temporadas, ${indice.episodes.length} episodios, ` +
+        `${indice.characters.length} personajes` +
         `${dias !== null ? `, generado hace ${dias} dia(s)` : ''})`,
     );
 
@@ -303,7 +379,7 @@ if (!REFRESCAR && (await usarIndiceCacheado())) {
 }
 
 try {
-  const [animes, episodes, characters] = await Promise.all([
+  const [animes, episodes, characters, seasons] = await Promise.all([
     leerColeccion('animes', CAMPOS.animes).then((docs) =>
       docs.map(animeDe).filter((a) => a.id && a.title),
     ),
@@ -312,6 +388,9 @@ try {
     ),
     leerColeccion('characters', CAMPOS.characters).then((docs) =>
       docs.map(personajeDe).filter((c) => c.id && c.animeId && c.name),
+    ),
+    leerColeccion('seasons', CAMPOS.seasons).then((docs) =>
+      docs.map(temporadaDe).filter((s) => s.id && s.animeId),
     ),
   ]);
 
@@ -322,11 +401,15 @@ try {
   characters.sort(
     (a, b) => a.animeId.localeCompare(b.animeId) || a.name.localeCompare(b.name, 'es'),
   );
+  seasons.sort(
+    (a, b) => a.animeId.localeCompare(b.animeId) || a.number - b.number,
+  );
 
   const indice = {
     version: 1,
     generado: new Date().toISOString(),
     animes,
+    seasons,
     episodes,
     characters,
   };
@@ -337,13 +420,19 @@ try {
 
   await writeFile(SALIDA, serializado, 'utf8');
   await writeFile(SALIDA_ANIMES, JSON.stringify(animes), 'utf8');
+  await writeFile(
+    SALIDA_TEMPORADAS,
+    JSON.stringify(mapaDeTemporadas(animes, seasons)),
+    'utf8',
+  );
   await writeFile(SALIDA_GZ, comprimido);
 
   const kb = Math.round(Buffer.byteLength(serializado) / 1024);
   const kbGz = Math.round(comprimido.length / 1024);
   console.log(
-    `indice-busqueda: ${animes.length} animes, ${episodes.length} episodios, ` +
-      `${characters.length} personajes (${kb} KB, ${kbGz} KB gzip)`,
+    `indice-busqueda: ${animes.length} animes, ${seasons.length} temporadas, ` +
+      `${episodes.length} episodios, ${characters.length} personajes ` +
+      `(${kb} KB, ${kbGz} KB gzip)`,
   );
 } catch (error) {
   const anterior = await tamanoPrevio();

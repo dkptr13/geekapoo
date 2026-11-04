@@ -38,6 +38,7 @@ scripts/.miniaturas/
 # cada build se regenera con los datos actuales.
 public/busqueda/indice.json
 public/busqueda/animes.json
+public/busqueda/temporadas.json
 
 # Copia de seguridad local de src/ (creada antes de migrar a Firestore)
 _backup/
