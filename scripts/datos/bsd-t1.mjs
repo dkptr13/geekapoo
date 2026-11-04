@@ -1,0 +1,21 @@
+// TEMPORADA 1 - Bungo Stray Dogs
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// 12 capitulos. Titulos y kanji vienen de Wikipedia (EN y JA);
+// resumenes traducidos del ingles; notas de IMDb (serie tt5679720).
+
+export const T1 = [
+  [1, 'La fortuna es impredecible y cambiante', '人生万事塞翁が虎', '2016-04-07', 7.4, 'Nakajima Atsushi, un huérfano sin hogar y hambriento, se encuentra con un hombre flotando río abajo que parece estar ahogándose. Atsushi se lanza y rescata al hombre, quien recupera la conciencia y se presenta como el maníaco suicida, Osamu Dazai. El colega de Dazai, Doppo Kunikida, le grita a Dazai desde el otro lado del río y termina invitando a Atsushi a comer chazuke en una casa de té.'],
+  [2, 'Una bomba cualquiera', '或る爆弾', '2016-04-14', 7.2, 'Atsushi se despierta en un dormitorio propiedad de la Agencia Armada de Detectives. Recibe una llamada de Dazai, quien afirma que hay una emergencia. Atsushi libera a Dazai de un intento de suicidio en un barril y decide buscar un trabajo diferente fuera de la agencia.'],
+  [3, 'Paraíso gánster de Yokohama', 'ヨコハマ ギャングスタア パラダヰス', '2016-04-21', 7.7, 'Higuchi Ichuyou solicita ayuda a la agencia para lidiar con algunos contrabandistas. Kunikida advierte a Atsushi sobre alguien llamado Akutagawa, miembro de Port Mafia. Higuchi se revela como miembro de Port Mafia y ataca a Naomi. Junichirō toma represalias con su habilidad "Light Snow", pero es derrotado cuando aparece Akutagawa.'],
+  [4, 'La tragedia del fatalista', '運命論者の悲み', '2016-04-28', 7.2, 'Después del encuentro con Akutagawa e Higuchi, Atsushi se despierta en la clínica de la Agencia, donde se muestra que Tanizaki es curado por su médico, Yosano Akiko, utilizando métodos poco ortodoxos.'],
+  [5, 'Asesinato en la calle D', 'Murder on D Street', '2016-05-05', 7.9, 'Atsushi tiene la tarea de ayudar a Ranpo, uno de los detectives más inteligentes de la Agencia, en un caso de asesinato en un terraplén que gira en torno a una mujer policía muerta y donde también conocen a Dazai.'],
+  [6, 'El mensajero azul', '蒼の使徒', '2016-05-12', 7.2, 'Un episodio procedente de la primera novela ligera: El examen de ingreso de Dazai Osamu, que gira en torno a una serie de casos que involucran al Rey Azur donde las víctimas habituales son turistas que toman un taxi específico y nunca más son vistos por el público.'],
+  [7, 'Amor por la enfermedad llamada ideales', '理想という病を愛す', '2016-05-19', 7.8, 'Después de recibir una notificación sobre la colocación de una bomba, Kunikida, Dazai y Atsushi partieron para localizarla. Reciben ayuda de Rokuzou, Ranpo y el presidente para encontrar la ubicación, pero un hombre que tiene el poder de los números y su compañero les impiden detener la explosión de la bomba.'],
+  [8, 'Enseñarles a matar y luego a morir', '人を殺して死ねよとて', '2016-05-26', 8.1, 'Un día normal comienza en la Agencia cuando Atsushi pregunta dónde fue Dazai, sin saber que fue secuestrado por el nuevo asesino de la mafia, Izumi Kyouka.'],
+  [9, 'La belleza es silenciosa como una estatua de piedra', 'うつくしき人は寂として石像の如く', '2016-06-02', 7.7, 'Ahora que la Agencia ha salvado a Kyouka, Kunikida le recuerda a Atsushi que la niña ha matado a 35 personas y actualmente está siendo buscada por el gobierno. No obstante, Atsushi todavía invita a Kyouka a muchos lugares a los que quiere ir e incluso le gana un juguete de conejo.'],
+  [10, 'Rashomon y el tigre', '羅生門と虎', '2016-06-09', 8.3, 'Dazai tiene un enfrentamiento con su ex compañero, Chūya, mientras Chūya intenta descubrir las verdaderas intenciones de Dazai al dejarse capturar. Mientras tanto, Kunikida localiza a Atsushi, mientras Kyōka le da la oportunidad de escapar después de que ella detona explosivos para hundir el barco.'],
+  [11, 'Primero, una profesión impropia para ella; segundo, una agencia de detectives eufórica', '其の一 彼女には向かない職業 / 其の二 有頂天探偵社', '2016-06-16', 7.3, 'Tras el secuestro de Atsushi y Dazai, la Agencia debe decidir qué hacer con Kyouka, el cabo suelto. Mientras tanto, Port Mafia también delibera qué hacer con Akutagawa, ahora en coma, mientras sus enemigos buscan venganza...'],
+  [12, 'Arrastrado sin cesar hacia el pasado', 'たえまなく過去へ押し戻されながら', '2016-06-23', 7.9, '| LineColor = E1C16E }} }} == Comunicado de prensa local == === Japonés === {| class="wikitable" style="text-align: centro; ancho: 70%;"'],
+];
