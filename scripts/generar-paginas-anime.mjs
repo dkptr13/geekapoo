@@ -352,13 +352,8 @@ async function leerIndiceLocal() {
     if (indice?.version !== 1 || !Array.isArray(indice.animes)) return null;
     if (!Array.isArray(indice.episodes) || !Array.isArray(indice.characters)) return null;
 
-    // Si el índice tiene más de seis horas, se ignora: puede ser el
-    // de un build anterior y no queremos dejar fuera una serie nueva.
-    const generado = Date.parse(indice.generado);
-    if (!Number.isFinite(generado) || Date.now() - generado > 6 * 60 * 60 * 1000) {
-      return null;
-    }
-
+    // El índice se refresca a mano con `npm run index:buscar`; no
+    // caduca por tiempo. Si está viejo, el script del índice avisa.
     return indice;
   } catch {
     return null;

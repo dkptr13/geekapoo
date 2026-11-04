@@ -5,7 +5,9 @@
     "type": "module",
     "scripts": {
         "dev": "vite --port=3000 --host=0.0.0.0",
+        "predev": "node scripts/generar-indice-busqueda.mjs",
         "prebuild": "node scripts/generar-indice-busqueda.mjs && node scripts/generar-sitemap.mjs",
+        "index:buscar": "node scripts/generar-indice-busqueda.mjs --refresh",
         "build": "vite build",
         "postbuild": "node scripts/generar-paginas-anime.mjs",
         "preview": "vite preview",

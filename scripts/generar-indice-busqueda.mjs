@@ -11,25 +11,33 @@
 // sirve como archivo estático: buscar deja de costar lecturas de
 // Firestore y no hace falta ningún servicio externo.
 //
-//   · Se ejecuta en `prebuild`, antes de `vite build`, igual que el
-//     sitemap.
+//   · Se ejecuta en `predev` y `prebuild`. Si existe el índice
+//     comprimido versionado (`indice.json.gz`), lo descomprime y NO
+//     lee Firestore. El build normal cuesta 0 lecturas de catálogo.
+//   · Para refrescar el índice cuando cambie el catálogo:
+//       npm run index:buscar
+//     Ese comando lee Firestore, escribe el JSON y su `.gz`; después
+//     hay que commitear `public/busqueda/indice.json.gz`.
 //   · Si Firestore no responde, NO rompe el build: conserva el JSON
-//     anterior y avisa. El buscador tiene además una red de
-//     seguridad en el cliente (vuelve a la carga completa).
+//     comprimido anterior y avisa. El buscador tiene además una red
+//     de seguridad en el cliente (vuelve a la carga completa).
 //   · No escribe nada en Firestore.
 //
 // Los alias, títulos japoneses y romaji ya están en los documentos
 // (los rellena `scripts/rellenar-alias.mjs`). Aquí no se inventa
 // ninguno.
 
-import { mkdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gunzipSync, gzipSync } from 'node:zlib';
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SALIDA = path.join(RAIZ, 'public', 'busqueda', 'indice.json');
+const SALIDA_GZ = `${SALIDA}.gz`;
 const PROYECTO = process.env.VITE_FIREBASE_PROJECT_ID || 'geekapoo-7624d';
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents`;
+const REFRESCAR = process.argv.includes('--refresh');
 
 const CAMPOS = {
   animes: [
@@ -232,6 +240,61 @@ async function tamanoPrevio() {
   }
 }
 
+function esIndiceValido(indice) {
+  return Boolean(
+    indice &&
+      indice.version === 1 &&
+      Array.isArray(indice.animes) &&
+      Array.isArray(indice.episodes) &&
+      Array.isArray(indice.characters),
+  );
+}
+
+/**
+ * Usa el índice comprimido versionado, sin tocar Firestore.
+ *
+ * El `.gz` se commitea y se refresca a mano con `npm run index:buscar`.
+ * Así un push normal no vuelve a leer los 13.481 documentos del
+ * catálogo.
+ */
+async function usarIndiceCacheado() {
+  try {
+    const comprimido = await readFile(SALIDA_GZ);
+    const texto = gunzipSync(comprimido).toString('utf8');
+    const indice = JSON.parse(texto);
+    if (!esIndiceValido(indice)) return false;
+
+    await mkdir(path.dirname(SALIDA), { recursive: true });
+    await writeFile(SALIDA, texto, 'utf8');
+
+    const generado = Date.parse(indice.generado);
+    const dias = Number.isFinite(generado)
+      ? Math.floor((Date.now() - generado) / (24 * 60 * 60 * 1000))
+      : null;
+
+    console.log(
+      `indice-busqueda: usa cache local (${indice.animes.length} animes, ` +
+        `${indice.episodes.length} episodios, ${indice.characters.length} personajes` +
+        `${dias !== null ? `, generado hace ${dias} dia(s)` : ''})`,
+    );
+
+    if (dias !== null && dias > 7) {
+      console.warn(
+        'indice-busqueda: el cache tiene más de 7 días. ' +
+          'Ejecuta "npm run index:buscar" para refrescarlo cuando cambie el catálogo.',
+      );
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+if (!REFRESCAR && (await usarIndiceCacheado())) {
+  process.exit(0);
+}
+
 try {
   const [animes, episodes, characters] = await Promise.all([
     leerColeccion('animes', CAMPOS.animes).then((docs) =>
@@ -262,12 +325,17 @@ try {
   };
 
   await mkdir(path.dirname(SALIDA), { recursive: true });
-  await writeFile(SALIDA, JSON.stringify(indice), 'utf8');
+  const serializado = JSON.stringify(indice);
+  const comprimido = gzipSync(Buffer.from(serializado, 'utf8'));
 
-  const kb = Math.round(Buffer.byteLength(JSON.stringify(indice)) / 1024);
+  await writeFile(SALIDA, serializado, 'utf8');
+  await writeFile(SALIDA_GZ, comprimido);
+
+  const kb = Math.round(Buffer.byteLength(serializado) / 1024);
+  const kbGz = Math.round(comprimido.length / 1024);
   console.log(
     `indice-busqueda: ${animes.length} animes, ${episodes.length} episodios, ` +
-      `${characters.length} personajes (${kb} KB)`,
+      `${characters.length} personajes (${kb} KB, ${kbGz} KB gzip)`,
   );
 } catch (error) {
   const anterior = await tamanoPrevio();

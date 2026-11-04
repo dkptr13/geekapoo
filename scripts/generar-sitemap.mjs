@@ -86,11 +86,8 @@ async function leerAnimesDelIndice() {
     );
     if (datos?.version !== 1 || !Array.isArray(datos.animes)) return null;
 
-    const generado = Date.parse(datos.generado);
-    if (!Number.isFinite(generado) || Date.now() - generado > 6 * 60 * 60 * 1000) {
-      return null;
-    }
-
+    // El índice se refresca a mano con `npm run index:buscar`; no
+    // caduca por tiempo. Si está viejo, el script del índice avisa.
     return datos.animes
       .filter((a) => a?.slug)
       .map((a) => ({

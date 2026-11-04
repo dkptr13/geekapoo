@@ -345,11 +345,12 @@ La atribución se ha hecho por forma de consulta, media de lecturas por ejecuci�
 - **Likes de catálogo**
   - `patchCached` actualiza en sitio las copias de memoria e IndexedDB de animes, episodios, personajes y trivia al dar o quitar un like. No invalida la ficha entera ni vuelve a leer Firestore.
 - **Build**
-  - `prebuild` ejecuta primero el índice y después el sitemap. El sitemap reutiliza los animes del índice si tiene menos de 6 h; ya no vuelve a leer los 195 animes.
+  - El índice de búsqueda está **comprimido y versionado** en `public/busqueda/indice.json.gz` (~1,28 MB). `prebuild` lo descomprime y no lee Firestore.
+  - El sitemap reutiliza los animes del índice: 0 lecturas de animes.
   - El prerender pide solo las filas de `streamingAvailability` de España con estado `available`: 207 en la última medición, frente a 786 filas de España que descargaba antes y filtraba en memoria.
-  - Coste por push medido: **13.481** documentos del índice + **207** filas de streaming disponibles + **7** plataformas ≈ **13.695 lecturas**. Antes era ≈14.469 (incluía 195 animes del sitemap y 786 filas de streaming).
+  - **Coste por push medido: 0 lecturas del catálogo + 207 filas de streaming + 7 plataformas ≈ 214 lecturas.** Antes era ≈14.469.
+  - Para refrescar el índice cuando cambie el catálogo: `npm run index:buscar`. Escribe el JSON y su `.gz`; después hay que commitear `public/busqueda/indice.json.gz`. Si el `.gz` supera los 7 días, el build avisa.
   - La URL del índice lleva el SHA de Vercel para no reutilizar una respuesta HTTP antigua.
-  - El índice generado está ignorado por Git y se regenera en cada build. **Este es el mayor coste que queda por push**: reducirlo exige sacar la generación del camino de cada despliegue (artefacto cacheado, Storage o índice en Firestore mantenido por Functions).
 
 ### 12.3 Caché
 
@@ -403,7 +404,7 @@ El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip**
 
 - `npm run lint`: correcto.
 - `npm run test:logica`: todas las suites correctas, incluida `tests/logica.cache.ts` con la prueba de `patchCached`.
-- `npm run build`: correcto (sitemap, índice y 195 páginas de anime).
+- `npm run build`: correcto. Con el índice cacheado el log muestra `usa cache local` (0 lecturas de catálogo), `sitemap: reutiliza el indice` (0 lecturas) y `streaming ES: 207 filas disponibles`. Se generan las 195 páginas de anime.
 - Backfill `seasonsCount`: simulación y escritura sobre 195 animes y 481 temporadas; verificado en `ataque-a-los-titanes` (7), `one-piece` (22) y `nana` (1).
 - Navegador de desarrollo:
   - Búsqueda por «Ataque a los Titanes», «Shingeki no Kyojin» y «Shingeki no Kyoujin».
@@ -472,10 +473,10 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
 
 1. Medir Query Insights tras un periodo equivalente y comparar con la tabla histórica.
 2. Probar el panel autenticado: abrir Animes, editar un anime sin tocar streaming, desplegar disponibilidad, guardar/borrar y comprobar invalidación.
-3. Frescura del índice: se regenera en cada build; una edición del panel se refleja en el buscador en el siguiente despliegue y un navegador puede tardar hasta 1 h en verlo. Para actualización instantánea sin desplegar haría falta un índice en Firestore mantenido por Cloud Functions (1 lectura + 1 escritura por edición), no implementado para no añadir escrituras ni reglas.
+3. Frescura del índice: ahora está cacheado en `public/busqueda/indice.json.gz`. Una edición del panel no se refleja hasta ejecutar `npm run index:buscar`, commitear el `.gz` y desplegar. Es el precio de no leer 13.481 documentos en cada push. Para actualización automática e instantánea haría falta un índice en Firestore/Storage mantenido por Cloud Functions (1 lectura + 1 escritura por edición), no implementado para no añadir escrituras ni reglas.
 4. Las páginas, contadores y filtros montados ya escuchan la invalidación y se recargan; las fichas ya lo hacían y los likes parchean la caché en sitio. No se pretende actualización en tiempo real entre pestañas/usuarios: el resto de navegadores ve el cambio al caducar su TTL.
 5. El panel ya no carga todas las temporadas: usa `seasonsCount` y pide las de cada serie al abrir su editor. Los scripts de importación masiva deben rellenar `seasonsCount` o ejecutar `npm run datos:seasons-count -- --escribir` después.
 6. El índice de búsqueda es un solo archivo de ~0,9 MiB comprimido; si el tráfico crece, conviene dividirlo por tipo y cargarlo bajo demanda.
 7. Las descripciones del índice se recortan a 160 caracteres (episodios) y 240 (personajes) para no disparar el tamaño. La búsqueda por título, japonés, romaji, alias y la mayor parte de la descripción sigue funcionando; una palabra al final de una descripción muy larga podría no encontrarse.
 8. `GlobalSearch.tsx` no está montado; la búsqueda activa es `AnimeWiki` + `CatalogSearch`. Se adaptó al índice por si se vuelve a montar.
-9. El índice de búsqueda sigue generándose en cada build: 13.481 lecturas por push. Para bajarlo, cachear el índice comprimido y refrescarlo solo cuando cambie el catálogo, o moverlo a Storage/Firestore mantenido por Functions. Es el mayor coste pendiente de despliegue.
+9. El índice cacheado reduce el push a ~214 lecturas, pero hay que recordar refrescarlo cuando cambie el catálogo (`npm run index:buscar`). Si se olvida, el buscador sigue mostrando el catálogo anterior hasta el siguiente refresco. Una GitHub Action programada puede ejecutar ese comando y commitear el `.gz`.
