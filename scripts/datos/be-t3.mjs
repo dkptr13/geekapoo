@@ -1,0 +1,22 @@
+// TEMPORADA 3 - Blue Exorcist: Shimane Illuminati (2024)
+//
+// Formato: [numero, titulo, titulo japones, fecha, nota IMDb, resumen]
+//
+// 12 capitulos del 7 de enero al 24 de marzo de 2024.
+// Titulos y kanji vienen de la Wikipedia en espanol; los resumenes son
+// propios, traducidos y resumidos en castellano; las notas son de IMDb.
+
+export const T3 = [
+  [1, 'El mundo se moviliza', 'ざわめく世界', '2024-01-07', 7.1, 'Durante el horario regular de clase en True Cross Academy, Rin se da cuenta de que su compañero de clase Sei Godaiin también puede ver demonios y lo confronta sobre el asunto, y el niño le dice a Rin que ya no desea verlos.'],
+  [2, 'El paradero de los secretos', '秘密の在り処', '2024-01-14', 7.6, 'Yukio es convocado a una reunión de investigación por parte del Vaticano con todos los directores de rama de la Orden de la Verdadera Cruz presentes para ser interrogado sobre Todo, el cerebro detrás de la resurrección del Rey Impuro.'],
+  [3, 'Festival de la Academia de la Vera Cruz', '正十字学園祭', '2024-01-21', 7.4, 'Los familiares de Lightning detectan a tres espías Illuminati dentro de la Orden de la Cruz Verdadera, y uno de ellos reside en la sucursal de Japón. A Shura se le ordena localizar al espía japonés. Mientras tanto, True Cross Academy se prepara para el próximo festival escolar.'],
+  [4, 'Topo', '内通者', '2024-01-28', 8, 'Nemu le presenta un muñeco kitsune a Izumo que ella reconoce como perteneciente a alguien llamado Tsukumo, y Nemu le dice que lo siga. Mientras tanto, Arthur y Lightning capturan a uno de los espías que se esconde entre la True Cross Order y descubren que los Illuminati están planeando secuestrar a alguien durante el festival simultáneo en la True Cross Academy.'],
+  [5, 'Destino', '運命', '2024-02-04', 7.7, 'Izumo se despierta de un sueño sobre su madre y su hermana menor Tsukumo y se encuentra sola en una habitación vacía. Mientras tanto, todas las ramas de True Cross Order se ven sumidas en el caos después de la declaración de guerra de los Illuminati. Rin, Yukio y los Exwires restantes parten hacia la ciudad natal de Izumo en la prefectura de Shimane en un intento de recuperarla a ella y a Shima.'],
+  [6, 'No puedo depender de nadie', 'もう誰も頼れない', '2024-02-11', 7.8, 'Proveniente de una larga línea de doncellas del santuario de la familia Kamiki para el santuario de Inari: Tamamo, la madre de Izumo y Tsukumo, es la jefa de la familia Kamiki actual y debe soportar la carga de controlar al demonio zorro de nueve colas que está sellado dentro de la piedra asesina.'],
+  [7, 'Dudas', '迷い', '2024-02-18', 7.8, 'De vuelta al presente, Izumo es llevada con Michael para someterse a un examen médico, donde de repente crea una distracción para escapar de sus captores.'],
+  [8, 'Determinación', '覚悟', '2024-02-25', 7.4, 'Los altos mandos de los Illuminati se reúnen con Lucifer para discutir la situación actual. Lucifer agradece a Michael por crear el elixir que actualmente mantiene estable su cuerpo y les dice a todos los miembros presentes que no le hagan daño a Rin, ya que podría enfrentar la ira de Satanás si algo le sucediera. Homare asigna a Renzo la tarea de vigilar a Michael.'],
+  [9, 'Ayuda', '助けて', '2024-03-03', 8.1, 'Gedoin explica que el Laboratorio del Lejano Oriente es el centro de sus experimentos con el elixir de inmortalidad y que utiliza la comida con drogas en la ciudad para inducir a los turistas a usarlos como sujetos de prueba, exponiendo la verdad detrás de Peace Town Inari. Gedoin procede a soltar un zombi gigante dopado sobre el grupo.'],
+  [10, 'Compañeros', '仲間', '2024-03-10', 7.8, 'Gedoin, enojado e impaciente con la situación en la que se encuentra ahora, desata a los zombis del centro comercial directamente en su laboratorio para ganar tiempo. Cuando Yukio y los otros Exwires llegan para ayudar a Rin, Izumo comienza a ser consumido por la locura de Ninetails, que ella no puede dominar.'],
+  [11, 'Araña rosa', 'ピンクスパイダー', '2024-03-17', 7.5, 'Antes de que Rin, Yukio y los Exwire regresen a casa, Juzo les revela que Shima es en realidad un agente doble que trabaja bajo las órdenes de Mephisto, y que solo unos pocos dentro de Myoda estaban al tanto de esto.'],
+  [12, 'Verdades ocultas', '隠された本音', '2024-03-24', 7.3, 'Yukio ocultó el hecho de que tuvo un encuentro en solitario con Lucifer dentro del Laboratorio del Lejano Oriente mientras luchaba contra su zombi gigante, donde Lucifer le informó a Yukio que es consciente de sus extraños ojos y se ofrece a ayudarlo a comprenderlos y volverse más fuerte si se une a los Illuminati.'],
+];
