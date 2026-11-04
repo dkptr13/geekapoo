@@ -1189,7 +1189,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   >
                     <MessageSquare size={15} />
                     <span className="font-mono">
-                      {isExpanded ? threadComments.length : thread.commentsCount}
+                      {Math.max(thread.commentsCount ?? 0, threadComments.length)}
                     </span>
                     <span className="hidden sm:inline">Comentarios</span>
                   </button>

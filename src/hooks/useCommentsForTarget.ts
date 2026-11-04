@@ -34,11 +34,11 @@ import type { Comment } from '../types';
 // mantiene en tiempo real porque una respuesta debe aparecer al
 // instante, pero el alcance es un único target.
 //
-// La primera página trae las 200 más recientes. Los tramos anteriores
+// La primera página trae las 50 más recientes. Los tramos anteriores
 // se piden solo al pulsar "Cargar comentarios anteriores" y se guardan
 // mientras el objetivo siga abierto.
 
-export const COMMENTS_PAGE_SIZE = 200;
+export const COMMENTS_PAGE_SIZE = 50;
 
 function ordenarYUnir(a: Comment[], b: Comment[]): Comment[] {
   const porId = new Map<string, Comment>();

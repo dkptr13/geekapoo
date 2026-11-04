@@ -1527,7 +1527,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                         }`}
                       >
                         <MessageCircle size={13} />
-                        <span>Ver comentarios{isExpanded ? ` (${epComments.length})` : ''}</span>
+                        <span>
+                          Ver comentarios
+                          {isExpanded
+                            ? ` (${epComments.length}${hayEpisodioAnteriores ? '+' : ''})`
+                            : ''}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -1861,7 +1866,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                       <span className="flex items-center gap-1.5">
                         <MessageCircle size={14} />
                         Opiniones y Críticas
-                        {isExpanded ? ` (${charComments.filter((c) => !c.parentId).length})` : ''}
+                        {isExpanded
+                          ? ` (${charComments.filter((c) => !c.parentId).length}${
+                              hayPersonajeAnteriores ? '+' : ''
+                            })`
+                          : ''}
                       </span>
                       <span>{isExpanded ? 'Ocultar' : 'Ver y comentar'}</span>
                     </button>

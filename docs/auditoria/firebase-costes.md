@@ -567,3 +567,13 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - **Coste:** el push normal baja de ~214 a ~7 lecturas. El refresco manual sube a ~22.075 documentos porque incluye el catálogo completo y el streaming.
 - **Contrapartida:** un cambio de disponibilidad no se ve en la web pública hasta ejecutar `npm run index:buscar`, commitear el `.gz` y desplegar; el panel lo ve al momento. Es el intercambio aceptado para quitar las lecturas públicas de streaming.
 - **Archivos nuevos:** `public/busqueda/streaming.json` (ignorado por Git), `cargarStreamingIndice()` en `src/services/searchIndex.ts` y el modo estático de `useStreamingAvailability`.
+
+### 13.6 Comentarios: primera página de 50 (2026-11-04)
+
+- **Ficha:** `COMMENTS_PAGE_SIZE` pasa de 200 a **50**. El botón «Cargar comentarios anteriores» sigue trayendo bloques de 50 y el contador muestra `50+` cuando quedan más.
+- **Perfil:** se mantiene en **200** (`PROFILE_COMMENTS_PAGE_SIZE`). Sus estadísticas de reacciones se calculan sumando los comentarios cargados; bajar la página dejaría el número corto. Para reducirlo haría falta un agregado de reacciones por autor, que queda como siguiente paso.
+- **Me gusta del perfil:** los comentarios a los que dio «me gusta» no tienen paginación propia, así que mantienen el tope de **200** (`MAX_COMENTARIOS_GUSTADOS`) para no perder contenido.
+- **Hilos:** el contador usa `thread.commentsCount` (o la longitud cargada si el contador va por detrás), no solo la página visible.
+- **Ahorro:** una ficha con 200 comentarios pasa de ~200 lecturas iniciales a ~50; las 150 restantes solo se leen si el usuario pulsa «Cargar más».
+- **Contenido:** no se elimina nada; solo se reparte la lectura. Los comentarios a los que se llega desde una notificación siguen cargándose con `ensureComment` aunque estén fuera de la primera página.
+- **Pruebas:** `npm run lint` correcto; no hay datos de prueba con más de 50 comentarios en una misma ficha, así que la paginación se validó por lógica y por los botones existentes.

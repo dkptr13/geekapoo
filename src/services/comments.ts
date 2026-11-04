@@ -34,8 +34,12 @@ export const COMMENTS = 'comments';
 
 const MAX_BODY = 5000;
 const TTL_PERFIL_COMENTARIOS = 2 * 60 * 1000;
+// El perfil sigue trayendo 200: sus estadísticas de reacciones se
+// calculan sobre los comentarios cargados, y bajar la página las
+// dejaría cortas. La ficha sí usa páginas de 50.
 export const PROFILE_COMMENTS_PAGE_SIZE = 200;
 const MAX_COMENTARIOS_PERFIL = PROFILE_COMMENTS_PAGE_SIZE;
+const MAX_COMENTARIOS_GUSTADOS = 200;
 
 /** Comentarios escritos por una persona, para su perfil. */
 export function getCommentsByAuthor(
@@ -134,7 +138,7 @@ export function getCommentsLikedBy(
         collection(db, COMMENTS),
         where('likedBy', 'array-contains', uid),
         orderBy('createdAt', 'desc'),
-        limit(MAX_COMENTARIOS_PERFIL),
+        limit(MAX_COMENTARIOS_GUSTADOS),
       );
       try {
         const snap = await measureRead(meta, (result) => result.size, () => getDocs(ordenada));
@@ -147,7 +151,7 @@ export function getCommentsLikedBy(
           () => getDocs(query(
             collection(db, COMMENTS),
             where('likedBy', 'array-contains', uid),
-            limit(MAX_COMENTARIOS_PERFIL),
+            limit(MAX_COMENTARIOS_GUSTADOS),
           )),
         );
         return mapWithId<Comment>(snap).sort(
