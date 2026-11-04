@@ -413,7 +413,7 @@ El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip**
   - Índice `episodes: animeId + seasonId + number` desplegado y en estado `READY` antes de validar.
   - Fallback renombrando el índice.
 - Producción (2026-11-03):
-  - Bundle de `main`; la primera verificación fue `assets/index-CjAiLObR.js` y la última `assets/index-s37spvH-.js` (incluye likes y panel por serie).
+  - Bundle de `main`; la primera verificación fue `assets/index-CjAiLObR.js`, después `assets/index-s37spvH-.js` (likes y panel) y la paginación de ficha en `assets/index-DEIPVkRy.js`.
   - `/busqueda/indice.json?v=<sha-del-build>` → 200.
   - IndexedDB contiene `public:search:index:v1`.
   - Búsqueda correcta y sin errores de consola.
@@ -460,7 +460,8 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
   - `163413d` — likes de catálogo en la wiki (autor: Oscar).
   - `4cec74e` — parcheo de caché para likes y refresco de vistas montadas.
   - `4a6d123` — panel de administración con `seasonsCount` y temporadas por serie.
-- Producción sirve el bundle de `main` (última verificación: `assets/index-s37spvH-.js`); `/busqueda/indice.json?v=<sha-del-build>` responde 200.
+  - `fce3b54` — ficha paginada por temporada para episodios y personajes.
+- Producción sirve el bundle de `main` (última verificación: `assets/index-DEIPVkRy.js`); `/busqueda/indice.json?v=<sha-del-build>` responde 200.
 - Reglas de Firestore del commit `163413d` publicadas con `firebase deploy --only firestore:rules`. El CLI compiló `firestore.deploy.rules` (155.214 bytes), indicó que la última versión ya estaba al día y liberó el ruleset. No se desplegaron índices ni Functions nuevas.
 - El árbol de trabajo quedó limpio: `firestore.rules`, `tests/firestore.likes.rules.test.cjs`, los likes de `CommunityContext`, `scripts/datos/*`, `scripts/importar-disponibilidad-justwatch.mjs` y `public/sitemap.xml` quedaron incluidos en `163413d`.
 
