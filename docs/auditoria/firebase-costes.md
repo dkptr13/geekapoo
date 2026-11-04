@@ -349,7 +349,7 @@ La atribución se ha hecho por forma de consulta, media de lecturas por ejecuci�
   - El sitemap reutiliza los animes del índice: 0 lecturas de animes.
   - El prerender pide solo las filas de `streamingAvailability` de España con estado `available`: 207 en la última medición, frente a 786 filas de España que descargaba antes y filtraba en memoria.
   - **Coste por push medido: 0 lecturas del catálogo + 207 filas de streaming + 7 plataformas ≈ 214 lecturas.** Antes era ≈14.469.
-  - Para refrescar el índice cuando cambie el catálogo: `npm run index:buscar`. Escribe el JSON y su `.gz`; después hay que commitear `public/busqueda/indice.json.gz`. Si el `.gz` supera los 7 días, el build avisa.
+  - Para refrescar el índice cuando cambie el catálogo: `npm run index:buscar`. Escribe el JSON y su `.gz`; después hay que commitear `public/busqueda/indice.json.gz`. Si el `.gz` supera los 7 días, el build avisa. Guía operativa completa: [`docs/indice-busqueda.md`](../indice-busqueda.md).
   - La URL del índice lleva el SHA de Vercel para no reutilizar una respuesta HTTP antigua.
 
 ### 12.3 Caché
