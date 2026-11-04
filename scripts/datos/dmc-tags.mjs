@@ -1,0 +1,36 @@
+// ETIQUETAS - Devilman Crybaby
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+
+export const TAGS = {
+  'Akira Fudou': ['Protagonista', 'Demonio', 'Devilman'],
+  'Ryo Asuka': ['Protagonista', 'Demonio', 'Devilman'],
+  'Psycho Jenny': ['Antagonista', 'Demonio', 'Devilman'],
+  'Tare Makimura': ['Secundario', 'Demonio', 'Devilman'],
+  'Miki Makimura': ['Protagonista', 'Demonio', 'Devilman'],
+  'Miki Kuroda': ['Secundario', 'Demonio', 'Devilman'],
+  'Silene': ['Antagonista', 'Demonio', 'Devilman'],
+  'Jinmen': ['Antagonista', 'Demonio', 'Devilman'],
+  'Zenon': ['Antagonista', 'Demonio', 'Devilman'],
+  'Agwell': ['Secundario', 'Demonio', 'Devilman'],
+  'Babo': ['Secundario', 'Demonio', 'Devilman'],
+  'Koji Nagasaki': ['Secundario', 'Demonio', 'Devilman'],
+  'Wamu': ['Secundario', 'Demonio', 'Devilman'],
+  'Gabi': ['Secundario', 'Demonio', 'Devilman'],
+  'Kukun': ['Secundario', 'Demonio', 'Devilman'],
+  'Hie': ['Secundario', 'Demonio', 'Devilman'],
+  'Moyuru Koda': ['Secundario', 'Demonio', 'Devilman'],
+  'Tako': ['Secundario', 'Demonio', 'Devilman'],
+  'Kaori Fudou': ['Secundario', 'Demonio', 'Devilman'],
+  'Sumi': ['Secundario', 'Demonio', 'Devilman'],
+  'Akiko Makimura': ['Secundario', 'Demonio', 'Devilman'],
+  'Zay': ['Secundario', 'Demonio', 'Devilman'],
+  'Noel Makimura': ['Secundario', 'Demonio', 'Devilman'],
+  'Reijirou Fudou': ['Secundario', 'Demonio', 'Devilman'],
+  'Web Producer': ['Secundario', 'Demonio', 'Devilman'],
+  'Takahama': ['Secundario', 'Demonio', 'Devilman'],
+  'Kudou': ['Secundario', 'Demonio', 'Devilman'],
+  'Kouzou Rainuma': ['Secundario', 'Demonio', 'Devilman'],
+  'Track Coach': ['Secundario', 'Demonio', 'Devilman'],
+  'Sachiko': ['Secundario', 'Demonio', 'Devilman'],
+};
