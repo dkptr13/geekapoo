@@ -345,8 +345,11 @@ La atribución se ha hecho por forma de consulta, media de lecturas por ejecuci�
 - **Likes de catálogo**
   - `patchCached` actualiza en sitio las copias de memoria e IndexedDB de animes, episodios, personajes y trivia al dar o quitar un like. No invalida la ficha entera ni vuelve a leer Firestore.
 - **Build**
-  - `prebuild` ejecuta sitemap + índice; la URL del índice lleva el SHA de Vercel para no reutilizar una respuesta HTTP antigua.
-  - El índice generado está ignorado por Git y se regenera en cada build.
+  - `prebuild` ejecuta primero el índice y después el sitemap. El sitemap reutiliza los animes del índice si tiene menos de 6 h; ya no vuelve a leer los 195 animes.
+  - El prerender pide solo las filas de `streamingAvailability` de España con estado `available`: 207 en la última medición, frente a 786 filas de España que descargaba antes y filtraba en memoria.
+  - Coste por push medido: **13.481** documentos del índice + **207** filas de streaming disponibles + **7** plataformas ≈ **13.695 lecturas**. Antes era ≈14.469 (incluía 195 animes del sitemap y 786 filas de streaming).
+  - La URL del índice lleva el SHA de Vercel para no reutilizar una respuesta HTTP antigua.
+  - El índice generado está ignorado por Git y se regenera en cada build. **Este es el mayor coste que queda por push**: reducirlo exige sacar la generación del camino de cada despliegue (artefacto cacheado, Storage o índice en Firestore mantenido por Functions).
 
 ### 12.3 Caché
 
@@ -433,9 +436,9 @@ No hay cifras «después» porque no se dispone de acceso a Query Insights. Para
 Qué debería cambiar:
 - `/characters PageSize 1000` y `/episodes PageSize 1000`: caída casi a cero desde usuarios normales; solo queda el fallback si falta el índice.
 - `/episodes SELECT animeId,...`: puede seguir existiendo, pero con bloques de 10 y caché; menos ejecuciones y menos lecturas por ejecución.
-- `/streamingAvailability WHERE...`: baja al no consultar el editor hasta abrirlo y al invalidar solo la obra/región.
+- `/streamingAvailability WHERE...`: baja al no consultar el editor hasta abrirlo, al invalidar solo la obra/región y al pedir en el build solo las 207 filas disponibles de España.
 - `/characters WHERE role = ?`: desaparece de los builds si el índice está fresco.
-- `/animes SELECT id, slug, title,...`: desaparece del prerender si usa el índice; el sitemap mantiene su consulta de slug/title una vez por build.
+- `/animes SELECT id, slug, title,...`: desaparece del prerender si usa el índice. `/animes SELECT slug, title,...`: el sitemap también reutiliza el índice, así que desaparece mientras tenga menos de 6 h.
 - Aparecerán consultas de agregación (`getCountFromServer`) y páginas de 60/300, más baratas que las descargas completas.
 
 ### 12.8 Ahorro estimado
@@ -475,3 +478,4 @@ Son cifras pequeñas en dinero absoluto; el beneficio principal es reducir cuota
 6. El índice de búsqueda es un solo archivo de ~0,9 MiB comprimido; si el tráfico crece, conviene dividirlo por tipo y cargarlo bajo demanda.
 7. Las descripciones del índice se recortan a 160 caracteres (episodios) y 240 (personajes) para no disparar el tamaño. La búsqueda por título, japonés, romaji, alias y la mayor parte de la descripción sigue funcionando; una palabra al final de una descripción muy larga podría no encontrarse.
 8. `GlobalSearch.tsx` no está montado; la búsqueda activa es `AnimeWiki` + `CatalogSearch`. Se adaptó al índice por si se vuelve a montar.
+9. El índice de búsqueda sigue generándose en cada build: 13.481 lecturas por push. Para bajarlo, cachear el índice comprimido y refrescarlo solo cuando cambie el catálogo, o moverlo a Storage/Firestore mantenido por Functions. Es el mayor coste pendiente de despliegue.

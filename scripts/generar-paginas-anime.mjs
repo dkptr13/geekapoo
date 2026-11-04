@@ -205,6 +205,53 @@ async function consultar(coleccion, campoFiltro, valor) {
   return filas.filter((f) => f.document).map((f) => f.document);
 }
 
+/**
+ * Consulta con varios filtros de igualdad.
+ *
+ * El prerender solo necesita las filas de España que están
+ * disponibles. Antes descargaba las 786 filas de España y filtraba
+ * el estado en memoria; ahora la consulta devuelve solo las 207
+ * disponibles.
+ */
+async function consultarFiltros(coleccion, filtros) {
+  const where = filtros.length === 1
+    ? {
+        fieldFilter: {
+          field: { fieldPath: filtros[0][0] },
+          op: 'EQUAL',
+          value: { stringValue: filtros[0][1] },
+        },
+      }
+    : {
+        compositeFilter: {
+          op: 'AND',
+          filters: filtros.map(([campo, valor]) => ({
+            fieldFilter: {
+              field: { fieldPath: campo },
+              op: 'EQUAL',
+              value: { stringValue: valor },
+            },
+          })),
+        },
+      };
+
+  const respuesta = await fetch(`${BASE}:runQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      structuredQuery: {
+        from: [{ collectionId: coleccion }],
+        where,
+      },
+    }),
+  });
+
+  if (!respuesta.ok) throw new Error(`${coleccion}: ${respuesta.status}`);
+
+  const filas = await respuesta.json();
+  return filas.filter((f) => f.document).map((f) => f.document);
+}
+
 async function leerEpisodios() {
   const docs = await leerColeccion('episodes', [
     'animeId',
@@ -261,7 +308,11 @@ async function leerPersonajesPrincipales() {
 }
 
 async function leerDisponibilidadEspana() {
-  const docs = await consultar('streamingAvailability', 'region', 'ES');
+  const docs = await consultarFiltros('streamingAvailability', [
+    ['region', 'ES'],
+    ['status', 'available'],
+  ]);
+  console.log(`streaming ES: ${docs.length} filas disponibles`);
   const mapa = new Map();
 
   for (const doc of docs) {

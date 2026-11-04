@@ -71,6 +71,38 @@ async function leerAnimes() {
   return animes;
 }
 
+/**
+ * Animes del índice de búsqueda, si está fresco.
+ *
+ * `prebuild` genera primero el índice y después este sitemap. Si el
+ * índice existe y tiene menos de seis horas, se reutiliza: evita
+ * volver a leer los 195 animes en cada build. Si falta o está viejo,
+ * el sitemap sigue funcionando con la lectura directa de Firestore.
+ */
+async function leerAnimesDelIndice() {
+  try {
+    const datos = JSON.parse(
+      await readFile(path.join(RAIZ, 'public', 'busqueda', 'indice.json'), 'utf8'),
+    );
+    if (datos?.version !== 1 || !Array.isArray(datos.animes)) return null;
+
+    const generado = Date.parse(datos.generado);
+    if (!Number.isFinite(generado) || Date.now() - generado > 6 * 60 * 60 * 1000) {
+      return null;
+    }
+
+    return datos.animes
+      .filter((a) => a?.slug)
+      .map((a) => ({
+        slug: a.slug,
+        id: a.id,
+        actualizado: a.actualizado ?? '',
+      }));
+  } catch {
+    return null;
+  }
+}
+
 function construirSitemap(animes) {
   const urls = [
     `  <url>
@@ -102,7 +134,9 @@ ${urls.join('\n')}
 }
 
 try {
-  const animes = await leerAnimes();
+  const delIndice = await leerAnimesDelIndice();
+  const animes = delIndice ?? (await leerAnimes());
+  if (delIndice) console.log('sitemap: reutiliza el indice de busqueda');
   const sitemap = construirSitemap(animes);
   await writeFile(SALIDA, sitemap, 'utf8');
   console.log(`sitemap.xml: ${animes.length + 1} URLs (${animes.length} animes)`);

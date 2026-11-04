@@ -138,6 +138,7 @@ async function leerColeccion(coleccion, campos) {
       docs.push({
         id: doc.name.split('/').pop(),
         f,
+        actualizado: doc.updateTime,
       });
     }
     token = datos.nextPageToken ?? '';
@@ -152,6 +153,7 @@ function animeDe(doc) {
     id: doc.id,
     slug: texto(valor(f.slug)) || doc.id,
     title: texto(valor(f.title)),
+    actualizado: doc.actualizado ?? '',
     japaneseTitle: texto(valor(f.japaneseTitle)),
     alternativeTitles: lista(valor(f.alternativeTitles)),
     synopsis: texto(valor(f.synopsis)),
