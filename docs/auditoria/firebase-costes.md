@@ -7,7 +7,7 @@ Fecha: 2026-11-02 (primera fase). Actualizado: 2026-11-04 (tercera fase).
 > Este documento separa siempre **llamadas al SDK**, **documentos devueltos** y **estimación de lecturas**.
 > No se presentan como facturación real. La factura depende de métricas de Firebase/Google Cloud y de las reglas.
 
-> **Nota de vigencia:** las secciones 1–11 describen la primera fase. La sección 12 documenta la segunda fase y sustituye lo que allí se decía sobre búsqueda con catálogo completo, bloques de 30 series, panel de administración y editor de streaming. La sección 13 documenta la tercera fase: animes estáticos en Wiki/Perfiles, personajes filtrados por temporada y contadores visibles sin abrir la pestaña.
+> **Nota de vigencia:** las secciones 1–11 describen la primera fase. La sección 12 documenta la segunda fase y sustituye lo que allí se decía sobre búsqueda con catálogo completo, bloques de 30 series, panel de administración y editor de streaming. La sección 13 documenta la tercera fase: animes y temporadas estáticos, personajes filtrados por temporada, contadores visibles sin abrir la pestaña y disponibilidad de streaming servida desde el índice.
 
 ## 1. Resumen ejecutivo
 
@@ -23,7 +23,7 @@ Se ha eliminado la mayor parte del consumo que se producía al entrar en la web:
 - Se eliminó el listener duplicado del documento del usuario en gamificación y los `ProgressionProvider` anidados.
 - Se optimizaron consultas del panel y una lectura duplicada de las Cloud Functions.
 - **Segunda fase (2026-11-03):** la búsqueda usa un índice estático servido desde el propio sitio; los filtros de episodios/personajes se cachean y pagina en bloques de 10 series; el panel carga solo la pestaña activa; el editor de streaming no consulta hasta abrir su apartado; las páginas de 60 y sus contadores usan caché persistente. Ver sección 12.
-- **Tercera fase (2026-11-04):** la Wiki y los perfiles pintan los 195 animes desde `animes.json` (0 lecturas de la colección); al abrir una ficha se lee solo su documento. Las temporadas vienen de `temporadas.json`, los personajes se filtran por temporada en Firestore con `seasonKeys` y los contadores, igual que los de episodios, se ven sin abrir la pestaña. Ver sección 13.
+- **Tercera fase (2026-11-04):** la Wiki y los perfiles pintan los animes desde `animes.json` (0 lecturas de la colección); al abrir una ficha se lee solo su documento. Las temporadas vienen de `temporadas.json`, la disponibilidad pública de `streaming.json`, los personajes se filtran por temporada en Firestore con `seasonKeys` y los contadores, igual que los de episodios, se ven sin abrir la pestaña. Ver sección 13.
 
 ## 2. Línea base y mediciones
 
@@ -347,7 +347,7 @@ La atribución se ha hecho por forma de consulta, media de lecturas por ejecuci�
 - **Likes de catálogo**
   - `patchCached` actualiza en sitio las copias de memoria e IndexedDB de animes, episodios, personajes y trivia al dar o quitar un like. No invalida la ficha entera ni vuelve a leer Firestore.
 - **Build**
-  - El índice de búsqueda está **comprimido y versionado** en `public/busqueda/indice.json.gz` (~1,37 MB tras añadir temporadas; ~1,28 MB en la segunda fase). `prebuild` lo descomprime y no lee Firestore.
+  - El índice de búsqueda está **comprimido y versionado** en `public/busqueda/indice.json.gz` (~1,52 MB tras añadir temporadas y streaming; ~1,28 MB en la segunda fase). `prebuild` lo descomprime y no lee Firestore.
   - El sitemap reutiliza los animes del índice: 0 lecturas de animes.
   - El prerender pide solo las filas de `streamingAvailability` de España con estado `available`: 207 en la última medición, frente a 786 filas de España que descargaba antes y filtraba en memoria.
   - **Coste por push medido: 0 lecturas del catálogo + 207 filas de streaming + 7 plataformas ≈ 214 lecturas.** Antes era ≈14.469.
@@ -531,7 +531,7 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 ### 13.3 Pruebas
 
 - `npm run lint`: correcto.
-- `npm run build`: correcto. El log muestra `indice-busqueda: usa cache local (195 animes, 481 temporadas, 8351 episodios, 4935 personajes)`, `sitemap: reutiliza el indice de busqueda`, `streaming ES: 207 filas disponibles` y 195 páginas de anime generadas. **0 lecturas del catálogo en el push.**
+- `npm run build`: correcto. El log muestra `indice-busqueda: usa cache local (197 animes, 489 temporadas, 7824 filas de streaming, 8514 episodios, 5051 personajes)`, `sitemap: reutiliza el indice de busqueda`, `streaming ES: reutiliza el indice (144 animes)` y 197 páginas de anime generadas. **0 lecturas del catálogo y 0 de streaming; solo quedan ~7 de plataformas.**
 - Navegador limpio:
   - `/anime/one-piece` muestra `Episodios (61)` y `Personajes (41)` sin pulsar ninguna pestaña.
   - La pestaña de personajes muestra solo los de la temporada 1 (incluidos los compartidos) y no descarga las demás temporadas.
@@ -548,5 +548,22 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - El índice `characters: animeId + seasonKeys[CONTAINS] + __name__` y la migración de `seasonKeys` ya están aplicados en producción.
 - Si se añade o renombra un anime, hay que ejecutar `npm run index:buscar` antes de desplegar para que aparezca en la rejilla de la Wiki/Perfil y en el sitemap. La ficha directa por slug sí funciona sin refrescar.
 - Si cambia una temporada, conviene refrescar el índice antes de desplegar. Si solo cambia el número de temporadas, `seasonsCount` hace que la ficha pida la lista real a Firestore; los cambios de título, portada o sinopsis no se ven hasta el refresco.
-- El refresco del índice ahora lee también las 481 temporadas: ≈13.962 documentos.
+- El refresco del índice ahora lee temporadas y streaming: ≈22.075 documentos (197 animes, 489 temporadas, 8.514 episodios, 5.051 personajes y 7.824 filas de streaming).
 - Query Insights sigue pendiente de acceso a Firebase Console y de un periodo equivalente.
+
+### 13.5 Streaming estático (2026-11-04)
+
+- **Generación:** `generar-indice-busqueda.mjs` lee también `streamingAvailability` y guarda dos cosas:
+  - las 7.824 filas dentro de `indice.json`/`.gz`;
+  - `public/busqueda/streaming.json`, agrupado por anime y región (~1,69 MB en crudo, ~96 KB gzip).
+- **Web pública:** `useStreamingAvailability` intenta primero `streaming.json`. Si el archivo falta o no conoce la serie, cae a Firestore. Al cambiar de región no hay ninguna consulta nueva: se filtra el mapa ya cargado.
+- **Panel:** `StreamingAvailabilityEditor` pasa `preferStatic: false` y sigue leyendo `streamingAvailability` para ver el último cambio guardado.
+- **Build:** `generar-paginas-anime.mjs` reutiliza `indice.streaming`; ya no lee las 207 filas de España. Solo quedan las 7 lecturas de `streamingPlatforms`.
+- **Medición en navegador (ficha de 86: Eighty Six):**
+  - `streaming.json` cargado (~1,69 MB en dev; ~96 KB gzip en producción).
+  - **0 operaciones** sobre `streamingAvailability`.
+  - Cambiar de España a Estados Unidos tampoco genera lecturas.
+  - Las tarjetas siguen mostrando disponibles, no disponibles y datos antiguos sin verificar.
+- **Coste:** el push normal baja de ~214 a ~7 lecturas. El refresco manual sube a ~22.075 documentos porque incluye el catálogo completo y el streaming.
+- **Contrapartida:** un cambio de disponibilidad no se ve en la web pública hasta ejecutar `npm run index:buscar`, commitear el `.gz` y desplegar; el panel lo ve al momento. Es el intercambio aceptado para quitar las lecturas públicas de streaming.
+- **Archivos nuevos:** `public/busqueda/streaming.json` (ignorado por Git), `cargarStreamingIndice()` en `src/services/searchIndex.ts` y el modo estático de `useStreamingAvailability`.

@@ -39,6 +39,7 @@ scripts/.miniaturas/
 public/busqueda/indice.json
 public/busqueda/animes.json
 public/busqueda/temporadas.json
+public/busqueda/streaming.json
 
 # Copia de seguridad local de src/ (creada antes de migrar a Firestore)
 _backup/

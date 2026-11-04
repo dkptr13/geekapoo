@@ -41,6 +41,9 @@ const SALIDA_ANIMES = path.join(RAIZ, 'public', 'busqueda', 'animes.json');
 // Temporadas agrupadas por anime. La ficha solo necesita las de la
 // serie abierta; así no descarga la colección `seasons` cada vez.
 const SALIDA_TEMPORADAS = path.join(RAIZ, 'public', 'busqueda', 'temporadas.json');
+// Disponibilidad de streaming agrupada por anime y región. Es un
+// archivo pequeño comprimido y evita pedir la colección en cada ficha.
+const SALIDA_STREAMING = path.join(RAIZ, 'public', 'busqueda', 'streaming.json');
 const PROYECTO = process.env.VITE_FIREBASE_PROJECT_ID || 'geekapoo-7624d';
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents`;
 const REFRESCAR = process.argv.includes('--refresh');
@@ -110,6 +113,15 @@ const CAMPOS = {
     'posterFocus',
     'bannerFocus',
     'createdAt',
+  ],
+  streaming: [
+    'animeId',
+    'platformId',
+    'region',
+    'status',
+    'accessType',
+    'url',
+    'verifiedAt',
   ],
 };
 
@@ -283,6 +295,24 @@ function temporadaDe(doc) {
   };
 }
 
+function streamingDe(doc) {
+  const f = doc.f;
+  const accessType = texto(valor(f.accessType));
+  const url = texto(valor(f.url));
+  const verifiedAt = texto(valor(f.verifiedAt));
+
+  return {
+    id: doc.id,
+    animeId: texto(valor(f.animeId)),
+    platformId: texto(valor(f.platformId)),
+    region: texto(valor(f.region)),
+    status: texto(valor(f.status)),
+    ...(accessType ? { accessType } : {}),
+    ...(url ? { url } : {}),
+    ...(verifiedAt ? { verifiedAt } : {}),
+  };
+}
+
 /**
  * Agrupa las temporadas por anime. Incluye una entrada vacía para
  * cada anime del índice, para que el cliente sepa que «no tiene
@@ -300,6 +330,31 @@ function mapaDeTemporadas(animes, temporadas) {
 
   for (const lista of Object.values(mapa)) {
     lista.sort((a, b) => a.number - b.number);
+  }
+
+  return mapa;
+}
+
+/**
+ * Agrupa la disponibilidad por anime y región. Incluye una entrada
+ * vacía para cada anime del índice: así el cliente distingue «no
+ * tiene filas» de «este archivo no conoce la serie» y solo cae a
+ * Firestore en el segundo caso.
+ */
+function mapaDeStreaming(animes, filas) {
+  const mapa = Object.fromEntries(animes.map((anime) => [anime.id, {}]));
+
+  for (const fila of filas) {
+    if (!fila.animeId || !fila.region) continue;
+    if (!mapa[fila.animeId]) mapa[fila.animeId] = {};
+    if (!mapa[fila.animeId][fila.region]) mapa[fila.animeId][fila.region] = [];
+    mapa[fila.animeId][fila.region].push(fila);
+  }
+
+  for (const regiones of Object.values(mapa)) {
+    for (const lista of Object.values(regiones)) {
+      lista.sort((a, b) => a.platformId.localeCompare(b.platformId));
+    }
   }
 
   return mapa;
@@ -349,6 +404,13 @@ async function usarIndiceCacheado() {
       'utf8',
     );
 
+    const streaming = Array.isArray(indice.streaming) ? indice.streaming : [];
+    await writeFile(
+      SALIDA_STREAMING,
+      JSON.stringify(mapaDeStreaming(indice.animes, streaming)),
+      'utf8',
+    );
+
     const generado = Date.parse(indice.generado);
     const dias = Number.isFinite(generado)
       ? Math.floor((Date.now() - generado) / (24 * 60 * 60 * 1000))
@@ -356,8 +418,8 @@ async function usarIndiceCacheado() {
 
     console.log(
       `indice-busqueda: usa cache local (${indice.animes.length} animes, ` +
-        `${temporadas.length} temporadas, ${indice.episodes.length} episodios, ` +
-        `${indice.characters.length} personajes` +
+        `${temporadas.length} temporadas, ${streaming.length} filas de streaming, ` +
+        `${indice.episodes.length} episodios, ${indice.characters.length} personajes` +
         `${dias !== null ? `, generado hace ${dias} dia(s)` : ''})`,
     );
 
@@ -379,7 +441,7 @@ if (!REFRESCAR && (await usarIndiceCacheado())) {
 }
 
 try {
-  const [animes, episodes, characters, seasons] = await Promise.all([
+  const [animes, episodes, characters, seasons, streaming] = await Promise.all([
     leerColeccion('animes', CAMPOS.animes).then((docs) =>
       docs.map(animeDe).filter((a) => a.id && a.title),
     ),
@@ -391,6 +453,11 @@ try {
     ),
     leerColeccion('seasons', CAMPOS.seasons).then((docs) =>
       docs.map(temporadaDe).filter((s) => s.id && s.animeId),
+    ),
+    leerColeccion('streamingAvailability', CAMPOS.streaming).then((docs) =>
+      docs
+        .map(streamingDe)
+        .filter((s) => s.id && s.animeId && s.platformId && s.region),
     ),
   ]);
 
@@ -404,12 +471,19 @@ try {
   seasons.sort(
     (a, b) => a.animeId.localeCompare(b.animeId) || a.number - b.number,
   );
+  streaming.sort(
+    (a, b) =>
+      a.animeId.localeCompare(b.animeId) ||
+      a.region.localeCompare(b.region) ||
+      a.platformId.localeCompare(b.platformId),
+  );
 
   const indice = {
     version: 1,
     generado: new Date().toISOString(),
     animes,
     seasons,
+    streaming,
     episodes,
     characters,
   };
@@ -425,14 +499,19 @@ try {
     JSON.stringify(mapaDeTemporadas(animes, seasons)),
     'utf8',
   );
+  await writeFile(
+    SALIDA_STREAMING,
+    JSON.stringify(mapaDeStreaming(animes, streaming)),
+    'utf8',
+  );
   await writeFile(SALIDA_GZ, comprimido);
 
   const kb = Math.round(Buffer.byteLength(serializado) / 1024);
   const kbGz = Math.round(comprimido.length / 1024);
   console.log(
     `indice-busqueda: ${animes.length} animes, ${seasons.length} temporadas, ` +
-      `${episodes.length} episodios, ${characters.length} personajes ` +
-      `(${kb} KB, ${kbGz} KB gzip)`,
+      `${streaming.length} filas de streaming, ${episodes.length} episodios, ` +
+      `${characters.length} personajes (${kb} KB, ${kbGz} KB gzip)`,
   );
 } catch (error) {
   const anterior = await tamanoPrevio();

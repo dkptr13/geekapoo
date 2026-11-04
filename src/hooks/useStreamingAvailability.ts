@@ -13,6 +13,7 @@ import { measureRead } from '../lib/firestoreDiagnostics';
 import { normalizarCodigoRegion } from '../data/streaming';
 import { withId } from '../services/firestoreUtils';
 import { normalizarDisponibilidad } from '../services/streamingAvailabilityLogic';
+import { cargarStreamingIndice } from '../services/searchIndex';
 import type { StreamingAvailability } from '../types';
 
 // ======================================================
@@ -33,12 +34,22 @@ export interface UseStreamingAvailability {
   error: string | null;
 }
 
+interface UseStreamingAvailabilityOptions {
+  /**
+   * La web pública usa `streaming.json` (0 lecturas). El panel de
+   * administración pasa `false` para ver siempre Firestore.
+   */
+  preferStatic?: boolean;
+}
+
 export function useStreamingAvailability(
   animeId: string | null | undefined,
   region?: string | null,
   /** `false` para no consultar hasta que el apartado esté abierto. */
   enabled = true,
+  options: UseStreamingAvailabilityOptions = {},
 ): UseStreamingAvailability {
+  const preferStatic = options.preferStatic !== false;
   const [datos, setDatos] = useState<StreamingAvailability[]>([]);
   const [cargando, setCargando] = useState(Boolean(animeId));
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +72,30 @@ export function useStreamingAvailability(
 
     const cargar = async (force = false) => {
       try {
+        if (preferStatic) {
+          const mapa = await cargarStreamingIndice();
+          if (!activo) return;
+
+          const regiones = mapa?.[animeId];
+          if (regiones) {
+            const filas = (
+              filtroRegion
+                ? (regiones[filtroRegion] ?? [])
+                : Object.values(regiones).flat()
+            )
+              .slice()
+              .sort(
+                (a, b) =>
+                  a.region.localeCompare(b.region) ||
+                  a.platformId.localeCompare(b.platformId),
+              );
+            setDatos(filas);
+            setError(null);
+            setCargando(false);
+            return;
+          }
+        }
+
         const constraints: QueryConstraint[] = [where('animeId', '==', animeId)];
         if (filtroRegion) constraints.push(where('region', '==', filtroRegion));
         const consulta = query(collection(db, 'streamingAvailability'), ...constraints);
@@ -114,7 +149,7 @@ export function useStreamingAvailability(
       activo = false;
       window.removeEventListener('geekapoo:cache-invalidated', alInvalidar);
     };
-  }, [animeId, region, enabled]);
+  }, [animeId, region, enabled, preferStatic]);
 
   return { datos, cargando, error };
 }

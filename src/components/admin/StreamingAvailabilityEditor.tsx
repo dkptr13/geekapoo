@@ -103,6 +103,9 @@ export const StreamingAvailabilityEditor: React.FC<StreamingAvailabilityEditorPr
     animeId,
     undefined,
     abierto,
+    // El panel necesita ver el último cambio guardado, no la copia
+    // estática que puede tener hasta una hora de antigüedad.
+    { preferStatic: false },
   );
 
   const [platformId, setPlatformId] = useState('');

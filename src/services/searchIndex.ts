@@ -1,5 +1,11 @@
 import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
-import type { Anime, Character, Episode, Season } from '../types';
+import type {
+  Anime,
+  Character,
+  Episode,
+  Season,
+  StreamingAvailability,
+} from '../types';
 
 // ======================================================
 // ÍNDICE DE BÚSQUEDA
@@ -33,6 +39,7 @@ export interface IndiceBusqueda {
   generado: string;
   animes: Anime[];
   seasons?: Season[];
+  streaming?: StreamingAvailability[];
   episodes: Episode[];
   characters: Character[];
 }
@@ -40,10 +47,23 @@ export interface IndiceBusqueda {
 /** Temporadas de cada anime, indexadas por id del anime. */
 export type TemporadasPorAnime = Record<string, Season[]>;
 
+/**
+ * Disponibilidad agrupada primero por anime y luego por región.
+ *
+ * `streaming['one-piece']['ES']` devuelve todas las filas de esa
+ * obra en España. Incluye estados no disponibles y sin verificar
+ * para que la ficha no pierda tarjetas.
+ */
+export type StreamingPorAnime = Record<
+  string,
+  Record<string, StreamingAvailability[]>
+>;
+
 const BUILD_ID = typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev';
 const INDEX_URL = `/busqueda/indice.json?v=${encodeURIComponent(BUILD_ID)}`;
 const ANIMES_URL = `/busqueda/animes.json?v=${encodeURIComponent(BUILD_ID)}`;
 const TEMPORADAS_URL = `/busqueda/temporadas.json?v=${encodeURIComponent(BUILD_ID)}`;
+const STREAMING_URL = `/busqueda/streaming.json?v=${encodeURIComponent(BUILD_ID)}`;
 // Una hora: si se publica un catálogo nuevo, como mucho se tarda
 // una hora en verlo en un navegador que ya había buscado. Mantener
 // la clave estable evita acumular copias de 5 MB en IndexedDB en
@@ -142,6 +162,67 @@ export async function cargarTemporadasIndice(): Promise<TemporadasPorAnime | nul
     });
   } catch (error) {
     console.warn('[Wiki] No se pudo cargar la lista estática de temporadas:', error);
+    return null;
+  }
+}
+
+function esStreamingValido(value: unknown): value is StreamingPorAnime {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+
+  return Object.values(value).every((regiones) => {
+    if (!regiones || typeof regiones !== 'object' || Array.isArray(regiones)) {
+      return false;
+    }
+
+    return Object.values(regiones).every(
+      (lista) =>
+        Array.isArray(lista) &&
+        lista.every((fila) => {
+          const datos = fila as StreamingAvailability;
+          return (
+            fila &&
+            typeof fila === 'object' &&
+            typeof datos.id === 'string' &&
+            typeof datos.animeId === 'string' &&
+            typeof datos.platformId === 'string' &&
+            typeof datos.region === 'string' &&
+            typeof datos.status === 'string'
+          );
+        }),
+    );
+  });
+}
+
+/**
+ * Disponibilidad de streaming estática, agrupada por anime y región.
+ *
+ * Evita pedir `streamingAvailability` en cada ficha. El panel sigue
+ * leyendo Firestore para ver siempre lo último; la web pública usa
+ * este archivo y, si falta o no conoce la serie, cae a Firestore.
+ */
+export async function cargarStreamingIndice(): Promise<StreamingPorAnime | null> {
+  try {
+    return await cachedRead<StreamingPorAnime>({
+      key: 'search:streaming:v1',
+      ttlMs: INDEX_TTL,
+      scope: PUBLIC_CACHE,
+      persist: true,
+      read: async () => {
+        const respuesta = await fetch(STREAMING_URL, { cache: 'no-cache' });
+        if (!respuesta.ok) {
+          throw new Error(`streaming: HTTP ${respuesta.status}`);
+        }
+
+        const datos: unknown = await respuesta.json();
+        if (!esStreamingValido(datos)) {
+          throw new Error('streaming: formato no válido');
+        }
+
+        return datos;
+      },
+    });
+  } catch (error) {
+    console.warn('[Wiki] No se pudo cargar la disponibilidad estática:', error);
     return null;
   }
 }

@@ -392,7 +392,24 @@ function mapasDesdeIndice(indice) {
     listaPersonajes.sort((a, b) => b.likes - a.likes);
   }
 
-  return { episodios, personajes };
+  // El índice puede traer la disponibilidad. Si es un índice antiguo
+  // sin `streaming`, se devuelve `null` para que el build pregunte a
+  // Firestore como antes.
+  let streaming = null;
+  if (Array.isArray(indice.streaming)) {
+    streaming = new Map();
+    for (const fila of indice.streaming) {
+      if (fila.region !== 'ES' || fila.status !== 'available') continue;
+      if (!fila.animeId || !fila.platformId) continue;
+      if (!streaming.has(fila.animeId)) streaming.set(fila.animeId, []);
+      streaming.get(fila.animeId).push({
+        platformId: fila.platformId,
+        url: fila.url ?? '',
+      });
+    }
+  }
+
+  return { episodios, personajes, streaming };
 }
 
 async function leerNombresPlataformas() {
@@ -613,9 +630,16 @@ try {
     : await leerAnimes();
   const desdeIndice = indice ? mapasDesdeIndice(indice) : null;
 
+  if (desdeIndice?.streaming) {
+    console.log(
+      `streaming ES: reutiliza el indice (${desdeIndice.streaming.size} animes)`,
+    );
+  }
+
   // Los extras son opcionales: si una colección falla, las fichas
   // se generan igual con lo que haya. Si el índice está disponible,
-  // los episodios y personajes salen de ahí y no se vuelven a leer.
+  // los episodios, personajes y streaming salen de ahí y no se
+  // vuelven a leer.
   const [episodios, personajes, streaming, nombresPlataformas] =
     await Promise.all([
       desdeIndice
@@ -630,10 +654,12 @@ try {
             console.warn(`Sin personajes: ${e.message}`);
             return new Map();
           }),
-      leerDisponibilidadEspana().catch((e) => {
-        console.warn(`Sin streaming: ${e.message}`);
-        return new Map();
-      }),
+      desdeIndice?.streaming
+        ? Promise.resolve(desdeIndice.streaming)
+        : leerDisponibilidadEspana().catch((e) => {
+            console.warn(`Sin streaming: ${e.message}`);
+            return new Map();
+          }),
       leerNombresPlataformas(),
     ]);
 
