@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FC } from 'react';
 import {
   AlertCircle,
@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import {
   calcularPoll,
+  fechaResumenEnMs,
   listenMyPollVote,
   listenPollSummary,
   votos,
@@ -72,6 +73,7 @@ export const PollCard: FC<PollCardProps> = ({
   const [votando, setVotando] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const votoPendienteRef = useRef<{ anterior: number | null } | null>(null);
 
   // Un reloj de un segundo: la cuenta atrás baja sola y una
   // encuesta que caduca mientras se mira pasa a "finalizada" sin
@@ -88,6 +90,23 @@ export const PollCard: FC<PollCardProps> = ({
 
     parar.push(
       listenPollSummary(threadId, (nuevo, error) => {
+        const pendiente = votoPendienteRef.current;
+        if (pendiente) {
+          const actualizado = fechaResumenEnMs(nuevo);
+          // Solo se acepta una instantánea más nueva que la que
+          // había al votar. Así una respuesta antigua no pisa el
+          // resultado optimista mientras el trigger trabaja.
+          const esNueva =
+            Boolean(nuevo) &&
+            (pendiente.anterior === null ||
+              (actualizado !== null && actualizado > pendiente.anterior));
+          if (!esNueva) {
+            setCargando(false);
+            return;
+          }
+          votoPendienteRef.current = null;
+        }
+
         setResumen(nuevo);
         if (error) {
           setError('No se pudieron cargar los resultados.');
@@ -143,6 +162,7 @@ export const PollCard: FC<PollCardProps> = ({
     // resumen, pero no se espera a Firestore para pintar.
     if (uid && miVoto?.optionId !== opcion.id) {
       const anterior = miVoto?.optionId ?? null;
+      votoPendienteRef.current = { anterior: fechaResumenEnMs(resumen) };
       setMiVoto({ id: uid, userId: uid, optionId: opcion.id });
       setResumen((prev) => {
         const options = { ...(prev?.options ?? {}) };
@@ -165,6 +185,7 @@ export const PollCard: FC<PollCardProps> = ({
     try {
       await onVotar(threadId, poll, opcion.id);
     } catch (e) {
+      votoPendienteRef.current = null;
       setResumen(anteriorResumen);
       setMiVoto(anteriorVoto);
       setError(e instanceof Error ? e.message : 'No se pudo registrar el voto.');
@@ -276,7 +297,7 @@ export const PollCard: FC<PollCardProps> = ({
                     fondo y deja de leerse. */}
                 {resultado.haVotado && n > 0 && (
                   <span
-                    className={`geo-barra absolute inset-y-0 left-0 rounded-xl transition-[width] duration-500 ease-out ${
+                    className={`geo-barra absolute inset-y-0 left-0 rounded-xl transition-[width] duration-200 ease-out ${
                       opcion.mia
                         ? 'bg-gradient-to-r from-violet-500/45 to-fuchsia-500/25'
                         : 'bg-violet-500/20'

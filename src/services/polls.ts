@@ -413,3 +413,32 @@ export async function deletePollEverywhere(threadId: string): Promise<number> {
 export function votos(n: number): string {
   return `${n} ${n === 1 ? 'voto' : 'votos'}`;
 }
+
+/**
+ * Momento en que se actualizó un resumen.
+ *
+ * Firestore devuelve `actualizadoAt` como Timestamp, aunque el tipo
+ * lo declare string por comodidad. El cliente lo usa para no dejar
+ * que una instantánea anterior al voto pise la actualización
+ * optimista.
+ */
+export function fechaResumenEnMs(
+  resumen: PollSummary | null | undefined,
+): number | null {
+  const valor = resumen?.actualizadoAt as unknown;
+
+  if (
+    valor &&
+    typeof valor === 'object' &&
+    typeof (valor as { toMillis?: unknown }).toMillis === 'function'
+  ) {
+    return (valor as { toMillis: () => number }).toMillis();
+  }
+
+  if (typeof valor === 'string') {
+    const ms = Date.parse(valor);
+    return Number.isFinite(ms) ? ms : null;
+  }
+
+  return null;
+}

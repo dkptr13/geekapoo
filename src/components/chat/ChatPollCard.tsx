@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FC } from 'react';
 import {
   AlertCircle,
@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import {
   calcularPoll,
+  fechaResumenEnMs,
   votos,
   type PollVoteRow,
 } from '../../services/polls';
@@ -66,6 +67,7 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
   const [votando, setVotando] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
+  const votoPendienteRef = useRef<{ anterior: number | null } | null>(null);
 
   // La cuenta atrás baja sola y una encuesta que caduca
   // mientras se mira pasa a "finalizada" sin recargar.
@@ -81,6 +83,20 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
 
     parar.push(
       listenChatPollSummary(chatId, messageId, (nuevo, e) => {
+        const pendiente = votoPendienteRef.current;
+        if (pendiente) {
+          const actualizado = fechaResumenEnMs(nuevo);
+          const esNueva =
+            Boolean(nuevo) &&
+            (pendiente.anterior === null ||
+              (actualizado !== null && actualizado > pendiente.anterior));
+          if (!esNueva) {
+            setCargando(false);
+            return;
+          }
+          votoPendienteRef.current = null;
+        }
+
         setResumen(nuevo);
         if (e) setError('No se pudieron cargar los resultados.');
         setCargando(false);
@@ -125,6 +141,7 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
 
     if (miVoto?.optionId !== optionId) {
       const anterior = miVoto?.optionId ?? null;
+      votoPendienteRef.current = { anterior: fechaResumenEnMs(resumen) };
       setMiVoto({
         id: currentUser.uid,
         userId: currentUser.uid,
@@ -150,6 +167,7 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
     try {
       await voteChatPoll(chatId, messageId, poll, optionId, currentUser.uid);
     } catch (e) {
+      votoPendienteRef.current = null;
       setResumen(anteriorResumen);
       setMiVoto(anteriorVoto);
       setError(e instanceof Error ? e.message : 'No se pudo registrar el voto.');
@@ -255,7 +273,7 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
               >
                 {resultado.haVotado && n > 0 && (
                   <span
-                    className={`absolute inset-y-0 left-0 rounded-lg transition-[width] duration-500 ease-out ${
+                    className={`absolute inset-y-0 left-0 rounded-lg transition-[width] duration-200 ease-out ${
                       opcion.mia
                         ? 'bg-gradient-to-r from-violet-500/45 to-fuchsia-500/25'
                         : 'bg-violet-500/20'
