@@ -96,6 +96,16 @@
       ]
     },
     {
+      "_comment": "Ficha paginada: episodios de una serie filtrados por temporada y ordenados por número.",
+      "collectionGroup": "episodes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "animeId", "order": "ASCENDING" },
+        { "fieldPath": "seasonId", "order": "ASCENDING" },
+        { "fieldPath": "number", "order": "ASCENDING" }
+      ]
+    },
+    {
       "_comment": "Dónde verla: la wiki pide solo la obra y la región seleccionadas.",
       "collectionGroup": "streamingAvailability",
       "queryScope": "COLLECTION",

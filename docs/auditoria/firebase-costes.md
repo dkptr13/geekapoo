@@ -318,7 +318,9 @@ La atribución se ha hecho por forma de consulta, media de lecturas por ejecuci�
 - **Episodios y personajes**
   - `useAnimeCatalogData` usa `cachedRead` (30 min, IndexedDB), bloques de 10 series y carga progresiva con `loadMore`.
   - Las claves empiezan por `community:episodes` / `community:characters`, así que la invalidación del panel las borra.
-  - La ficha pide temporadas al abrir y episodios/personajes solo al entrar en su pestaña. `ensureAnimeData(animeId, kinds)` permite elegir el tipo.
+  - La ficha pide temporadas al abrir y pagina episodios/personajes de 60 en 60 al entrar en su pestaña. Los episodios se filtran por temporada en Firestore y se ordenan por número; los personajes se paginan por anime y se filtran por temporada en local. Los totales de episodios se obtienen con `getCountFromServer`.
+  - Medido con One Piece: la pestaña de Episodios pasó de leer 1.180 episodios de golpe a leer 61 de la temporada 1 (más 1 al pulsar «Cargar más»). Shingeki no Kyojin: 102 episodios de todas las temporadas → 33 de la temporada 1.
+  - El editor de administración sigue pidiendo la serie completa al abrirse, porque necesita editar todos sus documentos.
   - Los filtros que solo cambian el orden ya no disparan la consulta por anime.
 - **Panel de administración**
   - `useAdminCatalog(activeSection)` carga solo las colecciones de la pestaña activa.
@@ -383,8 +385,9 @@ Mediciones con `firestoreDiagnostics` (estimación del SDK, **no facturación**)
 | Primera búsqueda de la Wiki, caché vacía | 13.975 (8.549 eps + 4.935 personajes + 481 temporadas + 10 hilos) | **10** (solo hilos) | **13.965 (99,93 %)** |
 | Repetir búsqueda dentro del TTL | 0 | 0 | 0 |
 | Abrir ficha, pestaña Información | 176 (7 temporadas + 61 personajes + 102 episodios + 6 streaming) | **13** (7 + 6) | **163 (92,6 %)** |
-| Misma ficha, pestaña Episodios | 176 | **115** | 61 |
-| Misma ficha, pestaña Personajes | 176 | **74** | 102 |
+| Misma ficha, pestaña Episodios (Shingeki, T1) | 176 | **46** (33 episodios + 13 base) | 130 |
+| Misma ficha, pestaña Personajes (Shingeki) | 176 | **74** (61 de la primera página + 13 base) | 102 |
+| One Piece, pestaña Episodios (T1) | 1.180 episodios | **61** (60 + 1 para saber si hay más) | **1.119 (94,8 %)** |
 | Filtro de categoría + Episodios, primer bloque | 685 (624 filtrados + 61 página) | **242** (181 + 61) | 443 |
 | Volver al mismo filtro tras recarga | Se repetía la consulta del bloque | **0** | 181 por bloque |
 | Página de personajes, 60 → 120 tras recarga | 61 + 61 | **0 + 61** | 61 por revisita |
@@ -403,8 +406,11 @@ El índice estático mide **5.976 KB** en crudo (≈5,8 MiB), **~1,25 MiB gzip**
   - Búsqueda por «Ataque a los Titanes», «Shingeki no Kyojin» y «Shingeki no Kyoujin».
   - Búsqueda de «Eren», «Frieren» y «Kaguya».
   - Abrir ficha, cambiar temporada y entrar en Episodios/Personajes.
+  - One Piece, temporada 1: 61 episodios y «Cargar más» trae 1 más; 61 personajes en la primera página y «Cargar más» trae 61 más.
+  - Shingeki: 33 episodios en la T1, 12 en la T2; sin descargar las otras temporadas.
   - Filtro por categoría, «Cargar más» y recarga.
-  - Paginación 60 → 120 en episodios y personajes.
+  - Paginación 60 → 120 en episodios y personajes del catálogo.
+  - Índice `episodes: animeId + seasonId + number` desplegado y en estado `READY` antes de validar.
   - Fallback renombrando el índice.
 - Producción (2026-11-03):
   - Bundle de `main`; la primera verificación fue `assets/index-CjAiLObR.js` y la última `assets/index-s37spvH-.js` (incluye likes y panel por serie).
@@ -440,6 +446,7 @@ Con la tarifa estándar de referencia de Firestore Native de **0,06 USD por 100.
 |---|---:|---:|
 | Primera búsqueda por navegador | 13.965 | ~0,0084 USD |
 | Ficha en pestaña Información | 163 | ~0,0001 USD |
+| One Piece, pestaña Episodios (T1) | 1.119 | ~0,0007 USD |
 | Apertura del panel sin editar anime | 13.965 | ~0,0084 USD |
 | Tabla histórica completa | 509.220 | ~0,31 USD para el periodo que cubra la tabla |
 

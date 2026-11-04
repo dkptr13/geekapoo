@@ -31,6 +31,10 @@ import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
 import { useCatalogPage, useCollectionCount } from '../../hooks/useCatalogPage';
 import { useAnimeCatalogData } from '../../hooks/useAnimeCatalogData';
 import {
+  useAnimeCollectionCount,
+  useAnimeCollectionPage,
+} from '../../hooks/useAnimeCollectionPage';
+import {
   cargarIndiceBusqueda,
   type IndiceBusqueda,
 } from '../../services/searchIndex';
@@ -271,20 +275,13 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     : 'info';
   const setActiveTab = (tab: 'info' | 'episodes' | 'characters') => setActiveTabRaw(tab);
 
-  // La ficha carga solo su serie y solo lo que la pestaña abierta
-  // necesita. Abrir "Información" no descarga los 100 episodios y
-  // los 60 personajes de la serie: eso se pide al entrar en su
-  // pestaña. Las temporadas sí se piden siempre porque el selector
-  // de temporada está en la cabecera.
+  // La ficha pide las temporadas al abrirse porque el selector está
+  // en la cabecera. Los episodios y personajes ya no se descargan
+  // enteros: cada pestaña usa su propia página de 60 y "Cargar más".
   useEffect(() => {
     if (!currentAnime?.id) return;
-
-    const tipos: ('seasons' | 'episodes' | 'characters')[] = ['seasons'];
-    if (activeTab === 'episodes') tipos.push('episodes');
-    if (activeTab === 'characters') tipos.push('characters');
-
-    ensureAnimeData(currentAnime.id, tipos);
-  }, [currentAnime?.id, activeTab, ensureAnimeData]);
+    ensureAnimeData(currentAnime.id, ['seasons']);
+  }, [currentAnime?.id, ensureAnimeData]);
 
   // Temporada elegida. Sin valor por defecto en la URL: la que
   // abra la ficha es la primera, y el botón "Todas" ya no está (ver
@@ -573,15 +570,6 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   const [replyingToCharId, setReplyingToCharId] = useState<string | null>(null);
   const [charReplyText, setCharReplyText] = useState('');
 
-  // Todo lo que sigue usa "currentAnime", que puede no existir
-  // mientras se está en el catálogo. Se protege aquí para que el
-  // resto del archivo no tenga que comprobarlo en cada sitio.
-  const allEpisodes: Episode[] = currentAnime ? episodes[currentAnime.id] || [] : [];
-  const allCharacters: Character[] = currentAnime ? characters[currentAnime.id] || [] : [];
-  const cargandoEpisodios = Boolean(currentAnime) && episodes[currentAnime?.id ?? ''] === undefined;
-  const cargandoPersonajes =
-    Boolean(currentAnime) && characters[currentAnime?.id ?? ''] === undefined;
-
   // ====================================================
   // TEMPORADAS
   // ====================================================
@@ -591,12 +579,6 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   const animeSeasons: Season[] = currentAnime
     ? seasons.filter((s) => s.animeId === currentAnime.id).sort((a, b) => a.number - b.number)
     : [];
-
-// Todo lo que no tiene seasonId es la temporada 1 implícita. Por
-  // eso una temporada concreta y "sin filtro" no siempre muestran
-  // lo mismo cuando ya hay temporadas guardadas.
-  const inSeason = (item: { seasonId?: string }, seasonId: string) =>
-    seasonId === 'all' || (item.seasonId ?? null) === seasonId;
 
   // Los personajes son distintos a propósito: Kaguya está en las
   // tres temporadas y repetirla tres veces obligaría a crear un
@@ -639,10 +621,37 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // sus capítulos son los que ya había, sin temporada asignada.
   const seasonActiva = seasonOfView?.id ?? 'all';
 
-  const animeEpisodes: Episode[] = allEpisodes.filter((e) => inSeason(e, seasonActiva));
-  const animeCharacters: Character[] = allCharacters.filter((c) =>
+  // Cada pestaña tiene su propia página. Los episodios se filtran por
+  // la temporada abierta en Firestore y se ordenan por número; los
+  // personajes se paginan por anime y se filtran por temporada en
+  // local (un personaje puede ser compartido o estar en varias).
+  const episodiosPagina = useAnimeCollectionPage<Episode>(
+    'episodes',
+    currentAnime?.id ?? null,
+    activeTab === 'episodes',
+    {
+      seasonId: seasonActiva === 'all' ? null : seasonActiva,
+      orderByNumber: true,
+    },
+  );
+  const personajesPagina = useAnimeCollectionPage<Character>(
+    'characters',
+    currentAnime?.id ?? null,
+    activeTab === 'characters',
+  );
+  const totalEpisodiosTemporada = useAnimeCollectionCount(
+    'episodes',
+    currentAnime?.id ?? null,
+    seasonActiva,
+    Boolean(currentAnime),
+  );
+
+  const animeEpisodes: Episode[] = episodiosPagina.items;
+  const animeCharacters: Character[] = personajesPagina.items.filter((c) =>
     inCharacterSeason(c, seasonActiva),
   );
+  const cargandoEpisodios = episodiosPagina.loading;
+  const cargandoPersonajes = personajesPagina.loading;
 
   const ficha = fichaDe(currentAnime, seasonOfView);
 
@@ -1158,9 +1167,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             }`}
           >
             <Film size={16} />
-            <span>
-              Episodios ({episodes[currentAnime?.id ?? ''] ? animeEpisodes.length : '…'})
-            </span>
+            <span>Episodios ({totalEpisodiosTemporada ?? '…'})</span>
           </button>
 
           <button
@@ -1173,7 +1180,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           >
             <Users size={16} />
             <span>
-              Personajes ({characters[currentAnime?.id ?? ''] ? animeCharacters.length : '…'})
+              Personajes (
+              {personajesPagina.loaded
+                ? `${animeCharacters.length}${personajesPagina.hasMore ? '+' : ''}`
+                : '…'}
+              )
             </span>
           </button>
         </div>
@@ -1276,13 +1287,17 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
         <div className="space-y-4 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Lista de Capítulos ({animeEpisodes.length})
+              Lista de Capítulos ({totalEpisodiosTemporada ?? animeEpisodes.length})
             </h3>
             <span className="text-xs text-zinc-400">Comentarios individuales por capítulo</span>
           </div>
 
-          {animeEpisodes.length === 0 ? (
-            cargandoEpisodios ? (
+          {episodiosPagina.error ? (
+            <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-8 text-center text-sm text-red-300">
+              {episodiosPagina.error}
+            </div>
+          ) : animeEpisodes.length === 0 ? (
+            cargandoEpisodios || !episodiosPagina.loaded ? (
               <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
                 <Loader2 size={20} className="mx-auto animate-spin text-violet-400" />
                 <p className="mt-3 text-sm text-zinc-500">Cargando episodios…</p>
@@ -1291,9 +1306,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center">
                 <Film size={22} className="mx-auto text-zinc-700" />
                 <p className="mt-3 text-sm text-zinc-500">
-                  {allEpisodes.length === 0
-                    ? 'Esta serie todavía no tiene capítulos publicados.'
-                    : 'No hay capítulos en la temporada elegida.'}
+                  {totalEpisodiosTemporada === 0 && (currentAnime?.episodesCount ?? 0) > 0
+                    ? 'No hay capítulos en la temporada elegida.'
+                    : 'Esta serie todavía no tiene capítulos publicados.'}
                 </p>
               </div>
             )
@@ -1533,6 +1548,20 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               })}
             </div>
           )}
+
+          {episodiosPagina.hasMore && (
+            <button
+              type="button"
+              onClick={() => void episodiosPagina.loadMore()}
+              disabled={episodiosPagina.loadingMore}
+              className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-violet-400/40 hover:text-white disabled:opacity-60"
+            >
+              {episodiosPagina.loadingMore && (
+                <Loader2 size={11} className="animate-spin" />
+              )}
+              {episodiosPagina.loadingMore ? 'Cargando...' : 'Cargar más episodios'}
+            </button>
+          )}
         </div>
       )}
 
@@ -1593,8 +1622,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           </div>
 
           {/* Characters Grid */}
-          {filteredCharacters.length === 0 ? (
-            cargandoPersonajes ? (
+          {personajesPagina.error ? (
+            <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-8 text-center text-sm text-red-300 col-span-full">
+              {personajesPagina.error}
+            </div>
+          ) : filteredCharacters.length === 0 ? (
+            cargandoPersonajes || !personajesPagina.loaded ? (
               <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 text-center col-span-full">
                 <Loader2 size={20} className="mx-auto animate-spin text-violet-400" />
                 <p className="mt-3 text-sm text-zinc-500">Cargando personajes…</p>
@@ -1603,7 +1636,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center col-span-full">
                 <Users size={22} className="mx-auto text-zinc-700" />
                 <p className="mt-3 text-sm text-zinc-500">
-                  {allCharacters.length === 0
+                  {personajesPagina.items.length === 0
                     ? 'Esta serie todavía no tiene personajes publicados.'
                     : 'No hay personajes en la temporada elegida.'}
                 </p>
@@ -1934,6 +1967,20 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               );
               })}
             </div>
+          )}
+
+          {personajesPagina.hasMore && (
+            <button
+              type="button"
+              onClick={() => void personajesPagina.loadMore()}
+              disabled={personajesPagina.loadingMore}
+              className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-[11px] font-bold text-zinc-400 transition-colors hover:border-pink-400/40 hover:text-white disabled:opacity-60"
+            >
+              {personajesPagina.loadingMore && (
+                <Loader2 size={11} className="animate-spin" />
+              )}
+              {personajesPagina.loadingMore ? 'Cargando...' : 'Cargar más personajes'}
+            </button>
           )}
         </div>
       )}
