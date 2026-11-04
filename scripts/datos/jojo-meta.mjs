@@ -11,11 +11,11 @@ export const ANIME = {
   titulo: "JoJo's Bizarre Adventure",
   japaneseTitle: 'ジョジョの奇妙な冒険',
   synopsis:
-    'La saga de la familia Joestar a traves de las generaciones. Jonathan se ' +
+    'La saga de la familia Joestar a través de las generaciones. Jonathan se ' +
     'enfrenta a Dio Brando; Joseph, a los hombres del pilar; Jotaro y sus ' +
     'amigos viajan a Egipto para salvar a su madre; Josuke protege Morioh del ' +
     'asesino Yoshikage Kira; Giorno Giovanna quiere tomar el control de la ' +
-    'mafia italiana; y Jolyne Cujoh lucha por liberarse de la prision de ' +
+    'mafia italiana; y Jolyne Cujoh lucha por liberarse de la prisión de ' +
     'Green Dolphin Street. Seis partes, seis protagonistas, un mismo destino.',
   anio: 2012,
   estado: 'finished',
@@ -45,15 +45,15 @@ export const STREAMING = [
 
 export const TEMPORADAS = [
   { numero: 1, titulo: 'Phantom Blood / Battle Tendency', anio: 2012, estado: 'Finalizado', estudio: 'David Production',
-    synopsis: 'Veintiseis capitulos de octubre de 2012 a abril de 2013. Jonathan Joestar se enfrenta a Dio Brando, y su nieto Joseph lucha contra los hombres del pilar.', capitulos: 'T1' },
-{ numero: 2, titulo: 'Stardust Crusaders', anio: 2014, estado: 'Finalizado', estudio: 'David Production',
-    synopsis: 'Veinticuatro capitulos de abril a septiembre de 2014. Jotaro Kujo y sus amigos viajan a Egipto para salvar a su madre de la maldicion de Dio, enfrentandose a los asesinos enviados por el vampiro.', capitulos: 'T2' },
+    synopsis: 'Veintiséis capítulos de octubre de 2012 a abril de 2013. Jonathan Joestar se enfrenta a Dio Brando, y su nieto Joseph lucha contra los hombres del pilar.', capitulos: 'T1' },
+  { numero: 2, titulo: 'Stardust Crusaders', anio: 2014, estado: 'Finalizado', estudio: 'David Production',
+    synopsis: 'Veinticuatro capítulos de abril a septiembre de 2014. Jotaro Kujo y sus amigos viajan a Egipto para salvar a su madre de la maldición de Dio, enfrentándose a los asesinos enviados por el vampiro.', capitulos: 'T2' },
   { numero: 3, titulo: 'Stardust Crusaders: Battle in Egypt', anio: 2015, estado: 'Finalizado', estudio: 'David Production',
-    synopsis: 'Veinticuatro capitulos de enero a junio de 2015. El grupo llega a Egipto y se enfrenta a los nueve dioses egipcios antes del duelo final con Dio, con la ayuda de Iggy.', capitulos: 'T3' },
+    synopsis: 'Veinticuatro capítulos de enero a junio de 2015. El grupo llega a Egipto y se enfrenta a los nueve dioses egipcios antes del duelo final con Dio, con la ayuda de Iggy.', capitulos: 'T3' },
   { numero: 4, titulo: 'Diamond Is Unbreakable', anio: 2016, estado: 'Finalizado', estudio: 'David Production',
-    synopsis: 'Treinta y nueve capitulos de abril a diciembre de 2016. Josuke Higashikata protege la ciudad de Morioh del asesino en serie Yoshikage Kira, que solo quiere llevar una vida tranquila.', capitulos: 'T4' },
+    synopsis: 'Treinta y nueve capítulos de abril a diciembre de 2016. Josuke Higashikata protege la ciudad de Morioh del asesino en serie Yoshikage Kira, que solo quiere llevar una vida tranquila.', capitulos: 'T4' },
   { numero: 5, titulo: 'Golden Wind', anio: 2018, estado: 'Finalizado', estudio: 'David Production',
-    synopsis: 'Treinta y nueve capitulos de octubre de 2018 a julio de 2019. Giorno Giovanna quiere tomar el control de la mafia italiana y destruir el trafico de drogas que corrompe el pais.', capitulos: 'T5' },
+    synopsis: 'Treinta y nueve capítulos de octubre de 2018 a julio de 2019. Giorno Giovanna quiere tomar el control de la mafia italiana y destruir el tráfico de drogas que corrompe el país.', capitulos: 'T5' },
   { numero: 6, titulo: 'Stone Ocean', anio: 2021, estado: 'Finalizado', estudio: 'David Production',
-    synopsis: 'Treinta y ocho capitulos de diciembre de 2021 a diciembre de 2022. Jolyne Cujoh lucha por liberarse de la prision de Green Dolphin Street y detener los planes de Enrico Pucci.', capitulos: 'T6' },
+    synopsis: 'Treinta y ocho capítulos de diciembre de 2021 a diciembre de 2022. Jolyne Cujoh lucha por liberarse de la prisión de Green Dolphin Street y detener los planes de Enrico Pucci.', capitulos: 'T6' },
 ];

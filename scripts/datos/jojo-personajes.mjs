@@ -9,43 +9,43 @@
 
 export const PERSONAJES = [
   ['Dio Brando', '1,2,3,6', 'antagonist', 'ディオ・ブランドー', 'Takehito Koyasu',
-   '__Altura:__ 195 cm (6\'5") __Raza:__ Humano (anteriormente), Vampiro (en adelante) __Nacionalidad:__ Británico Dio es un vampiro inmortal y el archirrival del clan Joestar. __Serie 1: Phantom Blood__ ~!Dio es el hijo de [Dario Brando](https://anilist.co/character/74099/Brando-Dario), un padre alcohólico y abusivo.'],
+   'Altura: 195 cm (6\'5") Raza: Humano (anteriormente), Vampiro (en adelante) Nacionalidad: Británico Dio es un vampiro inmortal y el archirrival del clan Joestar. Serie 1: Phantom Blood Dio es el hijo de Dario Brando, un padre alcohólico y abusivo.'],
 
   ['Joseph Joestar', '1,2,3,4', 'main', 'ジョセフ・ジョースター', 'Tomokazu Sugita',
-   '__Altura__: 195 cm (6\'5") Joseph Joestar comienza como un joven inglés en Nueva York, con su abuela [Erina](https://anilist.co/character/21937). Sin embargo, un ataque de [Straits](https://anilist.co/character/21961) y la desaparición de [Robert Edward O Speedwagon](https://anilist.co/character/21938) pronto lo involucran en la mayor cadena de acontecimientos.'],
+   'Altura: 195 cm (6\'5") Joseph Joestar comienza como un joven inglés en Nueva York, con su abuela Erina. Sin embargo, un ataque de Straits y la desaparición de Robert Edward O Speedwagon pronto lo involucran en la mayor cadena de acontecimientos.'],
 
   ['Jonathan Joestar', '1', 'main', 'ジョナサン・ジョースター', 'Kazuyuki Okitsu',
-   '__Altura:__ 195 cm __Nacionalidad:__ Británica __Ocupación:__ Arqueólogo Nacido como hijo único del rico empresario [George Joestar I](https://anilist.co/character/21956), Jonathan es un hombre honesto, amable y positivo cuya vida está plagada de tragedias después de conocer a su hermano mayor adoptivo, y antagonista de la serie, [Dio Brando](https://anilist.co/character/4004).'],
+   'Altura: 195 cm Nacionalidad: Británica Ocupación: Arqueólogo Nacido como hijo único del rico empresario George Joestar I, Jonathan es un hombre honesto, amable y positivo cuya vida está plagada de tragedias después de conocer a su hermano mayor adoptivo, y antagonista de la serie, Dio Brando.'],
 
   ['Will A. Zeppeli', '1', 'supporting', 'ウィル・A・ツェペリ', 'Yoku Shioya',
    'Will A. Zeppeli estaba en un barco con una tripulación estudiando ruinas aztecas cuando era más joven cuando su padre se puso la máscara y mató a todos los miembros de la tripulación menos a su hijo. Después de este horrible evento, Zeppeli viaja por el mundo para destruir la máscara y ve a un hombre curar a alguien usando Ripple.'],
 
   ['Erina Pendleton', '1', 'supporting', 'エリナ・ペンドルトン', 'Ayako Kawasumi',
-   'Erina es una joven de la ciudad natal de [Jonathan Joestar](https://anilist.co/character/8087/). ~! Ella se convierte en su interés amoroso y luego en su esposa. Ella es la madre de [George Joestar II](https://anilist.co/character/130262/), y la abuela y tutora de [Joseph Joestar](https://anilist.co/character/6356/).!~ (Fuente: JoJo Wikia)'],
+   'Erina es una joven de la ciudad natal de Jonathan Joestar. Ella se convierte en su interés amoroso y luego en su esposa. Ella es la madre de George Joestar II, y la abuela y tutora de Joseph Joestar.!~ (Fuente: JoJo Wikia)'],
 
   ['Robert E. O. Speedwagon', '1', 'supporting', 'ロバート・E・O・スピードワゴン', 'Youji Ueda',
    'Robert E. O. Speedwagon es un aliado importante que aparece en la primera parte de JoJo\'s Bizarre Adventure, Phantom Blood, y luego en la segunda parte, Battle Tendency.'],
 
   ['George Joestar I', '1', 'supporting', 'ジョージ・ジョースターI世', 'Masashi Sugawara',
-   'George es el padre de [Jonathan Joestar](https://anilist.co/character/8087/Joestar-Jonathan) y, después de un trágico malentendido, adopta a [Dio Brando](https://anilist.co/character/4004/Brando-Dio) en su familia, dando inicio a los acontecimientos de las primeras seis partes de la serie.'],
+   'George es el padre de Jonathan Joestar y, después de un trágico malentendido, adopta a Dio Brando en su familia, dando inicio a los acontecimientos de las primeras seis partes de la serie.'],
 
   ['Smokey Brown', '1', 'supporting', 'スモーキー・ブラウン', 'Yuu Hayashi',
    'Un joven que vive en Nueva York. Joseph lo salva de policías brutales y racistas, y se queda el tiempo suficiente para ver la batalla contra Straits. También aparece al final de la Parte 2 con la caballería de Rudolf von Stroheim. Smokey se muestra inicialmente con una coleta en el Volumen 5, que desaparece misteriosamente en el resto de la serie. (Fuente: Wikipedia)'],
 
   ['Rudol von Stroheim', '1', 'supporting', 'ルドル・フォン・シュトロハイム', 'Atsushi Imaruoka',
-   'Stroheim es el comandante de las fuerzas de la Wehrmacht que descubrió a Santana en México. ~!Es apropiadamente militarista y amenazante, pero también es responsable no solo de salvar la vida de Robert E. O. Speedwagon, sino también de intentar ayudar a Joseph Joestar a derrotar a Santana haciéndose explotar a sí mismo (y al enemigo).'],
+   'Stroheim es el comandante de las fuerzas de la Wehrmacht que descubrió a Santana en México. Es apropiadamente militarista y amenazante, pero también es responsable no solo de salvar la vida de Robert E. O. Speedwagon, sino también de intentar ayudar a Joseph Joestar a derrotar a Santana haciéndose explotar a sí mismo (y al enemigo).'],
 
   ['Caesar Zeppeli', '1', 'main', 'シーザー・アントニオ・ツェペリ', 'Takuya Satou',
-   '__Altura:__ 186 cm El nieto de [Will A. Zeppeli](https://anilist.co/character/18062/Zeppeli-Will-A). Es un mujeriego rubio y afable, además de un hábil usuario de Ripple. Fue enseñado por [Lisa Lisa](https://anilist.co/character/21960/Lisa-Lisa) y actualmente vive en Italia.'],
+   'Altura: 186 cm El nieto de Will A. Zeppeli. Es un mujeriego rubio y afable, además de un hábil usuario de Ripple. Fue enseñado por Lisa Lisa y actualmente vive en Italia.'],
 
   ['Lisa Lisa', '1', 'supporting', 'リサリサ', 'Atsuko Tanaka',
-   '__Cumpleaños:__ ~!Diciembre de 1888!~ __Edad:__ ~!50!~ __Altura:__ 175 cm Lisa Lisa, una misteriosa usuaria de Ripple a quien Joseph Joestar conoce en Venecia, se revela como la mentora de su amigo Caesar Zeppeli. Ella entrena a Joseph en los caminos de Ripple y se une a la lucha contra los Pillar Men, como un poderoso usuario de Ripple por derecho propio.'],
+   'Cumpleaños: Diciembre de 1888!~ Edad: 50!~ Altura: 175 cm Lisa Lisa, una misteriosa usuaria de Ripple a quien Joseph Joestar conoce en Venecia, se revela como la mentora de su amigo Caesar Zeppeli. Ella entrena a Joseph en los caminos de Ripple y se une a la lucha contra los Pillar Men, como un poderoso usuario de Ripple por derecho propio.'],
 
   ['Straits', '1', 'supporting', 'ストレイツォ', 'Nobuo Tobita',
    'Straits es otro de los seguidores de Tonpetty. Ayudó a Jonathan en la lucha contra Dio y sus secuaces. Él, junto con Dire, recibieron el nombre de la banda Dire Straits. (Fuente: Wikipedia)'],
 
   ['Suzie Q', '1,2', 'supporting', 'スージーＱ', 'Sachiko Kojima',
-   '__Altura:__ 168 cm La asistente femenina de Lisa Lisa. Suzie Q es una chica un poco tonta que se preocupa por sus amigos. Evidentemente, esta personalidad despreocupada no ha disminuido ni siquiera en los eventos de Stardust Crusaders, cuando se la muestra grabando con entusiasmo sus avistamientos en Japón en una videocámara mientras estaba de viaje para ver a su hija.'],
+   'Altura: 168 cm La asistente femenina de Lisa Lisa. Suzie Q es una chica un poco tonta que se preocupa por sus amigos. Evidentemente, esta personalidad despreocupada no ha disminuido ni siquiera en los eventos de Stardust Crusaders, cuando se la muestra grabando con entusiasmo sus avistamientos en Japón en una videocámara mientras estaba de viaje para ver a su hija.'],
 
   ['Santana', '1', 'supporting', 'サンタナ', 'Kenji Nomura',
    'Es descubierto en una pirámide mexicana en 1938. Luego lo despierta y lo estudia un equipo de estudio de vampiros nazi en una base subterránea. El equipo, dirigido por el Mayor Stroheim, lleva a cabo experimentos en humanos vivos con la máscara de piedra para intentar fortalecer al ejército nazi.'],
@@ -60,7 +60,7 @@ export const PERSONAJES = [
    'Cars es el líder de los Pillar Men. Es inteligente, despiadado y decidido en su dedicación a obtener la Piedra Roja de Aja. Curiosamente, a pesar de su apatía hacia los humanos y su voluntad de matarlos, se ha demostrado que es más compasivo con otros seres vivos.'],
 
   ['Narrator', '1,2,3,6', 'supporting', 'ナレーター', 'Tooru Ookawa',
-   'Esta página de personajes está configurada para representar y enumerar a todos los narradores a los que no se les ha dado una representación visual de sí mismos en sus respectivos trabajos. Agregue otros personajes del narrador, a los que se les dio una representación visual de sí mismos, por separado de esta página del narrador.'],
+   'El narrador que presenta y enlaza los acontecimientos de la saga, con la voz de Tooru Ookawa. No es un personaje visible, sino la voz que guia al espectador de una parte a otra.'],
 
   ['Dire', '1', 'supporting', 'ダイアー', 'Taketora',
    'Dire es un aliado menor que aparece en Phantom Blood. Dire es un discípulo de Ripple del maestro de Ripple Tonpetty y es un amigo muy cercano de Will Anthonio Zeppeli.'],
@@ -69,7 +69,7 @@ export const PERSONAJES = [
    'Tonpetty es un aliado menor que aparece en la Parte I: Phantom Blood. Es un maestro de Ripple que entrenó a Will Anthonio Zeppeli, así como a Straizo y Dire.'],
 
   ['Dario Brando', '1', 'supporting', 'ダリオ・ブランドー', 'Tadashi Miyazawa',
-   'Darío es el padre de [Dio Brando](https://anilist.co/character/4004/Brando-Dio). Un hombre alcohólico y abusivo, es el principal responsable de contribuir al descenso de Dio al mal. Después de un trágico malentendido, [George Joestar I](https://anilist.co/character/21956/Joestar-I-George) decide hacerle un favor y adopta a su hijo Dio en la familia Joestar.'],
+   'Darío es el padre de Dio Brando. Un hombre alcohólico y abusivo, es el principal responsable de contribuir al descenso de Dio al mal. Después de un trágico malentendido, George Joestar I decide hacerle un favor y adopta a su hijo Dio en la familia Joestar.'],
 
   ['Wang Chung', '1', 'supporting', 'ワンチェン', 'Hiroshi Naka',
    'Wang Chan es un antagonista menor que aparece en la Parte I: Phantom Blood personalmente como humano, Wang Chan ha mostrado una personalidad codiciosa, vendiendo un veneno a Dio Brando sin tener en cuenta su uso y regresando a la mansión Joestar para buscar tesoros y antigüedades. Sin embargo, al convertirse en vampiro, se entrega por completo a los deseos de Dio.'],
@@ -129,22 +129,22 @@ export const PERSONAJES = [
    'Adams es un ex humano y aldeano de Windknight\'s Lot que se convierte en un zombi creado por Dio Brando.'],
 
   ['Joutarou Kuujou', '2,3,4,5,6', 'main', '空条承太郎', 'Daisuke Ono',
-   '__Altura:__ 195 cm (6\'5") __Ocupación:__ Estudiante, Explorador Marino, Oceanógrafo __Nacionalidad:__ Japonés Joutarou es el hijo de Holly Kujo y el nieto de [Joseph Joestar](https://anilist.co/character/6356). En la Parte 3, tiene un atuendo reconocible de una chaqueta azul de uniforme escolar hasta una gabardina con cadenas amarillas en el cuello.'],
+   'Altura: 195 cm (6\'5") Ocupación: Estudiante, Explorador Marino, Oceanógrafo Nacionalidad: Japonés Joutarou es el hijo de Holly Kujo y el nieto de Joseph Joestar. En la Parte 3, tiene un atuendo reconocible de una chaqueta azul de uniforme escolar hasta una gabardina con cadenas amarillas en el cuello.'],
 
   ['Jean-Pierre Polnareff', '2,3,5', 'main', 'ジャン＝ピエール・ポルナレフ', 'Fuminori Komatsu',
-   '__Altura:__ 185 cm (6\'1") Jean-Pierre Polnareff es un francés que se une al grupo Joestar en su viaje a Egipto después de haber sido liberado del control de Dio por el grupo. Su objetivo es vengar el asesinato de su hermana.'],
+   'Altura: 185 cm (6\'1") Jean-Pierre Polnareff es un francés que se une al grupo Joestar en su viaje a Egipto después de haber sido liberado del control de Dio por el grupo. Su objetivo es vengar el asesinato de su hermana.'],
 
   ['Noriaki Kakyouin', '2,3', 'main', '花京院典明', 'Daisuke Hirakawa',
-   '__Altura:__ 178 cm (5\'10") __Stand:__ Hierophant Green Kakyoin es un estudiante de secundaria y usuario del stand Hierophant Green. A diferencia de la mayoría de los usuarios del stand, Kakyoin nació con su stand, aunque le hizo sentirse como un extraño durante la mayor parte de su vida debido a que no conocía a ningún otro usuario del stand.'],
+   'Altura: 178 cm (5\'10") Stand: Hierophant Green Kakyoin es un estudiante de secundaria y usuario del stand Hierophant Green. A diferencia de la mayoría de los usuarios del stand, Kakyoin nació con su stand, aunque le hizo sentirse como un extraño durante la mayor parte de su vida debido a que no conocía a ningún otro usuario del stand.'],
 
   ['Mohammed Avdol', '2,3', 'main', 'モハメド・アヴドゥル', 'Kenta Miyake',
-   '__Altura:__ 188 cm (6\'2") __Stand:__ Magician\'s Red Avdol es un adivino y amigo de [Joseph Joestar](https://anilist.co/character/6356/Joestar-Joseph). Se conocieron tres años antes de los acontecimientos de la historia. Nació con un stand, Magician\'s Red, que controla el fuego.'],
+   'Altura: 188 cm (6\'2") Stand: Magician\'s Red Avdol es un adivino y amigo de Joseph Joestar. Se conocieron tres años antes de los acontecimientos de la historia. Nació con un stand, Magician\'s Red, que controla el fuego.'],
 
   ['Hol Horse', '2,3', 'supporting', 'ホル・ホｰス', 'Hidenobu Kiuchi',
-   '**Altura**: 188 cm *(anime)* Hol Horse es un antagonista menor en JoJo\'s Bizarre Adventure: Stardust Crusaders (visto por primera vez en el Capítulo 141 y el Episodio 10), así como uno de los personajes principales de Crazy Diamond\'s Demonic Heartbreak. Es un mercenario alto, de cabello rubio y con temática de vaquero, que sirve bajo las órdenes de Dio y su ejército de otros usuarios de Stand.'],
+   'Altura: 188 cm *(anime)* Hol Horse es un antagonista menor en JoJo\'s Bizarre Adventure: Stardust Crusaders (visto por primera vez en el Capítulo 141 y el Episodio 10), así como uno de los personajes principales de Crazy Diamond\'s Demonic Heartbreak. Es un mercenario alto, de cabello rubio y con temática de vaquero, que sirve bajo las órdenes de Dio y su ejército de otros usuarios de Stand.'],
 
   ['Iggy', '2,3', 'main', 'イギー', 'Misato Fukuen',
-   '__Altura:__ 33,3 cm __Nacionalidad:__ American Iggy es un boston terrier que empuña un soporte conocido como The Fool, que es capaz de manipular arena. Dado que The Fool está hecho de arena, dañarlo no dañará a Iggy. Crea varios objetos con arena, incluidas las alas de un planeador y una estatua de DIO.'],
+   'Altura: 33,3 cm Nacionalidad: American Iggy es un boston terrier que empuña un soporte conocido como The Fool, que es capaz de manipular arena. Dado que The Fool está hecho de arena, dañarlo no dañará a Iggy. Crea varios objetos con arena, incluidas las alas de un planeador y una estatua de DIO.'],
 
   ['J. Geil', '2', 'supporting', 'J・ガイル', 'Takuya Kirimoto',
    'J. Geil es el hombre responsable del asesinato de la hermana de Polnareff, lo que le valió el deseo de venganza de Polnareff. J. Geil pasa la mayor parte de su tiempo ocultándose de la vista, prefiriendo tener un compañero en quien confiar. Esto lo convirtió en un candidato perfecto para Hol Horse, quien, como él, cree en trabajar en parejas.'],
@@ -162,7 +162,7 @@ export const PERSONAJES = [
    'Nena es una antagonista menor que aparece en Stardust Crusaders. Aparece por primera vez en la India junto a Hol Horse e intenta asesinar a Joseph Joestar haciéndose pasar por una mujer corriente. Ella es una usuaria de Stand que usa Empress. Al principio, Nena parece una hermosa joven india con el atuendo típico indio.'],
 
   ['Holly Kuujou', '2,3', 'supporting', '空条ホリィ       ', 'Reiko Takagi',
-   'Holly Kuujou, de soltera Joestar, es hija de [Joseph Joestar] (https://anilist.co/character/6356/) y madre de [Joutarou Kuujou] (https://anilist.co/character/4003/).'],
+   'Holly Kuujou, de soltera Joestar, es hija de Joseph Joestar (https://anilist.co/character/6356/) y madre de Joutarou Kuujou (https://anilist.co/character/4003/).'],
 
   ['Forever', '2', 'supporting', 'フォーエバー', 'Kappei Yamaguchi',
    'Forever es un orangután malicioso al servicio de DIO que se enfrenta al grupo en el Mar de China Meridional a bordo de un carguero. Dicho barco está poseído por Forever\'s Stand: Fuerza.'],
@@ -213,10 +213,10 @@ export const PERSONAJES = [
    'Suri es un personaje de JoJo\'s Bizarre Adventure que aparece en la parte 2.'],
 
   ['Daniel D\'Arby', '3', 'supporting', 'ダーニアル・J.・ダービー ', 'Banjou Ginga',
-   '__Ocupación:__ Jugador __Stand:__ Osiris __Debut en Manga:__ Capítulo 211 __Debut en Anime:__ Episodio 34 D\'Arby es un jugador experto y empedernido y su Stand, Osiris, puede robar almas. Es miembro de Egypt 9 Glory Gods y se reúne con el Grupo Joestar en El Cairo. Aquí, los engaña para que apuesten sus almas en varios juegos. D\'Arby también es el hermano mayor de Telence T. D\'Arby. Daniel J.'],
+   'Ocupación: Jugador Stand: Osiris Debut en Manga: Capítulo 211 Debut en Anime: Episodio 34 D\'Arby es un jugador experto y empedernido y su Stand, Osiris, puede robar almas. Es miembro de Egypt 9 Glory Gods y se reúne con el Grupo Joestar en El Cairo. Aquí, los engaña para que apuesten sus almas en varios juegos. D\'Arby también es el hermano mayor de Telence T. D\'Arby. Daniel J.'],
 
   ['Terence D\'Arby', '3', 'supporting', 'テレンス・T.・ダービー', 'Junichi Suwabe',
-   '__Nacionalidad:__ Estadounidense __Ocupación:__ Mayordomo __Stand:__ Atum D\'Arby es uno de los 9 Dioses de la Gloria de Egipto y reside en la mansión de DIO en El Cairo actuando como su mayordomo. Aísla y desafía a Jotaro, Joseph y Kakyoin cuando el Grupo Joestar ingresa a la mansión y los obliga a luchar con sus almas contra él en varios desafíos de videojuegos.'],
+   'Nacionalidad: Estadounidense Ocupación: Mayordomo Stand: Atum D\'Arby es uno de los 9 Dioses de la Gloria de Egipto y reside en la mansión de DIO en El Cairo actuando como su mayordomo. Aísla y desafía a Jotaro, Joseph y Kakyoin cuando el Grupo Joestar ingresa a la mansión y los obliga a luchar con sus almas contra él en varios desafíos de videojuegos.'],
 
   ['Vanilla Ice', '3', 'antagonist', 'ヴァニラ・アイス', 'Shou Hayami',
    'Vanilla Ice es el último vampiro creado por DIO y uno de los penúltimos usuarios de Stand que enfrenta el Grupo Joestar al infiltrarse en la Mansión de DIO. Después de que el grupo se divide, lo envían a eliminar al equipo formado por Avdol, Polnareff e Iggy. Vanilla Ice es un usuario de Stand que controla su habilidad Stand basada en el vacío, Cream, para luchar.'],
@@ -246,16 +246,16 @@ export const PERSONAJES = [
    'Una joven amable que cuida a un Jean Pierre Polnareff envejecido después de que resulta herido en su pelea contra Alessi.'],
 
   ['Yoshikage Kira', '4', 'antagonist', '吉良吉影', 'Toshiyuki Morikawa',
-   '**Altura:** 175 cm (5\'9") Kira es un hombre que anhela una vida sencilla y no desea que lo molesten. Aunque revela muchos talentos, este anhelo se muestra en su disgusto por llegar primero, como el elenco finalmente se da cuenta. Se molesta bastante cuando alguien interrumpe su "sencillez" y hace todo lo posible para recuperarla.'],
+   'Altura: 175 cm (5\'9") Kira es un hombre que anhela una vida sencilla y no desea que lo molesten. Aunque revela muchos talentos, este anhelo se muestra en su disgusto por llegar primero, como el elenco finalmente se da cuenta. Se molesta bastante cuando alguien interrumpe su "sencillez" y hace todo lo posible para recuperarla.'],
 
   ['Rohan Kishibe', '4', 'main', '岸辺露伴', 'Takahiro Sakurai',
-   'Rohan es un mangaka que aparece por primera vez como antagonista de [Koichi](https://anilist.co/character/24496/Hirose-Kouichi) y Toshizaku cuando van a su casa para pedir un autógrafo. Después de intentar echar un vistazo al nuevo número de su manga, usa su soporte Heaven\'s Door para que ninguno de los dos pueda atacarlo.'],
+   'Rohan es un mangaka que aparece por primera vez como antagonista de Koichi y Toshizaku cuando van a su casa para pedir un autógrafo. Después de intentar echar un vistazo al nuevo número de su manga, usa su soporte Heaven\'s Door para que ninguno de los dos pueda atacarlo.'],
 
   ['Jousuke Higashikata', '4', 'main', '東方仗助', 'Yuuki Ono',
-   '__Altura:__ 185 cm __Nacionalidad:__ Japonés Josuke es el hijo ilegítimo del abuelo de [Jotaro](https://anilist.co/character/4003/Kuujou-Joutarou), [Joseph Joestar](https://anilist.co/character/6356/Joestar-Joseph). Es un adolescente cariñoso, popular y un poco ingenuo. Inspirado por el sentido de justicia de su abuelo policía (por parte de su madre), no tiene miedo de luchar por los necesitados.'],
+   'Altura: 185 cm Nacionalidad: Japonés Josuke es el hijo ilegítimo del abuelo de Jotaro, Joseph Joestar. Es un adolescente cariñoso, popular y un poco ingenuo. Inspirado por el sentido de justicia de su abuelo policía (por parte de su madre), no tiene miedo de luchar por los necesitados.'],
 
   ['Kouichi Hirose', '4,5', 'main', '広瀬康一', 'Yuuki Kaji',
-   'Un aliado y compañero de clase que conoce a [Jousuke](https://anilist.co/character/13085/Higashikata-Jousuke) cuando [Joutarou](https://anilist.co/character/4003/Kuujou-Joutarou) lo está buscando, lo que hace que los dos se conviertan rápidamente en amigos. Su posición es Ecos, que tiene tres formas distintas, o Actos (Koichi sólo puede invocar una en un momento dado).'],
+   'Un aliado y compañero de clase que conoce a Jousuke cuando Joutarou lo está buscando, lo que hace que los dos se conviertan rápidamente en amigos. Su posición es Ecos, que tiene tres formas distintas, o Actos (Koichi sólo puede invocar una en un momento dado).'],
 
   ['Mikitaka Hasekura', '4', 'supporting', '支倉 未起隆', 'Yasuyuki Kase',
    'Mikitaka aparece por primera vez en el capítulo 378 (¡Soy un extraterrestre! 1). Afirma que es un extraterrestre de 216 años del sistema Mclon que busca un planeta para que viva su gente. Su trabajo es pilotear un transbordador espacial y su pasatiempo es criar pequeñas mascotas. Posee la capacidad de asumir cualquier forma física que desee.'],
@@ -270,7 +270,7 @@ export const PERSONAJES = [
    'Akira fue una de las muchas personas a las que Keicho Nijimura disparó con el arco y la flecha mientras intentaba encontrar un usuario capaz de matar a su padre mutado. Akira fue uno de los muchos afortunados en desarrollar un stand, después de lo cual se interesó en ellos y en cómo crearlos.'],
 
   ['Yukako Yamagishi', '4', 'supporting', '山岸由花子', 'Mamiko Noto',
-   '__Altura:__ 167 cm Yukako es una estudiante enamorada de Koichi Hirose. Al principio, ella era muy agresiva en sus afectos hacia él, atacando celosamente a lo que ella creía que eran potenciales rivales en el amor e incluso llegando a secuestrarlo y amenazar su vida si él no correspondía a sus sentimientos y no apreciaba sus esfuerzos por "cambiarlo a una mejor persona".'],
+   'Altura: 167 cm Yukako es una estudiante enamorada de Koichi Hirose. Al principio, ella era muy agresiva en sus afectos hacia él, atacando celosamente a lo que ella creía que eran potenciales rivales en el amor e incluso llegando a secuestrarlo y amenazar su vida si él no correspondía a sus sentimientos y no apreciaba sus esfuerzos por "cambiarlo a una mejor persona".'],
 
   ['Keichou Nijimura', '4', 'supporting', '虹村形兆', 'Tomoyuki Shimura',
    'Un antagonista menor que aparece en la cuarta parte de JoJo\'s Bizarre Adventure, Diamond es Unbreakable, específicamente en el arco de la historia de "Los hermanos Nijimura". Keicho es el hermano mayor de Okuyasu. Es el primero en Morioh en poseer el arco y la flecha y crea generosamente usuarios de Stand con la esperanza de que uno de ellos pueda matar a su monstruoso padre.'],
@@ -279,7 +279,7 @@ export const PERSONAJES = [
    'Reimi Sugimoto es la primera víctima de Yoshikage Kira y, como fantasma, decidió quedarse en la Tierra con la esperanza de encontrar a alguien que la ayudara a llevar a Kira ante la justicia.'],
 
   ['Tomoko Higashikata', '4', 'supporting', '東方朋子', 'Megumi Toyoguchi',
-   'Ella es la madre soltera de [Josuke Higashikata] (https://anilist.co/character/13085/Jousuke-Higashikata). Tomoko, madre soltera y maestra, es conocida por mostrar un temperamento fuerte, no le gusta que los chicos intenten coquetear con ella (ya que todavía ama a Joseph) y se enoja con bastante facilidad.'],
+   'Ella es la madre soltera de Josuke Higashikata (https://anilist.co/character/13085/Jousuke-Higashikata). Tomoko, madre soltera y maestra, es conocida por mostrar un temperamento fuerte, no le gusta que los chicos intenten coquetear con ella (ya que todavía ama a Joseph) y se enoja con bastante facilidad.'],
 
   ['Terunosuke Miyamoto', '4', 'supporting', '宮本輝之輔', 'Kengo Kawanishi',
    'Terunosuke es un hombre de estatura media y constitución delgada. Tiene piel de tono medio, ojos claros y cabello claro peinado en forma de cruz, enmarcando su rostro y rizado hacia arriba en sus extremos. Lleva un abrigo largo y ligero cerrado hasta el final del pecho. Debajo hay una blusa oscura envuelta en tres cinturones ornamentados y pantalones oscuros ajustados.'],
@@ -294,10 +294,10 @@ export const PERSONAJES = [
    'Angelo es un hombre alto y musculoso con pelo corto y puntiagudo, rasgos faciales prominentes y falta de cejas. Fuera de su atuendo de prisión en flashbacks, solo se le ve vistiendo un traje de lechero que consiste en una camisa de manga larga y un mono. (Fuente: La extraña enciclopedia de JoJo)'],
 
   ['Yuuya Fungami', '4', 'supporting', '噴上裕也', 'Kishou Taniyama',
-   'Yuuya Fungami es un personaje secundario en Diamond is Unbreakable. Aparece como antagonista en Highway Star y como aliado en Enigma Boy. Yuuya es un miembro de una pandilla de motociclistas que fue convertido en Usuario de Stand por [Yoshihiro Kira] (https://anilist.co/character/130129/Kira-Yoshihiro) y lo incitó a atacar al Grupo Joestar.'],
+   'Yuuya Fungami es un personaje secundario en Diamond is Unbreakable. Aparece como antagonista en Highway Star y como aliado en Enigma Boy. Yuuya es un miembro de una pandilla de motociclistas que fue convertido en Usuario de Stand por Yoshihiro Kira (https://anilist.co/character/130129/Kira-Yoshihiro) y lo incitó a atacar al Grupo Joestar.'],
 
   ['Hayato Kawajiri', '4', 'supporting', '川尻早人', 'Rina Satou',
-   'Hayato es hijo de Kosaku Kawajiri y [Shinobu Kawajiri] (https://anilist.co/character/130141/Kawajiri-Shinobu). No le gusta interactuar con su familia y pasa la mayor parte del tiempo dentro de su dormitorio.'],
+   'Hayato es hijo de Kosaku Kawajiri y Shinobu Kawajiri (https://anilist.co/character/130141/Kawajiri-Shinobu). No le gusta interactuar con su familia y pasa la mayor parte del tiempo dentro de su dormitorio.'],
 
   ['Masazou Kinoto', '4', 'supporting', '乙雅三', 'Makoto Ishii',
    'Masazo Kinoto es un hombre flaco, con un corte recortado con dos mechones de cabello salvajes y orejas de coliflor. Se le ve vistiendo ropa informal de negocios: una camisa con cuello, pantalones caqui y una gabardina grande. Masazo es un arquitecto tranquilo y tímido, pero un poco goloso. (Fuente: La extraña enciclopedia de JoJo)'],
@@ -321,7 +321,7 @@ export const PERSONAJES = [
    'Shinobu tiene el pelo rosa rojizo (pelo castaño en el manga) con raya a la derecha y recogido en una cola de caballo baja. En ocasiones, como en su primera aparición, se recoge varios mechones de pelo que forman parte de su flequillo.'],
 
   ['Ryouhei Higashikata', '4', 'supporting', '東方良平', 'Katsuhisa Houki',
-   'El abuelo de [Jousuke] (https://anilist.co/character/13085/) y el padre de [Tomoko Higashikata] (https://anilist.co/character/130127/).'],
+   'El abuelo de Jousuke (https://anilist.co/character/13085/) y el padre de Tomoko Higashikata (https://anilist.co/character/130127/).'],
 
   ['Nijimura', '4', 'supporting', '虹村父', 'Naomi Kusumi',
    'Nijimura Sr. es una criatura baja y rechoncha con piel verde áspera y con ampollas, ojos desiguales, sin orejas, nariz aplastada y labios hinchados que se asemejan a un pico. Tiene un peinado estilo mohawk con pequeñas calvas en el medio. Lleva una camisa sin mangas junto con pantalones cortos.'],
@@ -348,10 +348,10 @@ export const PERSONAJES = [
    'Minako Ookura es un personaje de JoJo\'s Bizarre Adventure que aparece en la parte 4.'],
 
   ['Satoru Nakae', '4', 'supporting', '中江悟', 'Tasuku Hatanaka',
-   'El novio de [Minako Ookura] (https://anilist.co/character/231058/).'],
+   'El novio de Minako Ookura (https://anilist.co/character/231058/).'],
 
   ['Sakai', '4', 'supporting', '堺', 'Isamu Yuusen',
-   'Amigo de [Toshikazu Hazamada] (https://anilist.co/character/130137/).'],
+   'Amigo de Toshikazu Hazamada (https://anilist.co/character/130137/).'],
 
   ['Mukade-ya Tenshu', '4', 'supporting', 'ムカデ屋店主', 'Shinobu Matsumoto',
    'El hombre es el anciano propietario de Mukade Shoe Store, una pequeña tienda ubicada en Morioh que también hace sastrería sencilla. Yoshikage Kira va a su tienda a reparar su chaqueta.'],
@@ -360,34 +360,34 @@ export const PERSONAJES = [
    'Kurasu Daihyou es un personaje de JoJo\'s Bizarre Adventure que aparece en la parte 4.'],
 
   ['Giorno Giovanna', '5', 'main', 'ジョルノ・ジョバァーナ', 'Kenshou Ono',
-   '__Altura__: 172 cm. __Stand:__ Gold Experience, Gold Experience Requiem. Nacido como Haruno Shiobana, Giorno es hijo de Dio y una mujer japonesa, y quiere convertirse en un gangstar para erradicar la droga de Italia.'],
+   'Altura: 172 cm. Stand: Gold Experience, Gold Experience Requiem. Nacido como Haruno Shiobana, Giorno es hijo de Dio y una mujer japonesa, y quiere convertirse en un gangstar para erradicar la droga de Italia.'],
 
   ['Narancia Ghirga', '5', 'main', 'ナランチャ・ギルガ', 'Daiki Yamashita',
-   '__Altura:__ 170 cm __Nacionalidad:__ Italiana __Stand:__ Aerosmith __Ocupación:__ Passione Soldato, el subordinado de Bucciarati Narancia es uno de los héroes de la parte 5, parte de la pandilla de [Bruno](https://anilist.co/character/13045/Bucciarati-Bruno). La madre de Narancia murió de una enfermedad y su padre cree que es un perdedor.'],
+   'Altura: 170 cm Nacionalidad: Italiana Stand: Aerosmith Ocupación: Passione Soldato, el subordinado de Bucciarati Narancia es uno de los héroes de la parte 5, parte de la pandilla de Bruno. La madre de Narancia murió de una enfermedad y su padre cree que es un perdedor.'],
 
   ['Bruno Bucciarati', '5', 'main', 'ブローノ・ブチャラティ', 'Yuuichi Nakamura',
-   '__Altura:__ 178 cm __Nacionalidad:__ Italiana __Ocupación:__ Passione Capo Bruno Bucciarati hace su primera aparición como miembro de la pandilla ficticia "Passione", interrogando a [Giorno Giovanna](https://anilist.co/character/10529) sobre la muerte de otro miembro de la pandilla; ["Ojo lloroso" Luka](https://anilist.co/character/130109).'],
+   'Altura: 178 cm Nacionalidad: Italiana Ocupación: Passione Capo Bruno Bucciarati hace su primera aparición como miembro de la pandilla ficticia "Passione", interrogando a Giorno Giovanna sobre la muerte de otro miembro de la pandilla; "Ojo lloroso" Luka.'],
 
   ['Pannacotta Fugo', '5', 'main', 'パンナコッタ・フーゴ', 'Junya Enoki',
-   '__Altura:__ 178 cm __Nacionalidad:__ Italiana __Ocupación:__ Passione Soldato, subordinado de Bucciarati __Stand:__ Purple Haze Pannacotta Fugo es parte de la pandilla [de Bruno Bucciarati](https://anilist.co/character/13045/Bucciarati-Bruno). Es un joven serio y afectuoso, pero que se enfurece fácilmente.'],
+   'Altura: 178 cm Nacionalidad: Italiana Ocupación: Passione Soldato, subordinado de Bucciarati Stand: Purple Haze Pannacotta Fugo es parte de la pandilla de Bruno Bucciarati. Es un joven serio y afectuoso, pero que se enfurece fácilmente.'],
 
   ['Guido Mista', '5', 'main', 'グイード・ミスタ', 'Kousuke Toriumi',
-   '__Altura__: 182cm __Nacionalidad__: Italiana __Stand__: Sex Pistols Mista es uno de los héroes de la parte 5, parte de la pandilla de Bruno. Cuando era más joven, tuvo un encontronazo con un grupo de gánsteres y le dispararon. Todos los tiros del gángster fallaron, y ahí es donde vio la oportunidad de tomar un arma, apuntar y dispararles a todos en la cabeza.'],
+   'Altura: 182cm Nacionalidad: Italiana Stand: Sex Pistols Mista es uno de los héroes de la parte 5, parte de la pandilla de Bruno. Cuando era más joven, tuvo un encontronazo con un grupo de gánsteres y le dispararon. Todos los tiros del gángster fallaron, y ahí es donde vio la oportunidad de tomar un arma, apuntar y dispararles a todos en la cabeza.'],
 
   ['Leone Abbacchio', '5', 'main', 'レオーネ・アバッキオ', 'Junichi Suwabe',
-   '__Altura__: 188 __Nacionalidad__: Italiana __Stand__: Moody Blues __Ocupación__: Passione Soldato, Oficial de Policía Leone Abbacchio es un personaje ficticio del manga japonés JoJo\'s Bizarre Adventure. Abbacchio es uno de los héroes de la parte 5, parte de la pandilla de Bruno. Abbacchio fue policía una vez. Su sueño era proteger a la gente.'],
+   'Altura: 188 Nacionalidad: Italiana Stand: Moody Blues Ocupación: Passione Soldato, Oficial de Policía Leone Abbacchio es un personaje ficticio del manga japonés JoJo\'s Bizarre Adventure. Abbacchio es uno de los héroes de la parte 5, parte de la pandilla de Bruno. Abbacchio fue policía una vez. Su sueño era proteger a la gente.'],
 
   ['Risotto Nero', '5', 'supporting', 'リゾット・ネエロ', 'Shinshuu Fuji',
    'Su stand se llama Metallica. Metallica aparece en forma de cientos de cuerpos diminutos, cada uno de los cuales se asemeja a una pequeña tira de metal con brazos vestigiales, una o dos cicatrices y rostros sin rasgos distintivos. Metallica normalmente está ligada a la sangre de Nero, desde la cual puede proyectar auras magnéticas.'],
 
   ['Trish Una', '5', 'main', 'トリッシュ・ウナ', 'Sayaka Senbongi',
-   '__Altura:__ 163 cm (5\'4") La única mujer miembro de la pandilla de [Buccellati](https://anilist.co/character/13045/Bucciarati-Bruno). Ella es la hija de su jefe, [Diavolo](https://anilist.co/character/27155/Diavolo), y vivía una vida normal antes de descubrir quién era su padre. A partir de entonces, ella estaba en la carrera para encontrarse con su padre. ~!'],
+   'Altura: 163 cm (5\'4") La única mujer miembro de la pandilla de Buccellati. Ella es la hija de su jefe, Diavolo, y vivía una vida normal antes de descubrir quién era su padre. A partir de entonces, ella estaba en la carrera para encontrarse con su padre.'],
 
   ['Diavolo', '5', 'antagonist', 'ディアボロ', 'Katsuyuki Konishi',
-   '__Altura:__ 191 cm (6\'3") __Nacionalidad:__ Italiana __Ocupación:__ ~!Passione Mafia Boss!~ ~!Diavolo, el jefe de Passione y villano principal de la Parte 5, nació en una prisión femenina. Su nacimiento es un misterio porque su madre afirmó que fue concebido dos años antes de su sentencia y que todos los guardias eran mujeres.'],
+   'Altura: 191 cm (6\'3") Nacionalidad: Italiana Ocupación: Passione Mafia Boss!~ Diavolo, el jefe de Passione y villano principal de la Parte 5, nació en una prisión femenina. Su nacimiento es un misterio porque su madre afirmó que fue concebido dos años antes de su sentencia y que todos los guardias eran mujeres.'],
 
   ['Vinegar Doppio', '5', 'main', 'ヴィネガー・ドッピオ', 'Souma Saitou',
-   '~!Vinegar Doppio es la segunda personalidad joven, inocente y extraña de [Diavolo](https://anilist.co/character/27155/Diavolo). Se considera el subordinado más confiable de Diavolo. Doppio actúa como un disfraz para Diavolo, cuando interactúa socialmente con otros en el mundo exterior. Se convierte en Diavolo cada vez que alguien descubre su identidad.'],
+   'Vinegar Doppio es la segunda personalidad joven, inocente y extraña de Diavolo. Se considera el subordinado más confiable de Diavolo. Doppio actúa como un disfraz para Diavolo, cuando interactúa socialmente con otros en el mundo exterior. Se convierte en Diavolo cada vez que alguien descubre su identidad.'],
 
   ['Pesci', '5', 'supporting', 'ペッシ', 'Subaru Kimura',
    'Pesci es miembro de La Squadra di Esecuzione. Opera junto con Prosciutto, a quien se refiere como su "hermano mayor" (probablemente en el sentido yakuza). Aunque parece tímido, en realidad es incluso más peligroso que Prosciutto, algo que los héroes finalmente descubren por las malas. Su Stand se llama Beach Boy (ビーチ・ボーイ Bīchi Bōi).'],
@@ -435,7 +435,7 @@ export const PERSONAJES = [
    'Carne es un hombre con sobrepeso que luce un peinado que puede describirse como un corte al rape inclinado. Carne carece de nariz, solo tiene fosas nasales y tiene círculos negros debajo de los ojos. Su boca aparece en una pequeña sonrisa la mayor parte de su apariencia. Sus pupilas son muy mióticas y miran constantemente hacia adelante. En general, su expresión parece siniestra e intimidante.'],
 
   ['Melone', '5', 'supporting', 'メローネ', 'Junji Majima',
-   '**Altura** 174 cm (5\'9") Melone es un antagonista menor y es miembro de La Squadra Esecuzioni. Es un joven de constitución atlética y estatura promedio. Mantiene el cabello largo y liso que le llega hasta el hombro. Inspirado en el diseño veneciano, la característica más distintiva de Melone sigue siendo su ropa.'],
+   'Altura 174 cm (5\'9") Melone es un antagonista menor y es miembro de La Squadra Esecuzioni. Es un joven de constitución atlética y estatura promedio. Mantiene el cabello largo y liso que le llega hasta el hombro. Inspirado en el diseño veneciano, la característica más distintiva de Melone sigue siendo su ropa.'],
 
   ['Scolippi', '5', 'supporting', 'スコリッピ', 'Kenji Nojima',
    'Scolippi es un personaje de JoJo\'s Bizarre Adventure que aparece en la parte 5.'],
@@ -462,22 +462,22 @@ export const PERSONAJES = [
    'Josei Keimukan es un personaje de JoJo\'s Bizarre Adventure que aparece en la parte 5.'],
 
   ['Jolyne Kuujou', '6', 'main', '空条徐倫', 'Fairouz Ai',
-   '__Altura:__ 174,5 cm __Nacionalidad:__ Japonés-Americano ~!__Stand:__ ¡Libre de piedras!~ Ella es la hija de [Joutarou Kuujou](https://anilist.co/character/4003) y es la única mujer "JoJo" hasta la fecha. Rápida para enojarse y brusca con sus mayores, parecía que Jolyne era una causa perdida. Era irresponsable y voluble; al principio sólo buscaba satisfacer una emoción barata.'],
+   'Altura: 174,5 cm Nacionalidad: Japonés-Americano Stand: ¡Libre de piedras!~ Ella es la hija de Joutarou Kuujou y es la única mujer "JoJo" hasta la fecha. Rápida para enojarse y brusca con sus mayores, parecía que Jolyne era una causa perdida. Era irresponsable y voluble; al principio sólo buscaba satisfacer una emoción barata.'],
 
   ['Hermes Costello', '6', 'main', 'エルメェス・コステロ', 'Mutsumi Tamura',
-   '__Altura:__ 175 cm __Número de Prisionero:__ FE40533 __Stand:__ Kiss Hermes es una mujer encarcelada voluntariamente en la prisión de Green Dolphin Street para buscar venganza por el asesino de su hermana Gloria Costello, Sports Maxx, y pronto se alía con Jolyne Cujoh en el ambiente hostil que es la cárcel.'],
+   'Altura: 175 cm Número de Prisionero: FE40533 Stand: Kiss Hermes es una mujer encarcelada voluntariamente en la prisión de Green Dolphin Street para buscar venganza por el asesino de su hermana Gloria Costello, Sports Maxx, y pronto se alía con Jolyne Cujoh en el ambiente hostil que es la cárcel.'],
 
   ['Weather Report', '6', 'main', 'ウェザー・リポート', 'Yuuichirou Umehara',
-   '__Altura:__ 192 cm __Nacionalidad:__ Italiano-Americano __Ocupación:__ Repartidor (anteriormente) __Stand:__ Weather Report Weather Report es un compañero de prisión amnésico que busca su memoria y se alía con [Jolyne Cujoh](https://anilist.co/character/11222/Kuujou-Jolyne).'],
+   'Altura: 192 cm Nacionalidad: Italiano-Americano Ocupación: Repartidor (anteriormente) Stand: Weather Report Weather Report es un compañero de prisión amnésico que busca su memoria y se alía con Jolyne Cujoh.'],
 
   ['Enrico Pucci', '6', 'antagonist', 'エンリコ・プッチ', 'Tomokazu Seki',
-   '__Altura:__ 181 cm __Nacionalidad:__ Italiano-Americano __Ocupación:__ Sacerdote, Capellán __Stand:__ ~!Serpiente Blanca, C-Luna, Hecha en el Cielo!~ Un fiel seguidor y amigo de Dio, Pucci aspira a implementar un plan formulado durante mucho tiempo por Dio para "alcanzar el cielo".'],
+   'Altura: 181 cm Nacionalidad: Italiano-Americano Ocupación: Sacerdote, Capellán Stand: Serpiente Blanca, C-Luna, Hecha en el Cielo!~ Un fiel seguidor y amigo de Dio, Pucci aspira a implementar un plan formulado durante mucho tiempo por Dio para "alcanzar el cielo".'],
 
   ['Emporio Alnino', '6', 'main', 'エンポリオ・アルニーニョ', 'Atsumi Tanezaki',
-   '__Altura:__ 140 cm __Nacionalidad:__ American Emporio es un joven usuario de Stand, nació y vive en secreto en la prisión de Green Dolphin Street. Simpatiza con Jolyne y se convierte en uno de sus principales aliados.'],
+   'Altura: 140 cm Nacionalidad: American Emporio es un joven usuario de Stand, nació y vive en secreto en la prisión de Green Dolphin Street. Simpatiza con Jolyne y se convierte en uno de sus principales aliados.'],
 
   ['Foo Fighters', '6', 'main', 'フー・ファイターズ', 'Mariya Ise',
-   '__Altura:__ 165 cm __Número de prisionero:__ FE39423 __Debut en Manga:__ Capítulo 26 __Debut en Anime:__ Episodio 7 F.F. es una fusión de Stand y Stand User; una colonia de plancton organizada, mantenida y esencialmente equivalente a los Stand, Foo Fighters.'],
+   'Altura: 165 cm Número de prisionero: FE39423 Debut en Manga: Capítulo 26 Debut en Anime: Episodio 7 F.F. es una fusión de Stand y Stand User; una colonia de plancton organizada, mantenida y esencialmente equivalente a los Stand, Foo Fighters.'],
 
   ['Miraschon', '6', 'supporting', 'ミラション', 'Yui Kondou',
    'Miraschon es un recluso en la prisión de Green Dolphin Street a quien Enrico Pucci le regala el Stand, Marilyn Manson, y lo envía a asesinar a Jolyne Kuujou. Luego juega con Jolyne, Hermes Costello y Foo Fighters para extraer sus órganos y tomar el disco Stand de Jotaro Kujo.'],
@@ -486,13 +486,13 @@ export const PERSONAJES = [
    'Sports Maxx es un hombre de estatura media a superior a la media y constitución media. Tiene el pelo corto y escaso en suaves puntas; y cejas en forma de círculos grandes y claros, que se estrechan en colas cortas. Lleva un abrigo largo y ligero y pantalones claros, ambos estampados con un diseño de cachemira oscuro. (Fuente: La extraña enciclopedia de JoJo)'],
 
   ['Gwess', '6', 'supporting', 'グェス', 'Momoko Taneichi',
-   '__Altura:__ 171 cm __Estado:__ Goo Goo Dolls Gwess es una mujer joven de complexión y altura promedio, con cabello largo y oscuro. Lleva tres puntos debajo del ojo izquierdo. Gwess viste un traje de cuerpo despojado horizontalmente, sostenido por otra capa de ropa sobre sus senos, sobre el cual usa una típica chaqueta de reclusa de Green Dolphin Street.'],
+   'Altura: 171 cm Estado: Goo Goo Dolls Gwess es una mujer joven de complexión y altura promedio, con cabello largo y oscuro. Lleva tres puntos debajo del ojo izquierdo. Gwess viste un traje de cuerpo despojado horizontalmente, sostenido por otra capa de ropa sobre sus senos, sobre el cual usa una típica chaqueta de reclusa de Green Dolphin Street.'],
 
   ['Lang Rangler', '6', 'supporting', 'ラング·ラングラー', 'Chikahiro Kobayashi',
    'Lang es un hombre de estatura media a superior a la media y constitución media. Se puede ver muy poco de su rostro, ya que está vestido con una variedad de equipo improvisado diseñado para aislarlo de los efectos de su Stand. Esto incluye un sombrero de copa plana que cubre su rostro hasta debajo de los ojos con un borde inferior dentado y gafas protectoras.'],
 
   ['Thunder McQueen', '6', 'supporting', 'サンダー・マックイイーン', 'Tooru Nara',
-   '__Altura:__ 181 cm __Stand:__ Highway to Hell Thunder es un hombre de estatura media a superior a la media y constitución media. Aparece una forma de "M" en el lado derecho de su frente. (Fuente: La extraña enciclopedia de JoJo)'],
+   'Altura: 181 cm Stand: Highway to Hell Thunder es un hombre de estatura media a superior a la media y constitución media. Aparece una forma de "M" en el lado derecho de su frente. (Fuente: La extraña enciclopedia de JoJo)'],
 
   ['Romeo Jisso', '6', 'supporting', 'ロメオ･ジッソ', 'Gakuto Kajiwara',
    'Romeo Jisso es un joven atlético que tiene un corte recortado, el cabello forma de tres a cuatro franjas que rodean el costado de la cabeza. (Fuente: La extraña enciclopedia de JoJo)'],
@@ -501,7 +501,7 @@ export const PERSONAJES = [
    'Loccobarocco es el jefe de la prisión de Green Dolphin Street. Utiliza un títere de cocodrilo para comunicarse con la gente.'],
 
   ['Akutoku Bengoshi', '6', 'supporting', '悪徳弁護士', 'Hidenori Takahashi',
-   'El corrupto abogado defensor de Jolyne Cujoh que se reúne con ella por primera vez en el centro de detención. (Fuente: [La extraña enciclopedia de JoJo](https://jojowiki.com))'],
+   'El corrupto abogado defensor de Jolyne Cujoh que se reúne con ella por primera vez en el centro de detención. (Fuente: La extraña enciclopedia de JoJo)'],
 
   ['Saibankan', '6', 'supporting', '裁判官', 'Shinya Fukumatsu',
    'Un juez anciano que está a cargo del juicio de Jolyne Cujoh.'],
@@ -510,10 +510,10 @@ export const PERSONAJES = [
    'Un periquito mascota apodado Pi-chan que Gwess esconde en su bolsillo. Se revela que el pájaro en realidad es un guardia de prisión que fue encogido por Goo Goo Dolls y obligado a convertirse en la "mascota" de Gwess.'],
 
   ['Narciso Annasui', '6', 'main', 'ナルシソ・アナスイ', 'Daisuke Namikawa',
-   '__Altura:__ 178 cm (Manga), 183 cm (Anime) __Ocupación:__ Estudiante (anteriormente) ~!__Stand:__ ¡Diver Down!~ Obsesionado con desmontar objetos, Annasui creció un poco incómodo durante su infancia. Diseccionó minuciosamente un reloj de bolsillo, el coche de su vecino y todo lo que se le ocurrió. Un día, al regresar del trabajo, encontró a su novia engañándolo con otro hombre.'],
+   'Altura: 178 cm (Manga), 183 cm (Anime) Ocupación: Estudiante (anteriormente) Stand: ¡Diver Down!~ Obsesionado con desmontar objetos, Annasui creció un poco incómodo durante su infancia. Diseccionó minuciosamente un reloj de bolsillo, el coche de su vecino y todo lo que se le ocurrió. Un día, al regresar del trabajo, encontró a su novia engañándolo con otro hombre.'],
 
   ['Donatello Versace', '6', 'supporting', 'ドナテロ・ヴェルサス', 'Takanori Hoshino',
-   '__Altura:__ 181 cm __Debut:__ Capítulo 111 Donatello Versace es un antagonista menor en JoJo\'s Bizarre Adventure Part 6: Stone Ocean, y es uno de los cuatro hijos ilegítimos de Dio. Él es el usuario del puesto de excavación de memorias Submundo. Versace guarda rencor contra el mundo y la sociedad en general. Tiene un fuerte deseo de ser más feliz que nadie.'],
+   'Altura: 181 cm Debut: Capítulo 111 Donatello Versace es un antagonista menor en JoJo\'s Bizarre Adventure Part 6: Stone Ocean, y es uno de los cuatro hijos ilegítimos de Dio. Él es el usuario del puesto de excavación de memorias Submundo. Versace guarda rencor contra el mundo y la sociedad en general. Tiene un fuerte deseo de ser más feliz que nadie.'],
 
   ['Miuccia Miuller', '6', 'supporting', 'ミュッチャー・ミューラー', 'Yuuko Kaida',
    'Gwess describe a Miu Miu como alguien que desprende aire de haber venido de una familia de alta sociedad de clase alta. Ella es la capitana de correccionales de la prisión de Green Dolphin Street y choca con Jolyne Cujoh y Emporio Alniño cuando viene a evitar que Jolyne se escape de la prisión. Ella es una usuaria de Stand y usa Jail House Lock para manipular los recuerdos de sus enemigos.'],
@@ -537,7 +537,7 @@ export const PERSONAJES = [
    'Presumiblemente no tan maníaco como su yo original debido a que no es un convicto, Annakiss es el típico juvenil despreocupado que tiene una relación con su novia, Irene. Parece lo suficientemente amigable como para ofrecer transporte a extraños cuando está lloviendo.'],
 
   ['Viviano Westwood', '6', 'supporting', 'ヴィヴァーノ・ウエストウッド', 'Yasuhiro Mamiya',
-   '__Altura:__ 186 cm __Stand:__ Planet Waves Viviano Westwood es un hombre musculoso con una cara cuadrada y afilada. Después de que su compañero le propina un violento puñetazo, queda visible una parte importante del interior de su boca, incluidas las encías y los dientes. Tiene el pelo oscuro y un corte recortado. Westwood viste el uniforme de los guardias de la cárcel de Green Dolphin Street.'],
+   'Altura: 186 cm Stand: Planet Waves Viviano Westwood es un hombre musculoso con una cara cuadrada y afilada. Después de que su compañero le propina un violento puñetazo, queda visible una parte importante del interior de su boca, incluidas las encías y los dientes. Tiene el pelo oscuro y un corte recortado. Westwood viste el uniforme de los guardias de la cárcel de Green Dolphin Street.'],
 
   ['Irene', '6', 'supporting', 'アイリン', 'Fairouz Ai',
    'Irene se parece mucho a Jolyne; además de llevar el cabello un poco más largo y un atuendo más suave que consiste en un suéter ligero de cuello alto cortado por encima del ombligo, estampado por varios huecos o agujeros en forma de corazón. (Fuente: La extraña enciclopedia de JoJo)'],
@@ -555,5 +555,5 @@ export const PERSONAJES = [
    'Yo-Yo Ma es un personaje de JoJo\'s Bizarre Adventure que aparece en la parte 6.'],
 
   ['Dragon\'s Dream', '6', 'supporting', 'ドラゴンズ・ドリーム', 'Choo',
-   'Dragon\'s Dream es la posición neutral y automática de [Kenzou] (https://anilist.co/character/130611). Para entender el Sueño del Dragón, uno debe entender el principio del Feng Shui detrás de él.'],
+   'Dragon\'s Dream es la posición neutral y automática de Kenzou (https://anilist.co/character/130611). Para entender el Sueño del Dragón, uno debe entender el principio del Feng Shui detrás de él.'],
 ];
