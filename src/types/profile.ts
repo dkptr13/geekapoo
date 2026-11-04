@@ -109,7 +109,10 @@ export interface PerfilStats {
 /** Los datos crudos que necesita el cálculo, tal y como llegan. */
 export interface PerfilDatos {
   uid: string;
+  /** Solo los hilos escritos por este perfil. */
   threads: Thread[];
+  /** id del hilo → título, para los comentarios que apuntan a un hilo. */
+  threadTitles?: Record<string, string>;
   comments: Comment[];
   /** Recuento exacto si viene del servidor; si falta, se usa la lista. */
   commentsTotal?: number;

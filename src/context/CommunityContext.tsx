@@ -14,7 +14,12 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
-import { cachedRead, patchCached, PUBLIC_CACHE } from '../lib/firestoreCache';
+import {
+  cachedRead,
+  invalidateCache,
+  patchCached,
+  PUBLIC_CACHE,
+} from '../lib/firestoreCache';
 import { cargarAnimesIndice } from '../services/searchIndex';
 import {
   measureRead,
@@ -23,6 +28,7 @@ import {
 } from '../lib/firestoreDiagnostics';
 
 import { mapWithId } from '../services/firestoreUtils';
+import { normalizarHilo } from '../utils/threads';
 import { createThread as createThreadService, deleteThread as deleteThreadService, toggleThreadLike as toggleThreadLikeService } from '../services/threads';
 import { createComment, deleteComment as deleteCommentService, toggleCommentLike as toggleCommentLikeService } from '../services/comments';
 import {
@@ -210,24 +216,6 @@ export interface CommunityContextType {
 // ======================================================
 
 const CommunityContext = createContext<CommunityContextType | undefined>(undefined);
-
-/**
- * Rellena los campos que ahora escribe el servidor.
- *
- * Los hilos y comentarios nuevos ya no nacen con `likedBy`,
- * `likesCount` ni `commentsCount`: los pone la Cloud Function. Hasta
- * que el trigger corre (o si un documento antiguo viene sin ellos),
- * la interfaz tiene que seguir viendo 0 y una lista vacía en vez de
- * `undefined`, que rompería los contadores y los filtros del perfil.
- */
-function normalizarHilo(thread: Thread): Thread {
-  return {
-    ...thread,
-    likesCount: typeof thread.likesCount === 'number' ? thread.likesCount : 0,
-    likedBy: Array.isArray(thread.likedBy) ? thread.likedBy : [],
-    commentsCount: typeof thread.commentsCount === 'number' ? thread.commentsCount : 0,
-  };
-}
 
 /**
  * Aplica un "me gusta" a los episodios o personajes, que se guardan
@@ -928,6 +916,9 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           nuevoHilo,
           ...prev.filter((thread) => thread.id !== nuevoId),
         ]);
+        // El perfil usa consultas propias de hilos; sin esto, un
+        // hilo recién publicado no aparecería hasta caducar su caché.
+        invalidateCache('profile:threads:', PUBLIC_CACHE);
 
         return true;
       } catch (e) {
@@ -961,6 +952,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const deleteThread = useCallback(async (threadId: string): Promise<boolean> => {
     try {
       await deleteThreadService(threadId);
+      invalidateCache('profile:threads:', PUBLIC_CACHE);
       return true;
     } catch (e) {
       console.error('[Community] Error borrando hilo:', e);
@@ -1116,6 +1108,8 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Si otra pestaña cambió el documento a la vez, manda el
       // resultado real de la transacción, no lo que supuso el clic.
       actualizarLikeLocal(id, uid, likedConfirmado);
+      // La lista de «me gusta» del perfil se cachea aparte.
+      invalidateCache('profile:threads:liked:', PUBLIC_CACHE);
     } catch (e) {
       actualizarLikeLocal(id, uid, likedAntes);
       console.error('[Community] Error en "me gusta":', e);

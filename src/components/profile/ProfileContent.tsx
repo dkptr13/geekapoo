@@ -236,8 +236,8 @@ const FilaComentario: React.FC<{
   // Solo el feed sabe abrir un hilo con un comentario dentro, así
   // que los demás se muestran pero no se pueden pulsar.
   const enHilo = comentario.targetType === 'thread';
-  const hilo = enHilo
-    ? datos.threads.find((t) => t.id === comentario.targetId)
+  const tituloHilo = enHilo
+    ? datos.threadTitles?.[comentario.targetId]
     : undefined;
 
   const cuerpo = (
@@ -247,7 +247,7 @@ const FilaComentario: React.FC<{
           <Reply size={11} className="flex-shrink-0" />
           <span className="truncate">
             {enHilo
-              ? (hilo?.title ?? 'Hilo eliminado')
+              ? (tituloHilo ?? 'Hilo eliminado')
               : comentario.targetType === 'anime'
                 ? 'En una serie'
                 : comentario.targetType === 'episode'

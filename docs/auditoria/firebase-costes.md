@@ -577,3 +577,16 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - **Ahorro:** una ficha con 200 comentarios pasa de ~200 lecturas iniciales a ~50; las 150 restantes solo se leen si el usuario pulsa «Cargar más».
 - **Contenido:** no se elimina nada; solo se reparte la lectura. Los comentarios a los que se llega desde una notificación siguen cargándose con `ensureComment` aunque estén fuera de la primera página.
 - **Pruebas:** `npm run lint` correcto; no hay datos de prueba con más de 50 comentarios en una misma ficha, así que la paginación se validó por lógica y por los botones existentes.
+
+### 13.7 Perfil sin descargar todos los hilos (2026-11-04)
+
+- Antes `ProfileView` llamaba a `ensureAllThreads()` y descargaba la colección `threads` completa para filtrar en memoria los hilos del usuario y los que le gustaban.
+- Ahora `useProfileThreads` hace dos consultas acotadas:
+  - `where('authorId', '==', uid)` + `orderBy('createdAt', 'desc')`;
+  - `where('likedBy', 'array-contains', uid)` + `orderBy('createdAt', 'desc')`.
+- Los índices `authorId + createdAt` y `likedBy[CONTAINS] + createdAt` ya estaban desplegados y `READY`.
+- Los títulos de los hilos que aparecen en los comentarios se leen por id (`profile:thread-title:<id>`) y se cachean 2 minutos, en vez de tener todos los hilos en memoria.
+- `PerfilDatos.threads` pasa a ser solo los hilos propios; los títulos ajenos van en `threadTitles`.
+- `createThread`, `deleteThread` y los likes de hilo invalidan `profile:threads:` y el hook recarga las dos consultas; editar desde el panel sigue invalidando `community:threads`. El resto del perfil (comentarios, medallas, seguidores) no cambia.
+- **Ahorro:** una visita al perfil ya no lee la colección `threads` entera; lee solo los hilos del autor, los que le gustan y los títulos puntuales de sus comentarios. Con el foro actual son pocos documentos, pero la lectura deja de crecer con el foro.
+- **Pruebas:** `npm run lint` y `npm run build` correctos. No se pudo probar el perfil autenticado en el navegador porque el entorno de pruebas no tiene sesión iniciada.

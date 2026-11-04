@@ -19,6 +19,7 @@ import { useProgression } from '../../context/ProgressionContext';
 import { formatearNumero } from '../../utils/follows';
 import { calcularStats } from '../../utils/profile';
 import { useProfileComments } from '../../hooks/useProfileComments';
+import { useProfileThreads } from '../../hooks/useProfileThreads';
 import { nivelDesdeXp } from '../../utils/progression';
 import { VITRINAS, VITRINAS_POR_DEFECTO } from '../../data/profileCustomization';
 import type { TipoVitrina } from '../../data/profileCustomization';
@@ -232,13 +233,11 @@ const Perfil: React.FC<{
   const { catalogo, equipar, config, loading: cargandoProgreso } = useProgression();
 
   const {
-    allThreads,
     animes,
     episodes,
     characters,
     ensureCatalogData,
     ensureAnimeList,
-    ensureAllThreads,
   } = useCommunity();
   const {
     comments,
@@ -248,13 +247,17 @@ const Perfil: React.FC<{
     hasMore: hayMasComentarios,
     loadMore: cargarMasComentarios,
   } = useProfileComments(perfil.uid);
+  const { hilosPropios, hilosGustados, titulosHilos } = useProfileThreads(
+    perfil.uid,
+    comments,
+    likedComments,
+  );
 
   const [indiceBusqueda, setIndiceBusqueda] = useState<IndiceBusqueda | null>(null);
 
   useEffect(() => {
     ensureAnimeList();
-    ensureAllThreads();
-  }, [ensureAnimeList, ensureAllThreads]);
+  }, [ensureAnimeList]);
 
   // Para poner título a comentarios de episodios o personajes basta
   // con el índice ligero. La carga completa solo se usa si el
@@ -336,7 +339,8 @@ const Perfil: React.FC<{
   const datos: PerfilDatos = useMemo(
     () => ({
       uid: perfil.uid,
-      threads: allThreads,
+      threads: hilosPropios,
+      threadTitles: titulosHilos,
       comments,
       commentsTotal: totalComments,
       medals: perfil.medals ?? {},
@@ -362,7 +366,17 @@ const Perfil: React.FC<{
       lastLevelUpAt: perfil.lastLevelUpAt ?? null,
       lastLevelUpLevel: perfil.lastLevelUpLevel ?? null,
     }),
-    [perfil, allThreads, comments, totalComments, catalogo, esPropio, seguidores, seguidos],
+    [
+      perfil,
+      hilosPropios,
+      titulosHilos,
+      comments,
+      totalComments,
+      catalogo,
+      esPropio,
+      seguidores,
+      seguidos,
+    ],
   );
 
   const stats = useMemo(() => calcularStats(datos), [datos]);
@@ -374,14 +388,6 @@ const Perfil: React.FC<{
   // destacados en el orden que eligió el dueño. Si un id fijado
   // ya no existe o no es suyo, se salta: pintar "hilo eliminado"
   // en la vitrina sería ruido.
-  const hilosPropios = useMemo(
-    () =>
-      allThreads
-        .filter((t) => t.authorId === perfil.uid)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    [allThreads, perfil.uid],
-  );
-
   const hilosDestacados = useMemo(() => {
     const ids = perfil.featuredPostIds ?? [];
     if (ids.length === 0) return [];
@@ -426,10 +432,10 @@ const Perfil: React.FC<{
 
   const myLikedThreads = useMemo(
     () =>
-      allThreads
-        .filter((t) => t.likedBy?.includes(perfil.uid))
-        .sort((a, b) => a.title.localeCompare(b.title, 'es')),
-    [allThreads, perfil.uid],
+      [...hilosGustados].sort((a, b) =>
+        a.title.localeCompare(b.title, 'es'),
+      ),
+    [hilosGustados],
   );
 
   const myLikedComments = useMemo(
@@ -455,7 +461,7 @@ const Perfil: React.FC<{
   // anime, en un episodio o en un personaje.
   const targetTitleOf = (c: Comment): string => {
     if (c.targetType === 'thread') {
-      return allThreads.find((t) => t.id === c.targetId)?.title ?? 'Hilo eliminado';
+      return titulosHilos[c.targetId] ?? 'Hilo eliminado';
     }
     if (c.targetType === 'anime') {
       return animes.find((a) => a.id === c.targetId)?.title ?? 'Anime eliminado';
