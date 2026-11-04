@@ -134,10 +134,39 @@ export const PollCard: FC<PollCardProps> = ({
     const ok = requireAuth('votar en esta encuesta');
     if (!ok) return;
 
+    const uid = currentUser?.uid;
+    const anteriorResumen = resumen;
+    const anteriorVoto = miVoto;
+
+    // Optimista: el voto ya está elegido y el porcentaje se mueve
+    // al instante. El trigger tarda un poco en recalcular el
+    // resumen, pero no se espera a Firestore para pintar.
+    if (uid && miVoto?.optionId !== opcion.id) {
+      const anterior = miVoto?.optionId ?? null;
+      setMiVoto({ id: uid, userId: uid, optionId: opcion.id });
+      setResumen((prev) => {
+        const options = { ...(prev?.options ?? {}) };
+        if (anterior) {
+          const restantes = (options[anterior] ?? 0) - 1;
+          if (restantes > 0) options[anterior] = restantes;
+          else delete options[anterior];
+        }
+        options[opcion.id] = (options[opcion.id] ?? 0) + 1;
+        return {
+          ...(prev ?? { options: {}, totalVotes: 0 }),
+          options,
+          totalVotes:
+            (prev?.totalVotes ?? 0) + (anterior ? 0 : 1),
+        };
+      });
+    }
+
     setVotando(opcion.id);
     try {
       await onVotar(threadId, poll, opcion.id);
     } catch (e) {
+      setResumen(anteriorResumen);
+      setMiVoto(anteriorVoto);
       setError(e instanceof Error ? e.message : 'No se pudo registrar el voto.');
     } finally {
       setVotando(null);

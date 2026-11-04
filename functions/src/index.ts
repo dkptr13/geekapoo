@@ -4238,84 +4238,56 @@ interface PollVoteDoc {
   optionId?: string;
 }
 
-/** Resumen de los votos de una encuesta. */
-async function ajustarResumenEncuesta(
-  rutaResumen: string,
+/**
+ * Recalcula el resumen de una encuesta contando los votos actuales.
+ *
+ * No aplica deltas. Los triggers de Firestore se entregan "al menos
+ * una vez", así que sumar +1 por evento podía contar el mismo voto
+ * dos veces (el bug de porcentajes 50/50/75 con 4 votos). Contar el
+ * estado real es idempotente: repetir el trigger da el mismo número.
+ *
+ * Se usa una agregación por opción (como máximo 10) en vez de
+ * descargar todos los votos.
+ */
+async function recalcularResumenEncuesta(
+  refVotos: FirebaseFirestore.CollectionReference,
+  refResumen: FirebaseFirestore.DocumentReference,
   meta: Record<string, unknown>,
-  antes: PollVoteDoc | undefined,
-  despues: PollVoteDoc | undefined,
+  optionIds: string[],
 ): Promise<void> {
-  const ref = db.doc(rutaResumen);
+  if (optionIds.length === 0) {
+    await refResumen.delete().catch(() => undefined);
+    return;
+  }
 
-  await db.runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
-    const data = (snap.exists ? snap.data() : {}) as {
-      options?: Record<string, number>;
-      totalVotes?: number;
-    };
+  const pares = await Promise.all(
+    optionIds.map(async (optionId) => {
+      const conteo = await refVotos
+        .where('optionId', '==', optionId)
+        .count()
+        .get();
+      return [optionId, conteo.data().count] as const;
+    }),
+  );
 
-    const opciones = { ...(data.options ?? {}) };
-    let total = num(data.totalVotes);
+  const options: Record<string, number> = {};
+  let totalVotes = 0;
 
-    const mover = (opcion: string | undefined, delta: number) => {
-      if (!opcion) return;
-      const valor = Math.max(0, (num(opciones[opcion]) || 0) + delta);
-      if (valor === 0) delete opciones[opcion];
-      else opciones[opcion] = valor;
-    };
+  for (const [optionId, votos] of pares) {
+    if (votos > 0) options[optionId] = votos;
+    totalVotes += votos;
+  }
 
-    if (antes && despues) {
-      // Cambio de opinión: sale de una opción y entra en otra. El
-      // total NO cambia, que es justo lo que distingue un cambio de
-      // un voto nuevo.
-      if (antes.optionId !== despues.optionId) {
-        mover(antes.optionId, -1);
-        mover(despues.optionId, +1);
-      }
-    } else if (despues) {
-      mover(despues.optionId, +1);
-      total += 1;
-    } else if (antes) {
-      mover(antes.optionId, -1);
-      total = Math.max(0, total - 1);
-    } else {
-      return;
-    }
+  if (totalVotes === 0) {
+    await refResumen.delete().catch(() => undefined);
+    return;
+  }
 
-    // Un cambio de opinión con el resumen ausente (por ejemplo, si
-    // el trigger nuevo se desplegó antes de ejecutar la migración)
-    // no puede quedarse en total 0: este voto existe y, como poco,
-    // cuenta uno. La migración lo recalcula después con el total
-    // real. Sin esto, la tarjeta perdería los resultados.
-    if (total === 0 && antes && despues) {
-      total = 1;
-      if (despues.optionId) {
-        opciones[despues.optionId] = Math.max(
-          1,
-          num(opciones[despues.optionId]) || 0,
-        );
-      }
-    }
-
-    // Sin votos no hay nada que agregar. Borrar el documento evita
-    // dejar un resumen vacío que se recreate tras limpiar una
-    // encuesta o un mensaje, y la tarjeta lo trata igual que si no
-    // existiera: 0 votos.
-    if (total === 0) {
-      tx.delete(ref);
-      return;
-    }
-
-    tx.set(
-      ref,
-      {
-        ...meta,
-        options: opciones,
-        totalVotes: total,
-        actualizadoAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+  await refResumen.set({
+    ...meta,
+    options,
+    totalVotes,
+    actualizadoAt: FieldValue.serverTimestamp(),
   });
 }
 
@@ -4390,11 +4362,18 @@ export const onPollVotesChanged = onDocumentWritten(
     const despues = event.data?.after.data() as PollVoteDoc | undefined;
 
     try {
-      await ajustarResumenEncuesta(
-        `${POLL_STATS}/${threadId}`,
+      const hilo = await db.doc(`${THREADS}/${threadId}`).get();
+      const poll = hilo.data()?.poll as
+        | { options?: Record<string, string> }
+        | undefined;
+      const optionIds =
+        poll && typeof poll === 'object' ? Object.keys(poll.options ?? {}) : [];
+
+      await recalcularResumenEncuesta(
+        hilo.ref.collection(POLL_VOTES),
+        db.doc(`${POLL_STATS}/${threadId}`),
         { threadId },
-        antes,
-        despues,
+        optionIds,
       );
     } catch (e) {
       logger.error('Fallo actualizando el resumen de una encuesta', { threadId, error: e });
@@ -4425,15 +4404,22 @@ export const onChatPollVotesChanged = onDocumentWritten(
   async (event) => {
     const chatId = event.params['chatId'];
     const messageId = event.params['messageId'];
-    const antes = event.data?.before.data() as PollVoteDoc | undefined;
-    const despues = event.data?.after.data() as PollVoteDoc | undefined;
 
     try {
-      await ajustarResumenEncuesta(
-        `${CHATS}/${chatId}/messages/${messageId}/${POLL_STATS}/summary`,
+      const mensaje = await db
+        .doc(`${CHATS}/${chatId}/messages/${messageId}`)
+        .get();
+      const poll = mensaje.data()?.poll as
+        | { options?: Record<string, string> }
+        | undefined;
+      const optionIds =
+        poll && typeof poll === 'object' ? Object.keys(poll.options ?? {}) : [];
+
+      await recalcularResumenEncuesta(
+        mensaje.ref.collection(POLL_VOTES),
+        mensaje.ref.collection(POLL_STATS).doc('summary'),
         { chatId, messageId },
-        antes,
-        despues,
+        optionIds,
       );
     } catch (e) {
       logger.error('Fallo actualizando el resumen de una encuesta de chat', {

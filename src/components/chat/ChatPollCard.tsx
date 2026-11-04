@@ -120,10 +120,38 @@ export const ChatPollCard: FC<ChatPollCardProps> = ({
     const ok = requireAuth('votar en esta encuesta');
     if (!ok || !currentUser) return;
 
+    const anteriorResumen = resumen;
+    const anteriorVoto = miVoto;
+
+    if (miVoto?.optionId !== optionId) {
+      const anterior = miVoto?.optionId ?? null;
+      setMiVoto({
+        id: currentUser.uid,
+        userId: currentUser.uid,
+        optionId,
+      });
+      setResumen((prev) => {
+        const options = { ...(prev?.options ?? {}) };
+        if (anterior) {
+          const restantes = (options[anterior] ?? 0) - 1;
+          if (restantes > 0) options[anterior] = restantes;
+          else delete options[anterior];
+        }
+        options[optionId] = (options[optionId] ?? 0) + 1;
+        return {
+          ...(prev ?? { options: {}, totalVotes: 0 }),
+          options,
+          totalVotes: (prev?.totalVotes ?? 0) + (anterior ? 0 : 1),
+        };
+      });
+    }
+
     setVotando(optionId);
     try {
       await voteChatPoll(chatId, messageId, poll, optionId, currentUser.uid);
     } catch (e) {
+      setResumen(anteriorResumen);
+      setMiVoto(anteriorVoto);
       setError(e instanceof Error ? e.message : 'No se pudo registrar el voto.');
     } finally {
       setVotando(null);
