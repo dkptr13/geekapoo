@@ -91,12 +91,15 @@ import type { Comment } from '../types';
 export function calcularStats(datos: PerfilDatos): PerfilStats {
   const suyos = datos.threads.filter((t) => t.authorId === datos.uid);
   const susComentarios = datos.comments.filter((c) => c.authorId === datos.uid);
+  const reaccionesHilos = reaccionesDe(suyos, []);
+  const reaccionesComentarios =
+    datos.commentsReactions ?? reaccionesDe([], susComentarios);
 
   return {
     hilos: suyos.length,
     comentarios: datos.commentsTotal ?? susComentarios.length,
     meGusta: Math.max(0, datos.likesReceived),
-    reacciones: reaccionesDe(suyos, susComentarios),
+    reacciones: reaccionesHilos + reaccionesComentarios,
     xp: Math.max(0, datos.xp),
     medallas: Object.keys(datos.medals ?? {}).length,
     seguidores: Math.max(0, datos.followersCount),

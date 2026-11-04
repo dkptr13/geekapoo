@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getAggregateFromServer,
   getCountFromServer,
   getDoc,
   getDocs,
@@ -11,6 +12,7 @@ import {
   serverTimestamp,
   setDoc,
   startAfter,
+  sum,
   Timestamp,
   updateDoc,
   where,
@@ -34,10 +36,10 @@ export const COMMENTS = 'comments';
 
 const MAX_BODY = 5000;
 const TTL_PERFIL_COMENTARIOS = 2 * 60 * 1000;
-// El perfil sigue trayendo 200: sus estadísticas de reacciones se
-// calculan sobre los comentarios cargados, y bajar la página las
-// dejaría cortas. La ficha sí usa páginas de 50.
-export const PROFILE_COMMENTS_PAGE_SIZE = 200;
+// El perfil también usa páginas de 50. Las reacciones totales se
+// piden con una agregación aparte para que la estadística no se
+// quede corta al reducir los comentarios cargados.
+export const PROFILE_COMMENTS_PAGE_SIZE = 50;
 const MAX_COMENTARIOS_PERFIL = PROFILE_COMMENTS_PAGE_SIZE;
 const MAX_COMENTARIOS_GUSTADOS = 200;
 
@@ -93,6 +95,41 @@ export async function countCommentsByAuthor(authorId: string): Promise<number> {
     )),
   );
   return snap.data().count;
+}
+
+/**
+ * Suma de reacciones recibidas en TODOS los comentarios de una persona.
+ *
+ * Se usa una agregación para que el perfil pueda cargar solo 50
+ * comentarios sin que la estadística de reacciones se quede corta.
+ * Los comentarios antiguos sin `reactionsTotal` aportan 0, igual que
+ * hacía el cálculo anterior cuando tampoco tenían `reactionCounts`.
+ */
+export function sumCommentReactionsByAuthor(authorId: string): Promise<number> {
+  if (!authorId) return Promise.resolve(0);
+
+  return cachedRead<number>({
+    key: `comments:author:reactions:${authorId}`,
+    scope: PUBLIC_CACHE,
+    ttlMs: TTL_PERFIL_COMENTARIOS,
+    persist: true,
+    read: async () => {
+      const snap = await measureRead(
+        {
+          name: 'comments:author:reactions',
+          collection: COMMENTS,
+          origin: 'ProfileView',
+        },
+        () => 1,
+        () =>
+          getAggregateFromServer(
+            query(collection(db, COMMENTS), where('authorId', '==', authorId)),
+            { total: sum('reactionsTotal') },
+          ),
+      );
+      return snap.data().total ?? 0;
+    },
+  });
 }
 
 /** Página anterior de comentarios de un perfil. */

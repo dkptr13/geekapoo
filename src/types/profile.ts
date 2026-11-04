@@ -116,6 +116,11 @@ export interface PerfilDatos {
   comments: Comment[];
   /** Recuento exacto si viene del servidor; si falta, se usa la lista. */
   commentsTotal?: number;
+  /**
+   * Reacciones recibidas en todos sus comentarios, si la agregación
+   * respondió. Si falta, se suman solo los comentarios cargados.
+   */
+  commentsReactions?: number | null;
   /** Id de medalla → fecha ISO, tal cual viene en `users/{uid}.medals`. */
   medals: Record<string, string>;
   /**

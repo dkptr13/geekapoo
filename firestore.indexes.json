@@ -28,7 +28,7 @@
       ]
     },
     {
-      "_comment": "Comentarios del hilo/episodio/personaje abierto: los 200 más recientes.",
+      "_comment": "Comentarios del hilo/episodio/personaje abierto: los 50 más recientes.",
       "collectionGroup": "comments",
       "queryScope": "COLLECTION",
       "fields": [
@@ -44,6 +44,15 @@
       "fields": [
         { "fieldPath": "authorId", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_comment": "Perfil: suma de reacciones de todos los comentarios de un autor.",
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "authorId", "order": "ASCENDING" },
+        { "fieldPath": "reactionsTotal", "order": "ASCENDING" }
       ]
     },
     {

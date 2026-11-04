@@ -571,12 +571,13 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 ### 13.6 Comentarios: primera página de 50 (2026-11-04)
 
 - **Ficha:** `COMMENTS_PAGE_SIZE` pasa de 200 a **50**. El botón «Cargar comentarios anteriores» sigue trayendo bloques de 50 y el contador muestra `50+` cuando quedan más.
-- **Perfil:** se mantiene en **200** (`PROFILE_COMMENTS_PAGE_SIZE`). Sus estadísticas de reacciones se calculan sumando los comentarios cargados; bajar la página dejaría el número corto. Para reducirlo haría falta un agregado de reacciones por autor, que queda como siguiente paso.
+- **Perfil:** `PROFILE_COMMENTS_PAGE_SIZE` pasa de 200 a **50**; la sección ya tenía «Cargar más» y el total sigue viniendo de `countCommentsByAuthor`.
+- **Estadística de reacciones:** para que el perfil no sume solo los 50 comentarios cargados, `sumCommentReactionsByAuthor` pide una agregación `sum('reactionsTotal')` sobre todos los comentarios del autor. Son ~1 lectura de agregación en vez de 150 documentos. Los comentarios antiguos sin `reactionsTotal` aportan 0, igual que antes cuando tampoco tenían `reactionCounts`. Índice `comments: authorId + reactionsTotal + __name__` desplegado y **READY**.
 - **Me gusta del perfil:** los comentarios a los que dio «me gusta» no tienen paginación propia, así que mantienen el tope de **200** (`MAX_COMENTARIOS_GUSTADOS`) para no perder contenido.
 - **Hilos:** el contador usa `thread.commentsCount` (o la longitud cargada si el contador va por detrás), no solo la página visible.
-- **Ahorro:** una ficha con 200 comentarios pasa de ~200 lecturas iniciales a ~50; las 150 restantes solo se leen si el usuario pulsa «Cargar más».
+- **Ahorro:** una ficha o un perfil con 200 comentarios pasa de ~200 lecturas iniciales a ~50 + 1 agregación; las 150 restantes solo se leen si el usuario pulsa «Cargar más».
 - **Contenido:** no se elimina nada; solo se reparte la lectura. Los comentarios a los que se llega desde una notificación siguen cargándose con `ensureComment` aunque estén fuera de la primera página.
-- **Pruebas:** `npm run lint` correcto; no hay datos de prueba con más de 50 comentarios en una misma ficha, así que la paginación se validó por lógica y por los botones existentes.
+- **Pruebas:** `npm run lint` correcto; no hay datos de prueba con más de 50 comentarios en una misma ficha/perfil, así que la paginación se validó por lógica y por los botones existentes.
 
 ### 13.7 Perfil sin descargar todos los hilos (2026-11-04)
 

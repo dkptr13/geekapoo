@@ -6,6 +6,7 @@ import {
   getCommentsLikedBy,
   getMoreCommentsByAuthor,
   PROFILE_COMMENTS_PAGE_SIZE,
+  sumCommentReactionsByAuthor,
 } from '../services/comments';
 import type { Comment } from '../types';
 
@@ -21,6 +22,11 @@ export interface UseProfileComments {
   comments: Comment[];
   /** Recuento total, no limitado a la página cargada. */
   totalComments: number;
+  /**
+   * Reacciones recibidas en todos sus comentarios. `null` si la
+   * agregación falla; en ese caso se usa lo cargado como respaldo.
+   */
+  reactionsTotal: number | null;
   likedComments: Comment[];
   loading: boolean;
   loadingMore: boolean;
@@ -31,6 +37,7 @@ export interface UseProfileComments {
 export function useProfileComments(uid: string | null): UseProfileComments {
   const [comments, setComments] = useState<Comment[]>([]);
   const [totalComments, setTotalComments] = useState(0);
+  const [reactionsTotal, setReactionsTotal] = useState<number | null>(null);
   const [likedComments, setLikedComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -40,6 +47,7 @@ export function useProfileComments(uid: string | null): UseProfileComments {
     if (!uid) {
       setComments([]);
       setTotalComments(0);
+      setReactionsTotal(null);
       setLikedComments([]);
       setLoading(false);
       setLoadingMore(false);
@@ -53,15 +61,17 @@ export function useProfileComments(uid: string | null): UseProfileComments {
 
     const cargar = async (force = false) => {
       try {
-        const [suyos, gustados, total] = await Promise.all([
+        const [suyos, gustados, total, reacciones] = await Promise.all([
           getCommentsByAuthor(uid, force),
           getCommentsLikedBy(uid, force),
           countCommentsByAuthor(uid).catch(() => null),
+          sumCommentReactionsByAuthor(uid).catch(() => null),
         ]);
         if (!activo) return;
         setComments(suyos.slice(0, PROFILE_COMMENTS_PAGE_SIZE));
         setHasMore(suyos.length > PROFILE_COMMENTS_PAGE_SIZE);
         setTotalComments(total ?? suyos.length);
+        setReactionsTotal(reacciones);
         setLikedComments(gustados);
       } catch (e) {
         console.error('[Profile] No se pudieron leer los comentarios:', e);
@@ -112,6 +122,7 @@ export function useProfileComments(uid: string | null): UseProfileComments {
   return {
     comments,
     totalComments,
+    reactionsTotal,
     likedComments,
     loading,
     loadingMore,

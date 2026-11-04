@@ -242,6 +242,7 @@ const Perfil: React.FC<{
   const {
     comments,
     totalComments,
+    reactionsTotal: reaccionesComentarios,
     likedComments,
     loadingMore: cargandoMasComentarios,
     hasMore: hayMasComentarios,
@@ -343,6 +344,7 @@ const Perfil: React.FC<{
       threadTitles: titulosHilos,
       comments,
       commentsTotal: totalComments,
+      commentsReactions: reaccionesComentarios,
       medals: perfil.medals ?? {},
       // El catálogo de la persona que se está mirando. En el perfil
       // propio `catalogo` ya viene resuelto con su estado; en el de
@@ -372,6 +374,7 @@ const Perfil: React.FC<{
       titulosHilos,
       comments,
       totalComments,
+      reaccionesComentarios,
       catalogo,
       esPropio,
       seguidores,
