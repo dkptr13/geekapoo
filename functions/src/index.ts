@@ -4770,8 +4770,8 @@ async function exigirRol(
 
 /**
  * Solo administradores. Un moderador NO puede ajustar XP, conceder
- * medallas, cambiar la configuracion, recalcular cuentas, abrir chats
- * directos, gestionar la trivia ni sincronizar datos globales.
+ * medallas, cambiar la configuracion, recalcular cuentas ni abrir
+ * chats directos.
  */
 async function exigirAdmin(auth: unknown): Promise<string> {
   const { uid } = await exigirRol(auth, ['admin']);
@@ -6972,7 +6972,9 @@ interface EntradaRanking {
  * errata y no se quiere perder los resultados ya jugados.
  */
 export const gestionarTriviaDiaria = onCall(async (request) => {
-  await exigirAdmin(request.auth);
+  // El panel abre esta sección a administradores y moderadores
+  // (`canManage`), así que la Function usa el mismo criterio.
+  await exigirModerador(request.auth);
 
   const fecha = typeof request.data?.fecha === 'string' ? request.data.fecha : '';
   const accion = typeof request.data?.accion === 'string' ? request.data.accion : '';
@@ -7384,8 +7386,10 @@ export const syncRssNews = onSchedule('every 2 hours', async () => {
  * `gestionarTriviaDaria`), que admiten admin y moderacion.
  */
 export const sincronizarNoticias = onCall(async (request) => {
-  const uid = await exigirAdmin(request.auth);
-
+  // El botón de sincronizar se enseña a todo el equipo
+  // (`esEquipo`), no solo al admin.
+  const uid = await exigirModerador(request.auth);
+  
   const resultado = await sincronizar('manual');
 
   logger.info('Noticias sincronizadas a mano', { por: uid.slice(0, 8), ...resultado });

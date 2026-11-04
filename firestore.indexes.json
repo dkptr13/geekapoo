@@ -97,6 +97,24 @@
       ]
     },
     {
+      "_comment": "Perfil: hilos escritos por una persona, del más reciente al más antiguo.",
+      "collectionGroup": "threads",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "authorId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "_comment": "Perfil: hilos a los que dio me gusta, del más reciente al más antiguo.",
+      "collectionGroup": "threads",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "likedBy", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "episodes",
       "queryScope": "COLLECTION",
       "fields": [
