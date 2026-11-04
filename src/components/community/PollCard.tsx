@@ -297,7 +297,7 @@ export const PollCard: FC<PollCardProps> = ({
                     fondo y deja de leerse. */}
                 {resultado.haVotado && n > 0 && (
                   <span
-                    className={`geo-barra absolute inset-y-0 left-0 rounded-xl transition-[width] duration-200 ease-out ${
+                    className={`absolute inset-y-0 left-0 rounded-xl transition-[width] duration-200 ease-out ${
                       opcion.mia
                         ? 'bg-gradient-to-r from-violet-500/45 to-fuchsia-500/25'
                         : 'bg-violet-500/20'
