@@ -2,7 +2,7 @@
 
 Fecha: 2026-11-04  
 Ámbito: Wiki, buscador, perfiles, editor de tier lists, sitemap y páginas estáticas de anime.  
-Documento relacionado: [`docs/auditoria/firebase-costes.md`](auditoria/firebase-costes.md), sección 12.
+Documento relacionado: [`docs/auditoria/firebase-costes.md`](auditoria/firebase-costes.md), secciones 12 y 13.
 
 ## 1. Qué es el índice
 
@@ -10,8 +10,11 @@ Firestore no permite buscar subcadenas. Para que el buscador no tenga que descar
 
 - **Archivo versionado:** `public/busqueda/indice.json.gz` (~1,28 MB).
 - **Archivo generado en cada build/dev:** `public/busqueda/indice.json` (~5,98 MB, ignorado por Git).
+- **Lista ligera de animes:** `public/busqueda/animes.json` (~255 KB, ignorado por Git).
 - **Contenido:** 195 animes, 8.351 episodios y 4.935 personajes (última medición).
 - **Campos:** título, japonés, romaji, alias, sinopsis/géneros/estudio, descripciones, imágenes, notas y claves de búsqueda.
+
+`animes.json` es solo el array de animes del índice. Lo usan la rejilla de la Wiki, los perfiles, las tier lists y el panel cuando necesitan el catálogo de series; la ficha abierta lee su documento completo de Firestore.
 
 El índice **no contiene**:
 
@@ -39,7 +42,8 @@ Después:
 
 - `generar-sitemap.mjs` reutiliza los animes del índice.
 - `generar-paginas-anime.mjs` reutiliza animes, episodios y personajes del índice.
-- El cliente descarga `/busqueda/indice.json` y lo cachea en IndexedDB.
+- El cliente descarga `/busqueda/indice.json` para el buscador y lo cachea en IndexedDB.
+- La Wiki y los perfiles descargan `/busqueda/animes.json` (solo animes) y leen de Firestore únicamente el documento de la ficha abierta.
 
 ## 3. Cuándo ejecutar `npm run index:buscar`
 
@@ -47,13 +51,13 @@ Sí, cuando cambie algo que deba aparecer en la búsqueda o en los artefactos ge
 
 | Cambio | ¿Refrescar? | Motivo |
 |---|---:|---|
-| Crear, editar o borrar un anime | **Sí** | Búsqueda, sitemap, página estática y tier lists. |
+| Crear, editar o borrar un anime | **Sí** | Rejilla de Wiki/Perfiles (`animes.json`), búsqueda, sitemap, página estática y tier lists. |
 | Crear, editar o borrar un episodio | **Sí** | Búsqueda de episodios; el título/descripción antigua seguiría en el índice. |
 | Crear, editar o borrar un personaje | **Sí** | Búsqueda de personajes, perfiles y tier lists. |
 | Cambiar título, alias, japonés o romaji | **Sí** | Es lo que usa el buscador. |
 | Cambiar sinopsis, descripción, géneros, estudio, categoría, año o nota | **Sí** | Afecta a resultados y filtros de búsqueda. |
 | Cambiar portada, banner, miniatura o imagen | **Sí** | Las tarjetas del buscador y el editor de tier lists usan la URL del índice. |
-| Añadir un anime nuevo | **Sí, antes de desplegar** | Sin refrescar no entra en sitemap ni se genera su página estática. |
+| Añadir un anime nuevo | **Sí, antes de desplegar** | Sin refrescar no aparece en la rejilla de la Wiki/Perfil ni entra en sitemap; la ficha directa por slug sí puede cargarlo desde Firestore. |
 | Cambiar una temporada | No | No está en el índice; la ficha lee Firestore. |
 | Cambiar disponibilidad de streaming | No | La ficha y el panel leen Firestore. |
 | Crear o editar un hilo/comentario | No | No está en el índice. |
@@ -73,7 +77,8 @@ Eso:
 
 - lee Firestore una vez (195 animes + 8.351 episodios + 4.935 personajes ≈ 13.481 documentos),
 - actualiza `public/busqueda/indice.json`,
-- actualiza `public/busqueda/indice.json.gz`.
+- actualiza `public/busqueda/indice.json.gz`,
+- actualiza `public/busqueda/animes.json` con la lista ligera.
 
 Después:
 
@@ -83,19 +88,25 @@ git commit -m "Actualiza el indice de busqueda"
 git push origin main
 ```
 
-No se commitea `public/busqueda/indice.json`: está ignorado. Solo el `.gz`.
+No se commitean `public/busqueda/indice.json` ni `public/busqueda/animes.json`: están ignorados. Solo el `.gz`.
 
 ## 5. Qué pasa si no lo refrescas
 
 - La ficha normal, el panel y las páginas que leen Firestore **sí** pueden mostrar el cambio, tras su TTL de 5–30 minutos.
-- El buscador, el sitemap y las páginas estáticas seguirán usando el índice anterior.
-- Un anime nuevo puede funcionar en la Wiki por Firestore, pero no aparecerá en el sitemap ni tendrá página estática hasta el refresco.
-- Un anime/episodio/personaje borrado puede seguir saliendo en el buscador hasta el refresco.
+- El buscador, la rejilla de la Wiki/Perfil, el sitemap y las páginas estáticas seguirán usando el índice anterior.
+- Un anime nuevo puede abrirse por su slug (la ficha lee su documento), pero no aparecerá en la rejilla de la Wiki/Perfil ni en el sitemap, y no tendrá página estática hasta el refresco.
+- Un anime/episodio/personaje borrado puede seguir saliendo en el buscador y en la rejilla de la Wiki hasta el refresco.
 - Si el `.gz` supera los 7 días, el build avisa; no lo regenera automáticamente.
 
 ## 6. Caché del navegador
 
-El cliente guarda el índice en IndexedDB con la clave `search:index:v1` durante **1 hora**. Después de desplegar un índice nuevo:
+El cliente guarda en IndexedDB:
+
+- el índice del buscador, clave `search:index:v1`, durante **1 hora**;
+- la lista ligera de animes, clave `search:animes:v1`, durante **1 hora**;
+- la ficha completa de un anime abierto, clave `anime-doc:<id>`, durante **2 minutos**.
+
+Después de desplegar un índice nuevo:
 
 - un navegador que ya había buscado puede seguir usando la copia anterior hasta 1 hora;
 - para verlo antes, hay que borrar los datos del sitio o la entrada de IndexedDB `geekapoo-public-firestore-cache`.
@@ -109,6 +120,8 @@ Si se quiere invalidación inmediata en cada despliegue, habría que incluir el 
 | `npm run index:buscar` (refresco manual) | ≈13.481 |
 | Push normal con índice cacheado | ≈214 (207 streaming + 7 plataformas) |
 | Push normal antes de cachear el índice | ≈14.469 |
+| Primera carga de Wiki/Perfil | **0** lecturas (solo `animes.json`, ~255 KB) |
+| Abrir una ficha | **1** lectura del documento del anime (+ temporadas/episodios que ya se pedían) |
 
 El refresco manual se hace solo cuando cambia el catálogo. Los pushes de código o documentación no leen el catálogo.
 
@@ -116,10 +129,12 @@ El refresco manual se hace solo cuando cambia el catálogo. Los pushes de códig
 
 | Archivo | Papel |
 |---|---|
-| `scripts/generar-indice-busqueda.mjs` | Genera el JSON y el `.gz`; usa el cache si existe. |
+| `scripts/generar-indice-busqueda.mjs` | Genera el JSON, el `.gz` y `animes.json`; usa el cache si existe. |
 | `public/busqueda/indice.json.gz` | Índice comprimido versionado. |
 | `public/busqueda/indice.json` | Índice descomprimido para el build/dev; ignorado por Git. |
-| `src/services/searchIndex.ts` | Lo descarga y lo cachea en el navegador. |
+| `public/busqueda/animes.json` | Lista ligera de animes para Wiki/Perfiles; ignorada por Git. |
+| `src/services/searchIndex.ts` | Descarga y cachea el índice y la lista de animes. |
+| `src/hooks/useAnimeDoc.ts` | Lee solo el documento completo de la ficha abierta. |
 | `scripts/generar-sitemap.mjs` | Reutiliza los animes del índice. |
 | `scripts/generar-paginas-anime.mjs` | Reutiliza animes, episodios y personajes del índice. |
 | `package.json` | `predev`, `prebuild` e `index:buscar`. |
@@ -158,7 +173,7 @@ La opción 1 es la más sencilla para mantener el coste bajo: el build normal si
 ## 11. Checklist rápido
 
 - [ ] ¿He cambiado un anime, episodio o personaje? → `npm run index:buscar`.
-- [ ] ¿He añadido un anime? → refrescar antes de desplegar para sitemap y página estática.
+- [ ] ¿He añadido un anime? → refrescar antes de desplegar para la rejilla de la Wiki/Perfil, el sitemap y la página estática.
 - [ ] ¿Solo he cambiado temporadas, streaming, foro o código? → no hace falta.
 - [ ] ¿He commiteado `public/busqueda/indice.json.gz`? → comprobar antes del push.
 - [ ] ¿El build dice `usa cache local`? → correcto.

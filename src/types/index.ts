@@ -731,6 +731,14 @@ export interface Character {
    */
   seasonIds?: string[];
   /**
+   * Índice consultable de temporadas. `['*']` = compartido en todas;
+   * en otro caso, los ids de las temporadas en las que sale.
+   *
+   * Es una desnormalización de `seasonIds` para que la ficha pueda
+   * paginar personajes por temporada con una sola consulta.
+   */
+  seasonKeys?: string[];
+  /**
    * Campo ANTIGUO, de cuando solo cabía una temporada. Se sigue
    * leyendo para que los personajes que ya había no cambien de
    * golpe (ver `seasonIdsDe`), pero al editar un personaje se

@@ -35,6 +35,9 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SALIDA = path.join(RAIZ, 'public', 'busqueda', 'indice.json');
 const SALIDA_GZ = `${SALIDA}.gz`;
+// Lista ligera solo de animes, para que la Wiki y los perfiles no
+// tengan que leer los 195 documentos de Firestore.
+const SALIDA_ANIMES = path.join(RAIZ, 'public', 'busqueda', 'animes.json');
 const PROYECTO = process.env.VITE_FIREBASE_PROJECT_ID || 'geekapoo-7624d';
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents`;
 const REFRESCAR = process.argv.includes('--refresh');
@@ -54,6 +57,7 @@ const CAMPOS = {
     'status',
     'rating',
     'episodesCount',
+    'likesCount',
     'coverUrl',
     'bannerUrl',
     'coverFocus',
@@ -180,7 +184,9 @@ function animeDe(doc) {
     // Campos obligatorios del tipo Anime que no usa el buscador,
     // pero que evitan tener que rellenarlos en cada tarjeta.
     streaming: [],
-    likesCount: 0,
+    // Perfiles y destacados muestran el contador; se lee del catálogo
+    // al refrescar el índice para no perderlo con la lista estática.
+    likesCount: numero(valor(f.likesCount)),
     likedBy: [],
     commentsCount: 0,
   };
@@ -266,6 +272,7 @@ async function usarIndiceCacheado() {
 
     await mkdir(path.dirname(SALIDA), { recursive: true });
     await writeFile(SALIDA, texto, 'utf8');
+    await writeFile(SALIDA_ANIMES, JSON.stringify(indice.animes), 'utf8');
 
     const generado = Date.parse(indice.generado);
     const dias = Number.isFinite(generado)
@@ -329,6 +336,7 @@ try {
   const comprimido = gzipSync(Buffer.from(serializado, 'utf8'));
 
   await writeFile(SALIDA, serializado, 'utf8');
+  await writeFile(SALIDA_ANIMES, JSON.stringify(animes), 'utf8');
   await writeFile(SALIDA_GZ, comprimido);
 
   const kb = Math.round(Buffer.byteLength(serializado) / 1024);

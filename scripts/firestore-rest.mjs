@@ -75,7 +75,12 @@ export async function cliente() {
       const p = new URLSearchParams({ pageSize: '1000' });
 
       if (pageToken) p.set('pageToken', pageToken);
-      if (op.select) p.set('mask.fieldPaths', op.select.join(','));
+      // Firestore REST espera `mask.fieldPaths` repetido, no una
+      // lista separada por comas. Con `set` y varios campos, la API
+      // rechaza la ruta ("Invalid property path").
+      if (op.select) {
+        for (const campo of op.select) p.append('mask.fieldPaths', campo);
+      }
 
       const r = await fetch(`${BASE}/${col}?${p.toString()}`, {
         headers: cabeceras,

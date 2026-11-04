@@ -15,6 +15,7 @@ import { db } from '../lib/firebase';
 import { cachedRead, PUBLIC_CACHE } from '../lib/firestoreCache';
 import { measureRead } from '../lib/firestoreDiagnostics';
 import { mapWithId } from '../services/firestoreUtils';
+import { SEASON_TODAS } from '../utils/seasonData';
 
 // ======================================================
 // PÁGINA DE UNA COLECCIÓN DE LA FICHA
@@ -70,6 +71,11 @@ interface AnimeCollectionPageOptions {
   seasonId?: string | null;
   /** Ordenar por `number` (episodios). */
   orderByNumber?: boolean;
+  /**
+   * Temporada para personajes. Filtra por `seasonKeys`, que incluye
+   * `'*'` para los compartidos.
+   */
+  characterSeasonId?: string | null;
 }
 
 function pageKey(
@@ -77,10 +83,11 @@ function pageKey(
   animeId: string,
   seasonId: string | null,
   orderByNumber: boolean,
+  characterSeasonId: string | null,
 ): string {
-  return `community:${coleccion}:ficha:${animeId}:${seasonId ?? 'all'}:${
-    orderByNumber ? 'num' : 'id'
-  }`;
+  return `community:${coleccion}:ficha:${animeId}:${
+    seasonId ?? characterSeasonId ?? 'all'
+  }:${orderByNumber ? 'num' : 'id'}`;
 }
 
 export function useAnimeCollectionPage<T extends { id: string }>(
@@ -91,6 +98,10 @@ export function useAnimeCollectionPage<T extends { id: string }>(
 ): AnimeCollectionPage<T> {
   const seasonId = options.seasonId ?? null;
   const orderByNumber = options.orderByNumber === true;
+  const characterSeasonId =
+    options.characterSeasonId && options.characterSeasonId !== 'all'
+      ? options.characterSeasonId
+      : null;
 
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
@@ -104,9 +115,9 @@ export function useAnimeCollectionPage<T extends { id: string }>(
   const cursorRef = useRef<Cursor | null>(null);
   const activoRef = useRef(true);
   const cargadoParaRef = useRef<string | null>(null);
-  const clave = `${coleccion}:${animeId ?? ''}:${seasonId ?? 'all'}:${
-    orderByNumber ? 'num' : 'id'
-  }`;
+  const clave = `${coleccion}:${animeId ?? ''}:${
+    seasonId ?? characterSeasonId ?? 'all'
+  }:${orderByNumber ? 'num' : 'id'}`;
 
   const leerPagina = useCallback(
     (despues?: Cursor): Promise<PageCache<T>> => {
@@ -114,6 +125,11 @@ export function useAnimeCollectionPage<T extends { id: string }>(
 
       const partes: QueryConstraint[] = [where('animeId', '==', animeId)];
       if (seasonId) partes.push(where('seasonId', '==', seasonId));
+      if (characterSeasonId) {
+        partes.push(
+          where('seasonKeys', 'array-contains-any', [characterSeasonId, SEASON_TODAS]),
+        );
+      }
       if (orderByNumber) {
         partes.push(orderBy('number', 'asc'));
       } else {
@@ -129,8 +145,20 @@ export function useAnimeCollectionPage<T extends { id: string }>(
       partes.push(limit(ANIME_PAGE_SIZE + 1));
 
       const clave = despues
-        ? `${pageKey(coleccion, animeId, seasonId, orderByNumber)}:after:${despues.id}`
-        : `${pageKey(coleccion, animeId, seasonId, orderByNumber)}:first`;
+        ? `${pageKey(
+            coleccion,
+            animeId,
+            seasonId,
+            orderByNumber,
+            characterSeasonId,
+          )}:after:${despues.id}`
+        : `${pageKey(
+            coleccion,
+            animeId,
+            seasonId,
+            orderByNumber,
+            characterSeasonId,
+          )}:first`;
 
       return cachedRead<PageCache<T>>({
         key: clave,
@@ -163,7 +191,7 @@ export function useAnimeCollectionPage<T extends { id: string }>(
         },
       });
     },
-    [animeId, coleccion, orderByNumber, seasonId],
+    [animeId, characterSeasonId, coleccion, orderByNumber, seasonId],
   );
 
   useEffect(() => {
@@ -231,7 +259,17 @@ export function useAnimeCollectionPage<T extends { id: string }>(
     return () => {
       activoRef.current = false;
     };
-  }, [animeId, clave, coleccion, enabled, leerPagina, seasonId, orderByNumber, refresco]);
+  }, [
+    animeId,
+    clave,
+    coleccion,
+    enabled,
+    leerPagina,
+    seasonId,
+    orderByNumber,
+    characterSeasonId,
+    refresco,
+  ]);
 
   useEffect(() => {
     const alInvalidar = (event: Event) => {
@@ -285,9 +323,12 @@ export function useAnimeCollectionCount(
   animeId: string | null,
   seasonId?: string | null,
   enabled = true,
+  characterSeasonId?: string | null,
 ): number | null {
   const [total, setTotal] = useState<number | null>(null);
   const temporada = seasonId && seasonId !== 'all' ? seasonId : null;
+  const temporadaPersonaje =
+    characterSeasonId && characterSeasonId !== 'all' ? characterSeasonId : null;
 
   useEffect(() => {
     if (!animeId || !enabled) {
@@ -296,9 +337,16 @@ export function useAnimeCollectionCount(
     }
 
     let activo = true;
-    const clave = `community:${coleccion}:count:${animeId}:${temporada ?? 'all'}`;
+    const clave = `community:${coleccion}:count:${animeId}:${
+      temporada ?? temporadaPersonaje ?? 'all'
+    }`;
     const partes: QueryConstraint[] = [where('animeId', '==', animeId)];
     if (temporada) partes.push(where('seasonId', '==', temporada));
+    if (temporadaPersonaje) {
+      partes.push(
+        where('seasonKeys', 'array-contains-any', [temporadaPersonaje, SEASON_TODAS]),
+      );
+    }
 
     void cachedRead<number>({
       key: clave,
@@ -326,7 +374,7 @@ export function useAnimeCollectionCount(
     return () => {
       activo = false;
     };
-  }, [animeId, coleccion, enabled, temporada]);
+  }, [animeId, coleccion, enabled, temporada, temporadaPersonaje]);
 
   useEffect(() => {
     const alInvalidar = (event: Event) => {

@@ -106,6 +106,15 @@
       ]
     },
     {
+      "_comment": "Ficha: personajes de una serie filtrados por temporada. Incluye los compartidos con '*'.",
+      "collectionGroup": "characters",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "animeId", "order": "ASCENDING" },
+        { "fieldPath": "seasonKeys", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
       "_comment": "Dónde verla: la wiki pide solo la obra y la región seleccionadas.",
       "collectionGroup": "streamingAvailability",
       "queryScope": "COLLECTION",

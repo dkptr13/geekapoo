@@ -19,6 +19,7 @@ import { invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
 import {
   estadoCorto,
   seasonIdsDe,
+  seasonKeysDe,
   numeroDeEpisodioValido,
   ERROR_NUMERO_EPISODIO,
 } from '../utils/seasonData';
@@ -178,6 +179,9 @@ function invalidarCatalogo(...colecciones: string[]): void {
     invalidateCache(`catalog:page:${coleccion}`, PUBLIC_CACHE);
     invalidateCache(`catalog:count:${coleccion}`, PUBLIC_CACHE);
   });
+
+  // La ficha lee el documento completo de una serie aparte.
+  if (colecciones.includes('animes')) invalidateCache('anime-doc:', PUBLIC_CACHE);
 }
 
 // ────────────────────────────────────────────────────────
@@ -347,13 +351,16 @@ export async function createCharacter(input: NewCharacterInput): Promise<string>
   const description = assertText(input.description, 'descripción', LIMITS.description, false);
 
   const ref = doc(collection(db, 'characters'));
+  const seasonIds = normalizaSeasonIds(input.seasonIds);
 
-await setDoc(ref, {
+  await setDoc(ref, {
     animeId: input.animeId,
     // Array de temporadas, aunque venga vacío: vacío es
     // COMPARTIDO (sale en todas), y guardar el array lo deja
     // explícito en vez de depender de que falte el campo.
-    seasonIds: normalizaSeasonIds(input.seasonIds),
+    seasonIds,
+    // Índice consultable: ['*'] si es compartido, o los ids.
+    seasonKeys: seasonKeysDe({ seasonIds }),
     name,
     slug: slugify(name),
     description,
@@ -520,8 +527,10 @@ export async function setCharacterSeasons(
   characterId: string,
   seasonIds: string[],
 ): Promise<void> {
+  const ids = normalizaSeasonIds(seasonIds);
   await updateDoc(doc(db, 'characters', characterId), {
-    seasonIds: normalizaSeasonIds(seasonIds),
+    seasonIds: ids,
+    seasonKeys: seasonKeysDe({ seasonIds: ids }),
     seasonId: deleteField(),
   });
   invalidarCatalogo('characters');
@@ -806,14 +815,16 @@ export async function deleteSeasonCascade(
   // implícita. Sigue apareciendo en la wiki.
   episodeDocs.forEach((d) => batch.update(d.ref, { seasonId: null }));
 
-  personajes.forEach(({ ref, ids }) =>
+  personajes.forEach(({ ref, ids }) => {
+    const restantes = ids.filter((id) => id !== seasonId);
     batch.update(ref, {
-      seasonIds: ids.filter((id) => id !== seasonId),
+      seasonIds: restantes,
+      seasonKeys: seasonKeysDe({ seasonIds: restantes }),
       // El campo antiguo se borra también, o volvería a colar la
       // temporada que se está eliminando.
       seasonId: deleteField(),
-    }),
-  );
+    });
+  });
 
   await batch.commit();
 

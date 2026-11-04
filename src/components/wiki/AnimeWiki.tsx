@@ -34,6 +34,8 @@ import {
   useAnimeCollectionCount,
   useAnimeCollectionPage,
 } from '../../hooks/useAnimeCollectionPage';
+import { useAnimeDoc } from '../../hooks/useAnimeDoc';
+import { invalidateCache, PUBLIC_CACHE } from '../../lib/firestoreCache';
 import {
   cargarIndiceBusqueda,
   type IndiceBusqueda,
@@ -57,7 +59,7 @@ import {
   type MainTab,
 } from '../../utils/wikiFilter';
 import { encuadre, listHas, toTextList } from '../../utils/safeData';
-import { fichaDe, personajeEnTemporada } from '../../utils/seasonData';
+import { fichaDe } from '../../utils/seasonData';
 import { TAG_DESTACADOS } from '../../utils/tags';
 import { ALTURA_CARD_PERSONAJE } from '../../utils/layout';
 
@@ -216,9 +218,73 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // Pisar la categoría o escribir en el buscador devuelve el
   // catálogo: si estás en una ficha y quieres otra cosa, no
   // necesitas un botón "atrás" para no seguir dentro.
-  const currentAnime = animes.find(
+  // La lista de animes ya no viene de Firestore: se pinta desde
+  // `animes.json`. Para la ficha se lee solo el documento de la serie
+  // abierta y se prefiere su copia completa a la ligera.
+  const staticAnime = animes.find(
     (a) => a.id === urlAnime || a.slug === urlAnime,
   );
+  const animeDoc = useAnimeDoc(
+    (staticAnime?.id ?? urlAnime) || null,
+    Boolean(urlAnime) && animes.length > 0,
+  );
+  const currentAnime = animeDoc ?? staticAnime;
+
+  // La ficha completa se lee aparte, así que el corazón del anime se
+  // actualiza en local y se invalida la copia de ese documento.
+  const [animeLikeLocal, setAnimeLikeLocal] = useState<{
+    id: string;
+    liked: boolean;
+    count: number;
+  } | null>(null);
+
+  useEffect(() => {
+    setAnimeLikeLocal(null);
+  }, [currentAnime?.id]);
+
+  const animeLikeOverride =
+    animeLikeLocal && animeLikeLocal.id === currentAnime?.id
+      ? animeLikeLocal
+      : null;
+
+  const animeLikeLiked = currentUser
+    ? animeLikeOverride
+      ? animeLikeOverride.liked
+      : (currentAnime?.likedBy?.includes(currentUser.uid) ?? false)
+    : false;
+  const animeLikeCount = animeLikeOverride
+    ? animeLikeOverride.count
+    : (currentAnime?.likesCount ?? 0);
+
+  const alternarLikeAnime = async () => {
+    if (!currentAnime) return;
+
+    const uid = currentUser?.uid;
+    if (!uid) {
+      void toggleAnimeLike(currentAnime.id);
+      return;
+    }
+
+    const antesLiked = currentAnime.likedBy?.includes(uid) ?? false;
+    const antesCount = currentAnime.likesCount ?? 0;
+    setAnimeLikeLocal({
+      id: currentAnime.id,
+      liked: !antesLiked,
+      count: Math.max(0, antesCount + (antesLiked ? -1 : 1)),
+    });
+
+    const ok = await toggleAnimeLike(currentAnime.id, antesLiked);
+    if (!ok) {
+      setAnimeLikeLocal({
+        id: currentAnime.id,
+        liked: antesLiked,
+        count: antesCount,
+      });
+      return;
+    }
+
+    invalidateCache(`anime-doc:${currentAnime.id}`, PUBLIC_CACHE);
+  };
 
   const isBrowsing = !currentAnime;
 
@@ -589,9 +655,6 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // alguien que sale en la 1 y en la 3 pero no en la 2). Para los
   // capítulos sigue mandando inSeason: un capítulo sin temporada
   // sigue siendo el de la primera.
-  const inCharacterSeason = (c: Character, seasonId: string) =>
-    seasonId === 'all' || personajeEnTemporada(c, seasonId);
-
   // ====================================================
   // FICHA DE LA TEMPORADA QUE SE ESTÁ VIENDO
   // ====================================================
@@ -638,6 +701,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     'characters',
     currentAnime?.id ?? null,
     activeTab === 'characters',
+    { characterSeasonId: seasonActiva === 'all' ? null : seasonActiva },
   );
   const totalEpisodiosTemporada = useAnimeCollectionCount(
     'episodes',
@@ -645,11 +709,16 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     seasonActiva,
     Boolean(currentAnime),
   );
+  const totalPersonajesTemporada = useAnimeCollectionCount(
+    'characters',
+    currentAnime?.id ?? null,
+    null,
+    Boolean(currentAnime),
+    seasonActiva,
+  );
 
   const animeEpisodes: Episode[] = episodiosPagina.items;
-  const animeCharacters: Character[] = personajesPagina.items.filter((c) =>
-    inCharacterSeason(c, seasonActiva),
-  );
+  const animeCharacters: Character[] = personajesPagina.items;
   const cargandoEpisodios = episodiosPagina.loading;
   const cargandoPersonajes = personajesPagina.loading;
 
@@ -1053,19 +1122,15 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             </div>
 
             <button
-              onClick={() => toggleAnimeLike(currentAnime.id)}
+              onClick={() => void alternarLikeAnime()}
               aria-label={`Dar Me gusta a ${currentAnime.title}`}
               className="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-pink-500/30 bg-zinc-900/80 px-3.5 py-1.5 text-xs font-bold text-pink-300 backdrop-blur-md hover:bg-pink-500/20 transition-all"
             >
               <Heart
                 size={14}
-                className={
-                  currentUser && currentAnime.likedBy?.includes(currentUser.uid)
-                    ? 'fill-pink-500 text-pink-500'
-                    : ''
-                }
+                className={animeLikeLiked ? 'fill-pink-500 text-pink-500' : ''}
               />
-<span className="font-mono">{currentAnime.likesCount}</span>
+              <span className="font-mono">{animeLikeCount}</span>
             </button>
           </div>
 
@@ -1167,7 +1232,14 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             }`}
           >
             <Film size={16} />
-            <span>Episodios ({totalEpisodiosTemporada ?? '…'})</span>
+            <span>
+              Episodios (
+              {totalEpisodiosTemporada ??
+                (episodiosPagina.loaded
+                  ? `${animeEpisodes.length}${episodiosPagina.hasMore ? '+' : ''}`
+                  : '…')}
+              )
+            </span>
           </button>
 
           <button
@@ -1181,9 +1253,10 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             <Users size={16} />
             <span>
               Personajes (
-              {personajesPagina.loaded
-                ? `${animeCharacters.length}${personajesPagina.hasMore ? '+' : ''}`
-                : '…'}
+              {totalPersonajesTemporada ??
+                (personajesPagina.loaded
+                  ? `${animeCharacters.length}${personajesPagina.hasMore ? '+' : ''}`
+                  : '…')}
               )
             </span>
           </button>
@@ -1636,7 +1709,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               <div className="rounded-3xl border border-dashed border-zinc-800 p-8 text-center col-span-full">
                 <Users size={22} className="mx-auto text-zinc-700" />
                 <p className="mt-3 text-sm text-zinc-500">
-                  {personajesPagina.items.length === 0
+                  {seasonActiva === 'all'
                     ? 'Esta serie todavía no tiene personajes publicados.'
                     : 'No hay personajes en la temporada elegida.'}
                 </p>

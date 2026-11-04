@@ -230,6 +230,28 @@ export function personajeEnTemporada(doc: unknown, seasonId: string): boolean {
 }
 
 /**
+ * Valor de `seasonKeys` para los personajes compartidos.
+ *
+ * Un personaje compartido no necesita una entrada por temporada: con
+ * este comodín aparece en todas. Así crear una temporada nueva no
+ * obliga a reescribir cientos de personajes.
+ */
+export const SEASON_TODAS = '*';
+
+/**
+ * Campo desnormalizado para consultar personajes por temporada.
+ *
+ * `seasonIds` vacío significa compartido. Para que Firestore pueda
+ * filtrar sin descargar todos los personajes de la serie, se guarda
+ * `['*']` en ese caso y la lista de ids cuando el personaje solo sale
+ * en algunas temporadas.
+ */
+export function seasonKeysDe(doc: unknown): string[] {
+  const ids = seasonIdsDe(doc);
+  return ids.length > 0 ? ids : [SEASON_TODAS];
+}
+
+/**
  * Estado al vocabulario del anime, sea cual sea el que venga.
  *
  * Lo usa el filtro del panel y la copia de la ficha de la T1 al

@@ -38,6 +38,7 @@ export interface IndiceBusqueda {
 
 const BUILD_ID = typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : 'dev';
 const INDEX_URL = `/busqueda/indice.json?v=${encodeURIComponent(BUILD_ID)}`;
+const ANIMES_URL = `/busqueda/animes.json?v=${encodeURIComponent(BUILD_ID)}`;
 // Una hora: si se publica un catálogo nuevo, como mucho se tarda
 // una hora en verlo en un navegador que ya había buscado. Mantener
 // la clave estable evita acumular copias de 5 MB en IndexedDB en
@@ -53,6 +54,40 @@ function esIndiceValido(value: unknown): value is IndiceBusqueda {
     Array.isArray(indice.episodes) &&
     Array.isArray(indice.characters)
   );
+}
+
+/**
+ * Lista ligera de animes para la Wiki y los perfiles.
+ *
+ * Es un archivo aparte del índice grande: así el catálogo puede
+ * pintarse sin descargar episodios/personajes ni leer los 195
+ * documentos de Firestore.
+ */
+export async function cargarAnimesIndice(): Promise<Anime[] | null> {
+  try {
+    return await cachedRead<Anime[]>({
+      key: 'search:animes:v1',
+      ttlMs: INDEX_TTL,
+      scope: PUBLIC_CACHE,
+      persist: true,
+      read: async () => {
+        const respuesta = await fetch(ANIMES_URL, { cache: 'no-cache' });
+        if (!respuesta.ok) {
+          throw new Error(`lista de animes: HTTP ${respuesta.status}`);
+        }
+
+        const datos: unknown = await respuesta.json();
+        if (!Array.isArray(datos)) {
+          throw new Error('lista de animes: formato no válido');
+        }
+
+        return datos as Anime[];
+      },
+    });
+  } catch (error) {
+    console.warn('[Wiki] No se pudo cargar la lista estática de animes:', error);
+    return null;
+  }
 }
 
 /**

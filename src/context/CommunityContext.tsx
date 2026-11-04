@@ -15,6 +15,7 @@ import {
 
 import { db } from '../lib/firebase';
 import { cachedRead, patchCached, PUBLIC_CACHE } from '../lib/firestoreCache';
+import { cargarAnimesIndice } from '../services/searchIndex';
 import {
   measureRead,
   recordListenerSnapshot,
@@ -129,10 +130,10 @@ export interface CommunityContextType {
   toggleThreadLike: (threadId: string, likedActual?: boolean) => Promise<void>;
   /** `false` si Firestore rechazó la escritura. */
   toggleCommentLike: (commentId: string) => Promise<boolean>;
-  toggleAnimeLike: (animeId: string) => Promise<void>;
-  toggleEpisodeLike: (episodeId: string) => Promise<void>;
-  toggleCharacterLike: (characterId: string) => Promise<void>;
-  toggleTriviaLike: (triviaId: string) => Promise<void>;
+  toggleAnimeLike: (animeId: string, likedActual?: boolean) => Promise<boolean>;
+  toggleEpisodeLike: (episodeId: string) => Promise<boolean>;
+  toggleCharacterLike: (characterId: string) => Promise<boolean>;
+  toggleTriviaLike: (triviaId: string) => Promise<boolean>;
 
   /**
    * Borra un comentario.
@@ -549,7 +550,23 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (animesCompletosPedido) return;
       animesCompletosPedido = true;
       animesCompletos = true;
-      registrarCarga<Anime>('animes', 'community:animes', TTL_ANIMES, setAnimes);
+
+      // La Wiki y los perfiles solo necesitan la ficha ligera de cada
+      // serie. Se sirve desde `animes.json` (0 lecturas de Firestore).
+      // Si el archivo no está, se conserva la lectura completa.
+      void cargarAnimesIndice()
+        .then((lista) => {
+          if (!vivo) return;
+          if (lista && lista.length > 0) {
+            setAnimes(lista);
+            return;
+          }
+          registrarCarga<Anime>('animes', 'community:animes', TTL_ANIMES, setAnimes);
+        })
+        .catch(() => {
+          if (!vivo) return;
+          registrarCarga<Anime>('animes', 'community:animes', TTL_ANIMES, setAnimes);
+        });
     };
     cargarListaAnimesRef.current = cargarAnimesCompletos;
 
@@ -1145,6 +1162,12 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         patchCached<Anime[]>('community:animes', (lista) =>
           actualizarLikeEnLista(lista, id, uid, liked),
         );
+        // La Wiki y los perfiles usan la lista estática. Se parchea
+        // también para que el contador no vuelva al valor antiguo al
+        // recargar dentro de la hora de caché.
+        patchCached<Anime[]>('search:animes:v1', (lista) =>
+          actualizarLikeEnLista(lista, id, uid, liked),
+        );
         break;
       case 'episode':
         setEpisodes((prev) => actualizarLikeEnGrupos(prev, id, uid, liked));
@@ -1167,23 +1190,31 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
-  const runLike = useCallback(async (kind: LikeableKind, id: string) => {
+  const runLike = useCallback(async (
+    kind: LikeableKind,
+    id: string,
+    likedActual?: boolean,
+  ): Promise<boolean> => {
     const uid = guardUser();
-    if (!uid) return;
+    if (!uid) return false;
 
     const clave = `catalogo:${kind}:${id}`;
-    if (likesPendientes.current.has(clave)) return;
+    if (likesPendientes.current.has(clave)) return false;
 
-    const likedAntes = likeCatalogoActual(kind, id, uid);
+    // `likedActual` permite usar el estado de la ficha abierta,
+    // aunque el anime no esté en la lista ligera de la Wiki.
+    const likedAntes = likedActual ?? likeCatalogoActual(kind, id, uid);
     likesPendientes.current.add(clave);
     aplicarLikeCatalogo(kind, id, uid, !likedAntes);
 
     try {
       const likedConfirmado = await toggleCatalogLike(kind, id, uid);
       aplicarLikeCatalogo(kind, id, uid, likedConfirmado);
+      return true;
     } catch (e) {
       aplicarLikeCatalogo(kind, id, uid, likedAntes);
       console.error('[Community] Error en "me gusta":', e);
+      return false;
     } finally {
       likesPendientes.current.delete(clave);
     }
@@ -1214,7 +1245,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 
   const toggleAnimeLike = useCallback(
-    (animeId: string) => runLike('anime', animeId),
+    (animeId: string, likedActual?: boolean) => runLike('anime', animeId, likedActual),
     [runLike],
   );
 
