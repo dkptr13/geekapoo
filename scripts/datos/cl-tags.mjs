@@ -1,0 +1,37 @@
+// ETIQUETAS - Clannad
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+
+export const TAGS = {
+  'Tomoya Okazaki': ['Protagonista', 'Gamberro', 'Familia'],
+  'Nagisa Furukawa': ['Teatro', 'Timidez', 'Esfuerzo'],
+  'Fuuko Ibuki': ['Estrellas', 'Hermana', 'Fantasía'],
+  'Kotomi Ichinose': ['Genio', 'Libros', 'Pasado'],
+  'Tomoyo Sakagami': ['Fuerza', 'Hermano', 'Lucha'],
+  'Kyou Fujibayashi': ['Gemela', 'Cocina', 'Carácter'],
+  'Ryou Fujibayashi': ['Gemela', 'Tarot', 'Timidez'],
+  'Youhei Sunohara': ['Amigo', 'Gamberro', 'Humor'],
+  'Ushio Okazaki': ['Hija', 'Familia', 'Infancia'],
+  'Yukine Miyazawa': ['Biblioteca', 'Consejera', 'Hermano'],
+  'Mei Sunohara': ['Hermana', 'Visita', 'Madurez'],
+  'Misae Sagara': ['Dormitorio', 'Gato', 'Pasado'],
+  'Sanae Furukawa': ['Madre', 'Panadería', 'Dulzura'],
+  'Kouko Ibuki': ['Hermana', 'Boda', 'Profesora'],
+  'Akio Furukawa': ['Padre', 'Panadería', 'Humor'],
+  'Yusuke Yoshino': ['Música', 'Mentor', 'Trabajo'],
+  'Garakuta no Ningyou': ['Mundo ilusorio', 'Narrador', 'Muñeco'],
+  'Nazo no Shoujo': ['Mundo ilusorio', 'Sueños', 'Misterio'],
+  'Takafumi Sakagami': ['Hermano', 'Familia', 'Pasado'],
+  'Rie Nishina': ['Violín', 'Música', 'Amistad'],
+  'Naoyuki Okazaki': ['Padre', 'Trabajo', 'Distancia'],
+  'Kanako': ['Pasado', 'Cameo', 'Takafumi'],
+  'Sugisaka': ['Coro', 'Rival', 'Escuela'],
+  'Toshio Koumura': ['Profesor', 'Consejo', 'Escuela'],
+  'Kotarou Ichinose': ['Padre', 'Ciencia', 'Pasado'],
+  'Mizue Ichinose': ['Madre', 'Ciencia', 'Recuerdos'],
+  'Katsuki Shima': ['Pasado', 'Misae', 'Promesa'],
+  'Igarashi': ['Pasado', 'Malentendido', 'Misae'],
+  'Mitsui': ['Estudiante', 'Fuuko', 'Escuela'],
+  'Yuu': ['Niño', 'Hermana', 'Biblioteca'],
+  'Botan': ['Mascota', 'Jabalí', 'Kyou'],
+};
