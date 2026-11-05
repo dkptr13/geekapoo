@@ -101,8 +101,12 @@ const ANGELESAS = [
  * Hombre Pez se llama Ikaros Much, con `Much` como apellido, y asi sale
  * en la Wikipedia en espanol, en el doblaje y en las fichas de la serie.
  * Traducirlo a "Mucho" seria inventarse un nombre que nadie usa.
+ *
+ * `under` es el nombre del grupo antagonista de Undead Unluck, que en la
+ * obra se escribe siempre asi, en ingles. Traducirlo a "Bajo" o
+ * "Subterraneo" cambiaria el nombre de la organizacion.
  */
-const PROPIOS_EN_INGLES = ['power', 'green', 'light', 'much', 'the'];
+const PROPIOS_EN_INGLES = ['power', 'green', 'light', 'much', 'the', 'under'];
 
 /**
  * Si una palabra inglesa sale como NOMBRE PROPIO y no como palabra.

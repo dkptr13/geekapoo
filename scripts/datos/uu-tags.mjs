@@ -1,0 +1,35 @@
+// ETIQUETAS - Undead Unluck
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+
+export const TAGS = {
+  'Andy': ['Protagonista', 'Negador', 'Inmortal', 'Undead Unluck'],
+  'Fuuko Izumo': ['Protagonista', 'Negadora', 'Desgracia', 'Undead Unluck'],
+  'Juiz': ['Secundario', 'Negadora', 'Líder', 'Undead Unluck'],
+  'Shen Xiang': ['Secundario', 'Negador', 'Mentira', 'Undead Unluck'],
+  'Tatiana': ['Secundario', 'Negadora', 'Intocable', 'Undead Unluck'],
+  'Nico Vorgeil': ['Secundario', 'Humano', 'Científico', 'Undead Unluck'],
+  'Billy Alfred': ['Secundario', 'Negador', 'Tirador', 'Undead Unluck'],
+  'Top': ['Secundario', 'Negador', 'Imparable', 'Undead Unluck'],
+  'Chikara Shigeno': ['Secundario', 'Negador', 'Inmovilidad', 'Undead Unluck'],
+  'Mui': ['Secundario', 'Humana', 'Subordinada', 'Undead Unluck'],
+  'Clothes': ['Secundario', 'UMA', 'Ropa', 'Undead Unluck'],
+  'Apocalypse': ['Secundario', 'UMA', 'Artefacto', 'Undead Unluck'],
+  'Anno Un': ['Secundario', 'Negador', 'Mangaka', 'Undead Unluck'],
+  'Mico Vorgeil': ['Secundario', 'Humana', 'Científica', 'Undead Unluck'],
+  'Boh': ['Secundario', 'Humano', 'Científico', 'Undead Unluck'],
+  'Victor': ['Secundario', 'Negador', 'Inmortal', 'Undead Unluck'],
+  'Void Volks': ['Secundario', 'Negador', 'Disciplinado', 'Undead Unluck'],
+  'Yuusai': ['Secundario', 'Negadora', 'Samurái', 'Undead Unluck'],
+  'Gina Chamber': ['Antagonista', 'Negadora', 'Inmutable', 'Undead Unluck'],
+  'Rip Tristan': ['Antagonista', 'Negador', 'Reparación', 'Undead Unluck'],
+  'Latla Mirah': ['Antagonista', 'Negadora', 'Desviación', 'Undead Unluck'],
+  'Feng Kowloon': ['Antagonista', 'Negador', 'Artes marciales', 'Undead Unluck'],
+  'Sean Datz': ['Antagonista', 'Negador', 'Intercambio', 'Undead Unluck'],
+  'Backs': ['Antagonista', 'Negadora', 'Conejo', 'Undead Unluck'],
+  'Creed': ['Antagonista', 'Negador', 'Creencia', 'Undead Unluck'],
+  'Spoil': ['Antagonista', 'UMA', 'Descomposición', 'Undead Unluck'],
+  'Burn': ['Antagonista', 'UMA', 'Combustión', 'Undead Unluck'],
+  'Autumn': ['Antagonista', 'UMA', 'Otoño', 'Undead Unluck'],
+  'Move': ['Secundario', 'UMA', 'Movimiento', 'Undead Unluck'],
+};
