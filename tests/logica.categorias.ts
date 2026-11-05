@@ -3,10 +3,11 @@
  *
  *   npm run test:logica
  *
- * Lo importante: "Debates" debe existir en las categorías de los
- * hilos y NO colarse en los filtros de anime. Y las categorías que
- * solo viven en código deben marcarse como fijas para que el panel
- * no intente borrar un documento que no existe.
+ * Lo importante: "Debates", "Encuestas" y "Recomendaciones" deben
+ * existir en las categorías de los hilos y NO colarse en los filtros
+ * de anime. Y las categorías que solo viven en código deben marcarse
+ * como fijas para que el panel no intente borrar un documento que no
+ * existe.
  */
 import assert from 'node:assert/strict';
 
@@ -18,25 +19,36 @@ import {
   type StoredCategory,
 } from '../src/data/animeCategories';
 
-// La categoría de foro existe y tiene forma completa.
-const debates = FORUM_CATEGORIES.find((c) => c.id === 'debates');
-assert.ok(debates, 'Debates debe estar en las categorías del foro');
-assert.equal(debates!.name, 'Debates');
-assert.ok(debates!.description.trim().length > 10);
-assert.ok(debates!.color.includes('amber'));
+// Las categorías de foro existen y tienen forma completa.
+const categoriasDeForo = [
+  { id: 'debates', name: 'Debates', color: 'amber' },
+  { id: 'encuestas', name: 'Encuestas', color: 'indigo' },
+  { id: 'recomendaciones', name: 'Recomendaciones', color: 'teal' },
+];
 
-// No es un género de anime: los filtros del catálogo no deben verla.
-assert.ok(
-  !ALL_ANIME_CATEGORIES.some((c) => c.id === 'debates'),
-  'Debates no debe aparecer en los filtros de anime',
-);
+for (const esperada of categoriasDeForo) {
+  const categoria = FORUM_CATEGORIES.find((c) => c.id === esperada.id);
+  assert.ok(categoria, `${esperada.name} debe estar en las categorías del foro`);
+  assert.equal(categoria!.name, esperada.name);
+  assert.ok(categoria!.description.trim().length > 10);
+  assert.ok(categoria!.color.includes(esperada.color));
 
-// `mergeCategories` añade las categorías de código que Falta.
+  // No son géneros de anime: los filtros del catálogo no deben verlas.
+  assert.ok(
+    !ALL_ANIME_CATEGORIES.some((c) => c.id === esperada.id),
+    `${esperada.name} no debe aparecer en los filtros de anime`,
+  );
+}
+
+// `mergeCategories` añade las categorías de código que faltan.
 const merged = mergeCategories<StoredCategory>([]);
-const mergedDebates = merged.find((c) => c.id === 'debates');
-assert.ok(mergedDebates, 'Debates debe aparecer al construir el foro');
-assert.equal(mergedDebates!.fixed, true, 'Debates es una categoría fija de código');
-assert.equal(mergedDebates!.threadsCount, 0);
+
+for (const esperada of categoriasDeForo) {
+  const categoria = merged.find((c) => c.id === esperada.id);
+  assert.ok(categoria, `${esperada.name} debe aparecer al construir el foro`);
+  assert.equal(categoria!.fixed, true, `${esperada.name} es una categoría fija de código`);
+  assert.equal(categoria!.threadsCount, 0);
+}
 
 // Las categorías canónicas de anime también se añaden al foro.
 for (const categoria of ALL_ANIME_CATEGORIES) {
@@ -90,6 +102,7 @@ assert.equal(
 );
 
 console.log('✓ categorías del foro: todo correcto');
-console.log('  · Debates existe solo en los hilos, no en los filtros de anime');
+console.log('  · Debates, Encuestas y Recomendaciones existen solo en los hilos');
+console.log('  · no aparecen en los filtros de anime');
 console.log('  · las categorías de código se marcan como fijas');
 console.log('  · los documentos de Firestore mandan y no se duplican');

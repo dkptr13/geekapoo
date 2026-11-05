@@ -90,8 +90,8 @@ export const ALL_ANIME_CATEGORIES: AnimeCategory[] = [
 /**
  * Categorías que solo existen en el foro.
  *
- * No van en `ALL_ANIME_CATEGORIES` a propósito: "Debates" no es un
- * género de anime y no debe aparecer en los filtros del catálogo.
+ * No van en `ALL_ANIME_CATEGORIES` a propósito: no son géneros de
+ * anime y no deben aparecer en los filtros del catálogo.
  * `mergeCategories` las añade solo a la lista de categorías de hilos.
  */
 export const FORUM_CATEGORIES: AnimeCategory[] = [
@@ -100,6 +100,18 @@ export const FORUM_CATEGORIES: AnimeCategory[] = [
     name: 'Debates',
     description: 'Opiniones enfrentadas, teorías y temas de actualidad.',
     color: 'from-amber-500/20 to-orange-500/20 text-amber-300 border-amber-500/30',
+  },
+  {
+    id: 'encuestas',
+    name: 'Encuestas',
+    description: 'Votaciones de la comunidad: elige una opción y descubre qué opina la gente.',
+    color: 'from-indigo-500/20 to-blue-500/20 text-indigo-300 border-indigo-500/30',
+  },
+  {
+    id: 'recomendaciones',
+    name: 'Recomendaciones',
+    description: 'Animes, mangas y joyitas que merecen la pena; pide y comparte recomendaciones.',
+    color: 'from-teal-500/20 to-cyan-500/20 text-teal-300 border-teal-500/30',
   },
 ];
 
