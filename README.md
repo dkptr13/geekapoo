@@ -1,108 +1,173 @@
-# ⚡ Geekapoo — Plataforma Web, Foro & Wiki Otaku
+<p align="center">
+  <img src="docs/assets/hero.jpg" alt="Cabecera de Geekapoo con su logo circular morado, portadas de Jujutsu Kaisen y One Piece, y el lema de la comunidad" width="100%">
+</p>
+
+<h1 align="center">Geekapoo</h1>
 
 <p align="center">
-  <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1200&q=80" alt="Geekapoo Banner" width="100%" style="border-radius: 16px;" />
+  <b>Comunidad anime, manga y cultura geek en español.</b><br>
+  Foro · Wiki · Chat · Trivias · Logros
 </p>
 
 <p align="center">
-  <b>Un espacio cómodo, libre y seguro para la comunidad otaku, gamer y geek.</b><br/>
-  Sin censura, sin filtros innecesarios y con una única regla inquebrantable: <b>el respeto mutuo</b>.
-</p>
-
-> **Web en producción:** https://www.geekapoo.es
-> **Dominio:** `geekapoo.es` (canónico en `www`)
-> **Importante:** `geekapoo.com` **no** pertenece a este proyecto. No enlazar ni usar en textos.
-
-<p align="center">
-  <img src="https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/Firebase-v9%2B-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
-  <img src="https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+  <a href="https://www.geekapoo.es"><b>🌐 Entrar en geekapoo.es →</b></a>
 </p>
 
 ---
 
-## 🌟 Características Principales
+## Una comunidad hecha para quedarse
 
-### 💬 1. Foro & Hilos de Debate
-- **Publicación de Hilos:** Creación de discusiones con categorías, etiquetas personalizadas (`#tags`) y soporte multimedia.
-- **Encuestas Interactivas (Polls):** Creación de encuestas con opciones múltiples, temporizador de caducidad e historial de votos protegido en Firestore sin manipulación.
-- **Reacciones Múltiples:** Reacciones paralelas con emojis (`🔥`, `😂`, `😱`, `😭`, `🏆`, `❤️`) sin alterar el contador tradicional de *Me gusta*.
-- **Integración de GIFs:** Inserción de GIFs animados mediante la API de GIPHY/Tenor en comentarios y respuestas.
-- **Comentarios Anidados:** Conversaciones ordenadas por hilos principales y respuestas directas.
+Geekapoo es una plataforma en español para hablar de anime, manga, series, videojuegos y cultura pop sin ruido. Un foro vivo, una wiki con fichas completas y las herramientas necesarias para que la comunidad se organice sola: chats, perfiles, trivias, logros y curiosidades.
 
-### 📚 2. Anime Wiki & Catálogo
-- **Fichas Técnicas:** Sinopsis, año de emisión, estudio de animación, estado, puntuación y enlaces oficiales a plataformas de streaming (Crunchyroll, Netflix, Prime Video).
-- **Directorio de Episodios:** Listado completo con títulos oficiales, fechas de emisión, descripciones y miniaturas en HD.
-- **Galería de Personajes & Seiyuus:** Fichas de personajes principales y secundarios con sus respectivos actores de voz japoneses (*seiyuus*).
+No es una web más con anuncios por todas partes. Es un espacio pensado para que apetezca volver.
 
-### 🏆 3. Gamificación & Sistema de Niveles
-- **Progreso por Experiencia (XP):** Recompensas de XP automáticas tras acciones clave (crear hilos, comentar, votar en encuestas, recibir reacciones).
-- **Curva de Niveles (Nivel 1 al 100):** Escalado progresivo desde Nivel 1 hasta el Nivel 100 (**Geek de Geeks** / **Kapo-Sama**).
-- **Medallas & Logros:** Catálogo de insignias desbloqueables visibles en el perfil público del usuario.
+<p align="center">
+  <img src="docs/assets/home.jpg" alt="Página de inicio de Geekapoo con el mensaje de bienvenida, el feed de la comunidad, las categorías y la mascota Kapo-chan" width="100%">
+</p>
 
-### 🔔 4. Centro de Notificaciones en Tiempo Real
-- **Suscripción `onSnapshot`:** Campana de alertas en la barra superior (*Navbar*) con actualización instantánea de respuestas, reacciones, subidas de nivel y logros.
-- **Gestión por Lotes (`WriteBatch`):** Opción de "Marcar todas como leídas" optimizada.
+## ¿Por qué existe Geekapoo?
 
-### 💬 5. Mensajería Directa & Grupal (ChatID)
-- **Identificador Único (`ChatID`):** Conexión segura 1 a 1 entre usuarios sin exponer correos electrónicos (ej. `GK-8842-OTAKU`).
-- **Salas de Debate Grupal:** Creación de salas de chat temáticas.
+Buscar «dónde ver X» o «personajes de X» suele acabar en webs llenas de anuncios, datos a medias y enlaces que ya no funcionan. Y los debates de verdad están dispersos entre Discord, Reddit y grupos que desaparecen de un día para otro.
 
-### 🦊 6. Mascota Virtual Guardiana (Kapo-chan)
-- Asistente flotante interactivo que reacciona según la sección abierta en la web, promueve el respeto mutuo en la comunidad y guía a los usuarios.
+Geekapoo nace para juntar esas tres cosas en un solo sitio:
 
-### 📰 7. Noticias RSS Integradas
-- Sincronización automática mediante Cloud Functions de las últimas noticias de anime de medios internacionales.
+- **Información cuidada**: sinopsis, temporadas, episodios, personajes, seiyuus y plataformas donde ver cada serie.
+- **Conversación real**: hilos, encuestas, reacciones y comentarios, sin que el algoritmo decida qué merece la pena.
+- **Comunidad**: perfiles, chats, clubes, trivias y logros para que la gente se quede y se reconozca.
 
-### ⚙️ 8. Panel de Administración Full-Stack
-- Herramienta interna para moderar usuarios, administrar encuestas, hilos y cargar imágenes en alta calidad mediante **ImgBB API** o **Firebase Storage**.
+Y con una única regla inquebrantable: **el respeto mutuo**.
 
----
+## ¿Para quién es?
 
-## 🛠️ Tecnologías Utilizadas
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h3>🔎 Para quien busca datos</h3>
+      <p>Quiere saber de qué va una serie, cuántos episodios tiene, quién la anima o dónde verla legalmente. Y quiere encontrarlo rápido, en español y sin ventanas emergentes.</p>
+    </td>
+    <td width="33%" valign="top">
+      <h3>💬 Para quien quiere debatir</h3>
+      <p>Le apetece opinar sobre el último capítulo, defender su opening favorito o montar una encuesta sobre el mejor villano. Sin miedo a que le borren el mensaje por pensar distinto.</p>
+    </td>
+    <td width="33%" valign="top">
+      <h3>🏆 Para quien quiere pertenecer</h3>
+      <p>Disfruta con los logros, las medallas, las trivias y los chats. Quiere un sitio reconocible, con su perfil y su historia dentro de la comunidad.</p>
+    </td>
+  </tr>
+</table>
+
+## Lo que puedes hacer
+
+### 📚 Wiki de anime y series
+
+Más de **200 series**, **9.000 episodios** y **5.600 personajes** con ficha propia: sinopsis, año, estudio, nota de la comunidad, géneros, temporadas, reparto de voces y disponibilidad por región.
+
+<p align="center">
+  <img src="docs/assets/wiki.jpg" alt="Catálogo de la wiki de Geekapoo con las categorías, el buscador y las portadas de las series" width="100%">
+</p>
+
+### 🎬 Fichas que responden a lo que buscas
+
+Cada serie tiene su página con la información ordenada: información de la serie, episodios, personajes y plataformas donde verla. También incluye la nota de la comunidad y los datos técnicos de un vistazo.
+
+<p align="center">
+  <img src="docs/assets/anime.jpg" alt="Ficha de 86: Eighty Six en Geekapoo con sinopsis, datos técnicos, géneros y disponibilidad en streaming" width="100%">
+</p>
+
+### 💬 Foro y comunidad
+
+Hilos con categorías y etiquetas, encuestas con caducidad, reacciones con emojis, comentarios anidados y GIFs. Todo pensado para conversaciones que se pueden seguir sin perderse.
+
+### 🏆 Progresión, logros y trivias
+
+Cada acción suma: crear un hilo, comentar, votar, recibir reacciones. El sistema de XP sube del **nivel 1 al 100**, desbloquea medallas y alimenta un perfil que enseña lo que has construido. Las trivias diarias añaden una razón más para entrar cada día.
+
+### 💬 Chats y clubes
+
+Mensajería directa y grupal con un identificador propio (**ChatID**) que permite conectar con otros usuarios sin exponer el correo. Los clubes temáticos agrupan a la gente por intereses: shonen, romance, retro, doblaje.
+
+### 🦊 Kapo-chan, la mascota
+
+Kapo-chan acompaña la navegación, explica secciones y recuerda la norma de la casa: aquí se viene a hablar de lo que te gusta, no a atacar a quien le gusta otra cosa.
+
+### ✨ Extras y curiosidades
+
+Secretos de producción, récords, anécdotas de doblaje y datos que no salen en las sinopsis habituales. La parte de «no sabía que eso era así» de la comunidad.
+
+<p align="center">
+  <img src="docs/assets/extras.jpg" alt="Sección de extras de Geekapoo con curiosidades de anime, doblaje y bandas sonoras" width="100%">
+</p>
+
+## Galería
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/assets/wiki.jpg" alt="Wiki de anime de Geekapoo con categorías y catálogo de series" width="100%">
+      <p align="center"><sub>Wiki: categorías, buscador y catálogo completo</sub></p>
+    </td>
+    <td width="50%">
+      <img src="docs/assets/anime.jpg" alt="Ficha de anime en Geekapoo con sinopsis y disponibilidad en streaming" width="100%">
+      <p align="center"><sub>Fichas con episodios, personajes y dónde verla</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/assets/home.jpg" alt="Inicio de Geekapoo con el feed de la comunidad y la mascota" width="100%">
+      <p align="center"><sub>Inicio: el feed de la comunidad</sub></p>
+    </td>
+    <td width="50%">
+      <img src="docs/assets/extras.jpg" alt="Extras y curiosidades de anime en Geekapoo" width="100%">
+      <p align="center"><sub>Extras: curiosidades y secretos de producción</sub></p>
+    </td>
+  </tr>
+</table>
+
+## Filosofía
+
+> **Un espacio libre y respetuoso para la comunidad otaku y geek.**
+
+Eso significa:
+
+- **Respeto por encima de todo.** Se puede criticar una obra; no se puede atacar a una persona por lo que le gusta.
+- **Libertad para opinar.** Sin censura innecesaria, sin filtros que decidan por ti. La única línea roja es el respeto.
+- **Comunidad en español.** Sin depender de algoritmos, sin que el idioma sea un obstáculo.
+- **Datos a la vista.** Si una serie está en una plataforma, se dice; si no, también.
+- **Sin ruido.** Ni anuncios invasivos ni ventanas que te persiguen.
+
+## Bajo el capó
+
+<details>
+<summary><b>Stack técnico y detalles del proyecto</b></summary>
 
 | Capa | Tecnología |
 | :--- | :--- |
-| **Frontend** | React, TypeScript, Tailwind CSS, Lucide React (iconos), Vite |
-| **Backend** | Firebase Cloud Functions v2 (TypeScript / Node.js) |
-| **Base de Datos** | Firebase Firestore (NoSQL en tiempo real) |
-| **Autenticación** | Firebase Auth (Email/Contraseña & GitHub OAuth) |
-| **Almacenamiento** | ImgBB API & Firebase Storage |
-| **APIs Externas** | **TheTVDB API**, TMDB API, GIPHY API / Tenor API, RSS Feeds |
-| **Hosting & CI/CD** | Vercel (Frontend), Firebase CLI (Backend & Rules) |
-| **Pruebas** | Vitest + `@firebase/rules-unit-testing` |
+| Frontend | React, TypeScript, Tailwind CSS, Vite |
+| Backend | Firebase Cloud Functions v2 (Node.js / TypeScript) |
+| Datos | Firestore en tiempo real |
+| Autenticación | Firebase Auth (email/contraseña, Google y GitHub) |
+| Almacenamiento | ImgBB y Firebase Storage |
+| APIs | TheTVDB, TMDB, GIPHY / Tenor, RSS |
+| Hosting | Vercel + Firebase |
+| Pruebas | Vitest y `@firebase/rules-unit-testing` |
+
+El catálogo se genera con un índice de búsqueda propio y las fichas de anime se prerenderizan con su título, sinopsis, episodios, personajes y datos estructurados para que Google pueda leerlas sin ejecutar JavaScript.
+
+</details>
 
 ---
 
-## 📁 Estructura del Proyecto
+<h2 align="center">¿Entras?</h2>
 
-```text
-geekapoo/
-├── functions/                  # Cloud Functions v2 (Backend Node.js/TS)
-│   ├── src/
-│   │   └── index.ts            # Triggers de XP, notificaciones y cierre de encuestas
-│   └── package.json
-├── src/
-│   ├── app/                    # Estructura de vistas/rutas principales
-│   ├── components/
-│   │   ├── admin/              # Panel de control y moderación
-│   │   ├── auth/               # Modales de registro, login y reset
-│   │   ├── chat/               # Vista de mensajería 1a1 y grupos
-│   │   ├── community/          # PollCard, ReactionBar, GifPicker
-│   │   ├── home/               # Feed del foro y noticias RSS
-│   │   ├── layout/             # Navbar, Sidebar y navegación global
-│   │   ├── mascot/             # OtakuMascot (Kapo-chan)
-│   │   ├── notifications/      # NotificationBell y panel dropdown
-│   │   └── wiki/               # AnimeWiki, episodios y personajes
-│   ├── context/                # AuthContext, CommunityContext, ChatContext, NotificationsContext
-│   ├── data/                   # mockData.ts (catálogo base inicial)
-│   ├── services/               # Clientes Firestore (threads, comments, polls, reactions, gifs)
-│   ├── types/                  # Definición de interfaces TypeScript
-│   └── utils/                  # Algoritmos de progresión XP, polyfills y helpers
-├── tests/
-│   └── firestore.community.rules.test.cjs # Tests automatizados de seguridad
-├── firestore.rules             # Reglas de seguridad NoSQL
-├── firestore.indexes.json      # Índices compuestos de Firestore
-└── package.json
+<p align="center">
+  <a href="https://www.geekapoo.es"><b>www.geekapoo.es</b></a><br>
+  <sub>Foro, wiki, chat y trivias. Gratis y sin anuncios invasivos.</sub>
+</p>
+
+<p align="center">
+  <i>Un espacio libre y respetuoso para la comunidad otaku y geek.</i>
+</p>
+
+---
+
+<sub>Nota: <code>geekapoo.com</code> no pertenece a este proyecto. El dominio oficial es <strong>www.geekapoo.es</strong>; <code>geekapoo.vercel.app</code> redirige allí.</sub>
