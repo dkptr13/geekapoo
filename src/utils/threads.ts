@@ -10,11 +10,27 @@ import type { Thread } from '../types';
  * que rompería los contadores y los filtros del perfil.
  */
 export function normalizarHilo(thread: Thread): Thread {
+  const images =
+    Array.isArray(thread.images) && thread.images.length > 0
+      ? thread.images
+      : thread.imageUrl
+        ? [
+            {
+              url: thread.imageUrl,
+              ...(typeof thread.imageWidth === 'number' &&
+              typeof thread.imageHeight === 'number'
+                ? { width: thread.imageWidth, height: thread.imageHeight }
+                : {}),
+            },
+          ]
+        : undefined;
+
   return {
     ...thread,
     likesCount: typeof thread.likesCount === 'number' ? thread.likesCount : 0,
     likedBy: Array.isArray(thread.likedBy) ? thread.likedBy : [],
     commentsCount:
       typeof thread.commentsCount === 'number' ? thread.commentsCount : 0,
+    ...(images ? { images } : {}),
   };
 }

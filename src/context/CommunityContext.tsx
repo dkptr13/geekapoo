@@ -45,6 +45,12 @@ import {
 } from '../services/reactions';
 
 import { mergeCategories } from '../data/animeCategories';
+import {
+  FANART_CATEGORY_ID,
+  FANART_CATEGORY_NAME,
+  FANART_MAX_TAGS,
+  etiquetasDeFanart,
+} from '../data/fanarts';
 import { actualizarLikeEnLista } from '../utils/likes';
 
 import type { ImageDims } from '../utils/imagenes';
@@ -53,6 +59,7 @@ import {
   CategoryItem,
   Character,
   Episode,
+  FanartDraft,
   GifAttachment,
   MascotDialogue,
   NewPollInput,
@@ -121,6 +128,11 @@ export interface CommunityContextType {
     imageDims?: ImageDims | null,
     /** Tier list adjunta (solo referencia). */
     tierList?: TierListRef | null,
+    /**
+     * Si viene, se publica un Fanart: categoría fija, varias
+     * imágenes y ficha artística. El cuerpo es opcional.
+     */
+    fanart?: FanartDraft,
   ) => Promise<boolean>;
 
   deleteThread: (threadId: string) => Promise<boolean>;
@@ -834,17 +846,28 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       poll?: NewPollInput,
       imageDims?: ImageDims | null,
       tierList?: TierListRef | null,
+      fanart?: FanartDraft,
     ): Promise<boolean> => {
       if (!currentUser) {
         requireAuth('crear un hilo en la comunidad');
         return false;
       }
 
+      const esFanart = Boolean(fanart);
+
       // El nombre de la categoría se busca en Firestore en vez de
       // usar el diccionario fijo que había antes en este archivo.
       // Las categorías marcadas como fijas viven solo en código y
       // no tienen documento que actualizar.
       const category = categories.find((c) => c.id === categoryId);
+      const categoriaFinal = esFanart ? FANART_CATEGORY_ID : categoryId;
+      const nombreCategoria = esFanart
+        ? FANART_CATEGORY_NAME
+        : (category?.name ?? 'General');
+      const tagsFinales = esFanart
+        ? etiquetasDeFanart(tags, fanart!.medium, fanart!.original)
+        : tags;
+      const imagenes = fanart?.images ?? [];
 
       try {
         const nuevoId = await createThreadService({
@@ -853,14 +876,15 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           authorAvatar: currentUser.avatarUrl,
           title,
           body,
-          categoryId,
-          categoryName: category?.name ?? 'General',
-          categoryInFirestore: Boolean(category && !category.fixed),
-          tags,
+          categoryId: categoriaFinal,
+          categoryName: nombreCategoria,
+          categoryInFirestore: !esFanart && Boolean(category && !category.fixed),
+          tags: tagsFinales,
           imageUrl,
-          poll,
+          poll: esFanart ? undefined : poll,
           imageDims,
-          tierList,
+          tierList: esFanart ? null : tierList,
+          fanart,
         });
 
         // Se añade también a la copia local. El listener del feed
@@ -868,7 +892,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // que, con una categoría filtrada (que pinta `allThreads`),
         // el hilo recién publicado no aparezca hasta recargar.
         let pollLocal: Poll | undefined;
-        if (poll?.question.trim()) {
+        if (!esFanart && poll?.question.trim()) {
           try {
             pollLocal = normalizarPoll(poll);
           } catch {
@@ -877,6 +901,8 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           }
         }
 
+        const primera = imagenes[0];
+
         const nuevoHilo: Thread = {
           id: nuevoId,
           authorId: currentUser.uid,
@@ -884,24 +910,52 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           authorAvatar: currentUser.avatarUrl,
           title: title.trim(),
           body: body.trim(),
-          categoryId,
-          categoryName: category?.name ?? 'General',
-          tags: tags.length > 0 ? tags.slice(0, 6) : ['General', 'Debate'],
+          categoryId: categoriaFinal,
+          categoryName: nombreCategoria,
+          tags:
+            tagsFinales.length > 0
+              ? tagsFinales.slice(0, esFanart ? FANART_MAX_TAGS : 6)
+              : esFanart
+                ? ['Fanart']
+                : ['General', 'Debate'],
           likesCount: 0,
           likedBy: [],
           commentsCount: 0,
           createdAt: new Date().toISOString(),
           pinned: false,
-          ...(imageUrl
+          ...(esFanart && fanart
             ? {
-                imageUrl,
-                ...(imageDims
-                  ? { imageWidth: imageDims.width, imageHeight: imageDims.height }
+                kind: 'fanart' as const,
+                fanart: {
+                  original: fanart.original,
+                  medium: fanart.medium,
+                  ...(fanart.source?.trim()
+                    ? { source: fanart.source.trim().slice(0, 120) }
+                    : {}),
+                },
+                images: imagenes,
+                ...(primera
+                  ? {
+                      imageUrl: primera.url,
+                      ...(primera.width && primera.height
+                        ? {
+                            imageWidth: primera.width,
+                            imageHeight: primera.height,
+                          }
+                        : {}),
+                    }
                   : {}),
               }
-            : {}),
+            : imageUrl
+              ? {
+                  imageUrl,
+                  ...(imageDims
+                    ? { imageWidth: imageDims.width, imageHeight: imageDims.height }
+                    : {}),
+                }
+              : {}),
           ...(pollLocal ? { poll: pollLocal } : {}),
-          ...(tierList ? { tierList } : {}),
+          ...(tierList && !esFanart ? { tierList } : {}),
         };
 
         setThreads((prev) => [

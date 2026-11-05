@@ -18,6 +18,10 @@ import {
   X,
   Flag,
   Loader2,
+  Palette,
+  Bookmark,
+  BookmarkCheck,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { AuthorBadge } from '../gamification/AuthorBadge';
@@ -35,7 +39,17 @@ import { ReactionBar } from '../community/ReactionBar';
 import { CommentGif } from '../community/CommentGif';
 import { GifPicker } from '../community/GifPicker';
 import { ReportDialog } from '../community/ReportDialog';
+import { FanartGallery } from '../community/FanartGallery';
+import { FanartImagePicker } from '../community/FanartImagePicker';
 import { StableImage } from '../common/StableImage';
+import { useFanartFeed } from '../../hooks/useFanartFeed';
+import { useFavoriteFanarts } from '../../hooks/useFavoriteFanarts';
+import {
+  FANART_MEDIA_OPTIONS,
+  FANART_TAGS,
+  esEtiquetaFijaDeFanart,
+  etiquetasDeFanart,
+} from '../../data/fanarts';
 import { TierListCard } from '../tierlists/TierListCard';
 import { TierListEditor } from '../tierlists/TierListEditor';
 import { TierListViewer } from '../tierlists/TierListViewer';
@@ -56,7 +70,15 @@ import {
   draftANewPoll,
   type PollDraft,
 } from '../community/PollComposer';
-import { Thread, GifAttachment, NewPollInput, Comment } from '../../types';
+import {
+  Thread,
+  GifAttachment,
+  NewPollInput,
+  Comment,
+  FanartDraft,
+  FanartImage,
+  FanartMedium,
+} from '../../types';
 
 interface HomeFeedProps {
   onGoToAnime?: (slug: string) => void;
@@ -191,6 +213,15 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   // antes de descargarla (ver `StableImage`).
   const [threadImageUrl, setThreadImageUrl] = useState('');
   const [threadImageDims, setThreadImageDims] = useState<ImageDims | null>(null);
+  // Formulario de Fanart. Se reutiliza el mismo hilo; solo cambia
+  // la ficha artística y se permiten varias imágenes.
+  const [tipoPublicacion, setTipoPublicacion] = useState<'hilo' | 'fanart'>('hilo');
+  const [fanartImages, setFanartImages] = useState<FanartImage[]>([]);
+  const [fanartSource, setFanartSource] = useState('');
+  const [fanartOriginal, setFanartOriginal] = useState(true);
+  const [fanartMedium, setFanartMedium] = useState<FanartMedium>('digital');
+  const [fanartQuickTags, setFanartQuickTags] = useState<string[]>([]);
+  const [errorFanart, setErrorFanart] = useState('');
   const [commentImageUrl, setCommentImageUrl] = useState('');
   const [commentImageDims, setCommentImageDims] = useState<ImageDims | null>(null);
 
@@ -291,10 +322,48 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   );
 
   // Sorting
-  const [feedSort, setFeedSort] = useState<'recent' | 'popular'>('recent');
+  const [feedSort, setFeedSort] = useState<'recent' | 'popular' | 'fanarts'>('recent');
+
+  // Subfiltros de la pestaña Fanarts. La consulta se hace en el
+  // servidor; no se reutiliza `allThreads` ni se descarga el feed.
+  const [fanartSort, setFanartSort] = useState<'recent' | 'popular'>('recent');
+  const [fanartTag, setFanartTag] = useState<string | null>(null);
+  const [fanartGuardados, setFanartGuardados] = useState(false);
+  const [fanartRefresh, setFanartRefresh] = useState(0);
+  const favoritosFanart = useFavoriteFanarts(
+    currentUser?.uid,
+    feedSort === 'fanarts',
+  );
+  const feedFanarts = useFanartFeed({
+    enabled: feedSort === 'fanarts',
+    sort: fanartSort,
+    tag: fanartGuardados ? null : fanartTag,
+    savedOnly: fanartGuardados,
+    savedIds: favoritosFanart.ids,
+    refreshToken: fanartRefresh,
+  });
+  // Al pulsar Fanarts con una categoría activa se quita el filtro.
+  // Esta referencia evita que el efecto de abajo interprete ese
+  // mismo cambio como «la persona ha elegido una categoría» y
+  // devuelva el feed a Recientes.
+  const categoriaFanartIgnoradaRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedCategoryFilter) {
+      categoriaFanartIgnoradaRef.current = null;
+      return;
+    }
+    if (
+      feedSort === 'fanarts' &&
+      categoriaFanartIgnoradaRef.current !== selectedCategoryFilter
+    ) {
+      setFeedSort('recent');
+    }
+  }, [selectedCategoryFilter, feedSort]);
 
   // El feed normal usa la página reciente. Filtrar por categoría o
-  // ordenar por popularidad necesita el histórico completo.
+  // ordenar por popularidad necesita el histórico completo. Fanarts
+  // NO: tiene su propia consulta paginada.
   useEffect(() => {
     if (selectedCategoryFilter || feedSort === 'popular') ensureAllThreads();
   }, [selectedCategoryFilter, feedSort, ensureAllThreads]);
@@ -340,6 +409,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
     const { threadId, commentId } = focusTarget;
 
+    // Abrir un hilo concreto (aviso, perfil, enlace compartido) es
+    // una tarea del feed normal: si se venía de Fanarts, se cambia
+    // a Recientes para que el hilo enfocado se pinte y se pueda
+    // colocar el scroll.
+    setFeedSort('recent');
     setExpandedThreadId(threadId);
     setReplyingToCommentId(null);
     setHighlightThreadId(threadId);
@@ -466,12 +540,27 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
   const handleCreateThreadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !body.trim()) return;
+    const esFanart = tipoPublicacion === 'fanart';
 
-    const tags = tagsInput
+    if (!title.trim()) return;
+    if (!esFanart && !body.trim()) return;
+    if (esFanart && fanartImages.length === 0) {
+      setErrorFanart('Añade al menos una imagen para publicar el fanart.');
+      return;
+    }
+    setErrorFanart('');
+
+    const tagsBase = tagsInput
       .split(',')
       .map((t) => t.trim().replace(/^#/, ''))
       .filter(Boolean);
+    const tags = esFanart
+      ? etiquetasDeFanart(
+          [...fanartQuickTags, ...tagsBase],
+          fanartMedium,
+          fanartOriginal,
+        )
+      : tagsBase;
 
     // La encuesta solo se manda si el interruptor está activo Y
     // tiene pregunta: si el usuario lo encendió y luego lo dejó a
@@ -479,7 +568,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     // romperse.
     let poll: NewPollInput | undefined;
 
-    if (conEncuesta && borradorEncuesta.question.trim()) {
+    if (!esFanart && conEncuesta && borradorEncuesta.question.trim()) {
       poll = draftANewPoll(borradorEncuesta);
 
       // Se valida AQUÍ, antes de escribir, para poder enseñar el
@@ -498,7 +587,26 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       }
     }
 
-    const success = await createThread(title, body, category, tags, threadImageUrl, poll, threadImageDims, tierAdjunta);
+    const fanart: FanartDraft | undefined = esFanart
+      ? {
+          images: fanartImages,
+          source: fanartSource,
+          original: fanartOriginal,
+          medium: fanartMedium,
+        }
+      : undefined;
+
+    const success = await createThread(
+      title,
+      body,
+      category,
+      tags,
+      threadImageUrl,
+      poll,
+      threadImageDims,
+      esFanart ? null : tierAdjunta,
+      fanart,
+    );
 
     if (success) {
       setTitle('');
@@ -510,7 +618,25 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       setConEncuesta(false);
       setBorradorEncuesta(POLL_VACIO);
       setErrorEncuesta('');
+      setFanartImages([]);
+      setFanartSource('');
+      setFanartOriginal(true);
+      setFanartMedium('digital');
+      setFanartQuickTags([]);
+      setErrorFanart('');
+      setTipoPublicacion('hilo');
       setShowCreateThread(false);
+
+      if (esFanart) {
+        // La consulta de Fanarts no tiene listener: se recarga la
+        // primera página para que la publicación recién creada
+        // aparezca sin duplicar lecturas ni abrir escuchas.
+        setFanartSort('recent');
+        setFanartTag(null);
+        setFanartGuardados(false);
+        setFeedSort('fanarts');
+        setFanartRefresh((n) => n + 1);
+      }
     } else {
       // Si el hilo no se publicó y la encuesta era válida, casi
       // siempre es que no hay sesión: el propio contexto ya ha
@@ -626,8 +752,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   };
 
   // Filter & sort
+  const esFanarts = feedSort === 'fanarts';
   const usaHistoricoCompleto =
-    Boolean(selectedCategoryFilter) || feedSort === 'popular';
+    !esFanarts && (Boolean(selectedCategoryFilter) || feedSort === 'popular');
 
   // En vez de cambiar todo el feed al histórico cuando llega un
   // aviso, se añade SOLO el hilo enfocado a la página reciente. Así
@@ -647,21 +774,36 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     fuenteHilos = threads;
   }
 
-  let filtered = [...fuenteHilos];
-  if (selectedCategoryFilter) {
+  let filtered: Thread[] = esFanarts ? feedFanarts.items : [...fuenteHilos];
+  if (!esFanarts && selectedCategoryFilter) {
     filtered = filtered.filter((t) => t.categoryId === selectedCategoryFilter);
   }
 
-  if (feedSort === 'popular') {
-    filtered.sort((a, b) => b.likesCount - a.likesCount);
-  } else {
-    // Recent first, pinned stay on top
-    filtered.sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+  if (!esFanarts) {
+    if (feedSort === 'popular') {
+      filtered.sort((a, b) => b.likesCount - a.likesCount);
+    } else {
+      // Recent first, pinned stay on top
+      filtered.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
   }
+
+  // Etiquetas libres que ya se ven en la página, para ofrecer
+  // «otras etiquetas» sin tener que cargar el feed entero. Al
+  // pulsarlas se hace una consulta al servidor, no un filtro local.
+  const etiquetasDisponibles = useMemo(() => {
+    const vistas = new Set<string>();
+    for (const hilo of feedFanarts.items) {
+      for (const tag of hilo.tags ?? []) {
+        if (!esEtiquetaFijaDeFanart(tag)) vistas.add(tag);
+      }
+    }
+    return [...vistas].slice(0, 8);
+  }, [feedFanarts.items]);
 
   // ======================================================
   // REACCIONES DE LO QUE SE ESTÁ VIENDO
@@ -766,9 +908,27 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             <TrendingUp size={14} />
             <span>Más Populares</span>
           </button>
+          <button
+            onClick={() => {
+              if (selectedCategoryFilter) {
+                categoriaFanartIgnoradaRef.current = selectedCategoryFilter;
+                onClearCategoryFilter?.();
+              }
+              setFanartGuardados(false);
+              setFeedSort('fanarts');
+            }}
+            className={`chat-boton flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+              feedSort === 'fanarts'
+                ? 'border border-violet-400/25 bg-violet-500/15 text-violet-200'
+                : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04]'
+            }`}
+          >
+            <Palette size={14} />
+            <span>Fanarts</span>
+          </button>
         </div>
 
-        {selectedCategoryFilter && (
+        {selectedCategoryFilter && !esFanarts && (
           <div className="flex items-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-xs text-violet-200">
             <span>Filtrado por categoría activa</span>
             <button
@@ -783,7 +943,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
         <button
           onClick={() => {
             const ok = requireAuth('crear un hilo nuevo', () => setShowCreateThread(true));
-            if (ok) setShowCreateThread(!showCreateThread);
+            if (ok) {
+              if (!showCreateThread) {
+                setTipoPublicacion(
+                  feedSort === 'fanarts' ? 'fanart' : 'hilo',
+                );
+              }
+              setShowCreateThread(!showCreateThread);
+            }
           }}
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
         >
@@ -791,6 +958,136 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           <span>Abrir Nuevo Hilo</span>
         </button>
       </div>
+
+      {/* 2b. SUBFILTROS DE FANARTS */}
+      {esFanarts && (
+        <div className="rounded-2xl border border-violet-500/15 bg-zinc-900/45 p-3 sm:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-violet-200">
+              <Palette size={14} className="text-violet-300" />
+              <span>Fanarts</span>
+            </div>
+
+            <div className="flex items-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
+              <button
+                type="button"
+                onClick={() => setFanartSort('recent')}
+                className={`chat-boton flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                  fanartSort === 'recent'
+                    ? 'bg-violet-500/15 text-violet-200'
+                    : 'text-zinc-500 hover:text-zinc-200'
+                }`}
+              >
+                <Clock size={12} />
+                Recientes
+              </button>
+              <button
+                type="button"
+                onClick={() => setFanartSort('popular')}
+                className={`chat-boton flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                  fanartSort === 'popular'
+                    ? 'bg-violet-500/15 text-violet-200'
+                    : 'text-zinc-500 hover:text-zinc-200'
+                }`}
+              >
+                <TrendingUp size={12} />
+                Populares
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setFanartGuardados(false);
+                setFanartTag(null);
+              }}
+              className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                !fanartGuardados && !fanartTag
+                  ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
+                  : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:text-violet-200'
+              }`}
+            >
+              Todas
+            </button>
+
+            {FANART_TAGS.map((etiqueta) => {
+              const activa = !fanartGuardados && fanartTag === etiqueta.tag;
+              return (
+                <button
+                  key={etiqueta.id}
+                  type="button"
+                  onClick={() => {
+                    setFanartGuardados(false);
+                    setFanartTag(activa ? null : etiqueta.tag);
+                  }}
+                  className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                    activa
+                      ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
+                      : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:text-violet-200'
+                  }`}
+                >
+                  {etiqueta.label}
+                </button>
+              );
+            })}
+
+            {etiquetasDisponibles.map((etiqueta) => {
+              const activa = !fanartGuardados && fanartTag === etiqueta;
+              return (
+                <button
+                  key={`extra-${etiqueta}`}
+                  type="button"
+                  onClick={() => {
+                    setFanartGuardados(false);
+                    setFanartTag(activa ? null : etiqueta);
+                  }}
+                  className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                    activa
+                      ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
+                      : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:text-violet-200'
+                  }`}
+                >
+                  {etiqueta}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!currentUser) {
+                  requireAuth('guardar fanarts en favoritos');
+                  return;
+                }
+                setFanartTag(null);
+                setFanartGuardados((prev) => !prev);
+              }}
+              className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                fanartGuardados
+                  ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
+                  : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:text-violet-200'
+              }`}
+            >
+              <Bookmark size={11} />
+              Guardados
+              {favoritosFanart.ids.length > 0 && (
+                <span className="font-mono text-[10px] text-zinc-500">
+                  {favoritosFanart.ids.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {fanartGuardados && favoritosFanart.ids.length === 0 && (
+            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-zinc-500">
+              <Bookmark size={11} />
+              Todavía no has guardado ningún fanart.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* 3. FORMULARIO CREAR HILO */}
       {showCreateThread && (
@@ -801,7 +1098,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Sparkles size={16} className="text-violet-400" />
-              <span>Publicar Nuevo Hilo en Geekapoo</span>
+              <span>
+                {tipoPublicacion === 'fanart'
+                  ? 'Publicar un Fanart'
+                  : 'Publicar Nuevo Hilo en Geekapoo'}
+              </span>
             </h3>
             <button
               type="button"
@@ -813,15 +1114,55 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           </div>
 
           <div className="space-y-4">
+            {/* Tipo de publicación. Fanart reutiliza el mismo hilo:
+                solo cambia la ficha y permite varias imágenes. */}
+            <div>
+              <span className="mb-1 block text-xs font-medium text-zinc-300">
+                Tipo de publicación
+              </span>
+              <div className="inline-flex rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
+                <button
+                  type="button"
+                  onClick={() => setTipoPublicacion('hilo')}
+                  className={`chat-boton flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                    tipoPublicacion === 'hilo'
+                      ? 'bg-violet-500/15 text-violet-200'
+                      : 'text-zinc-500 hover:text-zinc-200'
+                  }`}
+                >
+                  <MessageSquare size={12} />
+                  Hilo normal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTipoPublicacion('fanart')}
+                  className={`chat-boton flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                    tipoPublicacion === 'fanart'
+                      ? 'bg-violet-500/15 text-violet-200'
+                      : 'text-zinc-500 hover:text-zinc-200'
+                  }`}
+                >
+                  <Palette size={12} />
+                  Fanart
+                </button>
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">
-                Título del Hilo o Debate
+                {tipoPublicacion === 'fanart'
+                  ? 'Título de la obra'
+                  : 'Título del Hilo o Debate'}
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="¿Qué opináis del final de...? / Debate sobre animación en..."
+                placeholder={
+                  tipoPublicacion === 'fanart'
+                    ? 'Ej: Kaguya en la luna / Mi personaje original'
+                    : '¿Qué opináis del final de...? / Debate sobre animación en...'
+                }
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                 required
               />
@@ -829,18 +1170,38 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">Categoría</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-base sm:text-xs text-white focus:border-violet-500 focus:outline-none"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                {tipoPublicacion === 'fanart' ? (
+                  <>
+                    <label className="block text-xs font-medium text-zinc-300 mb-1">
+                      Obra o personaje relacionado (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={fanartSource}
+                      onChange={(e) => setFanartSource(e.target.value)}
+                      placeholder="Ej: Frieren, Genshin Impact, OC propio..."
+                      maxLength={120}
+                      className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label className="block text-xs font-medium text-zinc-300 mb-1">
+                      Categoría
+                    </label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-base sm:text-xs text-white focus:border-violet-500 focus:outline-none"
+                    >
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
               </div>
 
               <div>
@@ -851,40 +1212,159 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   type="text"
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
-                  placeholder="Kaguya, Manga, Spoilers, Debate2026"
+                  placeholder={
+                    tipoPublicacion === 'fanart'
+                      ? 'Personaje, ambientación, técnica...'
+                      : 'Kaguya, Manga, Spoilers, Debate2026'
+                  }
                   className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                 />
               </div>
             </div>
 
+            {tipoPublicacion === 'fanart' && (
+              <>
+                <div>
+                  <span className="mb-1 block text-xs font-medium text-zinc-300">
+                    Técnica
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {FANART_MEDIA_OPTIONS.map((opcion) => (
+                      <button
+                        key={opcion.id}
+                        type="button"
+                        onClick={() => setFanartMedium(opcion.id)}
+                        className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                          fanartMedium === opcion.id
+                            ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
+                            : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:text-violet-200'
+                        }`}
+                      >
+                        {opcion.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="mb-1 block text-xs font-medium text-zinc-300">
+                    ¿Es una obra original o un homenaje?
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setFanartOriginal(true)}
+                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                        fanartOriginal
+                          ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
+                          : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:text-violet-200'
+                      }`}
+                    >
+                      Obra original
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFanartOriginal(false)}
+                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                        !fanartOriginal
+                          ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
+                          : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:text-violet-200'
+                      }`}
+                    >
+                      Homenaje / Fanart
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="mb-1 block text-xs font-medium text-zinc-300">
+                    Etiquetas rápidas
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {FANART_TAGS.filter((t) => t.id !== 'original').map((etiqueta) => {
+                      const activa = fanartQuickTags.includes(etiqueta.tag);
+                      return (
+                        <button
+                          key={etiqueta.id}
+                          type="button"
+                          onClick={() =>
+                            setFanartQuickTags((prev) =>
+                              activa
+                                ? prev.filter((t) => t !== etiqueta.tag)
+                                : [...prev, etiqueta.tag],
+                            )
+                          }
+                          className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                            activa
+                              ? 'border-violet-400/40 bg-violet-500/15 text-violet-100'
+                              : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:border-violet-400/30 hover:text-violet-200'
+                          }`}
+                        >
+                          {etiqueta.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-1 text-[10px] text-zinc-600">
+                    La técnica y «Ilustración original» se añaden solas. Puedes
+                    escribir más etiquetas arriba.
+                  </p>
+                </div>
+              </>
+            )}
+
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">
-                Contenido / Argumentación
+                {tipoPublicacion === 'fanart'
+                  ? 'Descripción (opcional)'
+                  : 'Contenido / Argumentación'}
               </label>
               <textarea
                 rows={4}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Desarrolla tu punto de vista, teorías o curiosidades..."
+                placeholder={
+                  tipoPublicacion === 'fanart'
+                    ? 'Cuéntanos qué te inspiró, técnica, proceso...'
+                    : 'Desarrolla tu punto de vista, teorías o curiosidades...'
+                }
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none leading-relaxed"
-                required
+                required={tipoPublicacion !== 'fanart'}
               />
             </div>
 
             <div>
               <span className="mb-1 block text-xs font-medium text-zinc-300">
-                Imagen (opcional)
+                {tipoPublicacion === 'fanart'
+                  ? 'Imágenes del fanart'
+                  : 'Imagen (opcional)'}
               </span>
-              <AttachImage
-                uid={currentUser?.uid}
-                value={threadImageUrl}
-                onChange={setThreadImageUrl}
-                onDims={setThreadImageDims}
-                size="md"
-              />
+              {tipoPublicacion === 'fanart' ? (
+                <FanartImagePicker
+                  uid={currentUser?.uid}
+                  images={fanartImages}
+                  onChange={setFanartImages}
+                />
+              ) : (
+                <AttachImage
+                  uid={currentUser?.uid}
+                  value={threadImageUrl}
+                  onChange={setThreadImageUrl}
+                  onDims={setThreadImageDims}
+                  size="md"
+                />
+              )}
             </div>
 
-            {/* ── Encuesta (opcional) ─────────────────── */}
+            {errorFanart && (
+              <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">
+                {errorFanart}
+              </p>
+            )}
+
+            {tipoPublicacion !== 'fanart' && (
+              <>
+                {/* ── Encuesta (opcional) ─────────────────── */}
             <div>
               {conEncuesta ? (
                 <>
@@ -957,6 +1437,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 </button>
               )}
             </div>
+              </>
+            )}
 
             <div className="flex justify-end gap-2 pt-2">
               <button
@@ -970,7 +1452,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 type="submit"
                 className="chat-boton rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all"
               >
-                Publicar Hilo
+                {tipoPublicacion === 'fanart' ? 'Publicar Fanart' : 'Publicar Hilo'}
               </button>
             </div>
           </div>
@@ -983,6 +1465,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           const isLiked = currentUser ? thread.likedBy?.includes(currentUser.uid) : false;
           const isExpanded = expandedThreadId === thread.id;
           const threadComments = isExpanded ? comentariosHiloAbierto : [];
+          const esFanartHilo = thread.kind === 'fanart';
+          const fanartGuardado = favoritosFanart.esGuardado(thread.id);
 
           return (
             <article
@@ -1053,8 +1537,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   </div>
                 </div>
 
-                <span className="ml-auto max-w-full break-words rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-right text-[11px] font-medium text-violet-300">
-                  {thread.categoryName}
+                <span className="ml-auto flex max-w-full items-center gap-1.5 break-words rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-right text-[11px] font-medium text-violet-300">
+                  {esFanartHilo && <Palette size={11} className="shrink-0" />}
+                  <span>{thread.categoryName}</span>
                 </span>
               </div>
 
@@ -1067,9 +1552,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     ensanchaba la tarjeta más que la pantalla y la
                     página se podía mover de lado, con el navbar
                     incluido. */}
-                <p className="mt-2 text-[15px] sm:text-sm leading-relaxed text-zinc-300 whitespace-pre-line break-words">
-                  {thread.body}
-                </p>
+                {thread.body && (
+                  <p className="mt-2 text-[15px] sm:text-sm leading-relaxed text-zinc-300 whitespace-pre-line break-words">
+                    {thread.body}
+                  </p>
+                )}
 
                 {/* Imagen adjunta al hilo.
                     Se enseña ENTERA y con su proporción, sea la que
@@ -1088,7 +1575,13 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     grandes llenan el ancho igualmente, y las pequeñas
                     se quedan a su tamaño en vez de estirarse borrosas
                     hasta el borde. */}
-                {thread.imageUrl && (
+                {thread.kind === 'fanart' && thread.images && thread.images.length > 0 ? (
+                  <FanartGallery
+                    images={thread.images}
+                    alt={`Fanart: ${thread.title}`}
+                    eager={hiloEnfocado === thread.id}
+                  />
+                ) : thread.imageUrl ? (
                   <StableImage
                     src={thread.imageUrl}
                     alt="Imagen adjunta al hilo"
@@ -1099,6 +1592,24 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     wrapperClassName="mt-3 overflow-hidden rounded-2xl"
                     eager={hiloEnfocado === thread.id}
                   />
+                ) : null}
+
+                {thread.kind === 'fanart' && thread.fanart && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+                    <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-0.5 font-semibold text-violet-200">
+                      {thread.fanart.original ? 'Obra original' : 'Homenaje / Fanart'}
+                    </span>
+                    {thread.fanart.source && (
+                      <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-2.5 py-0.5 text-zinc-400">
+                        Basado en {thread.fanart.source}
+                      </span>
+                    )}
+                    <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-2.5 py-0.5 text-zinc-400">
+                      {FANART_MEDIA_OPTIONS.find(
+                        (opcion) => opcion.id === thread.fanart?.medium,
+                      )?.label ?? 'Fanart'}
+                    </span>
+                  </div>
                 )}
 
                 {/* Encuesta, si el autor añadió una al publicar */}
@@ -1214,6 +1725,50 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 </div>
 
                   <div className="flex items-center gap-4">
+                  {/* Guardar fanart. Solo aparece en publicaciones
+                      de tipo Fanart; el estado se lee de la colección
+                      personal y se actualiza de forma optimista. */}
+                  {esFanartHilo && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const ok = requireAuth('guardar este fanart');
+                        if (!ok) return;
+                        void favoritosFanart
+                          .alternar(thread.id)
+                          .then((guardado) =>
+                            avisar(
+                              guardado
+                                ? 'Fanart guardado en tus favoritos.'
+                                : 'Fanart quitado de tus favoritos.',
+                            ),
+                          )
+                          .catch(() =>
+                            avisar('No se pudo actualizar tus favoritos.', 4000),
+                          );
+                      }}
+                      className={`flex items-center gap-1.5 text-xs transition-colors ${
+                        fanartGuardado
+                          ? 'text-violet-300'
+                          : 'text-zinc-400 hover:text-violet-300'
+                      }`}
+                      title={
+                        fanartGuardado
+                          ? 'Quitar de fanarts guardados'
+                          : 'Guardar este fanart'
+                      }
+                    >
+                      {fanartGuardado ? (
+                        <BookmarkCheck size={14} />
+                      ) : (
+                        <Bookmark size={14} />
+                      )}
+                      <span className="hidden sm:inline">
+                        {fanartGuardado ? 'Guardado' : 'Guardar'}
+                      </span>
+                    </button>
+                  )}
+
                   {/* Share Button */}
                   <button
                     onClick={() => handleShare(thread)}
@@ -1756,7 +2311,47 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           );
         })}
 
-        {!usaHistoricoCompleto && hasMoreThreads && (
+        {esFanarts && feedFanarts.loading && filtered.length === 0 && (
+          <div className="flex items-center justify-center gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-8 text-xs text-zinc-500">
+            <Loader2 size={14} className="animate-spin text-violet-400" />
+            Cargando fanarts...
+          </div>
+        )}
+
+        {esFanarts && !feedFanarts.loading && feedFanarts.error && (
+          <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-xs text-red-300">
+            {feedFanarts.error}
+          </p>
+        )}
+
+        {esFanarts &&
+          !feedFanarts.loading &&
+          !feedFanarts.error &&
+          filtered.length === 0 &&
+          (!fanartGuardados || favoritosFanart.ids.length > 0) && (
+            <div className="rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.02] px-4 py-10 text-center">
+              <ImageIcon size={22} className="mx-auto text-zinc-600" />
+              <p className="mt-2 text-xs text-zinc-500">
+                No hay fanarts con este filtro. ¡Anímate a publicar el primero!
+              </p>
+            </div>
+          )}
+
+        {esFanarts && !fanartGuardados && feedFanarts.hasMore && (
+          <button
+            type="button"
+            onClick={() => void feedFanarts.loadMore()}
+            disabled={feedFanarts.loadingMore}
+            className="chat-boton flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 text-xs font-bold text-zinc-400 transition-colors hover:border-violet-400/40 hover:text-white disabled:opacity-60"
+          >
+            {feedFanarts.loadingMore && (
+              <Loader2 size={13} className="animate-spin" />
+            )}
+            {feedFanarts.loadingMore ? 'Cargando...' : 'Cargar más fanarts'}
+          </button>
+        )}
+
+        {!esFanarts && !usaHistoricoCompleto && hasMoreThreads && (
           <button
             type="button"
             onClick={() => void loadMoreThreads()}

@@ -1841,6 +1841,32 @@ service cloud.firestore {
         allow delete: if isSelf(uid);
       }
 
+      // Fanarts guardados por la persona. El id es el del hilo.
+      //
+      // Se comprueba que el hilo exista y sea de la categoría fija
+      // de Fanart: así no se puede usar la subcolección como una
+      // lista de ids arbitrarios. Solo la lee y la escribe su dueño.
+      match /favoriteFanarts/{threadId} {
+        allow read: if isSelf(uid);
+
+        allow create: if isSelf(uid)
+                      && threadId.size() > 0
+                      && threadId.size() <= 150
+                      && request.resource.data.keys().hasOnly(
+                           ['threadId', 'createdAt'])
+                      && request.resource.data.threadId == threadId
+                      && exists(/databases/$(database)/documents/threads/$(threadId))
+                      && get(/databases/$(database)/documents/threads/$(threadId))
+                           .data.categoryId == 'fanarts';
+
+        allow update: if isSelf(uid)
+                      && request.resource.data.keys().hasOnly(
+                           ['threadId', 'createdAt'])
+                      && request.resource.data.threadId == threadId;
+
+        allow delete: if isSelf(uid);
+      }
+
       // ── NOTIFICACIONES ──────────────────────────────
       //
       // Subcolección del usuario, y no una colección plana: con una
@@ -2736,6 +2762,53 @@ service cloud.firestore {
     // ======================================================
     // FORO
     // ======================================================
+    /**
+     * Una imagen de fanart.
+     *
+     * El SVG y los archivos ejecutables no llegan aquí: Storage
+     * exige un content-type de imagen permitido antes de subirlos.
+     * La regla solo comprueba la forma del documento y que la URL
+     * sea https, para que no se cuele texto arbitrario.
+     */
+    function imagenFanartValida(img) {
+      return img is map
+             && img.keys().hasOnly(['url', 'width', 'height'])
+             && img.url is string
+             && img.url.size() > 0
+             && img.url.size() <= 1000
+             && img.url.matches('^https://.+$')
+             && (!('width' in img)
+                 || (img.width is int
+                     && img.width > 0
+                     && img.width <= 10000))
+             && (!('height' in img)
+                 || (img.height is int
+                     && img.height > 0
+                     && img.height <= 10000))
+             && (('width' in img) == ('height' in img));
+    }
+
+    function imagenesFanartValidas(lista) {
+      return lista is list
+             && lista.size() >= 1
+             && lista.size() <= 6
+             && imagenFanartValida(lista[0])
+             && (lista.size() < 2 || imagenFanartValida(lista[1]))
+             && (lista.size() < 3 || imagenFanartValida(lista[2]))
+             && (lista.size() < 4 || imagenFanartValida(lista[3]))
+             && (lista.size() < 5 || imagenFanartValida(lista[4]))
+             && (lista.size() < 6 || imagenFanartValida(lista[5]));
+    }
+
+    function fanartValido(f) {
+      return f is map
+             && f.keys().hasOnly(['source', 'original', 'medium'])
+             && f.original is bool
+             && f.medium in ['digital', 'traditional', 'mixed']
+             && (!('source' in f)
+                 || (f.source is string && f.source.size() <= 120));
+    }
+
     match /threads/{threadId} {
       allow read: if true;
 
@@ -2788,7 +2861,32 @@ service cloud.firestore {
                             && request.resource.data.likesCount == 0))
                     && (!('commentsCount' in request.resource.data)
                         || (request.resource.data.commentsCount is number
-                            && request.resource.data.commentsCount == 0));
+                            && request.resource.data.commentsCount == 0))
+                    // Fanart: la categoría fija exige la ficha y las
+                    // imágenes. Así un hilo normal no puede colarse
+                    // en la pestaña Fanarts ni al revés.
+                    && (request.resource.data.categoryId != 'fanarts'
+                        || (request.resource.data.kind == 'fanart'
+                            && 'fanart' in request.resource.data
+                            && fanartValido(request.resource.data.fanart)
+                            && 'images' in request.resource.data
+                            && imagenesFanartValidas(request.resource.data.images)
+                            && 'imageUrl' in request.resource.data
+                            && request.resource.data.imageUrl
+                               == request.resource.data.images[0].url
+                            // La consulta de populares ordena por
+                            // `likesCount`; el campo tiene que existir
+                            // desde el primer día.
+                            && 'likesCount' in request.resource.data
+                            && request.resource.data.likesCount == 0
+                            && 'commentsCount' in request.resource.data
+                            && request.resource.data.commentsCount == 0
+                            && 'likedBy' in request.resource.data
+                            && request.resource.data.likedBy is list
+                            && request.resource.data.likedBy.size() == 0))
+                    && (request.resource.data.categoryId == 'fanarts'
+                        || !('kind' in request.resource.data)
+                        || request.resource.data.kind != 'fanart');
 
       allow update: if ((isAdmin() || isModerator())
                         && sinContadoresDeEngagement())

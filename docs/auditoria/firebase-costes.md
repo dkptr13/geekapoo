@@ -655,3 +655,19 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - **Por qué así:** no se debilita la protección del `general`; se evita dejar un canal huérfano que reaparecería si se reutilizara el slug del club. Si el lote falla, no se aplica ningún cambio.
 - **Pruebas:** `tests/firestore.clubs-channels.rules.test.cjs` cubre el borrado conjunto, el rechazo del `general` suelto y el intento de un moderador de colarlo sin borrar el club. Las 36 pruebas del archivo pasan.
 
+## 17. Fanarts dentro del foro (2026-11-05)
+
+- **Modelo:** no hay colección nueva. Un fanart es un hilo de `threads` con `categoryId: 'fanarts'`, `categoryName: 'Fanart'`, `kind: 'fanart'`, `fanart` (obra original/homenaje y técnica) e `images` (1-6 imágenes). La primera imagen se copia en `imageUrl` para que el resto del feed y el perfil sigan funcionando.
+- **Lecturas:** la pestaña Fanarts no usa `allThreads`. Hace una consulta paginada por `categoryId`, con cursor (`startAfter`) y 12 resultados por página (se piden 13 para saber si hay más). Las etiquetas y la popularidad se filtran/ordenan en el servidor. No se abre ningún listener sobre los fanarts: al cambiar de pestaña se dejan de leer.
+- **Guardados:** `users/{uid}/favoriteFanarts/{threadId}`. La lista se carga una vez y solo cuando la pestaña Fanarts está activa; no hay listener. «Guardados» pide los hilos por id en bloques de 10, solo al abrir ese filtro.
+- **Índices nuevos** (`firestore.indexes.json`):
+  - `threads`: `categoryId ASC, likesCount DESC, createdAt DESC` (populares).
+  - `threads`: `categoryId ASC, tags CONTAINS, createdAt DESC` (etiqueta + recientes).
+  - `threads`: `categoryId ASC, tags CONTAINS, likesCount DESC, createdAt DESC` (etiqueta + populares).
+  - El de recientes (`categoryId ASC, createdAt DESC`) ya existía.
+- **Reglas:** la creación de un hilo con `categoryId == 'fanarts'` exige `kind`, `fanart` válido, 1-6 imágenes con URL https y que `imageUrl` sea la primera. Un hilo normal no puede llevar `kind: 'fanart'`. El autor solo puede editar título, cuerpo y etiquetas; las imágenes y la ficha quedan inmutables. Borrar sigue limitado al autor o al equipo, y `isActive()` impide publicar a baneados.
+- **Storage:** se reutiliza `community/{uid}`. Las reglas ya exigen que el `{uid}` sea el de quien sube, que la cuenta no esté baneada, un content-type de imagen permitido y menos de 10 MB. Además, `uploadCommunityImage` comprueba la firma real de los primeros bytes (JPEG, PNG, GIF, WebP o AVIF) antes de subir, para que un ejecutable renombrado no pase solo por el content-type. No se ha relajado nada.
+- **Pruebas:** `tests/firestore.fanarts.rules.test.cjs` (19 pruebas) cubre creación válida, un hilo normal intacto, imágenes vacías/http/excesivas, suplantación, baneados, edición/borrado ajeno y fanarts guardados. `tests/logica.fanarts.ts` cubre las etiquetas automáticas y el tope. `npm run lint` y `npm run build` pasan.
+- **Compatibilidad:** Recientes, Más populares, categorías, hilos normales, encuestas, tier lists, comentarios, reacciones y notificaciones no cambian. Un fanart es un hilo normal con campos extra.
+
+

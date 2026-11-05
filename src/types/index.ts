@@ -881,6 +881,30 @@ export interface Anime {
   commentsCount: number;
 }
 
+/** Técnica principal declarada por quien publica un fanart. */
+export type FanartMedium = 'digital' | 'traditional' | 'mixed';
+
+/** Una imagen de fanart con sus dimensiones originales. */
+export interface FanartImage {
+  url: string;
+  width?: number;
+  height?: number;
+}
+
+/** Ficha artística de una publicación de tipo Fanart. */
+export interface FanartDetails {
+  /** Obra o personaje en el que se inspira, si lo hay. */
+  source?: string;
+  /** `true` = obra original; `false` = homenaje a otra obra. */
+  original: boolean;
+  medium: FanartMedium;
+}
+
+/** Lo que envía el formulario al publicar un fanart. */
+export interface FanartDraft extends FanartDetails {
+  images: FanartImage[];
+}
+
 export interface Thread {
   id: string;
   authorId: string;
@@ -896,6 +920,22 @@ export interface Thread {
   commentsCount: number;
   createdAt: string;
   pinned?: boolean;
+  /**
+   * Marca de las publicaciones de Fanart.
+   *
+   * Los hilos normales NO llevan el campo. Así las consultas
+   * antiguas y las tarjetas siguen funcionando sin migrar nada.
+   * La categoría `fanarts` es la que usa la consulta paginada.
+   */
+  kind?: 'fanart';
+  /** Ficha artística: obra original/homenaje y técnica. */
+  fanart?: FanartDetails;
+  /**
+   * Imágenes del fanart, en orden. La primera también se copia
+   * en `imageUrl` para que el resto del feed y el perfil sigan
+   * funcionando con el campo de siempre.
+   */
+  images?: FanartImage[];
   /** Imagen adjunta, como máximo una por publicación. */
   imageUrl?: string;
   /**

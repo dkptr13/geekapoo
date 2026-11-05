@@ -1,7 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { MessageCircle, Layers, Reply, Heart, ArrowUpRight, Loader2 } from 'lucide-react';
+import {
+  MessageCircle,
+  Layers,
+  Reply,
+  Heart,
+  ArrowUpRight,
+  Loader2,
+  Palette,
+} from 'lucide-react';
 
 import { formatearNumero } from '../../utils/follows';
+import { FANART_CATEGORY_ID } from '../../data/fanarts';
 import { PASO_PERFIL, type PerfilDatos } from '../../types/profile';
 import type { Comment } from '../../types';
 
@@ -180,51 +189,72 @@ export const ProfileContent: React.FC<{
 // ──────────────────────────────────────────────────────────
 
 const FilaHilo: React.FC<{
-  hilo: { id: string; title: string; categoryName?: string; createdAt: string; commentsCount?: number; reactionsTotal?: number; likesCount?: number; imageUrl?: string };
+  hilo: {
+    id: string;
+    title: string;
+    categoryId?: string;
+    categoryName?: string;
+    createdAt: string;
+    commentsCount?: number;
+    reactionsTotal?: number;
+    likesCount?: number;
+    imageUrl?: string;
+  };
   onIrA?: (threadId: string) => void;
-}> = ({ hilo, onIrA }) => (
-  <li>
-    <button
-      type="button"
-      onClick={() => onIrA?.(hilo.id)}
-      disabled={!onIrA}
-      className="chat-boton w-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-left transition-colors hover:border-violet-400/40 hover:bg-white/[0.05] disabled:cursor-default disabled:hover:border-white/[0.06]"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-white">{hilo.title}</h3>
-        {hilo.categoryName && (
-          <span className="shrink-0 rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-medium text-violet-300">
-            {hilo.categoryName}
-          </span>
-        )}
-      </div>
+}> = ({ hilo, onIrA }) => {
+  const esFanart = hilo.categoryId === FANART_CATEGORY_ID;
 
-      <div className="mt-2 flex flex-wrap items-center gap-4 text-[11px] text-zinc-500">
-        <span>
-          {new Date(hilo.createdAt).toLocaleDateString('es-ES', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
-        </span>
-        <span className="flex items-center gap-1 font-mono font-semibold text-pink-400">
-          <Heart size={11} className="fill-pink-500 text-pink-500" />
-          {hilo.likesCount ?? 0}
-        </span>
-        <span className="flex items-center gap-1 font-mono">
-          <MessageCircle size={11} />
-          {hilo.commentsCount ?? 0}
-        </span>
-        {onIrA && (
-          <span className="ml-auto flex items-center gap-1 font-semibold text-violet-400">
-            Ver hilo
-            <ArrowUpRight size={12} />
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => onIrA?.(hilo.id)}
+        disabled={!onIrA}
+        className="chat-boton w-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-left transition-colors hover:border-violet-400/40 hover:bg-white/[0.05] disabled:cursor-default disabled:hover:border-white/[0.06]"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-bold text-white">{hilo.title}</h3>
+          {hilo.categoryName && (
+            <span
+              className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${
+                esFanart
+                  ? 'border-violet-400/30 bg-violet-500/15 text-violet-200'
+                  : 'border-violet-400/20 bg-violet-500/10 text-violet-300'
+              }`}
+            >
+              {esFanart && <Palette size={9} />}
+              {hilo.categoryName}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-4 text-[11px] text-zinc-500">
+          <span>
+            {new Date(hilo.createdAt).toLocaleDateString('es-ES', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
           </span>
-        )}
-      </div>
-    </button>
-  </li>
-);
+          <span className="flex items-center gap-1 font-mono font-semibold text-pink-400">
+            <Heart size={11} className="fill-pink-500 text-pink-500" />
+            {hilo.likesCount ?? 0}
+          </span>
+          <span className="flex items-center gap-1 font-mono">
+            <MessageCircle size={11} />
+            {hilo.commentsCount ?? 0}
+          </span>
+          {onIrA && (
+            <span className="ml-auto flex items-center gap-1 font-semibold text-violet-400">
+              {esFanart ? 'Ver fanart' : 'Ver hilo'}
+              <ArrowUpRight size={12} />
+            </span>
+          )}
+        </div>
+      </button>
+    </li>
+  );
+};
 
 const FilaComentario: React.FC<{
   comentario: Comment;

@@ -58,6 +58,55 @@ function extensionOf(file: File): string {
 }
 
 /**
+ * Comprueba la firma real del archivo, no solo el content-type.
+ *
+ * El navegador puede mentir en `file.type` (o venir vacío si se
+ * renombra un ejecutable). Storage ya rechaza content-types que no
+ * sean de imagen, pero esta comprobación evita que un archivo que
+ * dice ser JPG y no lo es llegue siquiera a subirse. Solo se leen
+ * los primeros 16 bytes.
+ */
+async function firmaDeImagenValida(file: File): Promise<boolean> {
+  const bytes = new Uint8Array(await file.slice(0, 32).arrayBuffer());
+  const ascii = (inicio: number, fin: number): string => {
+    let texto = '';
+    for (let i = inicio; i < fin && i < bytes.length; i += 1) {
+      texto += String.fromCharCode(bytes[i]);
+    }
+    return texto;
+  };
+
+  switch (file.type) {
+    case 'image/jpeg':
+      return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    case 'image/png':
+      return (
+        bytes[0] === 0x89 &&
+        bytes[1] === 0x50 &&
+        bytes[2] === 0x4e &&
+        bytes[3] === 0x47 &&
+        bytes[4] === 0x0d &&
+        bytes[5] === 0x0a &&
+        bytes[6] === 0x1a &&
+        bytes[7] === 0x0a
+      );
+    case 'image/gif':
+      return ascii(0, 4) === 'GIF8';
+    case 'image/webp':
+      return ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP';
+    case 'image/avif': {
+      const cabecera = ascii(0, bytes.length);
+      return (
+        ascii(4, 8) === 'ftyp' &&
+        (cabecera.includes('avif') || cabecera.includes('avis'))
+      );
+    }
+    default:
+      return false;
+  }
+}
+
+/**
  * Si el archivo es un GIF (o tiene pinta de serlo).
  *
  * Se usa en TODOS los puntos de subida para decidir si abrir
@@ -161,7 +210,13 @@ export async function uploadCommunityImage(file: File, uid: string): Promise<str
     throw new Error('Necesitas iniciar sesión para adjuntar una imagen.');
   }
 
-  const stamp = Date.now();
+  if (!(await firmaDeImagenValida(file))) {
+    throw new Error(
+      'El archivo no parece una imagen válida. Usa JPG, PNG, WebP, GIF o AVIF de verdad.',
+    );
+  }
+
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const path = `community/${uid}/${stamp}-${sanitizeName(file.name)}`;
 
   const target = storageRef(storage, path);

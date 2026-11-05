@@ -13,10 +13,23 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../lib/firebase';
+import {
+  FANART_CATEGORY_ID,
+  FANART_CATEGORY_NAME,
+  FANART_MAX_IMAGES,
+  etiquetasDeFanart,
+} from '../data/fanarts';
 import type { WithId } from './firestoreUtils';
 import { normalizarPoll } from './polls';
 import { dimsValidas, type ImageDims } from '../utils/imagenes';
-import type { NewPollInput, Poll, Thread, TierListRef } from '../types';
+import type {
+  FanartDraft,
+  FanartImage,
+  NewPollInput,
+  Poll,
+  Thread,
+  TierListRef,
+} from '../types';
 
 // ======================================================
 // HILOS DEL FORO
@@ -29,6 +42,40 @@ const LIMITS = {
   body: 10000,
   tags: 6,
 };
+
+/**
+ * Valida y normaliza las imágenes de un fanart antes de escribir.
+ *
+ * La regla de Firestore vuelve a comprobar la forma; aquí se da un
+ * error legible y se descartan dimensiones corruptas sin impedir la
+ * publicación. Las URLs tienen que ser https y las rutas de Storage
+ * las valida el propio Storage al subir.
+ */
+function imagenesValidasFanart(images: FanartImage[]): FanartImage[] {
+  if (!Array.isArray(images) || images.length < 1) {
+    throw new Error('Añade al menos una imagen para publicar el fanart.');
+  }
+  if (images.length > FANART_MAX_IMAGES) {
+    throw new Error(`Puedes subir como máximo ${FANART_MAX_IMAGES} imágenes.`);
+  }
+
+  return images.map((imagen) => {
+    const url = typeof imagen.url === 'string' ? imagen.url.trim() : '';
+    if (!/^https:\/\//i.test(url) || url.length > 1000) {
+      throw new Error('Una de las imágenes no tiene una URL válida.');
+    }
+
+    if (dimsValidas(imagen.width, imagen.height)) {
+      return {
+        url,
+        width: Math.floor(imagen.width as number),
+        height: Math.floor(imagen.height as number),
+      };
+    }
+
+    return { url };
+  });
+}
 
 export interface NewThreadInput {
   authorId: string;
@@ -61,6 +108,12 @@ export interface NewThreadInput {
   /** Tier list adjunta (solo referencia: vive en su documento). */
   tierList?: TierListRef | null;
   /**
+   * Si viene, la publicación es un Fanart: se fuerza la categoría
+   * fija, se guardan las imágenes y los datos artísticos, y el
+   * cuerpo puede quedar vacío.
+   */
+  fanart?: FanartDraft;
+  /**
    * Encuesta opcional.
    *
    * Se VALIDA y se normaliza aquí, no en el componente: el
@@ -84,15 +137,29 @@ export interface NewThreadInput {
 export async function createThread(input: NewThreadInput): Promise<string> {
   const title = input.title.trim();
   const body = input.body.trim();
+  const esFanart = Boolean(input.fanart);
 
   if (!title) throw new Error('El título no puede estar vacío.');
-  if (!body) throw new Error('El mensaje no puede estar vacío.');
+  if (!body && !esFanart) throw new Error('El mensaje no puede estar vacío.');
   if (title.length > LIMITS.title) {
     throw new Error(`El título no puede superar los ${LIMITS.title} caracteres.`);
   }
   if (body.length > LIMITS.body) {
     throw new Error(`El mensaje no puede superar los ${LIMITS.body} caracteres.`);
   }
+
+  const imagenesFanart = esFanart ? imagenesValidasFanart(input.fanart!.images) : [];
+  const categoryId = esFanart ? FANART_CATEGORY_ID : input.categoryId;
+  const categoryName = esFanart ? FANART_CATEGORY_NAME : input.categoryName;
+  const tags = esFanart
+    ? etiquetasDeFanart(
+        input.tags.length > 0 ? input.tags : ['Fanart'],
+        input.fanart!.medium,
+        input.fanart!.original,
+      )
+    : input.tags.length > 0
+      ? input.tags.slice(0, LIMITS.tags)
+      : ['General', 'Debate'];
 
   const ref = doc(collection(db, THREADS));
 
@@ -108,17 +175,45 @@ export async function createThread(input: NewThreadInput): Promise<string> {
     authorAvatar: input.authorAvatar,
     title,
     body,
-    categoryId: input.categoryId,
-    categoryName: input.categoryName,
-    tags: input.tags.length > 0 ? input.tags.slice(0, LIMITS.tags) : ['General', 'Debate'],
+    categoryId,
+    categoryName,
+    tags,
     pinned: false,
     createdAt: serverTimestamp(),
   };
 
+  if (esFanart) {
+    const fanart = input.fanart!;
+    const primera = imagenesFanart[0];
+
+    payload.kind = 'fanart';
+    payload.fanart = {
+      original: fanart.original,
+      medium: fanart.medium,
+      ...(fanart.source?.trim()
+        ? { source: fanart.source.trim().slice(0, 120) }
+        : {}),
+    };
+    payload.images = imagenesFanart;
+    payload.imageUrl = primera.url;
+    if (primera.width && primera.height) {
+      payload.imageWidth = primera.width;
+      payload.imageHeight = primera.height;
+    }
+
+    // La consulta de «más populares» ordena por `likesCount`. Si el
+    // campo no existiera hasta el primer me gusta, la publicación
+    // no saldría en esa pestaña. El servidor seguirá siendo quien
+    // mueva los contadores.
+    payload.likesCount = 0;
+    payload.likedBy = [];
+    payload.commentsCount = 0;
+  }
+
   // Solo se guarda el campo si hay imagen, para no dejar un
   // imageUrl vacío en los hilos sin foto. Las dimensiones van
   // con ella, validadas: reservan el sitio sin tocar el archivo.
-  if (input.imageUrl) {
+  if (!esFanart && input.imageUrl) {
     payload.imageUrl = input.imageUrl;
     const dims = input.imageDims;
     if (dims && dimsValidas(dims.width, dims.height)) {
@@ -149,9 +244,9 @@ export async function createThread(input: NewThreadInput): Promise<string> {
 
   batch.set(ref, payload);
 
-  if (input.categoryId && input.categoryInFirestore !== false) {
+  if (!esFanart && categoryId && input.categoryInFirestore !== false) {
     batch.set(
-      doc(db, 'categories', input.categoryId),
+      doc(db, 'categories', categoryId),
       { threadsCount: increment(1) },
       { merge: true },
     );
