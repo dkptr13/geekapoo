@@ -196,7 +196,14 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                           (e.target as HTMLImageElement).src = PLACEHOLDER;
                         }}
                       />
-                      <span className="font-semibold text-white">@{u.username}</span>
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-white">
+                          {u.displayName || u.username}
+                        </p>
+                        <p className="truncate font-mono text-[10px] text-zinc-500">
+                          @{u.username}
+                        </p>
+                      </div>
                       {isMe && (
                         <span className="rounded border border-violet-400/20 bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-bold text-violet-200">
                           TÚ

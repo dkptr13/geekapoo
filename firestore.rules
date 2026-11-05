@@ -1475,6 +1475,30 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ======================================================
+    // RESERVA DE NOMBRES DE USUARIO
+    // ======================================================
+    //
+    // El id del documento ES el identificador normalizado. Solo lo
+    // escriben las Cloud Functions y la migración con el Admin SDK;
+    // el cliente únicamente puede consultar si un nombre está libre.
+    //
+    // `get` y `list` cerrados: el formulario de registro consulta la
+    // disponibilidad por la callable `comprobarUsername`, que no
+    // revela el directorio de identificadores.
+    match /usernames/{username} {
+      allow get, list: if false;
+      allow write: if false;
+    }
+
+    // Identificadores antiguos que la migración cambió. Se usan para
+    // resolver menciones ya escritas. El cliente no los lee ni los
+    // escribe.
+    match /usernameAliases/{alias} {
+      allow get, list: if false;
+      allow write: if false;
+    }
+
     match /users/{uid} {
       allow read: if isSignedIn();
 
@@ -1494,7 +1518,8 @@ service cloud.firestore {
                           // enseñaría a todo el mundo.
                           ['email', 'isBanned', 'chatApariencia',
                            'regionPreferida', 'profileVisibility',
-                           'allowChatRequests', 'showActivity'])
+                           'allowChatRequests', 'showActivity',
+                           'usernameAliases'])
                     // La antigüedad alimenta la medalla de veterano
                     // (`antiguedadDias` en Functions). Si el cliente
                     // pudiera elegir la fecha, bastaría con nacer con
@@ -1502,6 +1527,21 @@ service cloud.firestore {
                     // valor aceptado es el reloj del servidor.
                     && 'createdAt' in request.resource.data
                     && request.resource.data.createdAt == request.time
+                    // Identidad: el nombre de usuario tiene que venir
+                    // normalizado y con una reserva hecha por la
+                    // Cloud Function para ESTE uid. La comprobación de
+                    // disponibilidad del formulario no reserva nada.
+                    && request.resource.data.username is string
+                    && request.resource.data.username
+                       == request.resource.data.username.lower()
+                    && request.resource.data.username
+                       .matches('^[a-z0-9_]{3,20}$')
+                    && exists(/databases/$(database)/documents/usernames/$(request.resource.data.username))
+                    && get(/databases/$(database)/documents/usernames/$(request.resource.data.username))
+                         .data.uid == uid
+                    && request.resource.data.displayName is string
+                    && request.resource.data.displayName.trim().size() >= 2
+                    && request.resource.data.displayName.size() <= 30
                     && (isAdmin()
                     || (isSelf(uid)
                         // El rol NUNCA se lo pone el cliente: si no
@@ -1535,7 +1575,16 @@ service cloud.firestore {
                           .affectedKeys().hasAny(
                             ['email', 'isBanned', 'chatApariencia',
                              'regionPreferida', 'profileVisibility',
-                             'allowChatRequests', 'showActivity'])
+                             'allowChatRequests', 'showActivity',
+                             // El identificador es permanente. Ni el
+                             // dueño ni un admin lo cambian desde el
+                             // cliente: la migración lo hace con el
+                             // Admin SDK.
+                             'username',
+                             // Los alias antiguos los escribe solo la
+                             // migración; si el cliente pudiera
+                             // tocarlos, podría secuestrar menciones.
+                             'usernameAliases'])
                     // `createdAt` no se puede mover ni con rol de
                     // admin. Los perfiles antiguos que no lo tengan
                     // pueden rellenarlo, pero solo con la hora del
@@ -1546,6 +1595,26 @@ service cloud.firestore {
                         || (!('createdAt' in resource.data)
                             && (!('createdAt' in request.resource.data)
                                 || request.resource.data.createdAt == request.time)))
+                    // Nombre visible: libre y repetible, pero con un
+                    // cambio cada 7 días (los admins pueden saltarse
+                    // la espera). Si no cambia, tampoco se puede mover
+                    // `displayNameChangedAt` para resetear el plazo.
+                    && (request.resource.data.displayName == resource.data.displayName
+                        || isAdmin()
+                        || (request.resource.data.displayName is string
+                            && request.resource.data.displayName.trim().size() >= 2
+                            && request.resource.data.displayName.size() <= 30
+                            && (!('displayNameChangedAt' in resource.data)
+                                || resource.data.displayNameChangedAt
+                                   + duration.value(7, 'd') <= request.time)
+                            && 'displayNameChangedAt' in request.resource.data
+                            && request.resource.data.displayNameChangedAt == request.time))
+                    && (request.resource.data.displayName != resource.data.displayName
+                        || (('displayNameChangedAt' in request.resource.data)
+                            == ('displayNameChangedAt' in resource.data)
+                            && (!('displayNameChangedAt' in request.resource.data)
+                                || request.resource.data.displayNameChangedAt
+                                   == resource.data.displayNameChangedAt)))
                     && ((isAdmin())
                     || (isSelf(uid)
                         && !request.resource.data.diff(resource.data)

@@ -1,18 +1,27 @@
 // src/components/auth/AuthModal.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Lock,
   Mail,
-  User,
   ArrowRight,
   Github,
   Sparkles,
   KeyRound,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  AtSign,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { comprobarUsername, type ResultadoDisponibilidad } from '../../services/identity';
+import {
+  DISPLAY_NAME_MAX,
+  errorDisplayName,
+  errorUsername,
+  normalizarDisplayName,
+  normalizarUsername,
+} from '../../data/usernames';
 
 export const AuthModal: React.FC = () => {
   const {
@@ -31,12 +40,71 @@ export const AuthModal: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [displayNameTouched, setDisplayNameTouched] = useState(false);
+  const [usernameState, setUsernameState] =
+    useState<ResultadoDisponibilidad | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [feedback, setFeedback] = useState<{
     type: 'error' | 'success';
     message: string;
   } | null>(null);
+
+  // El nombre visible se rellena con el identificador mientras la
+  // persona no lo haya tocado. En cuanto lo edita, manda su texto.
+  useEffect(() => {
+    if (!displayNameTouched) {
+      setDisplayName(username);
+    }
+  }, [username, displayNameTouched]);
+
+  // Comprobación con debounce: 450 ms después de dejar de escribir.
+  // La disponibilidad NO reserva; el backend vuelve a comprobarlo.
+  useEffect(() => {
+    if (!authModalOpen || authMode !== 'register') return;
+
+    const limpio = normalizarUsername(username);
+    if (!limpio) {
+      setUsernameState({
+        estado: 'vacio',
+        mensaje: 'Introduce un nombre de usuario.',
+        username: '',
+      });
+      setCheckingUsername(false);
+      return;
+    }
+
+    const local = errorUsername(limpio);
+    if (local) {
+      setUsernameState({
+        estado: 'invalido',
+        mensaje: local,
+        username: limpio,
+      });
+      setCheckingUsername(false);
+      return;
+    }
+
+    setCheckingUsername(true);
+    let activo = true;
+    const temporizador = window.setTimeout(() => {
+      void comprobarUsername(limpio)
+        .then((resultado) => {
+          if (activo) setUsernameState(resultado);
+        })
+        .finally(() => {
+          if (activo) setCheckingUsername(false);
+        });
+    }, 450);
+
+    return () => {
+      activo = false;
+      window.clearTimeout(temporizador);
+    };
+  }, [username, authMode, authModalOpen]);
 
   if (!authModalOpen) return null;
 
@@ -71,20 +139,51 @@ export const AuthModal: React.FC = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password || !username) {
+    const usernameLimpio = normalizarUsername(username);
+    const displayNameLimpio = normalizarDisplayName(displayName);
+
+    if (!email || !password || !usernameLimpio || !displayNameLimpio) {
       setFeedback({
         type: 'error',
-        message:
-          'Completa todos los campos para crear tu cuenta.'
+        message: 'Completa todos los campos para crear tu cuenta.'
       });
+      return;
+    }
+
+    const errorNombre = errorUsername(usernameLimpio);
+    if (errorNombre) {
+      setFeedback({ type: 'error', message: errorNombre });
+      return;
+    }
+
+    const errorVisible = errorDisplayName(displayNameLimpio);
+    if (errorVisible) {
+      setFeedback({ type: 'error', message: errorVisible });
       return;
     }
 
     if (password.length < 6) {
       setFeedback({
         type: 'error',
+        message: 'La contraseña debe tener al menos 6 caracteres.'
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setFeedback({
+        type: 'error',
+        message: 'Las dos contraseñas no coinciden.'
+      });
+      return;
+    }
+
+    if (usernameState?.estado !== 'disponible') {
+      setFeedback({
+        type: 'error',
         message:
-          'La contraseña debe tener al menos 6 caracteres.'
+          usernameState?.mensaje ||
+          'Comprueba que el nombre de usuario esté disponible antes de continuar.'
       });
       return;
     }
@@ -95,7 +194,8 @@ export const AuthModal: React.FC = () => {
     const result = await register(
       email,
       password,
-      username
+      usernameLimpio,
+      displayNameLimpio
     );
 
     setLoading(false);
@@ -105,7 +205,15 @@ export const AuthModal: React.FC = () => {
         type: 'error',
         message: result.error || 'Error durante el registro.'
       });
+      return;
     }
+
+    setFeedback({
+      type: 'success',
+      message:
+        '¡Cuenta creada! Te hemos enviado un correo de verificación. Revisa tu bandeja de entrada o Spam y luego inicia sesión.'
+    });
+    openAuth('login');
   };
 
   const handleSendResetEmail = async (
@@ -440,57 +548,127 @@ export const AuthModal: React.FC = () => {
             onSubmit={handleRegister}
             className="space-y-4"
           >
-
-            <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-300">
-                Nombre de Usuario (Apodo Geek)
-              </label>
-
-              <div className="relative">
-
-                <User
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
-                />
-
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) =>
-                    setUsername(e.target.value)
-                  }
-                  placeholder="OtakuSenpai_26"
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
-                  required
-                />
-
-              </div>
-            </div>
-
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-300">
                 Correo Electrónico
               </label>
 
               <div className="relative">
-
                 <Mail
                   size={16}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
-
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu_email@dominio.com"
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
-
               </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-300">
+                Nombre de usuario único
+              </label>
+
+              <div className="relative">
+                <AtSign
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
+                />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUsernameState(null);
+                  }}
+                  placeholder="kapo_25"
+                  autoComplete="username"
+                  maxLength={20}
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-10 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
+                  required
+                />
+                {checkingUsername && (
+                  <Loader2
+                    size={15}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-violet-400"
+                  />
+                )}
+              </div>
+
+              <p
+                className={`mt-1 flex items-center gap-1 text-[11px] ${
+                  checkingUsername
+                    ? 'text-zinc-400'
+                    : usernameState?.estado === 'disponible'
+                      ? 'text-emerald-400'
+                      : usernameState?.estado === 'ocupado' ||
+                          usernameState?.estado === 'invalido' ||
+                          usernameState?.estado === 'reservado'
+                        ? 'text-red-400'
+                        : 'text-zinc-500'
+                }`}
+              >
+                {checkingUsername ? (
+                  <>
+                    <Loader2 size={11} className="animate-spin" />
+                    Comprobando disponibilidad...
+                  </>
+                ) : usernameState?.estado === 'disponible' ? (
+                  <>
+                    <CheckCircle2 size={11} />
+                    {usernameState.mensaje}
+                  </>
+                ) : usernameState?.estado === 'ocupado' ||
+                  usernameState?.estado === 'invalido' ||
+                  usernameState?.estado === 'reservado' ? (
+                  <>
+                    <AlertCircle size={11} />
+                    {usernameState.mensaje}
+                  </>
+                ) : (
+                  usernameState?.mensaje || 'Introduce un nombre de usuario.'
+                )}
+              </p>
+
+              <p className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-[10px] leading-relaxed text-amber-200">
+                Tu nombre de usuario será permanente y no podrás cambiarlo
+                después. Aparecerá como <strong>@{normalizarUsername(username) || 'usuario'}</strong>.
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-300">
+                Nombre visible
+              </label>
+
+              <div className="relative">
+                <Sparkles
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
+                />
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => {
+                    setDisplayNameTouched(true);
+                    setDisplayName(e.target.value);
+                  }}
+                  placeholder="Kapo"
+                  autoComplete="nickname"
+                  maxLength={DISPLAY_NAME_MAX}
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
+                  required
+                />
+              </div>
+              <p className="mt-1 text-[10px] text-zinc-500">
+                Este es el nombre que verá la comunidad. Puede repetirse y
+                podrás cambiarlo más adelante.
+              </p>
             </div>
 
             <div>
@@ -499,29 +677,47 @@ export const AuthModal: React.FC = () => {
               </label>
 
               <div className="relative">
-
                 <Lock
                   size={16}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
-
                 <input
                   type="password"
                   value={password}
-                  onChange={(e) =>
-                    setPassword(e.target.value)
-                  }
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
+                  autoComplete="new-password"
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
+              </div>
+            </div>
 
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-300">
+                Confirmar contraseña
+              </label>
+
+              <div className="relative">
+                <Lock
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
+                />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repite la contraseña"
+                  autoComplete="new-password"
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
+                  required
+                />
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || usernameState?.estado !== 'disponible'}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
             >
               <span>

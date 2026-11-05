@@ -365,8 +365,28 @@ export interface User {
    * (`usersList`) no lo trae.
    */
   email?: string;
+  /**
+   * Identificador único y permanente (`@usuario`).
+   *
+   * Siempre en minúsculas, sin acentos y con 3-20 letras, números o
+   * guiones bajos. Lo reserva la Cloud Function en `usernames`; el
+   * cliente no lo puede cambiar.
+   */
   username: string;
+  /**
+   * Identificadores antiguos de la cuenta, si la migración cambió el
+   * `username`. Los escribe solo la migración con el Admin SDK.
+   */
+  usernameAliases?: string[];
+  /** Nombre visible libre, repetible y editable. */
   displayName: string;
+  /**
+   * Última vez que se cambió el nombre visible.
+   *
+   * Se guarda como texto ISO en el cliente. Limita los cambios a uno
+   * cada 7 días; el nombre de usuario no cambia nunca.
+   */
+  displayNameChangedAt?: string;
   chatId: string; // e.g. "GK-9482-OTAKU" or uid
   avatarUrl: string;
   bio?: string;

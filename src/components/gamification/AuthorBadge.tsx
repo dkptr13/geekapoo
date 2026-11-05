@@ -125,6 +125,12 @@ export const AuthorBadge: React.FC<{
         {nombre}
       </span>
 
+      {!compacto && usuario?.username && (
+        <span className="text-[9px] font-mono text-zinc-500">
+          @{usuario.username}
+        </span>
+      )}
+
       {rol && (
         <span
           className={`flex flex-shrink-0 items-center gap-0.5 rounded border px-1 py-px text-[9px] font-bold uppercase ${rol.clase}`}

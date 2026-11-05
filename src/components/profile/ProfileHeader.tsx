@@ -137,7 +137,7 @@ export const ProfileHeader: React.FC<{
   // El nombre visible si existe, y el username debajo. Al revés
   // sería menos útil: el nombre es lo que reconoce la gente, y el
   // username es lo que se usa para mencionar.
-  const nombre = perfil.displayName || perfil.username;
+  const nombre = perfil.displayName || perfil.username || 'Usuario';
   const dias = Math.max(
     0,
     Math.floor((Date.now() - new Date(perfil.createdAt || '').getTime()) / 86_400_000),
@@ -238,12 +238,6 @@ export const ProfileHeader: React.FC<{
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             <h1 className="text-2xl font-black text-white sm:text-3xl">{nombre}</h1>
 
-            {perfil.displayName && perfil.username && (
-              <span className="rounded-md border border-violet-500/30 bg-violet-600/20 px-2 py-0.5 text-xs font-bold text-violet-300">
-                @{perfil.username}
-              </span>
-            )}
-
             {rol && (
               <span
                 className={`flex items-center gap-0.5 rounded border px-1 py-px text-[10px] font-bold uppercase ${rol.clase}`}
@@ -264,6 +258,12 @@ export const ProfileHeader: React.FC<{
               </span>
             )}
           </div>
+
+          {perfil.username && (
+            <p className="text-xs font-mono text-zinc-500 sm:text-sm">
+              @{perfil.username}
+            </p>
+          )}
 
           <p className="mx-auto max-w-lg text-xs text-zinc-400 sm:mx-0 sm:text-sm">
             {perfil.bio || <span className="italic text-zinc-600">Sin descripción todavía.</span>}

@@ -42,6 +42,7 @@ import { AccountSettings } from './components/profile/AccountSettings';
 import { OtakuMascot } from './components/mascot/OtakuMascot';
 import { DailyTriviaView } from './components/trivia/DailyTriviaView';
 import { AuthModal } from './components/auth/AuthModal';
+import { IdentitySetupModal } from './components/auth/IdentitySetupModal';
 import { ArchitectureModal } from './components/docs/ArchitectureModal';
 
 import { AdminPanel } from './components/admin/AdminPanel';
@@ -693,6 +694,7 @@ const {
       ================================================== */}
 
       <AuthModal />
+      <IdentitySetupModal />
 
 
       {/* ==================================================

@@ -331,8 +331,8 @@ export default function Navbar({
   // ====================================================
 
   const displayName =
-    currentUser?.username ||
     currentUser?.displayName ||
+    currentUser?.username ||
     'Usuario';
 
 
@@ -597,7 +597,9 @@ export default function Navbar({
                         ? 'Administrador'
                         : currentUser.role === 'moderator'
                           ? 'Moderador'
-                          : '@' + currentUser.username}
+                          : currentUser.username
+                            ? '@' + currentUser.username
+                            : 'Usuario'}
                     </span>
                   </span>
 

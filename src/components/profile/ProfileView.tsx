@@ -167,10 +167,13 @@ export const ProfileView: React.FC<ProfileViewProps> = (props) => {
           />
           <div className="min-w-0">
             <h2 className="truncate text-xl font-black text-white">
-              {perfil.displayName || perfil.username}
+              {perfil.displayName || perfil.username || 'Usuario' || 'Usuario'}
             </h2>
             <p className="mt-1 text-xs text-zinc-400">
-              @{perfil.username} tiene el perfil en privado.
+              {perfil.username
+                ? `@${perfil.username}`
+                : perfil.displayName || 'Esta cuenta'}{' '}
+              tiene el perfil en privado.
             </p>
           </div>
         </div>
@@ -224,6 +227,14 @@ const Perfil: React.FC<{
   accionInicial?: string;
   onAccionConsumida?: () => void;
 }> = ({ onGoToThread, onGoToAnime, perfil, esPropio, accionInicial, onAccionConsumida }) => {
+  const { usersList } = useAuth();
+
+  /** Nombre visible actual, con el guardado como respaldo. */
+  const nombreDe = (uid: string, respaldo: string): string => {
+    const vivo = usersList.find((u) => u.uid === uid);
+    return vivo?.displayName || vivo?.username || respaldo;
+  };
+
   // Seguimientos. El contexto centraliza los contadores y el estado
   // del botón, para que el perfil no tenga dos o tres listeners
   // propios: el modal y las filas de la lista también lo necesitan.
@@ -630,14 +641,14 @@ const Perfil: React.FC<{
       {showActivity ? (
         <ProfileStats
           stats={stats}
-          nombre={perfil.displayName || perfil.username}
+          nombre={perfil.displayName || perfil.username || 'Usuario'}
           onVerLista={(lista) => abrirModal(perfil.uid, lista)}
           cargandoSeguidores={seguidores === undefined}
           cargandoSeguidos={seguidos === undefined}
         />
       ) : (
         <SeguidoresSolo
-          nombre={perfil.displayName || perfil.username}
+          nombre={perfil.displayName || perfil.username || 'Usuario'}
           seguidores={seguidores}
           seguidos={seguidos}
           onVerLista={(lista) => abrirModal(perfil.uid, lista)}
@@ -871,7 +882,9 @@ const Perfil: React.FC<{
                               {thread.body}
                             </p>
                             <div className="mt-2.5 flex flex-wrap items-center gap-4 text-[11px] text-zinc-500">
-                              <span>{thread.authorName}</span>
+                              <span>
+                                {nombreDe(thread.authorId, thread.authorName)}
+                              </span>
                               <span className="flex items-center gap-1 font-mono font-semibold text-pink-400">
                                 <Heart size={11} className="fill-pink-500 text-pink-500" />
                                 {thread.likesCount}
@@ -926,7 +939,7 @@ const Perfil: React.FC<{
                               {c.body}
                             </p>
                             <div className="mt-2 flex items-center gap-3 text-[11px] text-zinc-500">
-                              <span>{c.authorName}</span>
+                              <span>{nombreDe(c.authorId, c.authorName)}</span>
                               <span className="flex items-center gap-1 font-mono text-pink-400">
                                 <Heart size={11} className="fill-pink-500 text-pink-500" />
                                 {c.likesCount}
@@ -987,7 +1000,7 @@ const Perfil: React.FC<{
           userId={perfil.uid}
           lista={modalLista}
           nombreLista={modalLista === 'followers' ? 'Seguidores' : 'Seguidos'}
-          titulo={perfil.displayName || perfil.username}
+          titulo={perfil.displayName || perfil.username || 'Usuario'}
           onCerrar={cerrarModal}
         />
       )}

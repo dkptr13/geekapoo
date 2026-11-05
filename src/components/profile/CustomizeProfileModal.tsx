@@ -16,6 +16,11 @@ import { useAuth } from '../../context/AuthContext';
 import { useProgression } from '../../context/ProgressionContext';
 import { uploadCommunityImage, deleteReplacedImage, esGif } from '../../services/imageUpload';
 import { validarEditable } from '../../utils/profile';
+import {
+  DISPLAY_NAME_MAX,
+  puedeCambiarDisplayName,
+  siguienteCambioDisplayName,
+} from '../../data/usernames';
 import { nivelDesdeXp } from '../../utils/progression';
 import {
   AVATAR_PRESETS,
@@ -92,7 +97,7 @@ const PESTANAS: Array<{ id: Pestana; nombre: string }> = [
   { id: 'fondos', nombre: 'Fondos' },
   { id: 'decoracion', nombre: 'Decoración' },
   { id: 'vitrinas', nombre: 'Vitrinas' },
-  { id: 'info', nombre: 'Información' },
+  { id: 'info', nombre: 'Identidad' },
   { id: 'titulos', nombre: 'Títulos' },
   { id: 'insignias', nombre: 'Insignias' },
   { id: 'publicaciones', nombre: 'Publicaciones' },
@@ -217,6 +222,15 @@ export const CustomizeProfileModal: React.FC<{
   if (!currentUser) return null;
 
   const level = nivelDesdeXp(currentUser.xp ?? 0, config).level;
+  const puedeCambiarNombre = puedeCambiarDisplayName(currentUser);
+  const siguienteNombre = siguienteCambioDisplayName(currentUser);
+  const fechaSiguienteNombre = siguienteNombre
+    ? siguienteNombre.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null;
 
   const cambiar = <K extends keyof PerfilEditable>(campo: K, valor: PerfilEditable[K]) => {
     setDatos((prev) => ({ ...prev, [campo]: valor }));
@@ -879,7 +893,7 @@ export const CustomizeProfileModal: React.FC<{
                 />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-white">
-                    {vistaPrevia.displayName || currentUser.username}
+                    {vistaPrevia.displayName || currentUser.username || 'Usuario'}
                   </p>
                   {tituloVista ? (
                     <p className="mt-0.5 inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/15 px-1.5 py-px text-[10px] font-bold text-amber-300">
@@ -1785,13 +1799,32 @@ export const CustomizeProfileModal: React.FC<{
               <>
                 <div>
                   <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                    Nombre de usuario
+                  </label>
+                  <input
+                    type="text"
+                    value={`@${currentUser.username || 'usuario'}`}
+                    readOnly
+                    disabled
+                    className="w-full cursor-not-allowed rounded-xl border border-white/[0.04] bg-black/40 px-3.5 py-2.5 font-mono text-xs text-zinc-400"
+                  />
+                  <p className="mt-1 text-[10px] text-zinc-500">
+                    Es tu identificador único y permanente. No se puede cambiar.
+                    Sirve para menciones, búsquedas y enlaces al perfil.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
                     Nombre visible
                   </label>
                   <input
                     type="text"
                     value={datos.displayName}
                     onChange={(e) => cambiar('displayName', e.target.value)}
-                    className={`w-full rounded-xl border bg-[#080810] px-3.5 py-2.5 text-xs text-white focus:outline-none ${
+                    maxLength={DISPLAY_NAME_MAX}
+                    disabled={!puedeCambiarNombre && currentUser.role !== 'admin'}
+                    className={`w-full rounded-xl border bg-[#080810] px-3.5 py-2.5 text-xs text-white focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 ${
                       errores.displayName ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
                   />
@@ -1799,7 +1832,10 @@ export const CustomizeProfileModal: React.FC<{
                     <p className="mt-1 text-[10px] text-red-400">{errores.displayName}</p>
                   ) : (
                     <p className="mt-1 text-[10px] text-zinc-500">
-                      Es lo que ven los demás. Tu @{currentUser.username} no se cambia.
+                      Es lo que ven los demás. Puede repetirse con otras personas.
+                      {fechaSiguienteNombre
+                        ? ` Podrás cambiarlo de nuevo el ${fechaSiguienteNombre}.`
+                        : ' Podrás cambiarlo cuando quieras (con un máximo de un cambio cada 7 días).'}
                     </p>
                   )}
                 </div>

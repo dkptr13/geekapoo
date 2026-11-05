@@ -87,6 +87,8 @@ import { LocationPicker } from './LocationPicker';
 import { uploadChatImage } from '../../services/imageUpload';
 import { CommentGif } from '../community/CommentGif';
 import { ReactionBar } from '../community/ReactionBar';
+import { MentionSuggestions } from '../community/MentionSuggestions';
+import { MentionText } from '../community/MentionText';
 import { ClubDetail } from './ClubDetail';
 import { ChatPrefsPanel } from './ChatPrefsPanel';
 import { ClubRoleBadge } from './ClubRoleBadge';
@@ -171,7 +173,7 @@ function borradorConContenido(borrador: PollDraft): boolean {
 type TabChats = 'privados' | 'clubes' | 'descubrir';
 
 export const ChatView: React.FC = () => {
-  const { currentUser, getUserByChatId, usersList, updateProfileData } = useAuth();
+  const { currentUser, getUserByChatId, buscarUsuarios, usersList, updateProfileData } = useAuth();
   const goToProfile = useGoToProfile();
   const {
     rooms,
@@ -502,7 +504,12 @@ export const ChatView: React.FC = () => {
   // New Contact by ID modal / state
   const [showAddContact, setShowAddContact] = useState(false);
   const [targetIdInput, setTargetIdInput] = useState('');
-  const [addFeedback, setAddFeedback] = useState<{ error?: string; success?: string; user?: any } | null>(null);
+  const [addFeedback, setAddFeedback] = useState<{
+    error?: string;
+    success?: string;
+    user?: User;
+    users?: User[];
+  } | null>(null);
 
   // Gestión de la conversación abierta
   const [confirmingLeave, setConfirmingLeave] = useState(false);
@@ -1635,20 +1642,50 @@ export const ChatView: React.FC = () => {
 
   const handleSearchContact = () => {
     setAddFeedback(null);
-    if (!targetIdInput.trim()) {
-      setAddFeedback({ error: 'Por favor, escribe un ID de usuario válido.' });
+    const consulta = targetIdInput.trim();
+    if (!consulta) {
+      setAddFeedback({
+        error: 'Escribe un nombre visible, un @usuario o un ID de chat.',
+      });
       return;
     }
-    const found = getUserByChatId(targetIdInput.trim());
-    if (!found) {
-      setAddFeedback({ error: `No se ha encontrado ningún usuario con el ID "${targetIdInput.trim()}".` });
+
+    const found = getUserByChatId(consulta);
+    if (found) {
+      if (found.uid === currentUser.uid) {
+        setAddFeedback({ error: 'No puedes añadirte a ti mismo como contacto.' });
+        return;
+      }
+      setAddFeedback({
+        success: `¡Usuario encontrado! @${found.username}`,
+        user: found,
+      });
       return;
     }
-    if (found.uid === currentUser.uid) {
-      setAddFeedback({ error: 'No puedes añadirte a ti mismo como contacto.' });
+
+    const candidatos = buscarUsuarios(consulta, 8).filter(
+      (user) => user.uid !== currentUser.uid,
+    );
+
+    if (candidatos.length === 0) {
+      setAddFeedback({
+        error: `No se ha encontrado ningún usuario con "${consulta}".`,
+      });
       return;
     }
-    setAddFeedback({ success: `¡Usuario encontrado! @${found.username}`, user: found });
+
+    if (candidatos.length === 1) {
+      setAddFeedback({
+        success: `¡Usuario encontrado! @${candidatos[0].username}`,
+        user: candidatos[0],
+      });
+      return;
+    }
+
+    setAddFeedback({
+      success: `Hay ${candidatos.length} personas que coinciden. Elige la cuenta correcta por su @usuario.`,
+      users: candidatos,
+    });
   };
 
   // Ahora el flujo no es instantáneo: al añadir un contacto se
@@ -2839,9 +2876,12 @@ export const ChatView: React.FC = () => {
                           Sin esto, dos cuentas con el mismo nombre
                           de display son indistinguibles y parece
                           que estás hablando contigo mismo. */}
-                      {room.type === 'direct' && otherPartyChatId && (
-                        <p className="mt-0.5 text-[10px] font-mono text-violet-400/80 truncate">
-                          {otherPartyChatId}
+                      {room.type === 'direct' && otherParty && (
+                        <p className="mt-0.5 truncate text-[10px] font-mono text-violet-400/80">
+                          {otherParty.username
+                            ? `@${otherParty.username}`
+                            : otherParty.displayName}
+                          {otherPartyChatId ? ` · ${otherPartyChatId}` : ''}
                         </p>
                       )}
                     </div>
@@ -3139,6 +3179,14 @@ export const ChatView: React.FC = () => {
                         </span>
                       )}
                     </h3>
+
+                    {activeRoom.type === 'direct' && activeOtherParty && (
+                      <p className="truncate font-mono text-[10px] text-zinc-500">
+                        {activeOtherParty.username
+                          ? `@${activeOtherParty.username}`
+                          : activeOtherParty.displayName}
+                      </p>
+                    )}
 
                     {/* En un club, la segunda linea es la categoría y
                         el rol del usuario, no "En línea": un chat
@@ -3723,7 +3771,11 @@ export const ChatView: React.FC = () => {
                           >
                             {/* El texto solo se pinta si hay texto: un
                                 mensaje puede ser solo un GIF. */}
-                            {msg.body && <p className="break-words text-[14px] leading-relaxed">{msg.body}</p>}
+                            {msg.body && (
+                  <p className="break-words text-[14px] leading-relaxed">
+                    <MentionText text={msg.body} />
+                  </p>
+                )}
                           </div>
 
                           {/* GIF del mensaje. Se pinta FUERA de la
@@ -4109,8 +4161,9 @@ export const ChatView: React.FC = () => {
                                 </span>
                               )}
                             </p>
-                            <p className="truncate text-[10px] font-mono text-zinc-500">
-                              {u.chatId}
+                            <p className="truncate text-[10px] font-mono text-violet-300">
+                              @{u.username}
+                              <span className="text-zinc-500"> · {u.chatId}</span>
                             </p>
                           </div>
 
@@ -4353,7 +4406,7 @@ export const ChatView: React.FC = () => {
             mismo contenedor. En móvil las herramientas van tras
             el "+" para que el campo y el envío respiren; en
             escritorio salen todas en fila. */}
-        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.06] bg-black/30 p-2 transition-colors focus-within:border-violet-400/40 focus-within:ring-2 focus-within:ring-violet-500/10">
+        <div className="relative flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.06] bg-black/30 p-2 transition-colors focus-within:border-violet-400/40 focus-within:ring-2 focus-within:ring-violet-500/10">
                   <textarea
                     ref={inputRef}
                     rows={1}
@@ -4372,6 +4425,11 @@ export const ChatView: React.FC = () => {
                     // al enfocar y hay que alejar a mano. En
                     // escritorio se queda como estaba.
                     className="order-1 min-w-0 flex-1 resize-none overflow-y-auto rounded-xl bg-transparent px-3 py-2.5 text-base sm:text-sm text-white placeholder-zinc-500 focus:outline-none"
+                  />
+                  <MentionSuggestions
+                    value={inputText}
+                    onChange={setInputText}
+                    inputRef={inputRef}
                   />
 
                   {/* Herramientas: fila completa tras el "+" en
@@ -4920,7 +4978,7 @@ export const ChatView: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white">Añadir Nuevo Contacto</h3>
-                <p className="text-xs text-zinc-400">Introduce el ID único del usuario</p>
+                <p className="text-xs text-zinc-400">Nombre visible, @usuario o ID de chat</p>
               </div>
             </div>
 
@@ -4928,15 +4986,15 @@ export const ChatView: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                  ID de Usuario o Username
+                  Nombre visible, @usuario o ID de chat
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={targetIdInput}
                     onChange={(e) => setTargetIdInput(e.target.value)}
-                    placeholder="Ej: GK-4190-NETRUN o GK-9912-ELVEN"
-                    className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs font-mono text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
+                    placeholder="@kapo_25, Kapo o GK-4190-NETRUN"
+                    className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                   />
                   <button
                     onClick={handleSearchContact}
@@ -4955,6 +5013,42 @@ export const ChatView: React.FC = () => {
                 </div>
               )}
 
+              {addFeedback?.users && addFeedback.users.length > 0 && (
+                <div className="space-y-2">
+                  {addFeedback.users.map((user) => (
+                    <div
+                      key={user.uid}
+                      className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-zinc-950 p-3"
+                    >
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.displayName || user.username}
+                        className="h-10 w-10 rounded-xl object-cover ring-2 ring-violet-500/30"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-bold text-white">
+                          {user.displayName || user.username}
+                        </p>
+                        <p className="truncate font-mono text-[10px] text-violet-300">
+                          @{user.username}
+                        </p>
+                        <p className="truncate font-mono text-[10px] text-zinc-600">
+                          {user.chatId}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void handleRequestChat(user)}
+                        disabled={creatingChat || isBlocked(user.uid)}
+                        className="shrink-0 rounded-xl bg-violet-600 px-3 py-2 text-[10px] font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
+                      >
+                        {isBlocked(user.uid) ? 'Bloqueado' : 'Solicitar'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {addFeedback?.user && (
                 <div className="rounded-2xl border border-violet-500/40 bg-zinc-950 p-4 space-y-3">
                   <div className="flex items-center gap-3">
@@ -4967,7 +5061,10 @@ export const ChatView: React.FC = () => {
                       <h4 className="text-sm font-bold text-white">
                         {addFeedback.user.displayName || addFeedback.user.username}
                       </h4>
-                      <span className="text-xs text-zinc-400 block font-mono">
+                      <span className="text-xs text-violet-300 block font-mono">
+                        @{addFeedback.user.username}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 block font-mono">
                         {addFeedback.user.chatId}
                       </span>
                     </div>

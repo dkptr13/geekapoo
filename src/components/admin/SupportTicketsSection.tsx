@@ -12,6 +12,7 @@ import {
   LifeBuoy,
 } from 'lucide-react';
 
+import { useAuth } from '../../context/AuthContext';
 import { TICKET_CATEGORIES } from '../../services/support';
 import type { SupportTicket } from '../../types';
 
@@ -88,6 +89,7 @@ export const SupportTicketsSection: FC<SupportTicketsSectionProps> = ({
   tickets,
   setTicketStatus,
 }) => {
+  const { usersList } = useAuth();
   const [filter, setFilter] = useState<SupportTicket['status'] | 'all'>('all');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -184,6 +186,7 @@ export const SupportTicketsSection: FC<SupportTicketsSectionProps> = ({
             const CategoryIcon = CATEGORY_ICONS[t.category] ?? AlertCircle;
             const isOpen = expanded === t.id;
             const busy = busyId === t.id;
+            const autor = usersList.find((u) => u.uid === t.userId);
 
             return (
               <div
@@ -217,7 +220,9 @@ export const SupportTicketsSection: FC<SupportTicketsSectionProps> = ({
                       {t.subject || '(sin asunto)'}
                     </p>
                     <p className="truncate text-[10px] text-zinc-500">
-                      @{t.userName} · {formatDate(t.createdAt)}
+                      {autor?.displayName || t.userName}
+                      {autor?.username ? ` (@${autor.username})` : ''} ·{' '}
+                      {formatDate(t.createdAt)}
                     </p>
                   </div>
 

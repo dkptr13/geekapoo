@@ -528,7 +528,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
                       {t.body}
                     </p>
                     <span className="mt-1.5 block text-[10px] text-zinc-600">
-                      @{t.authorName}
+                      {t.authorName}
                     </span>
                   </button>
                 ))}

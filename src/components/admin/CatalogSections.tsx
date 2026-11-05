@@ -917,7 +917,7 @@ const ThreadRow: FC<{ thread: RawDoc }> = ({ thread }) => {
             {asStr(thread.title)}
           </p>
           <p className="truncate text-[10px] text-zinc-500">
-            @{asStr(thread.authorName)} · {asStr(thread.categoryName)}
+            {asStr(thread.authorName)} · {asStr(thread.categoryName)}
           </p>
         </div>
 

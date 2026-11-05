@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Bell, CheckCheck, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 
 import { useNotifications } from '../../context/NotificationsContext';
+import { useAuth } from '../../context/AuthContext';
 import { tiempoRelativo, iconoDe, textoDe, esNotificacionImportante } from '../../utils/notificaciones';
 import { useGoToNotification } from '../../hooks/useGoToNotification';
 
@@ -30,6 +31,7 @@ export const NotificationBell: React.FC = () => {
     openPanel,
     setOpenPanel,
   } = useNotifications();
+  const { usersList } = useAuth();
 
   const [tiempoRefresh, setTiempoRefresh] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -292,6 +294,14 @@ export const NotificationBell: React.FC = () => {
               notifications.map((n) => {
                 const esImportante = esNotificacionImportante(n);
                 const noLeida = !n.read;
+                const actor = usersList.find((u) => u.uid === n.actorId);
+                const aviso = actor
+                  ? {
+                      ...n,
+                      actorName: actor.displayName || n.actorName,
+                      actorAvatar: actor.avatarUrl || n.actorAvatar,
+                    }
+                  : n;
 
                 return (
                   <div
@@ -311,10 +321,10 @@ export const NotificationBell: React.FC = () => {
                     >
                       {/* Avatar */}
                       <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.04] text-xs text-zinc-400">
-                        {n.actorAvatar ? (
+                        {aviso.actorAvatar ? (
                           <img
-                            src={n.actorAvatar}
-                            alt={n.actorName}
+                            src={aviso.actorAvatar}
+                            alt={aviso.actorName}
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -327,8 +337,13 @@ export const NotificationBell: React.FC = () => {
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm">{iconoDe(n)}</span>
                           <span className="truncate text-sm sm:text-xs font-semibold text-white">
-                            {n.actorName}
+                            {aviso.actorName}
                           </span>
+                          {actor?.username && (
+                            <span className="truncate font-mono text-[9px] text-zinc-500">
+                              @{actor.username}
+                            </span>
+                          )}
                         </div>
 
                         <p
@@ -336,7 +351,7 @@ export const NotificationBell: React.FC = () => {
                             noLeida ? 'text-gray-200' : 'text-gray-400'
                           }`}
                         >
-                          {textoDe(n)}
+                          {textoDe(aviso)}
                         </p>
 
                         {n.snippet && (

@@ -12,6 +12,8 @@ import {
   X,
 } from 'lucide-react';
 import { useCommunity } from '../../context/CommunityContext';
+import { useAuth } from '../../context/AuthContext';
+import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { anyMatches, encuadre, matchesText as matches, toText } from '../../utils/safeData';
 import {
@@ -37,6 +39,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
     ensureCatalogData,
     ensureAllThreads,
   } = useCommunity();
+  const { usersList, buscarUsuarios } = useAuth();
+  const goToProfile = useGoToProfile();
   const [query, setQuery] = useState('');
   const [indice, setIndice] = useState<IndiceBusqueda | null>(null);
 
@@ -55,7 +59,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
     };
   }, [ensureCatalogData, ensureAllThreads]);
   const [filterType, setFilterType] = useState<
-    'all' | 'anime' | 'episodes' | 'characters' | 'threads' | 'tags'
+    'all' | 'anime' | 'episodes' | 'characters' | 'threads' | 'tags' | 'users'
   >('all');
 
   const cleanQuery = query.trim().toLowerCase();
@@ -105,11 +109,16 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
       )
     : [];
 
+  // Personas por nombre visible o @usuario. Sale del directorio que
+  // ya está en memoria: no hay una consulta extra por búsqueda.
+  const matchedUsers = cleanQuery ? buscarUsuarios(cleanQuery, 12) : [];
+
   const totalResults =
     matchedAnimes.length +
     matchedEpisodes.length +
     matchedCharacters.length +
-    matchedThreads.length;
+    matchedThreads.length +
+    matchedUsers.length;
 
   return (
     <div className="space-y-6">
@@ -124,7 +133,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
             Buscador Global Geekapoo
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400">
-            Encuentra animes, episodios individuales, personajes destacados, hilos de debate o etiquetas de la comunidad.
+            Encuentra animes, episodios, personajes, hilos de debate, etiquetas
+            o personas por su nombre visible y @usuario.
           </p>
 
           <div className="relative mt-2">
@@ -202,6 +212,16 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
             >
               Hilos del foro ({matchedThreads.length})
             </button>
+            <button
+              onClick={() => setFilterType('users')}
+              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+                filterType === 'users'
+                  ? 'bg-violet-600 text-white'
+                  : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white'
+              }`}
+            >
+              Usuarios ({matchedUsers.length})
+            </button>
           </div>
         </div>
       </div>
@@ -209,6 +229,51 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
       {/* SEARCH RESULTS */}
       {cleanQuery && totalResults > 0 ? (
         <div className="space-y-6">
+          {/* Usuarios Section */}
+          {(filterType === 'all' || filterType === 'users') && matchedUsers.length > 0 && (
+            <section className="space-y-3">
+              <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-cyan-300">
+                <Users size={14} />
+                <span>Usuarios ({matchedUsers.length})</span>
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {matchedUsers.map((u) => (
+                  <button
+                    key={u.uid}
+                    type="button"
+                    onClick={() => goToProfile(u.uid)}
+                    className="group flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/90 p-3 text-left transition-all hover:border-cyan-500/50"
+                  >
+                    {u.avatarUrl ? (
+                      <img
+                        src={u.avatarUrl}
+                        alt=""
+                        className="h-12 w-12 rounded-xl object-cover ring-1 ring-cyan-400/20"
+                      />
+                    ) : (
+                      <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-800">
+                        <Users size={18} className="text-zinc-600" />
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-bold text-white group-hover:text-cyan-300">
+                        {u.displayName || u.username}
+                      </span>
+                      <span className="block truncate font-mono text-[10px] text-cyan-300">
+                        @{u.username}
+                      </span>
+                      {u.bio && (
+                        <span className="mt-0.5 block truncate text-[10px] text-zinc-500">
+                          {u.bio}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Animes Section */}
           {(filterType === 'all' || filterType === 'anime') && matchedAnimes.length > 0 && (
             <section className="space-y-3">
@@ -347,7 +412,10 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                         {t.title}
                       </h4>
                       <div className="mt-1 flex items-center gap-2 text-[11px] text-zinc-400">
-                        <span>@{t.authorName}</span>
+                        <span>
+                          {usersList.find((u) => u.uid === t.authorId)?.displayName ||
+                            t.authorName}
+                        </span>
                         <span>•</span>
                         <span>{t.categoryName}</span>
                       </div>

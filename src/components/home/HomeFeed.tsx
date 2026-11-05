@@ -41,6 +41,8 @@ import { GifPicker } from '../community/GifPicker';
 import { ReportDialog } from '../community/ReportDialog';
 import { FanartGallery } from '../community/FanartGallery';
 import { FanartImagePicker } from '../community/FanartImagePicker';
+import { MentionSuggestions } from '../community/MentionSuggestions';
+import { MentionText } from '../community/MentionText';
 import { StableImage } from '../common/StableImage';
 import { useFanartFeed } from '../../hooks/useFanartFeed';
 import { useFavoriteFanarts } from '../../hooks/useFavoriteFanarts';
@@ -222,6 +224,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [fanartMedium, setFanartMedium] = useState<FanartMedium>('digital');
   const [fanartQuickTags, setFanartQuickTags] = useState<string[]>([]);
   const [errorFanart, setErrorFanart] = useState('');
+  const threadBodyRef = useRef<HTMLTextAreaElement>(null);
+  const commentInputRef = useRef<HTMLInputElement>(null);
   const [commentImageUrl, setCommentImageUrl] = useState('');
   const [commentImageDims, setCommentImageDims] = useState<ImageDims | null>(null);
 
@@ -875,7 +879,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             </div>
           ) : (
             <div className="mt-6 flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-800/80 text-xs text-zinc-400">
-              <span>Sesión activa como <strong className="text-violet-300">@{currentUser.username}</strong></span>
+              <span>
+                Sesión activa como{' '}
+                <strong className="text-violet-300">
+                  {currentUser.username ? `@${currentUser.username}` : currentUser.displayName}
+                </strong>
+              </span>
               <span className="text-zinc-600">•</span>
               <span>ID de Chat: <code className="font-mono text-zinc-300 bg-white/[0.05] px-1.5 py-0.5 rounded">{currentUser.chatId}</code></span>
             </div>
@@ -1319,18 +1328,26 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   ? 'Descripción (opcional)'
                   : 'Contenido / Argumentación'}
               </label>
-              <textarea
-                rows={4}
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder={
-                  tipoPublicacion === 'fanart'
-                    ? 'Cuéntanos qué te inspiró, técnica, proceso...'
-                    : 'Desarrolla tu punto de vista, teorías o curiosidades...'
-                }
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none leading-relaxed"
-                required={tipoPublicacion !== 'fanart'}
-              />
+              <div className="relative">
+                <textarea
+                  ref={threadBodyRef}
+                  rows={4}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder={
+                    tipoPublicacion === 'fanart'
+                      ? 'Cuéntanos qué te inspiró, técnica, proceso...'
+                      : 'Desarrolla tu punto de vista, teorías o curiosidades...'
+                  }
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none leading-relaxed"
+                  required={tipoPublicacion !== 'fanart'}
+                />
+                <MentionSuggestions
+                  value={body}
+                  onChange={setBody}
+                  inputRef={threadBodyRef}
+                />
+              </div>
             </div>
 
             <div>
@@ -1554,7 +1571,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     incluido. */}
                 {thread.body && (
                   <p className="mt-2 text-[15px] sm:text-sm leading-relaxed text-zinc-300 whitespace-pre-line break-words">
-                    {thread.body}
+                    <MentionText text={thread.body} />
                   </p>
                 )}
 
@@ -1852,8 +1869,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     onSubmit={(e) => handleCommentSubmit(thread.id, e)}
                     className="space-y-2"
                   >
-                    <div className="flex gap-2">
+                    <div className="relative flex gap-2">
                       <input
+                        ref={commentInputRef}
                         type="text"
                         value={newCommentText}
                         onChange={(e) => setNewCommentText(e.target.value)}
@@ -1863,6 +1881,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             : 'Inicia sesión para opinar...'
                         }
                         className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
+                      />
+                      <MentionSuggestions
+                        value={newCommentText}
+                        onChange={setNewCommentText}
+                        inputRef={commentInputRef}
                       />
                       <button
                         type="submit"
@@ -1948,7 +1971,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                 <div className="min-w-0 flex-1">
                                   <AuthorBadge
                                     authorId={comment.authorId}
-                                    nombre={`@${nombreDe(comment.authorId, comment.authorName)}`}
+                                    nombre={nombreDe(comment.authorId, comment.authorName)}
                                   />
                                 </div>
                               </div>
@@ -1958,7 +1981,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             </div>
 
                             <p className="text-[15px] text-zinc-300 leading-relaxed pl-8 break-words">
-                              {comment.body}
+                              <MentionText text={comment.body} />
                             </p>
 
                             {/* GIF adjunto al comentario */}
@@ -2126,7 +2149,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                     type="text"
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
-                                    placeholder={`Respondiendo a @${comment.authorName}...`}
+                                    placeholder={`Respondiendo a ${nombreDe(
+                                      comment.authorId,
+                                      comment.authorName,
+                                    )}...`}
                                     className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
                                   />
                                   <button
@@ -2180,7 +2206,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                            <div className="min-w-0 flex-1">
                                              <AuthorBadge
                                                authorId={reply.authorId}
-                                               nombre={`@${nombreDe(reply.authorId, reply.authorName)}`}
+                                               nombre={nombreDe(reply.authorId, reply.authorName)}
                                                tamano="sm"
                                              />
                                            </div>
@@ -2189,7 +2215,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                           {new Date(reply.createdAt).toLocaleDateString('es-ES')}
                                         </span>
                                       </div>
-                                       <p className="text-xs text-zinc-300 pl-5">{reply.body}</p>
+                                       <p className="text-xs text-zinc-300 pl-5">
+                              <MentionText text={reply.body} />
+                            </p>
                                        {reply.gif && (
                                          <CommentGif
                                            gif={reply.gif}

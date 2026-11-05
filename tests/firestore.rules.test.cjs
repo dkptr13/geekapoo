@@ -76,7 +76,7 @@ async function sembrar(uid, extra) {
 }
 
 const perfil = (extra) => ({
-  displayName: 'X',
+  displayName: 'Usuario',
   bio: 'hola',
   favoriteAnime: '',
   avatarUrl: '',
@@ -190,6 +190,12 @@ describe('gamificacion: XP y medallas', () => {
   // ==========================================================
   describe('la creacion de cuenta', () => {
     it('permite crear un perfil normal', async () => {
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), 'usernames', 'nuevo'), {
+          uid: 'nuevo',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        });
+      });
       await assertSucceeds(
         setDoc(doc(db('nuevo'), 'users', 'nuevo'), {
           ...perfil(),
@@ -580,6 +586,7 @@ describe('gamificacion: XP y medallas', () => {
       await assertSucceeds(
         updateDoc(doc(db(BOB), 'users', BOB), {
           displayName: 'Nombre nuevo',
+          displayNameChangedAt: serverTimestamp(),
           bio: 'Bio nueva',
           avatarUrl: 'https://example.com/a.png',
           favoriteAnime: 'Frieren',

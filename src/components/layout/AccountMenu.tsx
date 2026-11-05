@@ -48,14 +48,16 @@ export const AccountMenu: React.FC<{
   const [abierto, setAbierto] = useState(false);
   const cajaRef = useRef<HTMLDivElement | null>(null);
 
-  const nombre = usuario.displayName || usuario.username;
+  const nombre = usuario.displayName || usuario.username || 'Usuario';
 
   const rolTexto =
     usuario.role === 'admin'
       ? 'Administrador'
       : usuario.role === 'moderator'
         ? 'Moderador'
-        : `@${usuario.username}`;
+        : usuario.username
+          ? `@${usuario.username}`
+          : 'Usuario';
 
   // Cambiar de vista lo cierra siempre, igual que el menú del
   // móvil: si no, se queda flotando sobre la vista nueva.
@@ -120,14 +122,16 @@ export const AccountMenu: React.FC<{
 
         <span className="hidden text-left sm:block">
           <span className="block max-w-[140px] truncate text-xs font-bold text-white">
-            {usuario.username || usuario.displayName || 'Usuario'}
+            {nombre}
           </span>
-          <span className="block text-[10px] text-zinc-400">
+          <span className="block truncate text-[10px] text-zinc-400">
             {usuario.role === 'admin'
               ? '[ADMIN]'
               : usuario.role === 'moderator'
                 ? '[MODERADOR]'
-                : 'Usuario'}
+                : usuario.username
+                  ? `@${usuario.username}`
+                  : 'Usuario'}
           </span>
         </span>
 

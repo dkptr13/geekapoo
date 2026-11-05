@@ -172,6 +172,16 @@ beforeEach(async () => {
   await crearUsuario(RECREADO);
   await crearUsuario(MOD, { role: 'moderator' });
   await crearUsuario(ADMIN, { role: 'admin' });
+  // Reservas de identidad: los perfiles se pueden borrar y
+  // recrear, pero el @usuario no se pierde.
+  await sembrar(async (f) => {
+    for (const uid of [NORMAL, BANEADO, BANEADO_REGISTRO, DESBANEADO, RECREADO, MOD, ADMIN]) {
+      await setDoc(doc(f, 'usernames', uid), {
+        uid,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    }
+  });
   // SIN_PERFIL no tiene documento en `users`: es una cuenta de
   // Firebase Auth que nunca llegó a crear su perfil.
 

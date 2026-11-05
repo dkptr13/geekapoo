@@ -277,13 +277,11 @@ export function textoDias(dias: number): string {
 /**
  * Qué caracteres se admiten en el username.
  *
- * El mismo criterio que usan las reglas de las menciones
- * (`mencionesDe` en `utils/notificaciones.ts`), y por el mismo
- * motivo: si un nombre pudiera llevar un espacio, un "@usuario"
- * con dos palabras se cortaría por la mitad y la mención no
- * llegaría a nadie. Ver `MAX_MENCIONES`.
+ * Se admiten letras sin acentos, números y guion bajo, en
+ * minúsculas. Es el mismo criterio que `src/data/usernames.ts` y
+ * que la Cloud Function `reservarUsername`.
  */
-const USERNAME_VALIDO = /^[A-Za-z0-9._-]{3,24}$/;
+const USERNAME_VALIDO = /^[a-z0-9_]{3,20}$/;
 
 /**
  * Valida lo que el usuario quiere guardar.
@@ -312,6 +310,8 @@ export function validarEditable(
   const nombre = (datos.displayName ?? '').trim();
   if (!nombre) {
     errores.displayName = 'El nombre no puede estar vacio.';
+  } else if (nombre.length < 2) {
+    errores.displayName = 'El nombre necesita al menos 2 caracteres.';
   } else if (nombre.length > MAX_DISPLAY_NAME) {
     errores.displayName = `Maximo ${MAX_DISPLAY_NAME} caracteres.`;
   }

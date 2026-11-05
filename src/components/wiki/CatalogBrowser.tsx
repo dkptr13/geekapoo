@@ -501,7 +501,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                   </p>
                   <span className="mt-1.5 flex items-center gap-1 text-[10px] text-zinc-600">
                     <MessageSquare size={10} />
-                    {t.commentsCount} · @{t.authorName}
+                    {t.commentsCount} · {t.authorName}
                   </span>
                 </button>
               ))}

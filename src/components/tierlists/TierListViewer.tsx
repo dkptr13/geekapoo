@@ -61,7 +61,7 @@ export const TierListViewer: React.FC<TierListViewerProps> = ({
   onEditar,
   onClose,
 }) => {
-  const { currentUser, requireAuth } = useAuth();
+  const { currentUser, usersList, requireAuth } = useAuth();
   const [tier, setTier] = useState<TierList | null>(null);
   const [noExiste, setNoExiste] = useState(false);
   const [votes, setVotes] = useState<TierVoteRow[]>([]);
@@ -99,6 +99,10 @@ export const TierListViewer: React.FC<TierListViewerProps> = ({
   const miVoto = currentUser ? votes.find((v) => v.userId === currentUser.uid)?.tierId ?? null : null;
   const soyAutor = !!currentUser && !!tier && tier.authorId === currentUser.uid;
   const categoria = tier ? CLUB_CATEGORIES.find((c) => c.id === tier.category) : undefined;
+  const nombreAutor = tier
+    ? usersList.find((u) => u.uid === tier.authorId)?.displayName ||
+      tier.authorName
+    : '';
 
   const votar = async (tierId: string) => {
     if (!tier || !currentUser) {
@@ -141,7 +145,7 @@ export const TierListViewer: React.FC<TierListViewerProps> = ({
               </h2>
               <p className="truncate text-[11px] text-zinc-500">
                 {tier
-                  ? `por ${tier.authorName}${
+                  ? `por ${nombreAutor}${
                       tier.originTitle ? ` · basada en “${tier.originTitle}”` : ''
                     }`
                   : ' '}

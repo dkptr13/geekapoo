@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Image as ImageIcon, Link2, Loader2, MessageSquare, Pin, X } from 'lucide-react';
 
 import { fechaLegible } from '../../data/clubModeracion';
+import { useAuth } from '../../context/AuthContext';
 import type { ChatFijado } from '../../services/chatFijados';
 
 // ======================================================
@@ -45,7 +46,16 @@ export const ChatFijadosPanel: React.FC<ChatFijadosPanelProps> = ({
   onQuitar,
   borrados,
 }) => {
+  const { usersList } = useAuth();
   const [salto, setSalto] = useState<string | null>(null);
+
+  const nombreDe = (uid: string, respaldo: string): string => {
+    const vivo = usersList.find((u) => u.uid === uid);
+    return vivo?.displayName || vivo?.username || respaldo;
+  };
+
+  const handleDe = (uid: string): string =>
+    usersList.find((u) => u.uid === uid)?.username ?? '';
 
   // Al saltar se marca un momento: el panel se cierra y quien
   // llama hace el scroll. El estado solo evita el doble clic.
@@ -111,12 +121,19 @@ export const ChatFijadosPanel: React.FC<ChatFijadosPanelProps> = ({
                     />
                   ) : (
                     <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 text-[11px] font-black text-white">
-                      {f.autorNombre.slice(0, 2).toUpperCase()}
+                      {(nombreDe(f.autorId, f.autorNombre) || '?')
+                        .slice(0, 2)
+                        .toUpperCase()}
                     </span>
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold text-white">
-                      {f.autorNombre}
+                      {nombreDe(f.autorId, f.autorNombre)}
+                      {handleDe(f.autorId) && (
+                        <span className="font-mono text-[9px] font-normal text-zinc-500">
+                          @{handleDe(f.autorId)}
+                        </span>
+                      )}
                       <Pin size={10} className="text-amber-300" />
                       {ICONO_TIPO(f.tipo)}
                     </p>
@@ -142,7 +159,9 @@ export const ChatFijadosPanel: React.FC<ChatFijadosPanelProps> = ({
                     <dt className="shrink-0">Fijado:</dt>
                     <dd className="text-zinc-400">
                       {fechaLegible(f.fijadoEn)}
-                      {f.fijadoPorNombre ? ` por ${f.fijadoPorNombre}` : ''}
+                      {f.fijadoPorNombre
+                        ? ` por ${nombreDe(f.fijadoPor, f.fijadoPorNombre)}`
+                        : ''}
                     </dd>
                   </div>
                 </dl>

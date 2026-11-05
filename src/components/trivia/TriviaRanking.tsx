@@ -27,7 +27,7 @@ const PERIODOS: { id: Periodo; etiqueta: string }[] = [
 ];
 
 export const TriviaRanking: FC<{ fecha: string }> = ({ fecha }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, usersList } = useAuth();
   const [periodo, setPeriodo] = useState<Periodo>('diario');
   const [filas, setFilas] = useState<FilaRanking[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -54,6 +54,10 @@ export const TriviaRanking: FC<{ fecha: string }> = ({ fecha }) => {
   // primeras: si el jugador ha jugado y sigue por el puesto 40,
   // quiere verse igual, y el `top 20` es para el podio.
   const propia = currentUser ? filas.find((f) => f.userId === currentUser.uid) : undefined;
+
+  const nombreDe = (fila: FilaRanking): string =>
+    usersList.find((u) => u.uid === fila.userId)?.displayName ||
+    fila.userName;
 
   return (
     <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
@@ -113,12 +117,12 @@ export const TriviaRanking: FC<{ fecha: string }> = ({ fecha }) => {
                 />
               ) : (
                 <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 text-[9px]">
-                  {f.userName.slice(0, 1).toUpperCase()}
+                  {(nombreDe(f) || '?').slice(0, 1).toUpperCase()}
                 </span>
               )}
 
               <span className="min-w-0 flex-1 truncate font-semibold text-zinc-200">
-                {f.userName}
+                {nombreDe(f)}
                 {f.userId === currentUser?.uid && (
                   <span className="ml-1 text-[10px] text-violet-400">(tú)</span>
                 )}

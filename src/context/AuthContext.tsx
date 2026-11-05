@@ -8,6 +8,7 @@ import React, {
 
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -55,6 +56,18 @@ import {
   subscribeUserPrivate,
   userPrivateRef,
 } from '../services/userPrivate';
+
+import {
+  crearPerfilUsuario,
+  obtenerUsernamePermanente,
+} from '../services/identity';
+import {
+  errorDisplayName,
+  errorUsername,
+  normalizarDisplayName,
+  normalizarUsername,
+  puedeCambiarDisplayName,
+} from '../data/usernames';
 
 import { User, PrivacySettings, UserPrivateData } from '../types';
 
@@ -118,11 +131,33 @@ function estaBaneado(
 // TIPOS
 // ======================================================
 
+/**
+ * Cuenta de Auth que aún no tiene perfil en Firestore.
+ *
+ * Pasa con GitHub/Google la primera vez y con cualquier cuenta cuyo
+ * perfil se haya borrado. No se crea nada automáticamente: la
+ * persona elige su @usuario y su nombre visible.
+ */
+export interface IdentitySetup {
+  uid: string;
+  email: string;
+  avatarUrl: string;
+  suggestedUsername: string;
+  suggestedDisplayName: string;
+  /**
+   * La cuenta ya tiene un @usuario confirmado (perfil borrado). El
+   * identificador se muestra fijo y solo se elige el nombre visible.
+   */
+  usernameFijo: boolean;
+}
+
 export interface AuthContextType {
   currentUser: User | null;
   usersList: User[];
   loading: boolean;
   getUserByChatId: (chatId: string) => User | undefined;
+  /** Busca por nombre visible, @usuario o ID de chat en el directorio. */
+  buscarUsuarios: (consulta: string, limite?: number) => User[];
 
   isAdmin: boolean;
   isModerator: boolean;
@@ -149,11 +184,20 @@ export interface AuthContextType {
   register: (
     email: string,
     pass: string,
-    username: string
+    username: string,
+    displayName: string
   ) => Promise<{
     ok: boolean;
     error?: string;
   }>;
+
+  /** Cuenta autenticada que necesita completar su identidad. */
+  identitySetup: IdentitySetup | null;
+  completeIdentity: (
+    username: string,
+    displayName: string
+  ) => Promise<{ ok: boolean; error?: string }>;
+  cancelIdentitySetup: () => Promise<void>;
 
   logout: () => Promise<void>;
 
@@ -307,39 +351,33 @@ function unirPerfilPrivado(
     email: camposPrivados.email ?? emailDeAuth ?? '',
     isBanned: baneado,
     createdAt: toIsoString(publico.createdAt),
+    ...(publico.displayNameChangedAt
+      ? { displayNameChangedAt: toIsoString(publico.displayNameChangedAt) }
+      : {}),
   };
 }
 
-/**
- * Crea las dos mitades del perfil en un lote atómico.
- *
- * Si se creara solo `users/{uid}` y fallara la privada, el usuario
- * existiría sin correo ni ajustes. Si se creara solo la privada y
- * fallara la pública, no podría usar la comunidad. El lote evita
- * los dos estados a medias.
- */
-async function crearPerfilEnFirestore(
-  uid: string,
-  perfil: User,
-  email: string,
-): Promise<void> {
-  const lote = writeBatch(db);
-  const publico = soloCamposPublicos(perfil);
+/** Identificador propuesto a partir de los datos de Auth. */
+function usernameSugerido(fbUser: FirebaseUser): string {
+  const base = normalizarUsername(
+    fbUser.displayName || fbUser.email?.split('@')[0] || 'geek',
+  )
+    .replace(/[^a-z0-9_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 20);
 
-  lote.set(doc(db, 'users', uid), {
-    ...publico,
-    privateProfile: false,
-    activityHidden: false,
-    createdAt: serverTimestamp(),
-  });
+  if (base.length >= 3) return base;
+  const relleno = `user_${fbUser.uid.slice(0, 6).toLowerCase()}`;
+  return `${base}${relleno}`.slice(0, 20);
+}
 
-  lote.set(userPrivateRef(uid), {
-    email,
-    privacy: { ...DEFAULT_PRIVACY },
-    updatedAt: serverTimestamp(),
-  });
-
-  await lote.commit();
+/** Nombre visible propuesto: el de Auth o el identificador. */
+function displayNameSugerido(fbUser: FirebaseUser, username: string): string {
+  const nombre = normalizarDisplayName(
+    fbUser.displayName || fbUser.email?.split('@')[0] || username,
+  );
+  return nombre.slice(0, 30) || username;
 }
 
 
@@ -392,6 +430,9 @@ export const AuthProvider = ({
 
   const [returnToAction, setReturnToAction] =
     useState<string | null>(null);
+
+  const [identitySetup, setIdentitySetup] =
+    useState<IdentitySetup | null>(null);
 
   // Última versión del documento privado. Se guarda en un ref para
   // que el listener del perfil público pueda mezclarla sin volver a
@@ -464,9 +505,18 @@ export const AuthProvider = ({
                 activityHidden:
                   data.activityHidden === true || data.showActivity === false,
                 createdAt: toIsoString(data.createdAt),
+                ...(data.displayNameChangedAt
+                  ? {
+                      displayNameChangedAt: toIsoString(
+                        data.displayNameChangedAt,
+                      ),
+                    }
+                  : {}),
               };
             })
-            .sort((a, b) => a.username.localeCompare(b.username));
+            .sort((a, b) =>
+              (a.username ?? '').localeCompare(b.username ?? ''),
+            );
         },
       })
         .then((directory) => {
@@ -516,6 +566,7 @@ export const AuthProvider = ({
 
         if (!fbUser) {
           datosPrivadosRef.current = null;
+          setIdentitySetup(null);
           setCurrentUser(null);
           setLoading(false);
           return;
@@ -529,6 +580,7 @@ export const AuthProvider = ({
 
         if (isPasswordUser && !fbUser.emailVerified) {
           datosPrivadosRef.current = null;
+          setIdentitySetup(null);
           setCurrentUser(null);
           setLoading(false);
           return;
@@ -543,6 +595,7 @@ export const AuthProvider = ({
             if (userDoc.exists()) {
 
               const firestoreUser = userDoc.data() as User;
+              setIdentitySetup(null);
 
               // El registro duradero manda desde que existe. La
               // bandera antigua solo se usa si aún no hay registro,
@@ -561,61 +614,33 @@ export const AuthProvider = ({
 
             } else {
 
-              const username =
-                fbUser.displayName
-                  ?.replace(/\s+/g, '_')
-                  .trim() ||
-                fbUser.email?.split('@')[0] ||
-                'UserGeek';
+              // La cuenta existe en Firebase Auth pero no tiene
+              // perfil. No se crea solo: hay que elegir un @usuario
+              // único y un nombre visible. Esto cubre el primer
+              // login con GitHub/Google y una cuenta cuyo perfil se
+              // haya borrado.
+              // Si el perfil se borró, el @usuario confirmado sigue
+              // siendo suyo. Se propone ese mismo y el backend no
+              // deja elegir otro.
+              const [, permanente] = await Promise.all([
+                restriccionDe(fbUser.uid),
+                obtenerUsernamePermanente(),
+              ]);
+              const username = permanente || usernameSugerido(fbUser);
 
-              // El perfil se acaba de borrar (o es la primera
-              // vez). Antes de recrearlo se mira el registro
-              // duradero: si hay un baneo vigente, el perfil nace
-              // con el estado local de baneado. Las reglas lo
-              // aplican igualmente aunque el documento no lleve
-              // ninguna bandera.
-              const restriccion = await restriccionDe(fbUser.uid);
-              const baneado = restriccion.vigente;
-
-              const newUser: User = {
+              datosPrivadosRef.current = null;
+              setCurrentUser(null);
+              setIdentitySetup({
                 uid: fbUser.uid,
                 email: fbUser.email || '',
-                username,
-                displayName: fbUser.displayName || username,
-                chatId: `GK-${Math.floor(1000 + Math.random() * 9000)}-${username.substring(0, 4).toUpperCase()}`,
-                avatarUrl: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-                role: 'user',
-                createdAt: new Date().toISOString(),
-                lastSeen: 'En línea',
-                bio: 'Comunidad geekapoo.es',
-                privateProfile: false,
-                activityHidden: false,
-              };
-
-              const privadoInicial: UserPrivateData = {
-                email: fbUser.email || '',
-                privacy: { ...DEFAULT_PRIVACY },
-              };
-              datosPrivadosRef.current = privadoInicial;
-
-              // Al escribir, este mismo listener salta de nuevo y
-              // pone el documento ya creado. No se espera aquí.
-              crearPerfilEnFirestore(
-                fbUser.uid,
-                newUser,
-                fbUser.email || '',
-              ).catch((e) =>
-                console.error('Error al crear el perfil de Firestore:', e),
-              );
-
-              setCurrentUser(
-                unirPerfilPrivado(
-                  newUser,
-                  privadoInicial,
-                  fbUser.email,
-                  baneado,
-                ),
-              );
+                avatarUrl:
+                  fbUser.photoURL ||
+                  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                suggestedUsername: username,
+                suggestedDisplayName: displayNameSugerido(fbUser, username),
+                usernameFijo: Boolean(permanente),
+              });
+              setLoading(false);
             }
 
             setLoading(false);
@@ -825,55 +850,100 @@ export const AuthProvider = ({
   const register = async (
     email: string,
     pass: string,
-    username: string
+    username: string,
+    displayName: string,
   ): Promise<{ ok: boolean; error?: string }> => {
 
-    try {
+    const usernameLimpio = normalizarUsername(username);
+    const displayNameLimpio = normalizarDisplayName(displayName);
 
+    const errorNombre = errorUsername(usernameLimpio);
+    if (errorNombre) return { ok: false, error: errorNombre };
+
+    const errorVisible = errorDisplayName(displayNameLimpio);
+    if (errorVisible) return { ok: false, error: errorVisible };
+
+    let fbUser: FirebaseUser | null = null;
+    let perfilCreado = false;
+
+    try {
       const userCredential =
         await createUserWithEmailAndPassword(auth, email.trim(), pass);
 
-      const fbUser = userCredential.user;
+      fbUser = userCredential.user;
 
-      await sendEmailVerification(fbUser);
-
-      const cleanUsername = username.trim();
-
-      const chatId =
-        `GK-${Math.floor(1000 + Math.random() * 9000)}-${cleanUsername.substring(0, 4).toUpperCase()}`;
-
-      const newUser: User = {
-        uid: fbUser.uid,
+      // Esta callable crea el perfil y confirma la reserva en una
+      // sola transacción. No hay ventana entre "nombre reservado" y
+      // "perfil creado", ni forma de liberar el nombre después.
+      await crearPerfilUsuario({
+        username: usernameLimpio,
+        displayName: displayNameLimpio,
         email: email.trim(),
-        username: cleanUsername,
-        displayName: cleanUsername,
-        chatId,
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-        role: 'user',
-        createdAt: new Date().toISOString(),
-        lastSeen: 'En línea',
-        bio: 'Nuevo miembro en geekapoo.es',
-        privateProfile: false,
-        activityHidden: false,
-      };
+      });
+      perfilCreado = true;
 
-      await crearPerfilEnFirestore(
-        fbUser.uid,
-        newUser,
-        email.trim(),
-      );
+      try {
+        await sendEmailVerification(fbUser);
+      } catch (e) {
+        console.error('No se pudo enviar la verificación:', e);
+      }
 
-      await signOut(auth);
+      // El perfil ya está creado: un fallo al cerrar la sesión no
+      // debe convertir un registro correcto en un error.
+      await signOut(auth).catch((e) => {
+        console.warn('No se pudo cerrar la sesión tras el registro:', e);
+      });
       setCurrentUser(null);
-      closeAuth();
-
-      alert('¡Cuenta creada con éxito! Te hemos enviado un correo de verificación. Por favor, revisa tu bandeja de entrada (o Spam) y haz clic en el enlace para poder iniciar sesión.');
+      setIdentitySetup(null);
 
       return { ok: true };
 
     } catch (err: any) {
 
       console.error('Error durante el registro:', err);
+
+      // Si la cuenta de Auth llegó a crearse y algo falló antes de
+      // confirmar el perfil, se intenta una vez más: la callable es
+      // idempotente y, si la primera llamada sí llegó al servidor
+      // pero se perdió la respuesta, este reintento recupera el
+      // perfil en vez de borrar una cuenta que ya estaba completa.
+      if (!perfilCreado && fbUser) {
+        try {
+          await crearPerfilUsuario({
+            username: usernameLimpio,
+            displayName: displayNameLimpio,
+            email: email.trim(),
+          });
+          perfilCreado = true;
+        } catch (reintento) {
+          console.warn('El reintento de crear el perfil tampoco funcionó:', reintento);
+        }
+      }
+
+      // El reintento recuperó un perfil que sí se había creado: la
+      // cuenta está completa y no se borra.
+      if (perfilCreado && fbUser) {
+        try {
+          await sendEmailVerification(fbUser);
+        } catch (e) {
+          console.error('No se pudo enviar la verificación tras el reintento:', e);
+        }
+        await signOut(auth).catch(() => undefined);
+        setCurrentUser(null);
+        setIdentitySetup(null);
+        return { ok: true };
+      }
+
+      if (!perfilCreado && fbUser) {
+        try {
+          await deleteUser(fbUser);
+        } catch (e) {
+          console.warn('No se pudo borrar la cuenta de Auth a medias:', e);
+          await signOut(auth).catch(() => undefined);
+        }
+      }
+      setCurrentUser(null);
+      setIdentitySetup(null);
 
       let message = 'Error durante el registro.';
 
@@ -885,11 +955,87 @@ export const AuthProvider = ({
         message = 'El correo electrónico no es válido.';
       } else if (err?.code === 'auth/network-request-failed') {
         message = 'Error de conexión. Comprueba tu conexión a Internet.';
+      } else if (err instanceof Error && err.message) {
+        message = err.message;
       }
 
       return { ok: false, error: message };
     }
   };
+
+  // ====================================================
+  // COMPLETAR IDENTIDAD (GitHub/Google o perfil borrado)
+  // ====================================================
+
+  const completeIdentity = async (
+    username: string,
+    displayName: string,
+  ): Promise<{ ok: boolean; error?: string }> => {
+    if (!identitySetup || !auth.currentUser) {
+      return { ok: false, error: 'No hay una cuenta pendiente de identidad.' };
+    }
+    if (identitySetup.uid !== auth.currentUser.uid) {
+      return { ok: false, error: 'La sesión ha cambiado. Vuelve a iniciar sesión.' };
+    }
+
+    const usernameLimpio = normalizarUsername(username);
+    const displayNameLimpio = normalizarDisplayName(displayName);
+    const errorNombre = errorUsername(usernameLimpio);
+    if (errorNombre) return { ok: false, error: errorNombre };
+    const errorVisible = errorDisplayName(displayNameLimpio);
+    if (errorVisible) return { ok: false, error: errorVisible };
+
+    try {
+      const { username: usernameFinal, chatId } = await crearPerfilUsuario({
+        username: usernameLimpio,
+        displayName: displayNameLimpio,
+        email: identitySetup.email,
+        avatarUrl: identitySetup.avatarUrl,
+        bio: 'Comunidad geekapoo.es',
+      });
+
+      const newUser: User = {
+        uid: identitySetup.uid,
+        email: identitySetup.email,
+        username: usernameFinal,
+        displayName: displayNameLimpio,
+        chatId,
+        avatarUrl: identitySetup.avatarUrl,
+        role: 'user',
+        createdAt: new Date().toISOString(),
+        lastSeen: 'En línea',
+        bio: 'Comunidad geekapoo.es',
+        privateProfile: false,
+        activityHidden: false,
+      };
+
+      setCurrentUser(newUser);
+      setIdentitySetup(null);
+      return { ok: true };
+    } catch (e) {
+      const code = (e as { code?: string } | null)?.code ?? '';
+      if (code.includes('already-exists')) {
+        return {
+          ok: false,
+          error: 'Ese nombre de usuario acaba de ocuparse. Prueba otro.',
+        };
+      }
+      return {
+        ok: false,
+        error:
+          e instanceof Error
+            ? e.message
+            : 'No se pudo completar la identidad de la cuenta.',
+      };
+    }
+  };
+
+  const cancelIdentitySetup = async (): Promise<void> => {
+    setIdentitySetup(null);
+    await signOut(auth).catch(() => undefined);
+    setCurrentUser(null);
+  };
+
 
 
   // ====================================================
@@ -952,10 +1098,9 @@ export const AuthProvider = ({
   // LOGIN CON GOOGLE
   // ====================================================
   //
-  // No hace falta crear el usuario a mano: al entrar, el listener
-  // de onAuthStateChanged ve que no hay documento en "users" y lo
-  // crea con los datos de Google. Por eso el login con GitHub
-  // tampoco los escribe.
+  // Al entrar, si la cuenta no tiene perfil, el listener de
+  // onAuthStateChanged abre `IdentitySetupModal` para elegir el
+  // @usuario y el nombre visible. No se crea nada automáticamente.
 
   const loginWithGoogle = async (): Promise<{
     ok: boolean;
@@ -1014,10 +1159,37 @@ export const AuthProvider = ({
     const privado: Partial<UserPrivateData> = {};
     const publico: Record<string, unknown> = {};
 
+    const nombreNuevo =
+      data.displayName !== undefined
+        ? normalizarDisplayName(data.displayName)
+        : null;
+    const cambiaNombre =
+      nombreNuevo !== null && nombreNuevo !== (currentUser.displayName ?? '');
+
+    if (cambiaNombre) {
+      const error = errorDisplayName(nombreNuevo ?? '');
+      if (error) throw new Error(error);
+      if (!puedeCambiarDisplayName(currentUser)) {
+        throw new Error(
+          'Todavía no puedes cambiar el nombre visible. Espera a que pase el plazo de 7 días.',
+        );
+      }
+    }
+
     const camposPrivados = new Set<string>(PRIVATE_PROFILE_FIELDS);
 
     Object.entries(data).forEach(([campo, valor]) => {
       if (valor === undefined) return;
+
+      // El identificador es permanente. Cualquier intento desde el
+      // cliente se ignora aquí; las reglas también lo bloquean.
+      if (campo === 'username' || campo === 'usernameAliases') return;
+      if (campo === 'displayNameChangedAt') return;
+
+      if (campo === 'displayName') {
+        if (nombreNuevo !== null) publico.displayName = nombreNuevo;
+        return;
+      }
 
       if (camposPrivados.has(campo)) {
         // `profileVisibility`, `allowChatRequests` y `showActivity`
@@ -1038,6 +1210,10 @@ export const AuthProvider = ({
 
       publico[campo] = valor;
     });
+
+    if (cambiaNombre) {
+      publico.displayNameChangedAt = serverTimestamp();
+    }
 
     const tocaPrivacidad =
       data.profileVisibility !== undefined ||
@@ -1105,6 +1281,12 @@ export const AuthProvider = ({
     const updatedUser: User = {
       ...currentUser,
       ...data,
+      username: currentUser.username,
+      usernameAliases: currentUser.usernameAliases,
+      ...(nombreNuevo !== null ? { displayName: nombreNuevo } : {}),
+      displayNameChangedAt: cambiaNombre
+        ? new Date().toISOString()
+        : currentUser.displayNameChangedAt,
       ...privateFieldsOf(siguientesPrivados),
       ...(privacidad ? publicPrivacySignals(privacidad) : {}),
       isBanned: currentUser.isBanned,
@@ -1118,14 +1300,14 @@ export const AuthProvider = ({
       const publico = soloCamposPublicos(updatedUser) as unknown as User;
       const siguiente = usersList
         .map((user) => (user.uid === uid ? { ...user, ...publico } : user))
-        .sort((a, b) => a.username.localeCompare(b.username));
+        .sort((a, b) => (a.username ?? '').localeCompare(b.username ?? ''));
       setUsersList(siguiente);
       setCached('auth:users', siguiente, 5 * 60 * 1000, userCacheScope(uid));
     }
   };
 
   const getUserByChatId = (chatId: string): User | undefined => {
-    const normalized = chatId.trim().toLowerCase();
+    const normalized = chatId.trim().replace(/^@/, '').toLowerCase();
     if (!normalized) return undefined;
 
     // Comparación con cadena opcional: un usuario sin chatId
@@ -1134,8 +1316,54 @@ export const AuthProvider = ({
       (user) =>
         user.chatId?.toLowerCase() === normalized ||
         user.uid?.toLowerCase() === normalized ||
-        user.username?.toLowerCase() === normalized
+        user.username?.toLowerCase() === normalized ||
+        user.usernameAliases?.some((alias) => alias.toLowerCase() === normalized)
     );
+  };
+
+  /**
+   * Busca personas en el directorio ya cargado.
+   *
+   * No hace ninguna lectura: `usersList` vive en memoria. Se acepta
+   * el nombre visible, el `@usuario` completo o sin `@`, el uid y el
+   * ID de chat. El orden pone primero las coincidencias exactas de
+   * identificador, que es lo que desambigua cuando dos personas se
+   * llaman igual.
+   */
+  const buscarUsuarios = (consulta: string, limite = 8): User[] => {
+    const limpio = consulta.trim().replace(/^@/, '').toLowerCase();
+    if (!limpio) return [];
+
+    const puntuar = (user: User): number => {
+      const username = (user.username ?? '').toLowerCase();
+      const displayName = (user.displayName ?? '').toLowerCase();
+      const chatId = (user.chatId ?? '').toLowerCase();
+      const uid = (user.uid ?? '').toLowerCase();
+      const aliases = (user.usernameAliases ?? []).map((a) => a.toLowerCase());
+
+      if (username === limpio || chatId === limpio || uid === limpio) return 0;
+      if (aliases.includes(limpio)) return 1;
+      if (displayName === limpio) return 1;
+      if (username.startsWith(limpio)) return 2;
+      if (displayName.startsWith(limpio)) return 3;
+      if (username.includes(limpio)) return 4;
+      if (displayName.includes(limpio)) return 5;
+      if (aliases.some((alias) => alias.includes(limpio))) return 6;
+      return 99;
+    };
+
+    return usersList
+      .map((user) => ({ user, puntos: puntuar(user) }))
+      .filter((item) => item.puntos < 99)
+      .sort((a, b) => {
+        if (a.puntos !== b.puntos) return a.puntos - b.puntos;
+        return (a.user.displayName || a.user.username || '').localeCompare(
+          b.user.displayName || b.user.username || '',
+          'es',
+        );
+      })
+      .slice(0, limite)
+      .map((item) => item.user);
   };
 
 
@@ -1148,6 +1376,7 @@ export const AuthProvider = ({
     usersList,
     loading,
     getUserByChatId,
+    buscarUsuarios,
     isAdmin: currentUser?.role === 'admin',
     isModerator: currentUser?.role === 'moderator' || currentUser?.role === 'admin',
     canManage: currentUser?.role === 'admin' || currentUser?.role === 'moderator',
@@ -1155,6 +1384,9 @@ export const AuthProvider = ({
     loginWithGithub,
     loginWithGoogle,
     register,
+    identitySetup,
+    completeIdentity,
+    cancelIdentitySetup,
     logout,
     sendPasswordReset,
     updateProfileData,

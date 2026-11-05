@@ -65,7 +65,7 @@ function useResumenContenido(reportes: ContentReport[]) {
     Promise.all(
       idsComentarios.map(async (id) => {
         const t = await textoDeComment(id);
-        return [id, t ? `"${t.body}" — @${t.authorName}` : null] as const;
+        return [id, t ? `"${t.body}" — ${t.authorName}` : null] as const;
       }),
     )
       .then((pares) => {

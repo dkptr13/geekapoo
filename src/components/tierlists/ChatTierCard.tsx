@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, Loader2, Trophy } from 'lucide-react';
 
+import { useAuth } from '../../context/AuthContext';
 import { getTierList } from '../../services/tierlists';
 import type { TierList, TierListRef } from '../../types';
 import { TierListView } from './TierListView';
@@ -21,6 +22,7 @@ interface ChatTierCardProps {
 }
 
 export const ChatTierCard: React.FC<ChatTierCardProps> = ({ referencia, onAbrir }) => {
+  const { usersList } = useAuth();
   const [tier, setTier] = useState<TierList | null>(null);
   const [cargando, setCargando] = useState(true);
   const [falta, setFalta] = useState(false);
@@ -57,6 +59,10 @@ export const ChatTierCard: React.FC<ChatTierCardProps> = ({ referencia, onAbrir 
     );
   }
 
+  const nombreAutor =
+    usersList.find((u) => u.uid === tier.authorId)?.displayName ||
+    tier.authorName;
+
   return (
     <div className="mt-1.5 w-full max-w-72 overflow-hidden rounded-xl border border-violet-500/25 bg-zinc-950/70">
       <div className="flex items-center gap-1.5 border-b border-violet-500/15 px-2.5 py-1.5">
@@ -66,7 +72,7 @@ export const ChatTierCard: React.FC<ChatTierCardProps> = ({ referencia, onAbrir 
         </span>
       </div>
       <div className="px-2.5 pt-2">
-        <p className="truncate text-[10px] text-zinc-500">por {tier.authorName}</p>
+        <p className="truncate text-[10px] text-zinc-500">por {nombreAutor}</p>
         <div className="mt-1.5">
           <TierListView tier={tier} tamano="sm" maxFilas={3} />
         </div>

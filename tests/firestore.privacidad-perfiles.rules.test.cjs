@@ -263,8 +263,17 @@ describe('perfil público', () => {
   });
 
   it('un perfil nuevo normal se puede crear sin campos privados', async () => {
+    await sembrar(async (f) => {
+      await setDoc(doc(f, 'usernames', 'nuevo_ok'), {
+        uid: 'nuevo-ok',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    });
     await assertSucceeds(
-      setDoc(doc(db('nuevo-ok'), 'users', 'nuevo-ok'), usuario('nuevo-ok')),
+      setDoc(doc(db('nuevo-ok'), 'users', 'nuevo-ok'), {
+        ...usuario('nuevo-ok'),
+        username: 'nuevo_ok',
+      }),
     );
   });
 });

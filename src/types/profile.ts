@@ -243,7 +243,7 @@ export interface ValidacionEditable {
  * mil caracteres que se rompe al pintar.
  */
 export const MAX_BIO = 300;
-export const MAX_DISPLAY_NAME = 40;
+export const MAX_DISPLAY_NAME = 30;
 export const MAX_AVATAR_URL = 500;
 export const MAX_FAVORITE_ANIME = 60;
 

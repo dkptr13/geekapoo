@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Trophy } from 'lucide-react';
 
+import { useAuth } from '../../context/AuthContext';
 import { getTierList } from '../../services/tierlists';
 import { CLUB_CATEGORIES } from '../../types';
 import type { TierList, TierListRef } from '../../types';
@@ -24,6 +25,7 @@ interface TierListCardProps {
 }
 
 export const TierListCard: React.FC<TierListCardProps> = ({ referencia, onAbrir }) => {
+  const { usersList } = useAuth();
   const [tier, setTier] = useState<TierList | null>(null);
   const [cargando, setCargando] = useState(true);
   const [falta, setFalta] = useState(false);
@@ -61,6 +63,9 @@ export const TierListCard: React.FC<TierListCardProps> = ({ referencia, onAbrir 
   }
 
   const categoria = CLUB_CATEGORIES.find((c) => c.id === tier.category);
+  const nombreAutor =
+    usersList.find((u) => u.uid === tier.authorId)?.displayName ||
+    tier.authorName;
 
   return (
     <section
@@ -70,7 +75,7 @@ export const TierListCard: React.FC<TierListCardProps> = ({ referencia, onAbrir 
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-violet-500/15 px-4 py-2.5">
         <span className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-violet-300">
           <Trophy size={13} className="flex-shrink-0 text-violet-400" />
-          <span className="truncate">Tier list · por {tier.authorName}</span>
+          <span className="truncate">Tier list · por {nombreAutor}</span>
         </span>
         {categoria && (
           <span className="flex-shrink-0 rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-[9px] font-bold text-zinc-400">

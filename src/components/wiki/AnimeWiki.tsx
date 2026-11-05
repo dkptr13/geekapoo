@@ -26,6 +26,7 @@ import { useCommunity } from '../../context/CommunityContext';
 import { useAuth } from '../../context/AuthContext';
 import { AuthorBadge } from '../gamification/AuthorBadge';
 import { ReportDialog } from '../community/ReportDialog';
+import { MentionText } from '../community/MentionText';
 import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
 import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
 import { useCatalogPage, useCollectionCount } from '../../hooks/useCatalogPage';
@@ -106,7 +107,14 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     deleteComment,
   } = useCommunity();
 
-  const { currentUser, requireAuth, isModerator, isAdmin } = useAuth();
+  const { currentUser, usersList, requireAuth, isModerator, isAdmin } =
+    useAuth();
+
+  /** Nombre visible actual, con el guardado como respaldo. */
+  const nombreDe = (uid: string, respaldo: string): string => {
+    const vivo = usersList.find((u) => u.uid === uid);
+    return vivo?.displayName || vivo?.username || respaldo;
+  };
   const puedeModerar = isModerator || isAdmin;
 
   // La Wiki sí necesita todas las series para el catálogo.
@@ -1602,14 +1610,16 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                               <div className="min-w-0 flex-1">
                                 <AuthorBadge
                                   authorId={c.authorId}
-                                  nombre={`@${c.authorName}`}
+                                  nombre={c.authorName}
                                 />
                               </div>
                               <span className="flex-shrink-0 text-[10px] text-zinc-500">
                                 {new Date(c.createdAt).toLocaleDateString()}
                               </span>
                             </div>
-                            <p className="mt-1 text-xs text-zinc-300">{c.body}</p>
+                            <p className="mt-1 text-xs text-zinc-300">
+                          <MentionText text={c.body} />
+                        </p>
                             <div className="mt-2 flex items-center gap-2">
                               <button
                                 onClick={() => alternarLikeEpisodio(c)}
@@ -1935,7 +1945,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                       <div className="min-w-0 flex-1">
                                         <AuthorBadge
                                           authorId={c.authorId}
-                                          nombre={`@${c.authorName}`}
+                                          nombre={c.authorName}
                                           tamano="sm"
                                         />
                                       </div>
@@ -1943,7 +1953,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                         {new Date(c.createdAt).toLocaleDateString()}
                                       </span>
                                     </div>
-                                    <p className="text-zinc-300 text-xs">{c.body}</p>
+                                    <p className="text-zinc-300 text-xs">
+                          <MentionText text={c.body} />
+                        </p>
 
                                     {/* Responder y borrar, como en el
                                         resto de comentarios de la web:
@@ -2014,7 +2026,10 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                           type="text"
                                           value={charReplyText}
                                           onChange={(e) => setCharReplyText(e.target.value)}
-                                          placeholder={`Respondiendo a @${c.authorName}...`}
+                                          placeholder={`Respondiendo a ${nombreDe(
+                                            c.authorId,
+                                            c.authorName,
+                                          )}...`}
                                           className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
                                         />
                                         <button
@@ -2040,7 +2055,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                                 <div className="min-w-0 flex-1">
                                                   <AuthorBadge
                                                     authorId={r.authorId}
-                                                    nombre={`@${r.authorName}`}
+                                                    nombre={r.authorName}
                                                     tamano="sm"
                                                   />
                                                 </div>
@@ -2049,7 +2064,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                                 {new Date(r.createdAt).toLocaleDateString()}
                                               </span>
                                             </div>
-                                            <p className="pl-5 text-zinc-300">{r.body}</p>
+                                            <p className="pl-5 text-zinc-300">
+                          <MentionText text={r.body} />
+                        </p>
                                             {(puedeModerar || r.authorId === currentUser?.uid) &&
                                               (confirmandoBorrar === r.id ? (
                                                 <span className="mt-1 flex items-center gap-1.5 pl-5">

@@ -62,6 +62,13 @@ import {
 } from './stats';
 import { topicosDe } from './topicos';
 import { accionDeLike, debeProcesarLike, idsDeLikes } from './likesLogic';
+import {
+  normalizarDisplayName,
+  normalizarUsername,
+  usernameReservado,
+  usernameValido,
+  displayNameValido,
+} from './usernames';
 
 // `rss-parser` y `createHash` viven en `functions/src/rss.ts`, que es
 // donde se usan. Aquí no hacen falta: lo que se importa de `./rss` son
@@ -72,6 +79,21 @@ initializeApp();
 const db = getFirestore();
 
 const USERS = 'users';
+/**
+ * Reservas de nombres de usuario. El id es el identificador
+ * normalizado y el documento guarda el uid propietario. Solo lo
+ * escribe esta Cloud Function con el Admin SDK; las reglas no dan
+ * ninguna escritura al cliente.
+ */
+const USERNAMES = 'usernames';
+/**
+ * Identificadores antiguos que se cambiaron durante la migración.
+ *
+ * Sirven para que una mención escrita con el nombre viejo siga
+ * llegando a la misma persona. Tampoco se pueden reutilizar: la
+ * reserva comprueba esta colección.
+ */
+const USERNAME_ALIASES = 'usernameAliases';
 /**
  * Registro duradero de baneos. Una colección plana con el uid como
  * id, escrita SOLO por este archivo con el Admin SDK. Las reglas de
@@ -544,37 +566,56 @@ function mencionesDe(texto: string | undefined): string[] {
  * nada.
  */
 async function uidDeUsuario(username: string): Promise<string | null> {
-  const limpio = username.trim();
-  if (!limpio) return null;
+    const limpio = username.trim();
+    if (!limpio) return null;
 
-  try {
-    const exacta = await db
-      .collection(USERS)
-      .where('username', '==', limpio)
-      .limit(1)
-      .get();
-    if (!exacta.empty) return exacta.docs[0].id;
+    const normalizado = normalizarUsername(limpio);
+    if (!normalizado) return null;
 
-    // Si el nombre ya venía en minúscula, la primera consulta ya
-    // lo buscó: repetirla sería la misma lectura dos veces.
-    const minuscula = limpio.toLowerCase();
-    if (minuscula === limpio) return null;
+    try {
+      // Camino nuevo: el identificador es el id del documento, así
+      // que una mención cuesta UNA lectura exacta y no depende de
+      // mayúsculas ni de tildes.
+      const reserva = await db.doc(`${USERNAMES}/${normalizado}`).get();
+      if (reserva.exists) {
+        const uid = reserva.data()?.uid;
+        return typeof uid === 'string' && uid ? uid : null;
+      }
 
-    const porMinuscula = await db
-      .collection(USERS)
-      .where('username', '==', minuscula)
-      .limit(1)
-      .get();
-    if (!porMinuscula.empty) return porMinuscula.docs[0].id;
+      // Identificadores antiguos que la migración cambió. Se
+      // conservan para que una mención escrita antes siga llegando
+      // a la misma persona.
+      const alias = await db.doc(`${USERNAME_ALIASES}/${normalizado}`).get();
+      if (alias.exists) {
+        const uid = alias.data()?.uid;
+        return typeof uid === 'string' && uid ? uid : null;
+      }
 
-    return null;
-  } catch (e) {
-    logger.error('Fallo buscando el usuario de una mencion', { username: limpio, error: e });
-    return null;
+      // Compatibilidad con cuentas que aún no se hayan migrado.
+      const exacta = await db
+        .collection(USERS)
+        .where('username', '==', limpio)
+        .limit(1)
+        .get();
+      if (!exacta.empty) return exacta.docs[0].id;
+
+      if (normalizado === limpio) return null;
+
+      const porMinuscula = await db
+        .collection(USERS)
+        .where('username', '==', normalizado)
+        .limit(1)
+        .get();
+      if (!porMinuscula.empty) return porMinuscula.docs[0].id;
+
+      return null;
+    } catch (e) {
+      logger.error('Fallo buscando el usuario de una mencion', { username: limpio, error: e });
+      return null;
+    }
   }
-}
 
-/**
+  /**
  * Avisa a todos los "@mencionados" de un comentario.
  *
  * Los que no existen se ignoran sin error: escribir "@ anecdote" o
@@ -619,6 +660,41 @@ async function avisarMenciones(
       targetId: contexto.targetId,
       animeId: contexto.animeId ?? null,
       commentId,
+      snippet: body,
+    });
+  }
+}
+
+/**
+ * Avisa de las menciones escritas en el cuerpo de un hilo.
+ *
+ * El comentario ya tenía su aviso; el hilo no. Se usa un id
+ * determinista por hilo y persona, así que un reintento del trigger
+ * no duplica la campana.
+ */
+async function avisarMencionesDeHilo(
+  body: string | undefined,
+  threadId: string,
+  autorId: string,
+  autorNombre: string,
+  autorAvatar: string,
+): Promise<void> {
+  const nombres = mencionesDe(body);
+  if (nombres.length === 0) return;
+
+  for (const nombre of nombres) {
+    const uid = await uidDeUsuario(nombre);
+    if (!uid || uid === autorId) continue;
+
+    await notificar({
+      id: `mention_thread_${threadId}_${uid}`,
+      type: 'mention',
+      recipientId: uid,
+      actorId: autorId,
+      actorName: autorNombre,
+      actorAvatar: autorAvatar,
+      threadId,
+      animeId: null,
       snippet: body,
     });
   }
@@ -1366,6 +1442,18 @@ export const onThreadCreated = onDocumentCreated(
       );
     } catch (e) {
       logger.error('Fallo concediendo XP por hilo nuevo', { threadId, error: e });
+    }
+
+    try {
+      await avisarMencionesDeHilo(
+        typeof data.body === 'string' ? data.body : '',
+        threadId,
+        authorId,
+        typeof data.authorName === 'string' ? data.authorName : '',
+        typeof data.authorAvatar === 'string' ? data.authorAvatar : '',
+      );
+    } catch (e) {
+      logger.error('Fallo avisando de menciones de un hilo', { threadId, error: e });
     }
   },
 );
@@ -2479,6 +2567,459 @@ async function exigirActivo(auth: unknown): Promise<string> {
 
   return uid;
 }
+
+/** UID de una cuenta autenticada, sin exigir que ya tenga perfil. */
+function uidAutenticado(auth: unknown): string {
+  const uid = (auth as { uid?: string } | undefined)?.uid;
+  if (!uid) {
+    throw new HttpsError('unauthenticated', 'Tienes que iniciar sesión.');
+  }
+  return uid;
+}
+
+/** Un baneo duradero impide reservar incluso antes de tener perfil. */
+async function exigirSinBaneo(uid: string): Promise<void> {
+  const restriccion = await db.doc(`${ACCOUNT_RESTRICTIONS}/${uid}`).get();
+  const vigente =
+    restriccion.exists &&
+    restriccion.data()?.activo === true &&
+    restriccion.data()?.tipo === 'ban';
+  if (vigente) {
+    throw new HttpsError(
+      'permission-denied',
+      'Tu cuenta está baneada y no puede reservar un nombre de usuario.',
+    );
+  }
+}
+
+/**
+ * Comprueba si un identificador está libre sin revelar el directorio.
+ *
+ * Es pública porque el formulario de registro la usa antes de tener
+ * sesión. No reserva nada: la reserva real la hace `reservarUsername`.
+ */
+export const comprobarUsername = onCall(async (request) => {
+  const username = normalizarUsername(
+    typeof request.data?.username === 'string' ? request.data.username : '',
+  );
+
+  if (!username) {
+    return {
+      estado: 'vacio',
+      mensaje: 'Introduce un nombre de usuario.',
+      username: '',
+    };
+  }
+
+  if (!usernameValido(username)) {
+    return {
+      estado: 'invalido',
+      mensaje: 'Solo letras sin acentos, números y guiones bajos (3-20).',
+      username,
+    };
+  }
+
+  if (usernameReservado(username)) {
+    return {
+      estado: 'reservado',
+      mensaje: 'Ese nombre de usuario está reservado.',
+      username,
+    };
+  }
+
+  const [reserva, alias] = await Promise.all([
+    db.doc(`${USERNAMES}/${username}`).get(),
+    db.doc(`${USERNAME_ALIASES}/${username}`).get(),
+  ]);
+
+  if (reserva.exists || alias.exists) {
+    return {
+      estado: 'ocupado',
+      mensaje: 'Este nombre de usuario ya está en uso.',
+      username,
+    };
+  }
+
+  // Compatibilidad mientras se ejecuta la migración.
+  const perfiles = await db
+    .collection(USERS)
+    .where('username', '==', username)
+    .limit(1)
+    .get();
+
+  if (!perfiles.empty) {
+    return {
+      estado: 'ocupado',
+      mensaje: 'Este nombre de usuario ya está en uso.',
+      username,
+    };
+  }
+
+  return {
+    estado: 'disponible',
+    mensaje: '¡Este nombre de usuario está disponible!',
+    username,
+  };
+});
+
+/**
+ * Identificador permanente de la cuenta autenticada, si ya tiene una
+ * reserva confirmada.
+ *
+ * Lo usa el cliente cuando una cuenta de Auth no tiene perfil (perfil
+ * borrado): el @usuario no se pierde y el formulario de identidad
+ * debe proponer ese mismo, no uno nuevo.
+ */
+export const miUsername = onCall(async (request) => {
+  const uid = uidAutenticado(request.auth);
+  const reservas = await db
+    .collection(USERNAMES)
+    .where('uid', '==', uid)
+    .limit(100)
+    .get();
+
+  const confirmada = reservas.docs.find(
+    (doc) => doc.data()?.confirmed === true,
+  );
+  return { username: confirmada ? confirmada.id : null };
+});
+
+/**
+ * Reserva un identificador para la cuenta autenticada.
+ *
+ * Es una transacción: dos personas que intenten el mismo nombre a la
+ * vez solo pueden crear el documento una vez. La comprobación del
+ * formulario NO reserva nada; esto sí.
+ *
+ * Se llama después de crear la cuenta de Firebase Auth y antes de
+ * escribir el perfil. Si el perfil no se llega a crear, el cliente
+ * llama a `liberarUsername`.
+ */
+export const reservarUsername = onCall(async (request) => {
+  const uid = uidAutenticado(request.auth);
+  await exigirSinBaneo(uid);
+
+  const username = normalizarUsername(
+    typeof request.data?.username === 'string' ? request.data.username : '',
+  );
+
+  if (!usernameValido(username)) {
+    throw new HttpsError(
+      'invalid-argument',
+      'El nombre de usuario no es válido.',
+    );
+  }
+  if (usernameReservado(username)) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Ese nombre de usuario está reservado.',
+    );
+  }
+
+  const usernameRef = db.doc(`${USERNAMES}/${username}`);
+  const aliasRef = db.doc(`${USERNAME_ALIASES}/${username}`);
+  const perfilRef = db.doc(`${USERS}/${uid}`);
+
+  await db.runTransaction(async (tx) => {
+    const [reserva, alias, perfil] = await Promise.all([
+      tx.get(usernameRef),
+      tx.get(aliasRef),
+      tx.get(perfilRef),
+    ]);
+
+    if (perfil.exists) {
+      const actual = normalizarUsername(String(perfil.data()?.username ?? ''));
+      if (actual !== username) {
+        throw new HttpsError(
+          'failed-precondition',
+          'Esta cuenta ya tiene un nombre de usuario.',
+        );
+      }
+    } else {
+      // Compatibilidad mientras se ejecuta la migración: si una
+      // cuenta antigua aún no tiene reserva, su `users.username`
+      // sigue bloqueando el nombre. Sin esto habría una ventana
+      // para duplicarlo.
+      const enPerfiles = await tx.get(
+        db.collection(USERS).where('username', '==', username).limit(1),
+      );
+      if (!enPerfiles.empty) {
+        throw new HttpsError(
+          'already-exists',
+          'Ese nombre de usuario ya está en uso.',
+        );
+      }
+
+      // Una cuenta que borró su perfil conserva su @usuario: no
+      // puede reservar otro nombre antes de recrearlo.
+      const propias = await tx.get(
+        db.collection(USERNAMES).where('uid', '==', uid).limit(100),
+      );
+      const confirmada = propias.docs.find(
+        (doc) => doc.data()?.confirmed === true,
+      );
+      if (confirmada && confirmada.id !== username) {
+        throw new HttpsError(
+          'failed-precondition',
+          `Tu nombre de usuario permanente es @${confirmada.id}; no puedes elegir otro.`,
+        );
+      }
+
+      // Una cuenta no acumula reservas pendientes: la anterior se
+      // libera al reservar la siguiente.
+      propias.docs.forEach((doc) => {
+        if (doc.id !== username && doc.data()?.confirmed !== true) {
+          tx.delete(doc.ref);
+        }
+      });
+    }
+
+    if (reserva.exists) {
+      if (reserva.data()?.uid === uid) {
+        if (perfil.exists) {
+          tx.set(usernameRef, { confirmed: true }, { merge: true });
+        }
+        return;
+      }
+      throw new HttpsError(
+        'already-exists',
+        'Ese nombre de usuario ya está en uso.',
+      );
+    }
+
+    // Un identificador antiguo no se reutiliza: las menciones
+    // viejas seguirían apuntando a la persona equivocada.
+    if (alias.exists) {
+      throw new HttpsError(
+        'already-exists',
+        'Ese nombre de usuario ya está en uso.',
+      );
+    }
+
+    tx.set(usernameRef, {
+      uid,
+      createdAt: FieldValue.serverTimestamp(),
+      confirmed: perfil.exists,
+    });
+  });
+
+  return { ok: true, username };
+});
+
+/**
+ * Libera una reserva que no llegó a tener perfil.
+ *
+ * Solo puede hacerlo la misma cuenta y solo mientras no exista su
+ * perfil. Así nadie puede quitarle el nombre a otra persona.
+ */
+export const liberarUsername = onCall(async (request) => {
+  const uid = uidAutenticado(request.auth);
+  const username = normalizarUsername(
+    typeof request.data?.username === 'string' ? request.data.username : '',
+  );
+  if (!username) return { ok: true };
+
+  const usernameRef = db.doc(`${USERNAMES}/${username}`);
+  const perfilRef = db.doc(`${USERS}/${uid}`);
+
+  await db.runTransaction(async (tx) => {
+    const [reserva, perfil] = await Promise.all([
+      tx.get(usernameRef),
+      tx.get(perfilRef),
+    ]);
+
+    if (perfil.exists) {
+      throw new HttpsError(
+        'failed-precondition',
+        'La cuenta ya tiene perfil; el nombre de usuario es permanente.',
+      );
+    }
+    if (!reserva.exists) return;
+    if (reserva.data()?.uid !== uid) {
+      throw new HttpsError(
+        'permission-denied',
+        'Ese nombre de usuario pertenece a otra cuenta.',
+      );
+    }
+    if (reserva.data()?.confirmed === true) {
+      throw new HttpsError(
+        'failed-precondition',
+        'El nombre de usuario ya está confirmado y es permanente.',
+      );
+    }
+
+    tx.delete(usernameRef);
+  });
+
+  return { ok: true };
+});
+
+/**
+ * Crea el perfil y confirma la reserva en la MISMA transacción.
+ *
+ * Es el camino que usa el cliente al registrarse o al completar la
+ * identidad de GitHub/Google. Evita el estado intermedio "reserva
+ * hecha pero perfil no creado" y, al marcar `confirmed: true`, el
+ * nombre ya no se puede liberar aunque el perfil se borre después.
+ */
+export const crearPerfilUsuario = onCall(async (request) => {
+  const uid = uidAutenticado(request.auth);
+  await exigirSinBaneo(uid);
+
+  const username = normalizarUsername(
+    typeof request.data?.username === 'string' ? request.data.username : '',
+  );
+  const displayName = normalizarDisplayName(
+    typeof request.data?.displayName === 'string' ? request.data.displayName : '',
+  );
+
+  if (!usernameValido(username)) {
+    throw new HttpsError('invalid-argument', 'El nombre de usuario no es válido.');
+  }
+  if (usernameReservado(username)) {
+    throw new HttpsError('invalid-argument', 'Ese nombre de usuario está reservado.');
+  }
+  if (!displayNameValido(displayName)) {
+    throw new HttpsError(
+      'invalid-argument',
+      'El nombre visible debe tener entre 2 y 30 caracteres.',
+    );
+  }
+
+  const avatarSolicitado =
+    typeof request.data?.avatarUrl === 'string' ? request.data.avatarUrl.trim() : '';
+  const avatarUrl =
+    /^https:\/\//.test(avatarSolicitado) && avatarSolicitado.length <= 1000
+      ? avatarSolicitado
+      : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
+
+  const bioSolicitada =
+    typeof request.data?.bio === 'string' ? request.data.bio.trim() : '';
+  const bio = (bioSolicitada || 'Nuevo miembro en geekapoo.es').slice(0, 300);
+
+  const token = (request.auth as { token?: { email?: unknown } } | undefined)?.token;
+  const emailToken = typeof token?.email === 'string' ? token.email : '';
+  const emailSolicitado =
+    typeof request.data?.email === 'string' ? request.data.email.trim() : '';
+  const email = emailToken || emailSolicitado;
+
+  const chatIdNuevo = `GK-${Math.floor(1000 + Math.random() * 9000)}-${username
+    .substring(0, 4)
+    .toUpperCase()}`;
+  let chatIdFinal = chatIdNuevo;
+
+  const usernameRef = db.doc(`${USERNAMES}/${username}`);
+  const aliasRef = db.doc(`${USERNAME_ALIASES}/${username}`);
+  const userRef = db.doc(`${USERS}/${uid}`);
+  const privateRef = db.doc(`userPrivate/${uid}`);
+
+  await db.runTransaction(async (tx) => {
+    const [reserva, alias, perfil] = await Promise.all([
+      tx.get(usernameRef),
+      tx.get(aliasRef),
+      tx.get(userRef),
+    ]);
+
+    if (perfil.exists) {
+      const datos = perfil.data();
+      const actual = normalizarUsername(String(datos?.username ?? ''));
+      if (actual === username) {
+        // Reintento de una llamada que ya se aplicó: se confirma la
+        // reserva (por si quedó a medias) y se devuelve el chatId
+        // real del perfil, no uno nuevo.
+        if (typeof datos?.chatId === 'string' && datos.chatId) {
+          chatIdFinal = datos.chatId;
+        }
+        tx.set(usernameRef, { confirmed: true }, { merge: true });
+        return;
+      }
+      throw new HttpsError(
+        'failed-precondition',
+        'Esta cuenta ya tiene un nombre de usuario.',
+      );
+    }
+
+    // Si esta cuenta reservó un nombre y luego elige otro, la reserva
+    // vieja se libera en la misma transacción. Sin esto, cualquiera
+    // podría bloquear un identificador reservándolo y creando después
+    // el perfil con otro nombre.
+    const reservasPropias = await tx.get(
+      db.collection(USERNAMES).where('uid', '==', uid),
+    );
+    const permanente = reservasPropias.docs.find(
+      (doc) => doc.data()?.confirmed === true,
+    );
+    if (permanente && permanente.id !== username) {
+      throw new HttpsError(
+        'failed-precondition',
+        `Tu nombre de usuario permanente es @${permanente.id}; no puedes elegir otro.`,
+      );
+    }
+    reservasPropias.docs.forEach((doc) => {
+      if (doc.id !== username && doc.data()?.confirmed !== true) {
+        tx.delete(doc.ref);
+      }
+    });
+
+    if (reserva.exists) {
+      if (reserva.data()?.uid !== uid) {
+        throw new HttpsError(
+          'already-exists',
+          'Ese nombre de usuario ya está en uso.',
+        );
+      }
+      tx.set(usernameRef, { confirmed: true }, { merge: true });
+    } else {
+      if (alias.exists) {
+        throw new HttpsError(
+          'already-exists',
+          'Ese nombre de usuario ya está en uso.',
+        );
+      }
+      const enPerfiles = await tx.get(
+        db.collection(USERS).where('username', '==', username).limit(1),
+      );
+      if (!enPerfiles.empty) {
+        throw new HttpsError(
+          'already-exists',
+          'Ese nombre de usuario ya está en uso.',
+        );
+      }
+
+      tx.set(usernameRef, {
+        uid,
+        createdAt: FieldValue.serverTimestamp(),
+        confirmed: true,
+      });
+    }
+
+    tx.set(userRef, {
+      uid,
+      username,
+      displayName,
+      chatId: chatIdNuevo,
+      avatarUrl,
+      role: 'user',
+      bio,
+      lastSeen: 'En línea',
+      privateProfile: false,
+      activityHidden: false,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    tx.set(privateRef, {
+      email,
+      privacy: {
+        profileVisibility: 'public',
+        allowChatRequests: true,
+        showActivity: true,
+      },
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+
+  return { ok: true, username, chatId: chatIdFinal };
+});
 
 export const eliminarMensajeParaTodos = onCall(async (request) => {
   const uid = await exigirActivo(request.auth);

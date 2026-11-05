@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Sparkles, TrendingUp, Heart, Shield, ArrowRight, Tag, Star, Flame } from 'lucide-react';
 import { useCommunity } from '../../context/CommunityContext';
+import { useAuth } from '../../context/AuthContext';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { NewsWidget } from '../home/NewsWidget';
@@ -23,6 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onGoToAnime,
 }) => {
   const { threads, allThreads, animes, categories } = useCommunity();
+  const { usersList } = useAuth();
   const { weeklyWorks } = useSiteContent();
 
   // Para las categorías de código no hay contador del servidor. Se
@@ -229,7 +231,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {thread.title}
                   </h4>
                   <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-500">
-                    <span className="max-w-[120px] truncate">@{thread.authorName}</span>
+                    <span className="max-w-[120px] truncate">
+                      {usersList.find((u) => u.uid === thread.authorId)?.displayName ||
+                        thread.authorName}
+                    </span>
                     <span className="flex items-center gap-1 font-mono font-semibold text-pink-400">
                       <Heart size={11} className="fill-pink-500 text-pink-500" />
                       {thread.likesCount}

@@ -94,7 +94,8 @@ export const VitrinaPrincipal: React.FC<{ perfil: User }> = ({ perfil }) => {
             <p className="mt-1.5 text-xs leading-relaxed text-zinc-300">{pj.desc}</p>
           ) : (
             <p className="mt-1.5 text-xs italic text-zinc-600">
-              El personaje favorito de {perfil.displayName || perfil.username}.
+              El personaje favorito de{' '}
+              {perfil.displayName || perfil.username || 'Usuario'}.
             </p>
           )}
         </div>

@@ -479,6 +479,11 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                           </span>
                         )}
                       </p>
+                      {fichaDe(m.uid)?.username && (
+                        <p className="truncate font-mono text-[9px] text-zinc-500">
+                          @{fichaDe(m.uid)?.username}
+                        </p>
+                      )}
                       <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
                         {m.role === 'owner' && (
                           <span className="flex items-center gap-0.5 font-bold text-amber-300">
