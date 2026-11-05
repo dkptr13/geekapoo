@@ -63,6 +63,7 @@ const MainAppContentInner: React.FC = () => {
 const {
   currentUser,
   canManage,
+  isAdmin,
 } = useAuth();
 
   // Ruta actual. Es lo que distingue una ficha de anime
@@ -698,12 +699,14 @@ const {
           MODAL ARQUITECTURA
       ================================================== */}
 
-      <ArchitectureModal
-        isOpen={architectureOpen}
-        onClose={() =>
-          setArchitectureOpen(false)
-        }
-      />
+      {isAdmin && (
+        <ArchitectureModal
+          isOpen={architectureOpen}
+          onClose={() =>
+            setArchitectureOpen(false)
+          }
+        />
+      )}
 
 
       {/* ==================================================

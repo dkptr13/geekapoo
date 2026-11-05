@@ -90,6 +90,7 @@ export default function Navbar({
     logout,
     openAuth,
     canManage,
+    isAdmin,
   } = useAuth();
 
   const { unreadRoomIds } = useChat();
@@ -224,12 +225,16 @@ export default function Navbar({
     { id: 'trivia', etiqueta: 'Trivia', icono: Brain, tab: 'trivia' },
     { id: 'logros', etiqueta: 'Logros', icono: Trophy, tab: 'logros' },
     { id: 'soporte', etiqueta: 'Soporte', icono: LifeBuoy, tab: 'soporte' },
-    {
-      id: 'arquitectura',
-      etiqueta: 'Arquitectura',
-      icono: Code2,
-      accion: () => onOpenArchitecture(),
-    },
+    ...(isAdmin
+      ? [
+          {
+            id: 'arquitectura',
+            etiqueta: 'Arquitectura',
+            icono: Code2,
+            accion: () => onOpenArchitecture(),
+          },
+        ]
+      : []),
     ...(canManage
       ? [
           {
