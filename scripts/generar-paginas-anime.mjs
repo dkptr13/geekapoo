@@ -506,6 +506,7 @@ function contenidoEstatico(anime, extras) {
 
   return `<div style="min-height:100vh;background:#080810;color:#e4e4e7;font-family:Outfit,system-ui,sans-serif;padding:48px 20px">
   <div style="max-width:820px;margin:0 auto">
+    ${anime.coverUrl ? `<img src="${escaparHtml(anime.coverUrl)}" alt="Portada de ${escaparHtml(anime.title)}" width="180" height="270" style="float:right;margin:0 0 16px 20px;border-radius:12px;object-fit:cover" />` : ''}
     <p style="margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a78bfa">Wiki de anime · Geekapoo</p>
     <h1 style="margin:0 0 6px;font-size:34px;line-height:1.15;font-weight:800">${escaparHtml(anime.title)}</h1>
     ${anime.japaneseTitle ? `<p style="margin:0 0 14px;font-size:15px;color:#a1a1aa">${escaparHtml(anime.japaneseTitle)}</p>` : ''}
@@ -524,7 +525,12 @@ function contenidoEstatico(anime, extras) {
 
 function jsonLd(anime) {
   const url = `${SITIO}/anime/${encodeURIComponent(anime.slug)}`;
-  const imagen = anime.bannerUrl || anime.coverUrl || `${SITIO}/img/og-geekapoo.png`;
+  // La portada vertical es la que Google usa mejor como miniatura;
+  // el banner panorámico queda como segunda opción.
+  const imagenes = [anime.coverUrl, anime.bannerUrl].filter(Boolean);
+  const imagen = imagenes.length
+    ? imagenes
+    : `${SITIO}/img/og-geekapoo.png`;
 
   const serie = {
     '@context': 'https://schema.org',
@@ -595,6 +601,15 @@ function personalizar(plantilla, anime, extras) {
   html = html.replace(
     /(<meta property="og:image" content=")[^"]*(" \/>)/,
     `$1${escaparHtml(imagen)}$2`,
+  );
+  // Las medidas del banner genérico (1200x630) no son las de la
+  // imagen real de cada anime: mejor no declararlas que declararlas
+  // mal, porque Google puede descartar la miniatura.
+  html = html.replace(/\s*<meta property="og:image:width" content="[^"]*" \/>/, '');
+  html = html.replace(/\s*<meta property="og:image:height" content="[^"]*" \/>/, '');
+  html = html.replace(
+    /(<meta property="og:image:alt" content=")[^"]*(" \/>)/,
+    `$1${escaparHtml(`Portada de ${anime.title}`)}$2`,
   );
   html = html.replace(
     /(<meta property="og:type" content=")[^"]*(" \/>)/,
