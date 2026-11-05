@@ -647,3 +647,11 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - **UI:** `PollCard` y `ChatPollCard` actualizan el voto y los porcentajes de forma optimista al pulsar; el resumen del servidor los confirma después. Si la escritura falla, se restauran el resumen y el voto anteriores. Un resumen con `actualizadoAt` anterior al voto no puede pisar la actualización optimista, y la barra anima en 200 ms en vez de 500 ms.
 - **Coste:** cada evento de voto lee la encuesta (1 documento) y hace una agregación por opción (máximo 10; ~1 lectura por cada 1.000 votos de esa opción), en vez de descargar todos los votos. Se prioriza la exactitud y no se duplican conteos.
 - **Pruebas:** `npm run test:encuestas` con Functions Emulator valida 4 votos contados una vez, cambio de voto sin alterar el total y borrado que descuenta exactamente uno. `npm run lint` y `npm run build` correctos.
+
+## 16. Borrado de club: el `general` va con el club (2026-11-04)
+
+- **Bug:** `eliminarClub` borraba todos los canales, incluido `general`, pero las reglas lo protegen (`channelId != 'general'`). El propietario recibía `No tienes permiso para esta acción` después de vaciar los chats, dejando el club a medias.
+- **Fix:** el vaciado de chats, el borrado de canales y el del documento del club van en un único `writeBatch`. La regla del canal `general` ahora permite borrarlo solo si el documento del club desaparece en la MISMA operación (`getAfter(...) == null`). Sigue prohibido borrarlo por separado, incluso para el propietario.
+- **Por qué así:** no se debilita la protección del `general`; se evita dejar un canal huérfano que reaparecería si se reutilizara el slug del club. Si el lote falla, no se aplica ningún cambio.
+- **Pruebas:** `tests/firestore.clubs-channels.rules.test.cjs` cubre el borrado conjunto, el rechazo del `general` suelto y el intento de un moderador de colarlo sin borrar el club. Las 36 pruebas del archivo pasan.
+

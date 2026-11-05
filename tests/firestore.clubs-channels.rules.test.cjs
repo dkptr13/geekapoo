@@ -13,7 +13,8 @@
  *      descubribles; nadie ajeno en privados.
  *   5. Un miembro normal no lee la ficha de un canal `mods`.
  *   6. Mods editan/ordenan; miembros no; nadie toca `chatId`.
- *   7. El `general` no se borra ni se restringe.
+ *   7. El `general` no se borra ni se restringe; solo desaparece
+ *      junto al documento del club en el mismo lote.
  *   8. Un moderador de OTRO club no gestiona canales ajenos.
  *   9. Nadie se auto-añade al chat de un canal restringido.
  *  10. Quien no está en el chat no escribe en él.
@@ -35,6 +36,7 @@ const {
   getDocs,
   query,
   serverTimestamp,
+  writeBatch,
 } = require('firebase/firestore');
 
 const fs = require('fs');
@@ -588,6 +590,32 @@ describe('Editar y borrar canales', () => {
     await assertFails(
       deleteDoc(doc(db(DUENO), 'clubs', 'club-de-frieren', 'channels', 'general')),
     );
+  });
+
+  it('el propietario borra el general junto al club en el mismo lote', async () => {
+    const f = db(DUENO);
+    const lote = writeBatch(f);
+    lote.update(doc(f, 'chats', 'chat-club-1'), {
+      memberIds: [],
+      hiddenFor: [DUENO, MOD, BOB],
+    });
+    lote.delete(doc(f, 'clubs', 'club-de-frieren', 'channels', 'general'));
+    lote.delete(doc(f, 'clubs', 'club-de-frieren'));
+    await assertSucceeds(lote.commit());
+  });
+
+  it('un moderador no puede colar el general en un lote sin borrar el club', async () => {
+    await sembrar(async (f) => {
+      await updateDoc(doc(f, 'clubs', 'club-de-frieren'), {
+        permisos: { moderadorGestionaCanales: true },
+      });
+    });
+
+    const f = db(MOD);
+    const lote = writeBatch(f);
+    lote.delete(doc(f, 'clubs', 'club-de-frieren', 'channels', 'general'));
+    lote.delete(doc(f, 'clubs', 'club-de-frieren', 'channels', 'teorias'));
+    await assertFails(lote.commit());
   });
 
   it('y un miembro no borra nada', async () => {

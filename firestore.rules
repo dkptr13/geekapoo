@@ -4418,9 +4418,16 @@ service cloud.firestore {
         // Borrar: todo menos el `general`. El historial se va
         // con el canal (el cliente vacía antes el chat para que
         // no quede legible por rutas antiguas).
+        //
+        // La única excepción es borrar el club entero: el
+        // `general` desaparece en el MISMO lote que el documento
+        // del club (`getAfter` lo ve nulo). Así no queda un canal
+        // huérfano y nadie puede quitarlo por separado, ni
+        // siquiera el propietario.
         allow delete: if isActive()
                       && (puedeGestionarCanales(clubId) || isAdmin())
-                      && channelId != 'general';
+                      && (channelId != 'general'
+                          || getAfter(/databases/$(database)/documents/clubs/$(clubId)) == null);
       }
     }
 

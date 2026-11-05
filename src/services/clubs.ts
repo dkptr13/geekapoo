@@ -2,7 +2,6 @@ import {
   arrayRemove,
   arrayUnion,
   collection,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -15,6 +14,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -1019,6 +1019,13 @@ export async function actualizarClub(
  * quedarían huérfanos gastando cuota sin que nadie pudiera
  * leerlos. Lo que se hace es vaciar la lista de miembros,
  * con lo que el chat deja de ser legible para todos.
+ *
+ * El vaciado de chats, el borrado de canales y el del propio
+ * club van en UN lote atómico. Así no queda un club a medias
+ * si falla un paso, y el `general` se puede borrar junto a su
+ * club: las reglas solo permiten quitarlo cuando el documento
+ * del club desaparece en la misma operación. Un `general`
+ * huérfano reaparecería si alguien reutilizara el slug.
  */
 export async function eliminarClub(clubId: string): Promise<ClubResult> {
   try {
@@ -1034,29 +1041,34 @@ export async function eliminarClub(clubId: string): Promise<ClubResult> {
 
     const todos = Object.keys(data.members ?? {});
 
-    // Primero se vacían TODOS los chats (histórico + canales):
-    // aunque algo falle después, nada queda legible por rutas
-    // antiguas. Las fichas de canal se borran con el club.
-    const canales = await listarCanales(clubId).catch(() => [] as ClubChannel[]);
+    const canales = await listarCanales(clubId);
     const chats = [data.chatId, ...canales.map((c) => c.chatId)].filter(
       (id, i, arr) => typeof id === 'string' && id.length > 0 && arr.indexOf(id) === i,
     );
+
+    // Todo va en el mismo lote atómico: o se vacían los chats y
+    // desaparecen los canales y el club, o no se aplica nada. Así
+    // no queda un club a medias con las conversaciones cerradas.
+    const lote = writeBatch(db);
+
     for (const id of chats) {
-      await updateDoc(doc(db, 'chats', id), {
+      lote.update(doc(db, 'chats', id), {
         memberIds: [],
         hiddenFor: todos,
       });
     }
 
     for (const canal of canales) {
-      await deleteDoc(doc(db, CLUBS, clubId, 'channels', canal.id));
+      lote.delete(doc(db, CLUBS, clubId, 'channels', canal.id));
     }
+
+    lote.delete(doc(db, CLUBS, clubId));
+
+    await lote.commit();
 
     // Las imágenes se borran DESPUÉS de haber vaciado el club.
     // Si se borraran antes y el vaciado fallara, el club se
     // quedaría sin imagen pero seguiría existiendo.
-    await deleteDoc(doc(db, CLUBS, clubId));
-
     const borrar = async (url?: string) => {
       if (url && storagePathFromUrl(url)) await deleteStoredImage(url);
     };
