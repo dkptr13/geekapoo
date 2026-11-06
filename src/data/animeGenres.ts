@@ -27,6 +27,7 @@ import { normalize } from './animeCategories';
  */
 export const GENEROS_CANONICOS = [
   'Acción',
+  'Amistad',
   'Apocalipsis',
   'Artes marciales',
   'Asesinos',
@@ -103,16 +104,32 @@ export const GENEROS_CANONICOS = [
  * alias: las resuelve `GENEROS_CANONICOS`.
  */
 const ALIAS: Record<string, string> = {
+  action: 'Acción',
+  adventure: 'Aventura',
   belico: 'Militar',
+  comedy: 'Comedia',
   curro: 'Trabajo',
   darkfantasy: 'Fantasía Oscura',
+  drama: 'Drama',
+  ecchi: 'Ecchi',
+  fantasy: 'Fantasía',
   horror: 'Terror',
-  musical: 'Música',
+  mahoushoujo: 'Chicas mágicas',
+  mecha: 'Mecha',
   medieval: 'Fantasía medieval',
+  music: 'Música',
+  musical: 'Música',
+  mystery: 'Misterio',
+  psychological: 'Psicológico',
+  romance: 'Romance',
   sciencefiction: 'Ciencia ficción',
   scifi: 'Ciencia ficción',
   sliceoflife: 'Recuentos de la vida',
+  sport: 'Deportes',
+  sports: 'Deportes',
+  supernatural: 'Sobrenatural',
   suspense: 'Thriller',
+  thriller: 'Thriller',
   universidad: 'Universitario',
   vidaescolar: 'Escolar',
 };

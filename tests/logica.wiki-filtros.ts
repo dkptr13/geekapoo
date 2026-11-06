@@ -143,6 +143,11 @@ assert.equal(saneadoHilos.orden, 'nuevos');
 assert.equal(normalizarGenero('  Accion '), 'Acción');
 assert.equal(normalizarGenero('Sci-Fi'), 'Ciencia ficción');
 assert.equal(normalizarGenero('Horror'), 'Terror');
+assert.equal(normalizarGenero('Mahou Shoujo'), 'Chicas mágicas');
+assert.equal(normalizarGenero('Sports'), 'Deportes');
+assert.equal(normalizarGenero('Slice of Life'), 'Recuentos de la vida');
+assert.equal(normalizarGenero('Supernatural'), 'Sobrenatural');
+assert.equal(normalizarGenero('Psychological'), 'Psicológico');
 assert.equal(normalizarGenero('[object Object]'), null);
 assert.equal(normalizarGenero('Ekstasis'), null);
 
