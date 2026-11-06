@@ -68,6 +68,7 @@ if (solo && !['personajes', 'temporadas', 'animes'].includes(solo)) {
 // OJO: los animes NO guardan el nombre en `name`, lo guardan en `title`.
 const ANIMES = [
   { id: 'akame-ga-kill', buscar: 'Akame ga Kill!' },
+  { id: 'odd-taxi', buscar: 'Odd Taxi' },
   { id: 'ataque-a-los-titanes', buscar: 'Attack on Titan' },
   { id: 'chainsaw-man', buscar: 'Chainsaw Man' },
   { id: 'takopi-s-original-sin', buscar: 'Takopi' },

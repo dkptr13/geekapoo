@@ -247,6 +247,7 @@ const FICHAS = {
     titulo: 'Ouran High School Host Club',
     anio: 2006,
   },
+  'odd-taxi': { id: 'ts271380', titulo: 'ODDTAXI', anio: 2021 },
   'undead-unluck': { id: 'ts364174', titulo: 'Undead Unluck', anio: 2023 },
   'vivy-fluorite-eye-s-song': {
     id: 'ts271378',
