@@ -287,15 +287,35 @@ const {
         robots: filtrada ? 'noindex, follow' : undefined,
         jsonLd: filtrada
           ? undefined
-          : {
-              '@context': 'https://schema.org',
-              '@type': 'CollectionPage',
-              name: 'Wiki de anime y series',
-              description:
-                'Catálogo de anime y series de Geekapoo con sinopsis, episodios, personajes y dónde verlas.',
-              url: `${SITE_URL}/?tab=wiki`,
-              isPartOf: { '@id': `${SITE_URL}/#website` },
-            },
+          : [
+              {
+                '@context': 'https://schema.org',
+                '@type': 'CollectionPage',
+                name: 'Wiki de anime y series',
+                description:
+                  'Catálogo de anime y series de Geekapoo con sinopsis, episodios, personajes y dónde verlas.',
+                url: `${SITE_URL}/?tab=wiki`,
+                isPartOf: { '@id': `${SITE_URL}/#website` },
+              },
+              {
+                '@context': 'https://schema.org',
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  {
+                    '@type': 'ListItem',
+                    position: 1,
+                    name: 'Inicio',
+                    item: `${SITE_URL}/`,
+                  },
+                  {
+                    '@type': 'ListItem',
+                    position: 2,
+                    name: 'Wiki de anime',
+                    item: `${SITE_URL}/?tab=wiki`,
+                  },
+                ],
+              },
+            ],
       };
     }
 
@@ -305,15 +325,35 @@ const {
         description:
           'Secretos de producción, curiosidades de doblaje, récords y anécdotas de anime, manga y cultura geek seleccionadas por la comunidad.',
         path: '/?tab=extras',
-        jsonLd: {
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: 'Extras y curiosidades de anime',
-          description:
-            'Curiosidades, secretos de producción y datos de anime, doblaje y bandas sonoras.',
-          url: `${SITE_URL}/?tab=extras`,
-          isPartOf: { '@id': `${SITE_URL}/#website` },
-        },
+        jsonLd: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Extras y curiosidades de anime',
+            description:
+              'Curiosidades, secretos de producción y datos de anime, doblaje y bandas sonoras.',
+            url: `${SITE_URL}/?tab=extras`,
+            isPartOf: { '@id': `${SITE_URL}/#website` },
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Inicio',
+                item: `${SITE_URL}/`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Extras',
+                item: `${SITE_URL}/?tab=extras`,
+              },
+            ],
+          },
+        ],
       };
     }
 

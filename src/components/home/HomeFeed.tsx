@@ -487,6 +487,31 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             ],
           };
 
+          const migas = {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Inicio',
+                item: `${SITE_URL}/`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Comunidad',
+                item: `${SITE_URL}/?tab=inicio`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: hiloParaSeo.title,
+                item: url,
+              },
+            ],
+          };
+
           return {
             title: `${hiloParaSeo.title} | Geekapoo`,
             description: descripcion,
@@ -495,7 +520,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             imageAlt: `Publicación: ${hiloParaSeo.title}`,
             type: 'article' as const,
             robots: 'index, follow',
-            jsonLd: publicacion,
+            jsonLd: [publicacion, migas],
           };
         })()
       : null,
