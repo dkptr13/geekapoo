@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
 
+# Áreas privadas. La seguridad real la ponen Firebase Auth y las
+# reglas de Firestore; esto solo evita que se rastreen.
+Disallow: /*?tab=admin
+Disallow: /*?tab=chats
+Disallow: /*?tab=ajustes
+Disallow: /*?tab=perfil
+
 Sitemap: https://www.geekapoo.es/sitemap.xml

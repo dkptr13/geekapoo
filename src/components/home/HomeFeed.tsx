@@ -43,6 +43,14 @@ import { ReportDialog } from '../community/ReportDialog';
 import { FanartGallery } from '../community/FanartGallery';
 import { FanartImagePicker } from '../community/FanartImagePicker';
 import { MentionSuggestions } from '../community/MentionSuggestions';
+import {
+  SITE_URL,
+  fechaIso,
+  imagenDeHilo,
+  textoPlano,
+  urlAbsoluta,
+  useSeo,
+} from '../../lib/seo';
 import { MentionText } from '../community/MentionText';
 import { StableImage } from '../common/StableImage';
 import { AutoGrowTextarea } from '../common/AutoGrowTextarea';
@@ -108,12 +116,15 @@ interface HomeFeedProps {
    * cuando el desplazamiento se completa de verdad.
    */
   onLimpiarFoco?: () => void;
+  /** Avisa al padre de qué hilo se ha abierto, para su SEO. */
+  onHiloEnfocado?: (threadId: string) => void;
 }
 
 export const HomeFeed: React.FC<HomeFeedProps> = ({
   selectedCategoryFilter,
   onClearCategoryFilter,
   focusTarget,
+  onHiloEnfocado,
   onLimpiarFoco,
 }) => {
   // `usersList` es el directorio de usuarios vivo, con un
@@ -399,6 +410,97 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   // se quedaría brillando para siempre.
   const highlightTimer = useRef<number | null>(null);
 
+  // SEO del hilo enfocado (incluye los fanarts, que son hilos).
+  // Solo se escribe cuando el documento ya está cargado; mientras
+  // tanto manda el SEO de la portada.
+  const hiloParaSeo = useMemo(() => {
+    // `hiloEnfocado` sobrevive a la limpieza de `?hilo=` que hace el
+    // feed tras colocar el scroll. Sin él, el <head> volvería al de
+    // la portada justo después de abrir el hilo.
+    const id = focusTarget?.threadId ?? hiloEnfocado;
+    if (!id) return null;
+
+    return (
+      threads.find((t) => t.id === id) ??
+      allThreads.find((t) => t.id === id) ??
+      null
+    );
+  }, [focusTarget?.threadId, hiloEnfocado, threads, allThreads]);
+
+  useSeo(
+    hiloParaSeo
+      ? (() => {
+          const url = `${SITE_URL}/?tab=inicio&hilo=${encodeURIComponent(hiloParaSeo.id)}`;
+          const imagenes = (hiloParaSeo.images ?? [])
+            .filter((imagen) => imagen?.url)
+            .map((imagen) => ({
+              '@type': 'ImageObject',
+              contentUrl: urlAbsoluta(imagen.url),
+              ...(imagen.width ? { width: imagen.width } : {}),
+              ...(imagen.height ? { height: imagen.height } : {}),
+              caption: hiloParaSeo.title,
+            }));
+
+          const imagenSuelta = imagenDeHilo(hiloParaSeo);
+          if (!imagenes.length && imagenSuelta) {
+            imagenes.push({
+              '@type': 'ImageObject',
+              contentUrl: urlAbsoluta(imagenSuelta),
+              caption: hiloParaSeo.title,
+            });
+          }
+
+          const fecha = fechaIso(hiloParaSeo.createdAt);
+          const descripcion =
+            textoPlano(hiloParaSeo.body) ||
+            `Publicación de ${hiloParaSeo.authorName || 'la comunidad'} en Geekapoo.`;
+
+          const publicacion: Record<string, unknown> = {
+            '@context': 'https://schema.org',
+            '@type': 'DiscussionForumPosting',
+            '@id': `${url}#post`,
+            headline: hiloParaSeo.title,
+            text: hiloParaSeo.body || hiloParaSeo.title,
+            url,
+            ...(fecha ? { datePublished: fecha } : {}),
+            author: {
+              '@type': 'Person',
+              name: hiloParaSeo.authorName || 'Miembro de Geekapoo',
+            },
+            ...(imagenes.length ? { image: imagenes } : {}),
+            isPartOf: { '@type': 'WebSite', '@id': `${SITE_URL}/#website` },
+            publisher: {
+              '@type': 'Organization',
+              '@id': `${SITE_URL}/#organization`,
+            },
+            interactionStatistic: [
+              {
+                '@type': 'InteractionCounter',
+                interactionType: 'https://schema.org/CommentAction',
+                userInteractionCount: hiloParaSeo.commentsCount ?? 0,
+              },
+              {
+                '@type': 'InteractionCounter',
+                interactionType: 'https://schema.org/LikeAction',
+                userInteractionCount: hiloParaSeo.likesCount ?? 0,
+              },
+            ],
+          };
+
+          return {
+            title: `${hiloParaSeo.title} | Geekapoo`,
+            description: descripcion,
+            canonical: url,
+            image: imagenSuelta || `${SITE_URL}/img/og-geekapoo.png`,
+            imageAlt: `Publicación: ${hiloParaSeo.title}`,
+            type: 'article' as const,
+            robots: 'index, follow',
+            jsonLd: publicacion,
+          };
+        })()
+      : null,
+  );
+
   // ── Ir a un hilo concreto ───────────────────────────
   //
   // Llega desde el perfil, el buscador o los hilos del día.
@@ -431,6 +533,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     // `?hilo=`: si no, al consumir la URL la lista volvería a la
     // página reciente y el hilo antiguo desaparecería del DOM.
     setHiloEnfocado(threadId);
+    onHiloEnfocado?.(threadId);
     setComentarioEnfocadoPersistente(commentId ?? null);
     setComentarioEnfocadoFallido(false);
     comentarioSolicitadoRef.current = null;

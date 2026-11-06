@@ -27,6 +27,10 @@ export interface QuickImageEditorProps {
    * cayendo en el mismo sitio.
    */
   imgStyle?: React.CSSProperties;
+  /** `eager` solo para imágenes above-the-fold (banner/portada). */
+  loading?: 'lazy' | 'eager';
+  decoding?: 'async' | 'sync' | 'auto';
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 export const QuickImageEditor: FC<QuickImageEditorProps> = ({
@@ -41,6 +45,9 @@ export const QuickImageEditor: FC<QuickImageEditorProps> = ({
   badgeClassName = 'top-2 right-2',
   empty,
   imgStyle,
+  loading = 'lazy',
+  decoding = 'async',
+  fetchPriority,
 }) => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
@@ -53,7 +60,15 @@ export const QuickImageEditor: FC<QuickImageEditorProps> = ({
     currentUser?.role === 'admin' || currentUser?.role === 'moderator';
 
   const image: ReactNode = src ? (
-    <img src={src} alt={alt} className={className} style={imgStyle} />
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      style={imgStyle}
+      loading={loading}
+      decoding={decoding}
+      fetchPriority={fetchPriority}
+    />
   ) : (
     (empty ?? null)
   );

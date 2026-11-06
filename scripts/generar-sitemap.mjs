@@ -1,18 +1,22 @@
 // ======================================================
-// SITEMAP DE LAS FICHAS DE ANIME
+// SITEMAP DE LAS PÁGINAS PÚBLICAS
 // ======================================================
-// Google necesita una lista de las páginas que existen. Sin ella
-// solo encuentra lo que alguien enlaza, y al principio nadie
-// enlaza nada: el sitemap es lo que hace que las 170+ fichas se
-// descubran solas.
+// Incluye solo lo que hoy tiene una URL pública y contenido
+// indexable:
 //
-// Se genera en cada build leyendo el catálogo público de
-// Firestore, así que añadir un anime en el panel lo mete en el
-// sitemap en el siguiente despliegue sin tocar nada a mano.
+//   · Inicio, wiki y extras.
+//   · Fichas de anime (con lastmod real e imagen de portada).
 //
-// Si Firestore no responde, el build NO se rompe: se conserva el
-// sitemap anterior y se avisa por consola. Un sitemap de hace un
-// día es mejor que un despliegue caído.
+// No entran hilos, perfiles, noticias ni fanarts: los hilos viven
+// dentro de "?hilo=", los perfiles exigen sesión y las noticias
+// enlazan a medios externos. Cuando tengan ruta pública propia, se
+// añadirán aquí.
+//
+// Se genera en cada build desde el índice de búsqueda (sin leer
+// Firestore entero) y, si el índice no existe, cae a Firestore.
+//
+// Si algo falla, el build NO se rompe: se conserva el sitemap
+// anterior y se avisa por consola.
 
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -51,6 +55,7 @@ async function leerAnimes() {
     // borraría la primera y el slug no llegaría en la respuesta.
     url.searchParams.append('mask.fieldPaths', 'slug');
     url.searchParams.append('mask.fieldPaths', 'title');
+    url.searchParams.append('mask.fieldPaths', 'coverUrl');
     if (token) url.searchParams.set('pageToken', token);
 
     const respuesta = await fetch(url);
@@ -63,7 +68,12 @@ async function leerAnimes() {
       const slug = doc.fields?.slug?.stringValue;
       const id = doc.name.split('/').pop();
       if (!slug) continue;
-      animes.push({ slug, id, actualizado: doc.updateTime });
+      animes.push({
+        slug,
+        id,
+        actualizado: doc.updateTime,
+        coverUrl: doc.fields?.coverUrl?.stringValue ?? '',
+      });
     }
     token = datos.nextPageToken ?? '';
   } while (token);
@@ -94,6 +104,7 @@ async function leerAnimesDelIndice() {
         slug: a.slug,
         id: a.id,
         actualizado: a.actualizado ?? '',
+        coverUrl: a.coverUrl ?? '',
       }));
   } catch {
     return null;
@@ -107,16 +118,35 @@ function construirSitemap(animes) {
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>`,
+    `  <url>
+    <loc>${SITIO}/?tab=wiki</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`,
+    `  <url>
+    <loc>${SITIO}/?tab=extras</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`,
   ];
 
   for (const anime of animes) {
-    const lastmod = anime.actualizado
-      ? `\n    <lastmod>${anime.actualizado.slice(0, 10)}</lastmod>`
+    const fecha = anime.actualizado
+      ? String(anime.actualizado).slice(0, 10)
+      : '';
+    const lastmod = /^\d{4}-\d{2}-\d{2}$/.test(fecha)
+      ? `\n    <lastmod>${fecha}</lastmod>`
+      : '';
+
+    const imagen = anime.coverUrl
+      ? `\n    <image:image>
+      <image:loc>${xml(anime.coverUrl)}</image:loc>
+    </image:image>`
       : '';
 
     urls.push(
       `  <url>
-    <loc>${SITIO}/anime/${encodeURIComponent(anime.slug)}</loc>${lastmod}
+    <loc>${SITIO}/anime/${encodeURIComponent(anime.slug)}</loc>${lastmod}${imagen}
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`,
@@ -124,7 +154,8 @@ function construirSitemap(animes) {
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join('\n')}
 </urlset>
 `;
@@ -136,7 +167,9 @@ try {
   if (delIndice) console.log('sitemap: reutiliza el indice de busqueda');
   const sitemap = construirSitemap(animes);
   await writeFile(SALIDA, sitemap, 'utf8');
-  console.log(`sitemap.xml: ${animes.length + 1} URLs (${animes.length} animes)`);
+  console.log(
+    `sitemap.xml: ${animes.length + 3} URLs (${animes.length} animes)`,
+  );
 } catch (error) {
   let anterior = 'desconocido';
   try {

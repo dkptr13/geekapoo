@@ -48,6 +48,13 @@ import { ArchitectureModal } from './components/docs/ArchitectureModal';
 import { AdminPanel } from './components/admin/AdminPanel';
 
 import { slugDeRuta, useQueryState, useQueryStateBatch } from './hooks/useQueryState';
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  SITE_URL,
+  tituloPagina,
+  useSeo,
+} from './lib/seo';
 import { useScrollRestoration } from './hooks/useScrollRestoration';
 
 import { Thread } from './types';
@@ -108,6 +115,7 @@ const {
    * lista.
    */
   const setCurrentTab = (tab: string) => {
+    setHiloEnfocadoApp('');
     startTransition(() => {
       setUrl({ tab, usuario: null });
     });
@@ -210,6 +218,148 @@ const {
   // las dos.
   const [searchFocusToken, setSearchFocusToken] = useState(0);
 
+  // El hilo abierto sigue siendo el protagonista del SEO aunque
+  // HomeFeed borre `?hilo=` de la URL tras colocar el scroll. Sin
+  // esto, App volvería a escribir el SEO de la portada encima.
+  const [hiloEnfocadoApp, setHiloEnfocadoApp] = useState('');
+
+  const pathAnterior = useRef(pathname);
+  useEffect(() => {
+    if (pathAnterior.current === pathname) return;
+    pathAnterior.current = pathname;
+    if (!hiloParam) setHiloEnfocadoApp('');
+  }, [pathname, hiloParam]);
+
+  // ====================================================
+  // SEO DE LA VISTA ACTUAL
+  // ====================================================
+  // Las fichas de anime y los hilos escriben su propio <head> cuando
+  // cargan sus datos. Aquí se cubre el resto de vistas y se fija la
+  // política de canonical/robots:
+  //
+  //   · Filtros y búsquedas internas: canonical a la vista base y
+  //     noindex, para no crear miles de URLs duplicadas.
+  //   · Vistas privadas o que exigen cuenta: noindex, nofollow.
+  //   · Wiki, extras y soporte: indexables.
+  const seoVista = (() => {
+    if (enFichaAnime) return null;
+    if (currentTab === 'inicio' && (hiloParam || hiloEnfocadoApp)) return null;
+    if (currentTab === 'admin' || currentTab === 'ajustes') {
+      return {
+        title: tituloPagina(currentTab === 'admin' ? 'Panel de administración' : 'Ajustes de cuenta'),
+        description: 'Área privada de Geekapoo.',
+        path: currentTab === 'admin' ? '/?tab=admin' : '/?tab=ajustes',
+        robots: 'noindex, nofollow',
+      };
+    }
+
+    const params = new URLSearchParams(search);
+
+    if (currentTab === 'inicio') {
+      if (selectedCategoryFilter) {
+        return {
+          title: tituloPagina('Comunidad'),
+          description: DEFAULT_DESCRIPTION,
+          path: '/',
+          robots: 'noindex, follow',
+        };
+      }
+
+      return {
+        title: DEFAULT_TITLE,
+        description: DEFAULT_DESCRIPTION,
+        path: '/',
+      };
+    }
+
+    if (currentTab === 'wiki') {
+      const filtrada =
+        currentTabParam === 'buscar' ||
+        Boolean(params.get('q') || params.get('wikiCat') || params.get('wikiTab'));
+
+      return {
+        title: tituloPagina(
+          filtrada ? 'Resultados de la wiki' : 'Wiki de anime y series',
+        ),
+        description:
+          'Explora el catálogo de Geekapoo: sinopsis, temporadas, episodios, personajes y disponibilidad en plataformas de streaming.',
+        path: '/?tab=wiki',
+        robots: filtrada ? 'noindex, follow' : undefined,
+        jsonLd: filtrada
+          ? undefined
+          : {
+              '@context': 'https://schema.org',
+              '@type': 'CollectionPage',
+              name: 'Wiki de anime y series',
+              description:
+                'Catálogo de anime y series de Geekapoo con sinopsis, episodios, personajes y dónde verlas.',
+              url: `${SITE_URL}/?tab=wiki`,
+              isPartOf: { '@id': `${SITE_URL}/#website` },
+            },
+      };
+    }
+
+    if (currentTab === 'extras') {
+      return {
+        title: tituloPagina('Extras y curiosidades de anime'),
+        description:
+          'Secretos de producción, curiosidades de doblaje, récords y anécdotas de anime, manga y cultura geek seleccionadas por la comunidad.',
+        path: '/?tab=extras',
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: 'Extras y curiosidades de anime',
+          description:
+            'Curiosidades, secretos de producción y datos de anime, doblaje y bandas sonoras.',
+          url: `${SITE_URL}/?tab=extras`,
+          isPartOf: { '@id': `${SITE_URL}/#website` },
+        },
+      };
+    }
+
+    if (currentTab === 'soporte') {
+      return {
+        title: tituloPagina('Soporte y ayuda'),
+        description:
+          'Dudas, incidencias y contacto con el equipo de Geekapoo. Encuentra ayuda sobre la cuenta, la comunidad y el funcionamiento de la web.',
+        path: '/?tab=soporte',
+      };
+    }
+
+    if (currentTab === 'trivia' || currentTab === 'logros') {
+      return {
+        title: tituloPagina(
+          currentTab === 'trivia' ? 'Trivia diaria' : 'Logros y medallas',
+        ),
+        description:
+          'Contenido de progresión de Geekapoo. Inicia sesión para participar y ver tu progreso.',
+        path: currentTab === 'trivia' ? '/?tab=trivia' : '/?tab=logros',
+        robots: 'noindex, follow',
+      };
+    }
+
+    if (currentTab === 'chats' || currentTab === 'perfil') {
+      return {
+        title: tituloPagina(
+          currentTab === 'chats' ? 'Chats de la comunidad' : 'Perfil de usuario',
+        ),
+        description:
+          'Contenido privado de Geekapoo. Inicia sesión para acceder.',
+        path: currentTab === 'chats' ? '/?tab=chats' : '/?tab=perfil',
+        robots: 'noindex, nofollow',
+      };
+    }
+
+    return {
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+      path: '/',
+      robots: 'noindex, follow',
+    };
+  })();
+
+  useSeo(seoVista);
+
 
   // ====================================================
   // SELECCIONAR CATEGORÍA
@@ -218,6 +368,7 @@ const {
   const handleSelectCategory = (
     catId: string
   ) => {
+    setHiloEnfocadoApp('');
     // La misma categoría funciona como interruptor: si ya estaba
     // activa, el segundo clic quita el filtro.
     const yaActiva = Boolean(catId) && selectedCategoryFilter === catId;
@@ -411,6 +562,8 @@ const {
                 focusTarget={focusTarget}
 
                 onLimpiarFoco={limpiarFoco}
+
+                onHiloEnfocado={setHiloEnfocadoApp}
 
                 onClearCategoryFilter={() =>
                   setUrl({ categoria: null })

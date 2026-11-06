@@ -139,7 +139,7 @@ export const FanartGallery: FC<FanartGalleryProps> = ({
             >
               <img
                 src={imagen.url}
-                alt=""
+                alt={`${alt} — imagen ${i + 1}`}
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover"

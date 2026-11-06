@@ -11,5 +11,73 @@
   "rewrites": [
     { "source": "/anime/:slug", "destination": "/index.html" },
     { "source": "/anime/:slug/", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "tab", "value": "admin" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "tab", "value": "chats" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "tab", "value": "ajustes" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "tab", "value": "perfil" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "tab", "value": "trivia" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "tab", "value": "logros" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "tab", "value": "buscar" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "tab", "value": "wiki" },
+        { "type": "query", "key": "q" }
+      ],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "tab", "value": "wiki" },
+        { "type": "query", "key": "wikiCat" }
+      ],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "categoria" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "arquitectura", "value": "1" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "accion", "value": "editar" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
   ]
 }

@@ -40,6 +40,7 @@ import {
 } from '../../hooks/useAnimeCollectionPage';
 import { useAnimeDoc } from '../../hooks/useAnimeDoc';
 import { invalidateCache, PUBLIC_CACHE } from '../../lib/firestoreCache';
+import { SITE_URL, useSeo } from '../../lib/seo';
 import {
   cargarIndiceBusqueda,
   cargarTemporadasIndice,
@@ -242,6 +243,96 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     Boolean(urlAnime) && animes.length > 0,
   );
   const currentAnime = animeDoc ?? staticAnime;
+
+  // SEO de la ficha. Las páginas de anime ya salen prerenderizadas
+  // con estos mismos datos; esto mantiene el <head> correcto al
+  // navegar dentro de la SPA y al abrir una ficha desde el catálogo.
+  useSeo(
+    currentAnime
+      ? (() => {
+          const pelicula = esPelicula(currentAnime);
+          const slug = currentAnime.slug || currentAnime.id;
+          const url = `${SITE_URL}/anime/${encodeURIComponent(slug)}`;
+          const imagen =
+            currentAnime.bannerUrl ||
+            currentAnime.coverUrl ||
+            `${SITE_URL}/img/og-geekapoo.png`;
+          const titulo = pelicula
+            ? `${currentAnime.title} – Película, personajes y dónde verla | Geekapoo`
+            : `${currentAnime.title} – Wiki, personajes y episodios | Geekapoo`;
+          const descripcion = currentAnime.synopsis?.trim()
+            ? `${currentAnime.title}: ${currentAnime.synopsis}`
+            : `Descubre la información de ${currentAnime.title}, sus temporadas, episodios, personajes y disponibilidad en plataformas de streaming.`;
+
+          const ficha: Record<string, unknown> = {
+            '@context': 'https://schema.org',
+            '@type': pelicula ? 'Movie' : 'TVSeries',
+            '@id': `${url}#main`,
+            name: currentAnime.title,
+            description: currentAnime.synopsis,
+            url,
+            image: [currentAnime.coverUrl, currentAnime.bannerUrl].filter(Boolean),
+            inLanguage: 'ja',
+            mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+            ...(currentAnime.japaneseTitle
+              ? { alternateName: currentAnime.japaneseTitle }
+              : {}),
+            ...(currentAnime.year
+              ? { datePublished: currentAnime.year }
+              : {}),
+            ...(currentAnime.genres?.length
+              ? { genre: currentAnime.genres }
+              : {}),
+            ...(!pelicula && currentAnime.episodesCount
+              ? { numberOfEpisodes: currentAnime.episodesCount }
+              : {}),
+            ...(currentAnime.studio
+              ? {
+                  productionCompany: {
+                    '@type': 'Organization',
+                    name: currentAnime.studio,
+                  },
+                }
+              : {}),
+          };
+
+          const migas = {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Inicio',
+                item: `${SITE_URL}/`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Wiki de anime',
+                item: `${SITE_URL}/?tab=wiki`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: currentAnime.title,
+                item: url,
+              },
+            ],
+          };
+
+          return {
+            title: titulo,
+            description: descripcion,
+            canonical: url,
+            image: imagen,
+            imageAlt: `Portada de ${currentAnime.title}`,
+            type: pelicula ? ('video.movie' as const) : ('video.tv_show' as const),
+            jsonLd: [ficha, migas],
+          };
+        })()
+      : null,
+  );
 
   // Temporadas de la ficha. Vienen de `temporadas.json`; si el
   // archivo no está o no conoce esta serie, se piden a Firestore.
@@ -1134,7 +1225,13 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                 : `Banner de ${currentAnime.title}`
             }
             src={ficha.bannerUrl}
-            alt={currentAnime.title}
+            alt={
+              bannerIsSeason
+                ? `Banner de la temporada ${seasonOfView!.number} de ${currentAnime.title}`
+                : `Banner de ${currentAnime.title}`
+            }
+            loading="eager"
+            fetchPriority="high"
             containerClassName="h-full w-full"
             className="h-full w-full object-cover"
             /* ── EL ENCUADRE POR DEFECTO DEL BANNER ────────────────
@@ -1238,7 +1335,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                     : `Portada de ${currentAnime.title}`
                 }
                 src={ficha.coverUrl}
-                alt={currentAnime.title}
+                alt={
+                  coverIsSeason
+                    ? `Portada de la temporada ${seasonOfView!.number} de ${currentAnime.title}`
+                    : `Portada de ${currentAnime.title}`
+                }
+                loading="eager"
                 containerClassName="hidden sm:block shrink-0"
                 className="w-24 h-32 rounded-2xl object-cover ring-4 ring-zinc-900 shadow-2xl"
                 imgStyle={encuadre(ficha.coverFocus)}

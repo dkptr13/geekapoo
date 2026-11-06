@@ -251,7 +251,7 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
       <div className="relative flex-shrink-0">
         <div className="h-24 bg-zinc-900">
           {club.coverUrl ? (
-            <img src={club.coverUrl} alt="" className="h-full w-full object-cover" />
+            <img src={club.coverUrl} alt={`Portada del club ${club.name}`} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-600/25 via-fuchsia-600/10 to-pink-600/20 text-3xl">
               {categoria?.icon ?? '✨'}
@@ -272,7 +272,7 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
         <div className="absolute -bottom-6 left-4">
           <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-zinc-950 bg-zinc-900 text-2xl">
             {club.iconUrl ? (
-              <img src={club.iconUrl} alt="" className="h-full w-full object-cover" />
+              <img src={club.iconUrl} alt={`Icono del club ${club.name}`} className="h-full w-full object-cover" />
             ) : (
               <span>{categoria?.icon ?? '✨'}</span>
             )}

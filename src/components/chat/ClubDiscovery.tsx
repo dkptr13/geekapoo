@@ -330,7 +330,7 @@ const ClubCard: React.FC<{ club: ClubListing; yaEresMiembro: boolean }> = ({
         {club.coverUrl ? (
           <img
             src={club.coverUrl}
-            alt=""
+            alt={`Portada del club ${club.name}`}
             className="h-full w-full object-cover"
             loading="lazy"
           />
@@ -344,7 +344,7 @@ const ClubCard: React.FC<{ club: ClubListing; yaEresMiembro: boolean }> = ({
         <div className="absolute -bottom-5 left-3.5">
           <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border-2 border-zinc-900 bg-zinc-950 text-lg">
             {club.iconUrl ? (
-              <img src={club.iconUrl} alt="" className="h-full w-full object-cover" />
+              <img src={club.iconUrl} alt={`Icono del club ${club.name}`} className="h-full w-full object-cover" />
             ) : (
               <span>{CLUB_CATEGORIES.find((c) => c.id === club.category)?.icon ?? '✨'}</span>
             )}

@@ -148,6 +148,7 @@ async function leerAnimes() {
         rating: numero(f.rating),
         coverUrl: texto(f.coverUrl),
         bannerUrl: texto(f.bannerUrl),
+        actualizado: doc.updateTime,
       });
     }
     token = datos.nextPageToken ?? '';
@@ -516,7 +517,7 @@ function contenidoEstatico(anime, extras) {
     <p style="margin:0 0 20px;font-size:15px;line-height:1.75;color:#d4d4d8">${escaparHtml(anime.synopsis)}</p>
     ${generos}
     ${bloqueStreaming(extras.streaming, extras.nombresPlataformas)}
-    ${bloqueEpisodios(extras.episodios)}
+    ${anime.episodes === 1 ? '' : bloqueEpisodios(extras.episodios)}
     ${bloquePersonajes(extras.personajes)}
     <a href="/?tab=wiki" style="display:inline-block;margin-top:26px;padding:11px 20px;border-radius:12px;background:#7c3aed;color:#fff;font-size:14px;font-weight:700;text-decoration:none">Explorar la wiki completa</a>
   </div>
@@ -525,6 +526,10 @@ function contenidoEstatico(anime, extras) {
 
 function jsonLd(anime) {
   const url = `${SITIO}/anime/${encodeURIComponent(anime.slug)}`;
+  // La app considera película cualquier ficha con un solo episodio
+  // (`esPelicula` en src/utils/wikiFilter.ts). Se usa la misma regla
+  // para no declarar como serie algo que el catálogo llama película.
+  const pelicula = anime.episodes === 1;
   // La portada vertical es la que Google usa mejor como miniatura;
   // el banner panorámico queda como segunda opción.
   const imagenes = [anime.coverUrl, anime.bannerUrl].filter(Boolean);
@@ -534,16 +539,23 @@ function jsonLd(anime) {
 
   const serie = {
     '@context': 'https://schema.org',
-    '@type': 'TVSeries',
+    '@type': pelicula ? 'Movie' : 'TVSeries',
+    '@id': `${url}#main`,
     name: anime.title,
     description: anime.synopsis,
     url,
     image: imagen,
     inLanguage: 'ja',
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     ...(anime.japaneseTitle ? { alternateName: anime.japaneseTitle } : {}),
     ...(anime.year ? { datePublished: anime.year } : {}),
+    ...(anime.actualizado
+      ? { dateModified: String(anime.actualizado).slice(0, 10) }
+      : {}),
     ...(anime.genres.length ? { genre: anime.genres } : {}),
-    ...(anime.episodes ? { numberOfEpisodes: anime.episodes } : {}),
+    ...(!pelicula && anime.episodes
+      ? { numberOfEpisodes: anime.episodes }
+      : {}),
     ...(anime.studio
       ? { productionCompany: { '@type': 'Organization', name: anime.studio } }
       : {}),
@@ -564,13 +576,16 @@ function jsonLd(anime) {
     ],
   };
 
-  return `<script type="application/ld+json">${escaparJson(serie)}</script>
-<script type="application/ld+json">${escaparJson(migas)}</script>`;
+  return `<script type="application/ld+json" data-seo-jsonld="1">${escaparJson(serie)}</script>
+<script type="application/ld+json" data-seo-jsonld="1">${escaparJson(migas)}</script>`;
 }
 
 function personalizar(plantilla, anime, extras) {
   const url = `${SITIO}/anime/${encodeURIComponent(anime.slug)}`;
-  const titulo = `${anime.title} — Sinopsis, episodios y dónde verla | Geekapoo`;
+  const pelicula = anime.episodes === 1;
+  const titulo = `${anime.title} – ${
+    pelicula ? 'Película, personajes y dónde verla' : 'Wiki, personajes y episodios'
+  } | Geekapoo`;
   const descripcion = descripcionCorta(anime.synopsis, anime.title);
   const imagen = anime.bannerUrl || anime.coverUrl || `${SITIO}/img/og-geekapoo.png`;
 
@@ -613,7 +628,7 @@ function personalizar(plantilla, anime, extras) {
   );
   html = html.replace(
     /(<meta property="og:type" content=")[^"]*(" \/>)/,
-    '$1video.tv_show$2',
+    `$1${pelicula ? 'video.movie' : 'video.tv_show'}$2`,
   );
   html = html.replace(
     /(<meta name="twitter:title" content=")[\s\S]*?(" \/>)/,

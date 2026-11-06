@@ -793,7 +793,7 @@ const Perfil: React.FC<{
                               field="coverUrl"
                               label={`Portada de ${anime.title}`}
                               src={anime.coverUrl}
-                              alt={anime.title}
+                              alt={`Portada de ${anime.title}`}
                               containerClassName="h-full w-full"
                               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                               badgeClassName="top-1.5 right-1.5"
