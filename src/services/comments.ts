@@ -22,7 +22,7 @@ import { db } from '../lib/firebase';
 import { cachedRead, invalidateCache, PUBLIC_CACHE } from '../lib/firestoreCache';
 import { measureRead } from '../lib/firestoreDiagnostics';
 import { mapWithId } from './firestoreUtils';
-import { esUrlDeGifValida } from './gifs';
+import { esGifValido } from './gifs';
 import { dimsValidas, type ImageDims } from '../utils/imagenes';
 import type { Comment, GifAttachment } from '../types';
 
@@ -199,22 +199,6 @@ export function getCommentsLikedBy(
   });
 }
 
-/**
- * Comprueba que el GIF venga de verdad de GIPHY o de Tenor.
- *
- * Es la MISMA comprobación que hace `firestore.rules`, aquí para
- * no fallar al publicar y allí para que no se pueda esquivar
- * desde la consola. Sin esto, el campo `gif` serviría para meter
- * cualquier URL (una de rastreo, una de contenido ilegal...)
- * disfrazada de GIF.
- */
-function gifValido(gif: GifAttachment | undefined): boolean {
-  if (!gif) return true;
-  if (gif.provider !== 'giphy' && gif.provider !== 'tenor') return false;
-  if (!gif.id || gif.id.length > 120) return false;
-  return esUrlDeGifValida(gif.url) && esUrlDeGifValida(gif.previewUrl);
-}
-
 export interface NewCommentInput {
   authorId: string;
   authorName: string;
@@ -264,7 +248,7 @@ export async function createComment(input: NewCommentInput): Promise<string> {
   // animado en el mismo comentario es de todo menos un foro.
   const imagen = gif ? undefined : input.imageUrl;
 
-  if (gif && !gifValido(gif)) {
+  if (gif && !esGifValido(gif)) {
     throw new Error('Ese GIF no es válido.');
   }
 

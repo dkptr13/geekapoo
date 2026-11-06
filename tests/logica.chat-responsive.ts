@@ -11,16 +11,33 @@ import { fileURLToPath } from 'node:url';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fuente = readFileSync(join(raiz, 'src', 'components', 'chat', 'ChatView.tsx'), 'utf8');
+const fuenteTextarea = readFileSync(
+  join(raiz, 'src', 'components', 'common', 'AutoGrowTextarea.tsx'),
+  'utf8',
+);
 
 const tiene = (marca: string, porQue: string) => {
   assert.ok(fuente.includes(marca), `no se encontró: ${porQue} (${marca})`);
 };
 
+const tieneTextarea = (marca: string, porQue: string) => {
+  assert.ok(
+    fuenteTextarea.includes(marca),
+    `no se encontró: ${porQue} (${marca})`,
+  );
+};
+
 // El campo de escritura crece con el texto en vez de
-// desbordar: es un textarea con tope en JS, no un input.
-tiene('<textarea', 'el compositor usa textarea autoajustable');
-tiene('Math.min(el.scrollHeight, 128)', 'el textarea tiene tope de altura');
+// desbordar: es un textarea autoajustable con tope, no un input.
+tiene('<AutoGrowTextarea', 'el compositor usa textarea autoajustable');
+tiene('maxHeight={128}', 'el textarea tiene tope de altura');
 tiene("onKeyDown", 'Enter envía sin Mayús');
+tieneTextarea('overflow-x-hidden', 'el textarea nunca hace scroll horizontal');
+tieneTextarea('whitespace-pre-wrap', 'los saltos de línea se conservan');
+tieneTextarea(
+  "el.style.overflowY = contenido > maxHeight ? 'auto' : 'hidden'",
+  'al llegar al tope se pasa al scroll vertical',
+);
 
 // Las herramientas caben en móvil tras un "+": sin él, 6
 // botones + campo no entran a 360px.

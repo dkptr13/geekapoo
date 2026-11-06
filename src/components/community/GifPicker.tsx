@@ -22,7 +22,7 @@ import { FavoriteStar } from './FavoriteStar';
 import type { GifAttachment } from '../../types';
 
 // ======================================================
-// SELECTOR DE GIFs PARA COMENTARIOS Y RESPUESTAS
+// SELECTOR DE GIFs PARA PUBLICACIONES, COMENTARIOS Y RESPUESTAS
 // ======================================================
 //
 // Modal con buscador, cuadrícula y los estados que hacen falta:
@@ -199,7 +199,7 @@ export const GifPicker: FC<GifPickerProps> = ({ value, onChange, disabled = fals
       <div className="relative inline-block">
         <img
           src={value.previewUrl || value.url}
-          alt={value.title ?? 'GIF del comentario'}
+          alt={value.title ?? 'GIF de la publicación'}
           className="h-16 w-24 rounded-xl border border-zinc-800 bg-zinc-950 object-cover"
         />
 
@@ -235,7 +235,7 @@ export const GifPicker: FC<GifPickerProps> = ({ value, onChange, disabled = fals
         type="button"
         onClick={() => setAbierto(true)}
         disabled={disabled}
-        title="Buscar un GIF para el comentario"
+        title="Buscar un GIF"
         className="inline-flex items-center gap-1.5 rounded-lg border border-dashed px-2.5 py-1.5 text-[11px] font-semibold text-zinc-500 transition-colors hover:border-fuchsia-500/60 hover:text-fuchsia-300 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <span className="text-sm leading-none">🎬</span>

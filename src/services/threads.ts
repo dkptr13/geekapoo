@@ -20,11 +20,13 @@ import {
   etiquetasDeFanart,
 } from '../data/fanarts';
 import type { WithId } from './firestoreUtils';
+import { esGifValido } from './gifs';
 import { normalizarPoll } from './polls';
 import { dimsValidas, type ImageDims } from '../utils/imagenes';
 import type {
   FanartDraft,
   FanartImage,
+  GifAttachment,
   NewPollInput,
   Poll,
   Thread,
@@ -108,6 +110,12 @@ export interface NewThreadInput {
   /** Tier list adjunta (solo referencia: vive en su documento). */
   tierList?: TierListRef | null;
   /**
+   * GIF adjunto, opcional. Como máximo uno y nunca junto a una
+   * imagen: si llegan los dos, el GIF gana, igual que en los
+   * comentarios.
+   */
+  gif?: GifAttachment | null;
+  /**
    * Si viene, la publicación es un Fanart: se fuerza la categoría
    * fija, se guardan las imágenes y los datos artísticos, y el
    * cuerpo puede quedar vacío.
@@ -138,6 +146,7 @@ export async function createThread(input: NewThreadInput): Promise<string> {
   const title = input.title.trim();
   const body = input.body.trim();
   const esFanart = Boolean(input.fanart);
+  const gif = input.gif ?? undefined;
 
   if (!title) throw new Error('El título no puede estar vacío.');
   if (!body && !esFanart) throw new Error('El mensaje no puede estar vacío.');
@@ -147,6 +156,14 @@ export async function createThread(input: NewThreadInput): Promise<string> {
   if (body.length > LIMITS.body) {
     throw new Error(`El mensaje no puede superar los ${LIMITS.body} caracteres.`);
   }
+  if (gif && !esGifValido(gif)) {
+    throw new Error('Ese GIF no es válido.');
+  }
+
+  // Una publicación lleva texto + UNA imagen o UN GIF. Si llegan
+  // los dos, el GIF gana: es la misma regla que en los comentarios
+  // y evita duplicar el peso visual de la tarjeta.
+  const imagen = gif ? undefined : input.imageUrl;
 
   const imagenesFanart = esFanart ? imagenesValidasFanart(input.fanart!.images) : [];
   const categoryId = esFanart ? FANART_CATEGORY_ID : input.categoryId;
@@ -213,13 +230,20 @@ export async function createThread(input: NewThreadInput): Promise<string> {
   // Solo se guarda el campo si hay imagen, para no dejar un
   // imageUrl vacío en los hilos sin foto. Las dimensiones van
   // con ella, validadas: reservan el sitio sin tocar el archivo.
-  if (!esFanart && input.imageUrl) {
-    payload.imageUrl = input.imageUrl;
+  if (!esFanart && imagen) {
+    payload.imageUrl = imagen;
     const dims = input.imageDims;
     if (dims && dimsValidas(dims.width, dims.height)) {
       payload.imageWidth = Math.floor(dims.width);
       payload.imageHeight = Math.floor(dims.height);
     }
+  }
+
+  // El GIF es un adjunto aparte: no toca `body` ni `imageUrl`. Se
+  // guarda su ficha para que el CDN del proveedor siga sirviendo el
+  // archivo sin subirlo a Storage.
+  if (!esFanart && gif) {
+    payload.gif = gif;
   }
 
   // La tier list viaja como referencia (id + título): el

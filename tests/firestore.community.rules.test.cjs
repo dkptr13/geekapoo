@@ -235,6 +235,43 @@ describe('comunidad: encuestas, reacciones y GIFs', () => {
       })));
     });
 
+    it('permite un hilo con texto y GIF', async () => {
+      await assertSucceeds(setDoc(doc(db(BOB), 'threads', 'conGif'), nuevoHilo({
+        authorId: BOB,
+        authorName: 'bob',
+        body: 'Mira este GIF',
+        gif: GIF_VALIDO,
+      })));
+    });
+
+    it('NO permite un hilo con un GIF fuera del proveedor', async () => {
+      await assertFails(setDoc(doc(db(BOB), 'threads', 'gifFalso'), nuevoHilo({
+        authorId: BOB,
+        authorName: 'bob',
+        gif: {
+          ...GIF_VALIDO,
+          url: 'https://ejemplo-falso.test/trackeame.gif',
+        },
+      })));
+    });
+
+    it('NO permite un GIF con un título enorme', async () => {
+      await assertFails(setDoc(doc(db(BOB), 'threads', 'gifTitulo'), nuevoHilo({
+        authorId: BOB,
+        authorName: 'bob',
+        gif: { ...GIF_VALIDO, title: 'x'.repeat(201) },
+      })));
+    });
+
+    it('NO permite imagen y GIF en el mismo hilo', async () => {
+      await assertFails(setDoc(doc(db(BOB), 'threads', 'dosAdjuntos'), nuevoHilo({
+        authorId: BOB,
+        authorName: 'bob',
+        imageUrl: 'https://media3.giphy.com/media/abc123/giphy.gif',
+        gif: GIF_VALIDO,
+      })));
+    });
+
     it('NO permite una encuesta con una sola opción', async () => {
       await assertFails(setDoc(doc(db(BOB), 'threads', 'una'), nuevoHilo({
         authorId: BOB,

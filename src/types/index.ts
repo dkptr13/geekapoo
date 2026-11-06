@@ -972,6 +972,14 @@ export interface Thread {
   imageWidth?: number;
   imageHeight?: number;
   /**
+   * GIF adjunto al hilo (como máximo uno).
+   *
+   * Es un dato aparte del texto y de `imageUrl`: no sustituye al
+   * texto. Se guarda la ficha del proveedor y el archivo se sigue
+   * sirviendo desde su CDN.
+   */
+  gif?: GifAttachment;
+  /**
    * Encuesta opcional. Solo existe si el autor la añadió al
    * publicar. No lleva contadores: los votos viven en la
    * subcolección privada `pollVotes` y los totales en `pollStats`

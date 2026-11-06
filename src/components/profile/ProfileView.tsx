@@ -878,7 +878,7 @@ const Perfil: React.FC<{
                                 {thread.categoryName}
                               </span>
                             </div>
-                            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-400">
+                            <p className="mt-1.5 line-clamp-2 whitespace-pre-line break-words text-xs leading-relaxed text-zinc-400">
                               {thread.body}
                             </p>
                             <div className="mt-2.5 flex flex-wrap items-center gap-4 text-[11px] text-zinc-500">
@@ -935,7 +935,7 @@ const Perfil: React.FC<{
                                 })}
                               </span>
                             </div>
-                            <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-zinc-300">
+                            <p className="mt-1.5 line-clamp-3 whitespace-pre-line break-words text-xs leading-relaxed text-zinc-300">
                               {c.body}
                             </p>
                             <div className="mt-2 flex items-center gap-3 text-[11px] text-zinc-500">

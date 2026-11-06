@@ -820,6 +820,8 @@ service cloud.firestore {
              && g.id is string
              && g.id.size() > 0
              && g.id.size() <= 120
+             && (!('title' in g)
+                 || (g.title is string && g.title.size() <= 200))
              && g.url is string
              && g.url.matches('https://media[0-9]*\\.(giphy|tenor)\\.com/.*')
              && ('previewUrl' in g
@@ -2899,6 +2901,14 @@ service cloud.firestore {
                     && (!('imageUrl' in request.resource.data)
                         || (request.resource.data.imageUrl is string
                             && request.resource.data.imageUrl.size() <= 1000))
+                    // El GIF es un adjunto aparte del texto. Se valida su ficha y
+                    // no puede convivir con una imagen: una publicacion lleva texto
+                    // + UNA imagen o UN GIF, igual que los comentarios. Tampoco vale
+                    // en Fanart, que tiene su propia galeria.
+                    && (!('gif' in request.resource.data)
+                        || (request.resource.data.categoryId != 'fanarts'
+                            && !('imageUrl' in request.resource.data)
+                            && gifValido(request.resource.data.gif)))
                     // Fijar un hilo es una decisión de moderación. Si
                     // el autor pudiera nacer con `pinned: true`, se
                     // saltaría la restricción del `update`.

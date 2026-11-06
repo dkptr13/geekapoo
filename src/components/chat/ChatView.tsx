@@ -82,6 +82,7 @@ import { reaccionesDe, useReacciones } from '../../hooks/useReacciones';
 import { reactionKey } from '../../services/reactions';
 import { EmojiPicker } from '../community/EmojiPicker';
 import { GifPicker } from '../community/GifPicker';
+import { AutoGrowTextarea } from '../common/AutoGrowTextarea';
 import { LocationMenu, LocationCard, LocationNotice } from './LocationInChat';
 import { LocationPicker } from './LocationPicker';
 import { uploadChatImage } from '../../services/imageUpload';
@@ -311,16 +312,6 @@ export const ChatView: React.FC = () => {
   };
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // El campo crece con el texto hasta un tope: un mensaje largo
-  // no debería obligar a escribir en una sola línea. Al vaciar
-  // o cambiar de conversación vuelve a su altura.
-  useEffect(() => {
-    const el = inputRef.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
-  }, [inputText, activeRoomId]);
 
   // Carga los apodos de las salas visibles. Se actualizan al
   // guardar desde el panel y al entrar en ChatView.
@@ -3772,7 +3763,7 @@ export const ChatView: React.FC = () => {
                             {/* El texto solo se pinta si hay texto: un
                                 mensaje puede ser solo un GIF. */}
                             {msg.body && (
-                  <p className="break-words text-[14px] leading-relaxed">
+                  <p className="whitespace-pre-line break-words text-[14px] leading-relaxed">
                     <MentionText text={msg.body} />
                   </p>
                 )}
@@ -4407,9 +4398,10 @@ export const ChatView: React.FC = () => {
             el "+" para que el campo y el envío respiren; en
             escritorio salen todas en fila. */}
         <div className="relative flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.06] bg-black/30 p-2 transition-colors focus-within:border-violet-400/40 focus-within:ring-2 focus-within:ring-violet-500/10">
-                  <textarea
-                    ref={inputRef}
+                  <AutoGrowTextarea
+                    inputRef={inputRef}
                     rows={1}
+                    maxHeight={128}
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={(e) => {
@@ -4424,7 +4416,7 @@ export const ChatView: React.FC = () => {
                     // 16px en móvil: por debajo, iOS acerca la vista
                     // al enfocar y hay que alejar a mano. En
                     // escritorio se queda como estaba.
-                    className="order-1 min-w-0 flex-1 resize-none overflow-y-auto rounded-xl bg-transparent px-3 py-2.5 text-base sm:text-sm text-white placeholder-zinc-500 focus:outline-none"
+                    className="order-1 min-w-0 flex-1 rounded-xl bg-transparent px-3 py-2.5 text-base text-white placeholder-zinc-500 focus:outline-none sm:text-sm"
                   />
                   <MentionSuggestions
                     value={inputText}

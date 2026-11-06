@@ -7,11 +7,11 @@ import { dimsValidas } from '../../utils/imagenes';
 import type { GifAttachment } from '../../types';
 
 // ======================================================
-// EL GIF DE UN COMENTARIO
+// EL GIF DE UNA PUBLICACIÓN O COMENTARIO
 // ======================================================
 //
-// Se pinta debajo del texto, igual que una foto adjunta. El
-// comentario sigue siendo texto plano: el GIF es un dato
+// Se pinta debajo del texto, igual que una foto adjunta. La
+// publicación sigue siendo texto plano: el GIF es un dato
 // aparte, y por eso se puede quitar o moderar sin reescribir lo
 // que alguien escribió.
 //
@@ -35,6 +35,9 @@ interface CommentGifProps {
 export const CommentGif: FC<CommentGifProps> = ({ gif, className = '', eager = false }) => {
   const [fallback, setFallback] = useState(false);
   const [roto, setRoto] = useState(false);
+
+  // Un documento antiguo o manipulado sin URL no debe romper el feed.
+  if (!gif?.url) return null;
 
   const src = fallback ? gif.previewUrl : gif.url;
   const reservado = dimsValidas(gif.width, gif.height);
@@ -83,7 +86,7 @@ export const CommentGif: FC<CommentGifProps> = ({ gif, className = '', eager = f
               cuadran, el resultado es idéntico. */}
           <img
             src={src}
-            alt={gif.title ?? 'GIF del comentario'}
+            alt={gif.title ?? 'GIF de la publicación'}
             {...(reservado ? { width: gif.width, height: gif.height } : {})}
             loading={eager ? 'eager' : 'lazy'}
             fetchPriority={eager ? 'high' : undefined}

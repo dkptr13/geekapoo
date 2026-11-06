@@ -27,6 +27,9 @@ import { useAuth } from '../../context/AuthContext';
 import { AuthorBadge } from '../gamification/AuthorBadge';
 import { ReportDialog } from '../community/ReportDialog';
 import { MentionText } from '../community/MentionText';
+import { EmojiPickerButton } from '../community/EmojiPickerButton';
+import { AutoGrowTextarea } from '../common/AutoGrowTextarea';
+import { insertarTextoEnCursor } from '../../utils/textarea';
 import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
 import { useCommentsForTarget } from '../../hooks/useCommentsForTarget';
 import { useCatalogPage, useCollectionCount } from '../../hooks/useCatalogPage';
@@ -660,6 +663,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // Episode comments expansion
   const [expandedEpisodeId, setExpandedEpisodeId] = useState<string | null>(null);
   const [episodeCommentText, setEpisodeCommentText] = useState('');
+  const episodeCommentRef = useRef<HTMLTextAreaElement>(null);
 
   // Character filter: "all" | "destacados" | "likes" | "related"
   const [characterFilter, setCharacterFilter] = useState<'all' | 'destacados' | 'likes' | 'related'>('all');
@@ -684,9 +688,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     expandedCharacterId,
   );
   const [characterCommentText, setCharacterCommentText] = useState('');
+  const characterCommentRef = useRef<HTMLTextAreaElement>(null);
   // Respuesta a una opinión de personaje: a qué comentario y con qué texto.
   const [replyingToCharId, setReplyingToCharId] = useState<string | null>(null);
   const [charReplyText, setCharReplyText] = useState('');
+  const charReplyRef = useRef<HTMLTextAreaElement>(null);
 
   // ====================================================
   // TEMPORADAS
@@ -798,6 +804,28 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   // nueva si existe, y la principal si no, para que las series
   // antiguas muestren su categoría como siempre.
   const currentAnimeCategories = currentAnime ? animeCategories(currentAnime) : [];
+
+  const insertarEmojiEpisodio = (emoji: string) => {
+    insertarTextoEnCursor(
+      episodeCommentRef,
+      episodeCommentText,
+      emoji,
+      setEpisodeCommentText,
+    );
+  };
+
+  const insertarEmojiPersonaje = (emoji: string) => {
+    insertarTextoEnCursor(
+      characterCommentRef,
+      characterCommentText,
+      emoji,
+      setCharacterCommentText,
+    );
+  };
+
+  const insertarEmojiRespuestaPersonaje = (emoji: string) => {
+    insertarTextoEnCursor(charReplyRef, charReplyText, emoji, setCharReplyText);
+  };
 
   const handleEpisodeComment = async (episodeId: string, e: React.FormEvent) => {
     e.preventDefault();
@@ -1556,26 +1584,31 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                     {/* Input */}
                     <form
                       onSubmit={(e) => handleEpisodeComment(ep.id, e)}
-                      className="flex gap-2"
+                      className="space-y-2"
                     >
-                      <input
-                        type="text"
-                        value={episodeCommentText}
-                        onChange={(e) => setEpisodeCommentText(e.target.value)}
-                        placeholder={
-                          currentUser
-                            ? '¿Qué te pareció este capítulo? (Evita spoilers sin avisar)'
-                            : 'Inicia sesión para debatir sobre el capítulo...'
-                        }
-                        className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
-                      />
-                      <button
-                        type="submit"
-                        className="flex items-center gap-1 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white hover:bg-violet-500"
-                      >
-                        <Send size={12} />
-                        <span>Comentar</span>
-                      </button>
+                      <div className="flex items-end gap-2">
+                        <AutoGrowTextarea
+                          inputRef={episodeCommentRef}
+                          rows={1}
+                          maxHeight={160}
+                          value={episodeCommentText}
+                          onChange={(e) => setEpisodeCommentText(e.target.value)}
+                          placeholder={
+                            currentUser
+                              ? '¿Qué te pareció este capítulo? (Evita spoilers sin avisar)'
+                              : 'Inicia sesión para debatir sobre el capítulo...'
+                          }
+                          className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2 text-base text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none sm:text-xs"
+                        />
+                        <button
+                          type="submit"
+                          className="flex shrink-0 items-center gap-1 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white hover:bg-violet-500"
+                        >
+                          <Send size={12} />
+                          <span>Comentar</span>
+                        </button>
+                      </div>
+                      <EmojiPickerButton onElegir={insertarEmojiEpisodio} />
                     </form>
 
                     {hayEpisodioAnteriores && (
@@ -1617,7 +1650,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                 {new Date(c.createdAt).toLocaleDateString()}
                               </span>
                             </div>
-                            <p className="mt-1 text-xs text-zinc-300">
+                            <p className="mt-1 whitespace-pre-line break-words text-xs text-zinc-300">
                           <MentionText text={c.body} />
                         </p>
                             <div className="mt-2 flex items-center gap-2">
@@ -1889,25 +1922,30 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                       <div className="mt-4 space-y-3 pt-3 border-t border-zinc-800/80 animate-in fade-in duration-150">
                         <form
                           onSubmit={(e) => handleCharacterComment(char.id, e)}
-                          className="flex gap-2"
+                          className="space-y-2"
                         >
-                          <input
-                            type="text"
-                            value={characterCommentText}
-                            onChange={(e) => setCharacterCommentText(e.target.value)}
-                            placeholder={
-                              currentUser
-                                ? `¿Qué opinas de ${char.name.split(' ')[0]}?`
-                                : 'Inicia sesión para comentar...'
-                            }
-                            className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
-                          />
-                          <button
-                            type="submit"
-                            className="rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-500"
-                          >
-                            Enviar
-                          </button>
+                          <div className="flex items-end gap-2">
+                            <AutoGrowTextarea
+                              inputRef={characterCommentRef}
+                              rows={1}
+                              maxHeight={160}
+                              value={characterCommentText}
+                              onChange={(e) => setCharacterCommentText(e.target.value)}
+                              placeholder={
+                                currentUser
+                                  ? `¿Qué opinas de ${char.name.split(' ')[0]}?`
+                                  : 'Inicia sesión para comentar...'
+                              }
+                              className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-base text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none sm:text-xs"
+                            />
+                            <button
+                              type="submit"
+                              className="shrink-0 rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-500"
+                            >
+                              Enviar
+                            </button>
+                          </div>
+                          <EmojiPickerButton onElegir={insertarEmojiPersonaje} />
                         </form>
 
                         {hayPersonajeAnteriores && (
@@ -1953,7 +1991,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                         {new Date(c.createdAt).toLocaleDateString()}
                                       </span>
                                     </div>
-                                    <p className="text-zinc-300 text-xs">
+                                    <p className="whitespace-pre-line break-words text-xs text-zinc-300">
                           <MentionText text={c.body} />
                         </p>
 
@@ -2020,24 +2058,29 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                     {replyingToCharId === c.id && (
                                       <form
                                         onSubmit={(e) => handleCharacterReply(char.id, c.id, e)}
-                                        className="mt-2 flex gap-2"
+                                        className="mt-2 space-y-2"
                                       >
-                                        <input
-                                          type="text"
-                                          value={charReplyText}
-                                          onChange={(e) => setCharReplyText(e.target.value)}
-                                          placeholder={`Respondiendo a ${nombreDe(
-                                            c.authorId,
-                                            c.authorName,
-                                          )}...`}
-                                          className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
-                                        />
-                                        <button
-                                          type="submit"
-                                          className="rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-500"
-                                        >
-                                          Enviar
-                                        </button>
+                                        <div className="flex items-end gap-2">
+                                          <AutoGrowTextarea
+                                            inputRef={charReplyRef}
+                                            rows={1}
+                                            maxHeight={160}
+                                            value={charReplyText}
+                                            onChange={(e) => setCharReplyText(e.target.value)}
+                                            placeholder={`Respondiendo a ${nombreDe(
+                                              c.authorId,
+                                              c.authorName,
+                                            )}...`}
+                                            className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-base text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none sm:text-xs"
+                                          />
+                                          <button
+                                            type="submit"
+                                            className="shrink-0 rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-500"
+                                          >
+                                            Enviar
+                                          </button>
+                                        </div>
+                                        <EmojiPickerButton onElegir={insertarEmojiRespuestaPersonaje} />
                                       </form>
                                     )}
 
@@ -2064,7 +2107,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                                                 {new Date(r.createdAt).toLocaleDateString()}
                                               </span>
                                             </div>
-                                            <p className="pl-5 text-zinc-300">
+                                            <p className="whitespace-pre-line break-words pl-5 text-zinc-300">
                           <MentionText text={r.body} />
                         </p>
                                             {(puedeModerar || r.authorId === currentUser?.uid) &&

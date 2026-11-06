@@ -38,12 +38,14 @@ import { PollCard } from '../community/PollCard';
 import { ReactionBar } from '../community/ReactionBar';
 import { CommentGif } from '../community/CommentGif';
 import { GifPicker } from '../community/GifPicker';
+import { EmojiPickerButton } from '../community/EmojiPickerButton';
 import { ReportDialog } from '../community/ReportDialog';
 import { FanartGallery } from '../community/FanartGallery';
 import { FanartImagePicker } from '../community/FanartImagePicker';
 import { MentionSuggestions } from '../community/MentionSuggestions';
 import { MentionText } from '../community/MentionText';
 import { StableImage } from '../common/StableImage';
+import { AutoGrowTextarea } from '../common/AutoGrowTextarea';
 import { useFanartFeed } from '../../hooks/useFanartFeed';
 import { useFavoriteFanarts } from '../../hooks/useFavoriteFanarts';
 import {
@@ -56,6 +58,7 @@ import { TierListCard } from '../tierlists/TierListCard';
 import { TierListEditor } from '../tierlists/TierListEditor';
 import { TierListViewer } from '../tierlists/TierListViewer';
 import type { ImageDims } from '../../utils/imagenes';
+import { insertarTextoEnCursor } from '../../utils/textarea';
 import { borradorDesdeDoc } from '../../utils/tierlists';
 import type { EditorDraft } from '../../utils/tierlists';
 import {
@@ -215,6 +218,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   // antes de descargarla (ver `StableImage`).
   const [threadImageUrl, setThreadImageUrl] = useState('');
   const [threadImageDims, setThreadImageDims] = useState<ImageDims | null>(null);
+  const [threadGif, setThreadGif] = useState<GifAttachment | null>(null);
   // Formulario de Fanart. Se reutiliza el mismo hilo; solo cambia
   // la ficha artística y se permiten varias imágenes.
   const [tipoPublicacion, setTipoPublicacion] = useState<'hilo' | 'fanart'>('hilo');
@@ -225,7 +229,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [fanartQuickTags, setFanartQuickTags] = useState<string[]>([]);
   const [errorFanart, setErrorFanart] = useState('');
   const threadBodyRef = useRef<HTMLTextAreaElement>(null);
-  const commentInputRef = useRef<HTMLInputElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const replyInputRef = useRef<HTMLTextAreaElement>(null);
   const [commentImageUrl, setCommentImageUrl] = useState('');
   const [commentImageDims, setCommentImageDims] = useState<ImageDims | null>(null);
 
@@ -542,6 +547,18 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     }
   };
 
+  const insertarEmojiHilo = (emoji: string) => {
+    insertarTextoEnCursor(threadBodyRef, body, emoji, setBody);
+  };
+
+  const insertarEmojiComentario = (emoji: string) => {
+    insertarTextoEnCursor(commentInputRef, newCommentText, emoji, setNewCommentText);
+  };
+
+  const insertarEmojiRespuesta = (emoji: string) => {
+    insertarTextoEnCursor(replyInputRef, replyText, emoji, setReplyText);
+  };
+
   const handleCreateThreadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const esFanart = tipoPublicacion === 'fanart';
@@ -610,6 +627,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       threadImageDims,
       esFanart ? null : tierAdjunta,
       fanart,
+      threadGif ?? undefined,
     );
 
     if (success) {
@@ -618,6 +636,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       setTagsInput('');
       setThreadImageUrl('');
       setThreadImageDims(null);
+      setThreadGif(null);
       setTierAdjunta(null);
       setConEncuesta(false);
       setBorradorEncuesta(POLL_VACIO);
@@ -954,9 +973,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             const ok = requireAuth('crear un hilo nuevo', () => setShowCreateThread(true));
             if (ok) {
               if (!showCreateThread) {
-                setTipoPublicacion(
-                  feedSort === 'fanarts' ? 'fanart' : 'hilo',
-                );
+                const tipo = feedSort === 'fanarts' ? 'fanart' : 'hilo';
+                setTipoPublicacion(tipo);
+                // Un GIF pendiente de un borrador anterior no debe
+                // ocultar el selector de imágenes del fanart.
+                if (tipo === 'fanart') setThreadGif(null);
               }
               setShowCreateThread(!showCreateThread);
             }
@@ -1144,7 +1165,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setTipoPublicacion('fanart')}
+                  onClick={() => {
+                    setTipoPublicacion('fanart');
+                    setThreadGif(null);
+                  }}
                   className={`chat-boton flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
                     tipoPublicacion === 'fanart'
                       ? 'bg-violet-500/15 text-violet-200'
@@ -1329,9 +1353,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   : 'Contenido / Argumentación'}
               </label>
               <div className="relative">
-                <textarea
-                  ref={threadBodyRef}
+                <AutoGrowTextarea
+                  inputRef={threadBodyRef}
                   rows={4}
+                  maxHeight={320}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   placeholder={
@@ -1339,7 +1364,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       ? 'Cuéntanos qué te inspiró, técnica, proceso...'
                       : 'Desarrolla tu punto de vista, teorías o curiosidades...'
                   }
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none leading-relaxed"
+                  className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-base leading-relaxed text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none sm:text-xs"
                   required={tipoPublicacion !== 'fanart'}
                 />
                 <MentionSuggestions
@@ -1348,30 +1373,56 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   inputRef={threadBodyRef}
                 />
               </div>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <EmojiPickerButton onElegir={insertarEmojiHilo} />
+                {tipoPublicacion !== 'fanart' && !threadImageUrl && (
+                  <GifPicker
+                    value={threadGif}
+                    onChange={(gif) => {
+                      setThreadGif(gif);
+                      if (gif) {
+                        setThreadImageUrl('');
+                        setThreadImageDims(null);
+                      }
+                    }}
+                  />
+                )}
+                {threadGif && (
+                  <span className="text-[10px] text-zinc-500">
+                    El GIF se publicará junto al texto.
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div>
-              <span className="mb-1 block text-xs font-medium text-zinc-300">
-                {tipoPublicacion === 'fanart'
-                  ? 'Imágenes del fanart'
-                  : 'Imagen (opcional)'}
-              </span>
-              {tipoPublicacion === 'fanart' ? (
-                <FanartImagePicker
-                  uid={currentUser?.uid}
-                  images={fanartImages}
-                  onChange={setFanartImages}
-                />
-              ) : (
-                <AttachImage
-                  uid={currentUser?.uid}
-                  value={threadImageUrl}
-                  onChange={setThreadImageUrl}
-                  onDims={setThreadImageDims}
-                  size="md"
-                />
-              )}
-            </div>
+            {!threadGif && (
+              <div>
+                <span className="mb-1 block text-xs font-medium text-zinc-300">
+                  {tipoPublicacion === 'fanart'
+                    ? 'Imágenes del fanart'
+                    : 'Imagen (opcional)'}
+                </span>
+                {tipoPublicacion === 'fanart' ? (
+                  <FanartImagePicker
+                    uid={currentUser?.uid}
+                    images={fanartImages}
+                    onChange={setFanartImages}
+                  />
+                ) : (
+                  <AttachImage
+                    uid={currentUser?.uid}
+                    value={threadImageUrl}
+                    onChange={(url) => {
+                      setThreadImageUrl(url);
+                      if (url) setThreadGif(null);
+                    }}
+                    onDims={setThreadImageDims}
+                    size="md"
+                  />
+                )}
+              </div>
+            )}
 
             {errorFanart && (
               <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">
@@ -1598,7 +1649,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     alt={`Fanart: ${thread.title}`}
                     eager={hiloEnfocado === thread.id}
                   />
-                ) : thread.imageUrl ? (
+                ) : thread.imageUrl && !thread.gif ? (
                   <StableImage
                     src={thread.imageUrl}
                     alt="Imagen adjunta al hilo"
@@ -1610,6 +1661,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     eager={hiloEnfocado === thread.id}
                   />
                 ) : null}
+
+                {thread.gif && (
+                  <CommentGif
+                    gif={thread.gif}
+                    className="mt-3"
+                    eager={hiloEnfocado === thread.id}
+                  />
+                )}
 
                 {thread.kind === 'fanart' && thread.fanart && (
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
@@ -1869,10 +1928,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     onSubmit={(e) => handleCommentSubmit(thread.id, e)}
                     className="space-y-2"
                   >
-                    <div className="relative flex gap-2">
-                      <input
-                        ref={commentInputRef}
-                        type="text"
+                    <div className="relative flex items-end gap-2">
+                      <AutoGrowTextarea
+                        inputRef={commentInputRef}
+                        rows={1}
+                        maxHeight={160}
                         value={newCommentText}
                         onChange={(e) => setNewCommentText(e.target.value)}
                         placeholder={
@@ -1880,7 +1940,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             ? 'Escribe tu opinión respetuosa...'
                             : 'Inicia sesión para opinar...'
                         }
-                        className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
+                        className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-base text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none sm:text-xs"
                       />
                       <MentionSuggestions
                         value={newCommentText}
@@ -1901,14 +1961,27 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                         archivo se sigue sirviendo desde el CDN del
                         proveedor. */}
                     <div className="flex flex-wrap items-center gap-3">
+                      <EmojiPickerButton onElegir={insertarEmojiComentario} />
                       <AttachImage
                         uid={currentUser?.uid}
                         value={commentImageUrl}
-                        onChange={setCommentImageUrl}
+                        onChange={(url) => {
+                          setCommentImageUrl(url);
+                          if (url) setCommentGif(null);
+                        }}
                         onDims={setCommentImageDims}
                       />
                       {!commentImageUrl && (
-                        <GifPicker value={commentGif} onChange={setCommentGif} />
+                        <GifPicker
+                          value={commentGif}
+                          onChange={(gif) => {
+                            setCommentGif(gif);
+                            if (gif) {
+                              setCommentImageUrl('');
+                              setCommentImageDims(null);
+                            }
+                          }}
+                        />
                       )}
                     </div>
                   </form>
@@ -1980,7 +2053,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                               </span>
                             </div>
 
-                            <p className="text-[15px] text-zinc-300 leading-relaxed pl-8 break-words">
+                            <p className="whitespace-pre-line break-words pl-8 text-[15px] leading-relaxed text-zinc-300">
                               <MentionText text={comment.body} />
                             </p>
 
@@ -2144,16 +2217,18 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                 onSubmit={(e) => handleReplySubmit(thread.id, comment.id, e)}
                                 className="mt-2 space-y-2 pl-8 animate-in fade-in duration-150"
                               >
-                                <div className="flex gap-2">
-                                  <input
-                                    type="text"
+                                <div className="flex items-end gap-2">
+                                  <AutoGrowTextarea
+                                    inputRef={replyInputRef}
+                                    rows={1}
+                                    maxHeight={160}
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
                                     placeholder={`Respondiendo a ${nombreDe(
                                       comment.authorId,
                                       comment.authorName,
                                     )}...`}
-                                    className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
+                                    className="min-w-0 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-base text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none sm:text-xs"
                                   />
                                   <button
                                     type="submit"
@@ -2162,7 +2237,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                     Enviar
                                   </button>
                                 </div>
-                                <GifPicker value={replyGif} onChange={setReplyGif} />
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <EmojiPickerButton onElegir={insertarEmojiRespuesta} />
+                                  <GifPicker value={replyGif} onChange={setReplyGif} />
+                                </div>
                               </form>
                             )}
 
@@ -2215,7 +2293,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                           {new Date(reply.createdAt).toLocaleDateString('es-ES')}
                                         </span>
                                       </div>
-                                       <p className="text-xs text-zinc-300 pl-5">
+                                       <p className="whitespace-pre-line break-words pl-5 text-xs text-zinc-300">
                               <MentionText text={reply.body} />
                             </p>
                                        {reply.gif && (

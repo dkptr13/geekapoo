@@ -371,19 +371,10 @@ export function aGifAdjunto(gif: GifResult): GifAttachment {
 }
 
 /**
- * Comprueba que una URL pegada venga del proveedor.
+ * Validación de la ficha de un GIF.
  *
- * La misma comprobación la vuelven a hacer las reglas de
- * Firestore en `firestore.rules`: sin ella, un cliente podría
- * meter en `comment.gif` cualquier URL (una de rastreo, una de
- * contenido ilegal...). Con las dos, está bloqueado también
- * desde el navegador.
+ * Vive en `utils/gifs` para poder probarla sin cargar Firebase. Se
+ * reexporta desde aquí porque los servicios y componentes ya la
+ * importan de este módulo.
  */
-export function esUrlDeGifValida(url: string): boolean {
-  if (typeof url !== 'string' || url.length === 0 || url.length > 1000) return false;
-  return (
-    /^https:\/\/media\d*\.giphy\.com\//.test(url) ||
-    /^https:\/\/media\d*\.tenor\.com\//.test(url) ||
-    /^https:\/\/tenor\.com\/[a-zA-Z0-9\/-]+\.gif/.test(url)
-  );
-}
+export { esGifValido, esUrlDeGifValida } from '../utils/gifs';

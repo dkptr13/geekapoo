@@ -133,6 +133,8 @@ export interface CommunityContextType {
      * imágenes y ficha artística. El cuerpo es opcional.
      */
     fanart?: FanartDraft,
+    /** GIF adjunto al hilo. No sustituye al texto. */
+    gif?: GifAttachment,
   ) => Promise<boolean>;
 
   deleteThread: (threadId: string) => Promise<boolean>;
@@ -847,6 +849,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       imageDims?: ImageDims | null,
       tierList?: TierListRef | null,
       fanart?: FanartDraft,
+      gif?: GifAttachment,
     ): Promise<boolean> => {
       if (!currentUser) {
         requireAuth('crear un hilo en la comunidad');
@@ -885,6 +888,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           imageDims,
           tierList: esFanart ? null : tierList,
           fanart,
+          gif: esFanart ? undefined : gif,
         });
 
         // Se añade también a la copia local. El listener del feed
@@ -946,14 +950,16 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     }
                   : {}),
               }
-            : imageUrl
-              ? {
-                  imageUrl,
-                  ...(imageDims
-                    ? { imageWidth: imageDims.width, imageHeight: imageDims.height }
-                    : {}),
-                }
-              : {}),
+            : gif
+              ? { gif }
+              : imageUrl
+                ? {
+                    imageUrl,
+                    ...(imageDims
+                      ? { imageWidth: imageDims.width, imageHeight: imageDims.height }
+                      : {}),
+                  }
+                : {}),
           ...(pollLocal ? { poll: pollLocal } : {}),
           ...(tierList && !esFanart ? { tierList } : {}),
         };
