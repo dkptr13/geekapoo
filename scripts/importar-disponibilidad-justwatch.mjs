@@ -223,6 +223,36 @@ const FICHAS = {
     titulo: "Lord El-Melloi II's Case Files {Rail Zeppelin} Grace note",
     anio: 2019,
   },
+  // Fichas nuevas comprobadas en JustWatch Espana (noviembre de 2026).
+  // Solo se anaden las que tienen una oferta real en Espana; las que
+  // no la tienen se quedan sin filas para no inventar disponibilidad.
+  akira: { id: 'tm44887', titulo: 'Akira', anio: 1988 },
+  'black-clover': { id: 'ts296797', titulo: 'Black Clover', anio: 2017 },
+  'black-clover-la-espada-del-rey-mago': {
+    id: 'tm1263423',
+    titulo: 'Black Clover: Sword of the Wizard King',
+    anio: 2023,
+  },
+  'blue-exorcist': { id: 'ts9246', titulo: 'Blue Exorcist', anio: 2011 },
+  'bungo-stray-dogs': { id: 'ts42256', titulo: 'Bungo Stray Dogs', anio: 2016 },
+  'delicious-in-dungeon': { id: 'ts363407', titulo: 'Delicious in Dungeon', anio: 2024 },
+  'devilman-crybaby': { id: 'ts76865', titulo: 'Devilman Crybaby', anio: 2018 },
+  dorohedoro: { id: 'ts221749', titulo: 'Dorohedoro', anio: 2020 },
+  'fairy-tail': { id: 'ts20513', titulo: 'Fairy Tail', anio: 2009 },
+  'fruits-basket': { id: 'ts87522', titulo: 'Fruits Basket', anio: 2019 },
+  'nanatsu-no-taizai': { id: 'ts314002', titulo: 'The Seven Deadly Sins', anio: 2014 },
+  noragami: { id: 'ts41161', titulo: 'Noragami', anio: 2014 },
+  'ouran-high-school-host-club': {
+    id: 'ts20544',
+    titulo: 'Ouran High School Host Club',
+    anio: 2006,
+  },
+  'undead-unluck': { id: 'ts364174', titulo: 'Undead Unluck', anio: 2023 },
+  'vivy-fluorite-eye-s-song': {
+    id: 'ts271378',
+    titulo: 'Vivy: Fluorite Eye’s Song',
+    anio: 2021,
+  },
 };
 
 /**
@@ -258,6 +288,11 @@ const EXTRA = {
   itunes: 'apple-tv',
   animebox: 'animebox',
   amazonanimeboxchannel: 'animebox',
+  movistar: 'movistar-plus',
+  movistarott: 'movistar-plus',
+  filmin: 'filmin',
+  atres: 'atresplayer',
+  rtve: 'rtve-play',
 };
 
 /** Paises donde opera cada plataforma que no es global. */
@@ -267,6 +302,10 @@ const PAISES_EXTRA = {
   'animation-digital-network': ['FR', 'DE'],
   'apple-tv': REGIONES,
   animebox: ['ES'],
+  'movistar-plus': ['ES'],
+  filmin: ['ES'],
+  atresplayer: ['ES'],
+  'rtve-play': ['ES'],
 };
 
 /** Como se llama cada plataforma nueva en Firestore. */

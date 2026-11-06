@@ -18,8 +18,14 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/akira</loc>
+    <lastmod>2026-11-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/angel-beats</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -61,7 +67,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/baccano</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -91,7 +97,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/black-lagoon</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -121,7 +127,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/blue-exorcist</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -139,7 +145,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/bungo-stray-dogs</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -175,7 +181,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/clannad</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -229,7 +235,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/cyberpunk-edgerunners-2</loc>
-    <lastmod>2026-11-03</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -282,6 +288,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/devilman-crybaby</loc>
+    <lastmod>2026-11-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/don-t-toy-with-me-miss-nagatoro</loc>
     <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
@@ -289,7 +301,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/dorohedoro</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -505,7 +517,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/fruits-basket</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -871,7 +883,7 @@
   </url>
   <url>
     <loc>https://www.geekapoo.es/anime/nanatsu-no-taizai</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1200,6 +1212,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/undead-unluck</loc>
+    <lastmod>2026-11-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/vinland-saga</loc>
     <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
@@ -1214,6 +1232,12 @@
   <url>
     <loc>https://www.geekapoo.es/anime/viral-hit</loc>
     <lastmod>2026-11-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/vivy-fluorite-eye-s-song</loc>
+    <lastmod>2026-11-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
