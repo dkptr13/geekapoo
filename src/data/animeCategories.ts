@@ -131,6 +131,62 @@ export const normalize = (value: string | undefined | null): string =>
     .replace(/[^a-z0-9]/g, '');
 
 /**
+ * Nombres antiguos que significan lo mismo que una categoría
+ * canónica.
+ *
+ * El catálogo se sembró con categorías escritas a mano y algunas
+ * nunca estuvieron en `ALL_ANIME_CATEGORIES`. Como las tarjetas de
+ * "Explora por categoría" solo pintan las canónicas, un anime que
+ * solo tuviera "Fantasía & Magia" desaparecía de todas las
+ * secciones: no era un fallo del filtro, sino de la comparación.
+ *
+ * Aquí se normalizan esos nombres al leerlos. No hace falta migrar
+ * Firestore: los documentos viejos siguen valiendo y la web los
+ * coloca en la categoría que les corresponde. Las claves van
+ * normalizadas, como en `animeGenres`.
+ */
+const ALIAS_CATEGORIA: Record<string, string> = {
+  accion: 'Shonen & Acción',
+  accionaventura: 'Shonen & Acción',
+  shonenaccion: 'Shonen & Acción',
+  comedia: 'Romance & Comedia',
+  romance: 'Romance & Comedia',
+  comediasliceoflife: 'Romance & Comedia',
+  drama: 'Josei & Drama',
+  dramarecuerdos: 'Josei & Drama',
+  fantasiamagia: 'Fantasía & Aventura',
+  cienciaficcion: 'Ciencia Ficción & Cyberpunk',
+  cienciaficcionfuturo: 'Ciencia Ficción & Cyberpunk',
+  shojoromance: 'Shojo & Escolar',
+  misteriomisterio: 'Thriller & Misterio',
+};
+
+const CANONICA_POR_CLAVE = new Map(
+  ALL_ANIME_CATEGORIES.map((categoria) => [normalize(categoria.name), categoria.name] as const),
+);
+
+/**
+ * Convierte una categoría guardada en su nombre canónico.
+ *
+ * Devuelve `null` si no es un texto válido. Si el nombre no es un
+ * alias conocido se conserva tal cual: una categoría nueva no debe
+ * desaparecer solo porque no esté en la lista.
+ */
+export const normalizarCategoria = (valor: unknown): string | null => {
+  if (typeof valor !== 'string') return null;
+
+  const nombre = valor.trim().replace(/\s+/g, ' ');
+  if (!nombre) return null;
+
+  const clave = normalize(nombre);
+  if (!clave || clave === 'null' || clave === 'undefined' || clave === 'objectobject') {
+    return null;
+  }
+
+  return ALIAS_CATEGORIA[clave] ?? CANONICA_POR_CLAVE.get(clave) ?? nombre;
+};
+
+/**
  * Busca una categoría por nombre, sin distinguir mayúsculas ni
  * acentos.
  *
@@ -139,9 +195,12 @@ export const normalize = (value: string | undefined | null): string =>
  * lista de arriba (por ejemplo, "Seinen & Psicológico" puede
  * aparecer escrito sin acento). Comparar normalizado evita que un
  * anime desaparezca de su categoría por un detalle tipográfico.
+ *
+ * También acepta los nombres antiguos: `findCategory('Fantasía &
+ * Magia')` devuelve la ficha de "Fantasía & Aventura".
  */
 export const findCategory = (name: string | undefined | null) => {
-  const target = normalize(name);
+  const target = normalize(normalizarCategoria(name) ?? '');
   if (!target) return undefined;
   return ALL_ANIME_CATEGORIES.find((c) => normalize(c.name) === target);
 };
@@ -219,8 +278,10 @@ type MaybeCategorized = { category?: unknown; categories?: unknown };
  * a la principal cuando no, para que las series viejas sigan
  * saliendo en su categoría sin migrar nada.
  *
- * Se devuelven tal cual, sin normalizar: el que las compara es el
- * filtro, que ya normaliza.
+ * Los nombres se devuelven ya normalizados a la lista canónica y sin
+ * repetir: un anime con "Romance", "Comedia" y "Romance & Comedia"
+ * solo tiene una categoría, no tres. Así las tarjetas y las fichas
+ * hablan siempre del mismo vocabulario.
  *
  * El parámetro es "unknown" a propósito: los documentos llegan de
  * Firestore sin validar, y desde el panel llegan como
@@ -236,15 +297,33 @@ export const animeCategories = (anime: unknown): string[] => {
   const raw = Array.isArray(a.categories) ? a.categories : [];
   const list = raw.filter((c): c is string => typeof c === 'string' && c.trim().length > 0);
 
-  if (list.length > 0) return list;
+  const candidatas =
+    list.length > 0
+      ? list
+      : typeof a.category === 'string' && a.category.trim()
+        ? [a.category]
+        : [];
 
-  const main = typeof a.category === 'string' ? a.category.trim() : '';
-  return main ? [main] : [];
+  const salida: string[] = [];
+  const vistas = new Set<string>();
+
+  for (const candidata of candidatas) {
+    const nombre = normalizarCategoria(candidata);
+    if (!nombre) continue;
+
+    const clave = normalize(nombre);
+    if (vistas.has(clave)) continue;
+
+    vistas.add(clave);
+    salida.push(nombre);
+  }
+
+  return salida;
 };
 
 /** ¿Esta serie está en esa categoría? Sin distinguir tildes. */
 export const isInCategory = (anime: unknown, categoryName: string): boolean => {
-  const target = normalize(categoryName);
+  const target = normalize(normalizarCategoria(categoryName) ?? '');
   if (!target) return false;
   return animeCategories(anime).some((c) => normalize(c) === target);
 };

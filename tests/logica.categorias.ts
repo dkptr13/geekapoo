@@ -14,7 +14,11 @@ import assert from 'node:assert/strict';
 import {
   ALL_ANIME_CATEGORIES,
   FORUM_CATEGORIES,
+  animeCategories,
+  findCategory,
+  isInCategory,
   mergeCategories,
+  normalizarCategoria,
   normalize,
   type StoredCategory,
 } from '../src/data/animeCategories';
@@ -57,6 +61,47 @@ for (const categoria of ALL_ANIME_CATEGORIES) {
     `falta la categoría ${categoria.name} en el foro`,
   );
 }
+
+// Las categorías antiguas se leen como su equivalente canónica.
+// Sin esto, un anime con solo "Fantasía & Magia" no salía en
+// ninguna tarjeta de "Explora por categoría".
+assert.equal(normalizarCategoria('Fantasía & Magia'), 'Fantasía & Aventura');
+assert.equal(normalizarCategoria('Fantasia & Magia'), 'Fantasía & Aventura');
+assert.equal(normalizarCategoria('Ciencia Ficción & Futuro'), 'Ciencia Ficción & Cyberpunk');
+assert.equal(normalizarCategoria('Ciencia ficción'), 'Ciencia Ficción & Cyberpunk');
+assert.equal(normalizarCategoria('Acción & Aventura'), 'Shonen & Acción');
+assert.equal(normalizarCategoria('Shonen & Accion'), 'Shonen & Acción');
+assert.equal(normalizarCategoria('Shojo & Romance'), 'Shojo & Escolar');
+assert.equal(normalizarCategoria('Comedia & Slice of Life'), 'Romance & Comedia');
+assert.equal(normalizarCategoria('Drama & Recuerdos'), 'Josei & Drama');
+assert.equal(normalizarCategoria('Misterio & Misterio'), 'Thriller & Misterio');
+assert.equal(normalizarCategoria('[object Object]'), null);
+
+// Un anime con varias formas de la misma categoría se queda con
+// una sola: la ficha no debe pintar "Romance", "Comedia" y
+// "Romance & Comedia" como tres etiquetas.
+assert.deepEqual(
+  animeCategories({ categories: ['Romance', 'Comedia', 'Romance & Comedia'] }),
+  ['Romance & Comedia'],
+);
+assert.deepEqual(
+  animeCategories({ category: 'Fantasía & Magia' }),
+  ['Fantasía & Aventura'],
+);
+assert.deepEqual(
+  animeCategories({ categories: ['Shonen & Acción', 'Fantasía & Magia'] }),
+  ['Shonen & Acción', 'Fantasía & Aventura'],
+);
+
+// El filtro de la URL acepta tanto el nombre nuevo como el viejo.
+assert.equal(findCategory('Fantasía & Magia')?.name, 'Fantasía & Aventura');
+assert.equal(findCategory('Fantasia & Magia')?.name, 'Fantasía & Aventura');
+assert.equal(isInCategory({ categories: ['Fantasía & Magia'] }, 'Fantasía & Aventura'), true);
+assert.equal(isInCategory({ categories: ['Fantasía & Aventura'] }, 'Fantasía & Magia'), true);
+
+// Una categoría desconocida no se pierde: se conserva para que una
+// sección nueva no desaparezca por no estar en la lista.
+assert.equal(normalizarCategoria('Categoría inventada'), 'Categoría inventada');
 
 // No hay nombres duplicados.
 const nombres = merged.map((c) => normalize(c.name));

@@ -58,7 +58,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Liden Films',
 
-  categorias: ['Acción', 'Drama'],
+  categorias: ['Shonen & Acción', 'Thriller & Misterio'],
 
   generos: ['Acción', 'Drama', 'Sobrenatural', 'Crimen'],
 };

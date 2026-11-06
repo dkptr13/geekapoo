@@ -79,7 +79,11 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Gainax',
 
-  categorias: ['Ciencia ficción', 'Drama'],
+  categorias: [
+    'Ciencia Ficción & Cyberpunk',
+    'Seinen & Psicológico',
+    'Fantasía & Aventura',
+  ],
 
   generos: ['Acción', 'Drama', 'Psicológico', 'Mecha', 'Sobrenatural'],
 };
