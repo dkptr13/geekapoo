@@ -363,6 +363,9 @@ const {
         description:
           'Dudas, incidencias y contacto con el equipo de Geekapoo. Encuentra ayuda sobre la cuenta, la comunidad y el funcionamiento de la web.',
         path: '/?tab=soporte',
+        // Es un formulario de ticket, no una página de contenido:
+        // no aporta nada en resultados y el envío exige sesión.
+        robots: 'noindex, follow',
       };
     }
 

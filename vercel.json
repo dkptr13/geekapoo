@@ -35,6 +35,11 @@
     },
     {
       "source": "/",
+      "has": [{ "type": "query", "key": "tab", "value": "soporte" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
+    },
+    {
+      "source": "/",
       "has": [{ "type": "query", "key": "tab", "value": "trivia" }],
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
     },
