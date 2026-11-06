@@ -10,6 +10,7 @@
  */
 import assert from 'node:assert/strict';
 import type { Anime } from '../src/types/index.ts';
+import { normalizarGenero } from '../src/data/animeGenres.ts';
 import {
   FILTROS_VACIOS,
   contarFiltrosActivos,
@@ -57,6 +58,26 @@ assert.equal(
   true,
 );
 assert.equal(pasaFiltrosAnime(serie, { ...FILTROS_VACIOS, generos: ['Romance'] }), false);
+
+// Los géneros se comparan sin tildes ni mayúsculas, y los alias
+// del catálogo cuentan como el mismo género. Antes "Acción" no
+// encontraba una ficha guardada como "Accion".
+const conVariantes: Pick<Anime, 'genres' | 'year' | 'status' | 'rating'> = {
+  ...serie,
+  genres: ['Accion', 'Sci-Fi', 'Horror', 'Slice of Life', 'Shōnen'],
+};
+assert.equal(pasaFiltrosAnime(conVariantes, { ...FILTROS_VACIOS, generos: ['Acción'] }), true);
+assert.equal(
+  pasaFiltrosAnime(conVariantes, { ...FILTROS_VACIOS, generos: ['Ciencia ficción'] }),
+  true,
+);
+assert.equal(pasaFiltrosAnime(conVariantes, { ...FILTROS_VACIOS, generos: ['Terror'] }), true);
+assert.equal(
+  pasaFiltrosAnime(conVariantes, { ...FILTROS_VACIOS, generos: ['Recuentos de la vida'] }),
+  true,
+);
+assert.equal(pasaFiltrosAnime(conVariantes, { ...FILTROS_VACIOS, generos: ['Shonen'] }), true);
+assert.equal(pasaFiltrosAnime(conVariantes, { ...FILTROS_VACIOS, generos: ['Romance'] }), false);
 
 // Año concreto manda sobre el intervalo.
 assert.equal(pasaFiltrosAnime(serie, { ...FILTROS_VACIOS, anio: 2024 }), true);
@@ -117,13 +138,27 @@ const saneadoHilos = sanearFiltros({ ...combinados, orden: 'nuevos' }, 'threads'
 assert.equal(saneadoHilos.notaMin, 0);
 assert.equal(saneadoHilos.orden, 'nuevos');
 
-// Opciones desde los datos: sin duplicados y con rango real.
+// Opciones desde los datos: sin duplicados, sin valores que no
+// son texto y con una sola entrada para cada alias.
+assert.equal(normalizarGenero('  Accion '), 'Acción');
+assert.equal(normalizarGenero('Sci-Fi'), 'Ciencia ficción');
+assert.equal(normalizarGenero('Horror'), 'Terror');
+assert.equal(normalizarGenero('[object Object]'), null);
+assert.equal(normalizarGenero('Ekstasis'), null);
+
 const catalogo = [
-  { genres: ['Drama', 'Romance'], year: 2016 },
-  { genres: ['Drama', 'Acción'], year: 2024 },
-  { genres: [], year: 0 },
+  { genres: ['Drama', 'Romance', '[object Object]', 'Accion', 'Shōnen'], year: 2016 },
+  { genres: ['Drama', 'Acción', 'Horror', 'Slice of Life', 'Shonen'], year: 2024 },
+  { genres: ['Ekstasis'], year: 0 },
 ];
-assert.deepEqual(generosDisponibles(catalogo), ['Acción', 'Drama', 'Romance']);
+assert.deepEqual(generosDisponibles(catalogo), [
+  'Acción',
+  'Drama',
+  'Recuentos de la vida',
+  'Romance',
+  'Shonen',
+  'Terror',
+]);
 assert.deepEqual(rangoAnios(catalogo), { min: 2016, max: 2024 });
 assert.equal(rangoAnios([{ year: 0 }]), null);
 

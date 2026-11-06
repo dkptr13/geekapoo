@@ -12,6 +12,7 @@
 // ======================================================
 
 import { normalize } from '../data/animeCategories';
+import { claveGenero, normalizarGenero } from '../data/animeGenres';
 import { toTextList } from './safeData';
 import { textoEstado } from './seasonData';
 import type { Anime, Character, Episode, Thread } from '../types';
@@ -158,16 +159,25 @@ export function sanearFiltros(f: FiltrosAvanzados, tab: MainTab): FiltrosAvanzad
 // OPCIONES QUE SALEN DE LOS DATOS
 // ======================================================
 
-/** Todos los géneros del catálogo, ordenados. Sin duplicados. */
+/**
+ * Todos los géneros del catálogo, ordenados. Sin duplicados.
+ *
+ * Se agrupa por clave normalizada, no por texto: "Accion" y
+ * "Acción" son la misma opción y solo se pinta una vez. Los
+ * valores que no son géneros ("[object Object]", "undefined"...)
+ * se descartan aquí, para que no lleguen al panel.
+ */
 export function generosDisponibles(animes: Pick<Anime, 'genres'>[]): string[] {
-  const set = new Set<string>();
+  const porClave = new Map<string, string>();
   for (const a of animes) {
     for (const g of toTextList(a.genres)) {
-      const nombre = g.trim();
-      if (nombre) set.add(nombre);
+      const nombre = normalizarGenero(g);
+      if (!nombre) continue;
+      const clave = normalize(nombre);
+      if (!porClave.has(clave)) porClave.set(clave, nombre);
     }
   }
-  return [...set].sort((a, b) => a.localeCompare(b, 'es'));
+  return [...porClave.values()].sort((a, b) => a.localeCompare(b, 'es'));
 }
 
 /** Año mínimo y máximo del catálogo. Sin años no hay filtro. */
@@ -194,8 +204,15 @@ export function pasaFiltrosAnime(
   f: FiltrosAvanzados,
 ): boolean {
   if (f.generos.length > 0) {
-    const suyos = new Set(toTextList(anime.genres).map((g) => g.toLowerCase()));
-    const alguno = f.generos.some((g) => suyos.has(g.toLowerCase()));
+    const suyos = new Set(
+      toTextList(anime.genres)
+        .map(claveGenero)
+        .filter(Boolean),
+    );
+    const alguno = f.generos.some((g) => {
+      const clave = claveGenero(g);
+      return clave !== '' && suyos.has(clave);
+    });
     if (!alguno) return false;
   }
 
