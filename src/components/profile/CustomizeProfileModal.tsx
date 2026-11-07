@@ -840,7 +840,7 @@ export const CustomizeProfileModal: React.FC<{
       )}
 
       <div
-        className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
+        className="fixed inset-0 z-[100] flex items-stretch justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
         onClick={guardando || subiendo ? undefined : onCerrar}
       >
         <div
@@ -848,7 +848,7 @@ export const CustomizeProfileModal: React.FC<{
           aria-modal="true"
           aria-label="Personalizar perfil"
           onClick={(e) => e.stopPropagation()}
-          className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/[0.06] bg-[#0c0c14] shadow-2xl sm:max-w-2xl sm:rounded-3xl"
+          className="flex h-[100dvh] max-h-none w-full flex-col overflow-hidden border border-white/[0.06] bg-[#0c0c14] shadow-2xl sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-3xl"
         >
           {/* ── Cabecera ─────────────────────────────── */}
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
