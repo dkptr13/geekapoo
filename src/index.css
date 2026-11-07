@@ -199,6 +199,46 @@
 }
 
 /* ======================================================
+   CHAT A PANTALLA COMPLETA EN MÓVIL
+   ======================================================
+   Al abrir una conversación (privada, grupo o club) el chat
+   tapa la barra del sitio y ocupa el viewport completo, como
+   una app de mensajería. La lista de chats, en cambio, sigue
+   dentro de la web con su barra superior.
+
+   `--chat-vh` lo actualiza ChatView con visualViewport: en
+   iOS el teclado no cambia 100dvh, pero sí la altura visible.
+   Así el compositor queda por encima del teclado. */
+@media (max-width: 767px) {
+  .chat-pantalla {
+    position: fixed !important;
+    top: var(--chat-vt, 0px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    z-index: 60 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: var(--chat-vh, 100dvh) !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    background: #080810 !important;
+  }
+
+  .chat-pantalla .chat-superficie {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .chat-pantalla .chat-cabecera-conversacion {
+    padding-top: max(0.625rem, env(safe-area-inset-top)) !important;
+  }
+}
+
+/* ======================================================
    SISTEMA VISUAL DEL CHAT
    ======================================================
    Un solo lenguaje para cabecera, lateral, hilo y

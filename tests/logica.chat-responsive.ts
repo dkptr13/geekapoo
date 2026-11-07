@@ -15,6 +15,7 @@ const fuenteTextarea = readFileSync(
   join(raiz, 'src', 'components', 'common', 'AutoGrowTextarea.tsx'),
   'utf8',
 );
+const css = readFileSync(join(raiz, 'src', 'index.css'), 'utf8');
 
 const tiene = (marca: string, porQue: string) => {
   assert.ok(fuente.includes(marca), `no se encontró: ${porQue} (${marca})`);
@@ -61,5 +62,14 @@ tiene('aria-label="Personalizar el chat"', 'apariencia con nombre');
 
 // Los modales de la vista no se salen en pantallas bajas.
 tiene('max-h-[90dvh]', 'los modales dejan sitio al viewport');
+
+// Dentro de una conversación, el chat ocupa la pantalla y tapa el
+// navbar solo en móvil; la lista de chats sigue con la web normal.
+tiene('chat-pantalla', 'la conversación usa la pantalla completa en móvil');
+tiene('visualViewport', 'el alto del chat sigue al teclado de iOS');
+assert.ok(
+  css.includes('.chat-pantalla') && css.includes('max-width: 767px'),
+  'la pantalla completa del chat está limitada a móvil',
+);
 
 console.log('  chat responsive: OK');

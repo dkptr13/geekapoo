@@ -1443,6 +1443,35 @@ export const ChatView: React.FC = () => {
   const { de: reaccionesMensaje, mias: misReaccionesMensaje } =
     useReacciones(objetivosMensajes);
 
+  // Alto y desplazamiento reales de la ventana visible. En iOS el
+  // teclado no cambia `100dvh`, pero sí `visualViewport.height` y
+  // `offsetTop`; sin esto el compositor se queda detrás del teclado.
+  const [viewportChat, setViewportChat] = useState<{
+    alto: number;
+    top: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const actualizar = () =>
+      setViewportChat({
+        alto: Math.round(vv.height),
+        top: Math.round(vv.offsetTop),
+      });
+    actualizar();
+    vv.addEventListener('resize', actualizar);
+    vv.addEventListener('scroll', actualizar);
+    window.addEventListener('resize', actualizar);
+
+    return () => {
+      vv.removeEventListener('resize', actualizar);
+      vv.removeEventListener('scroll', actualizar);
+      window.removeEventListener('resize', actualizar);
+    };
+  }, []);
+
   if (!currentUser) {
     return null;
   }
@@ -2137,6 +2166,12 @@ export const ChatView: React.FC = () => {
     if (!result.ok) setCodeError(result.error);
   };
 
+  // En móvil, una conversación abierta tapa el navbar y ocupa
+  // toda la pantalla. La lista de chats, en cambio, se queda
+  // dentro de la web con su barra superior.
+  const chatEnfocado =
+    Boolean(activeRoomId && activeRoom) && tabChats !== 'descubrir';
+
   return (
     // ======================================================
     // ALTURA FIJA PARA QUE LA VENTANA NO SE MUEVA
@@ -2163,7 +2198,19 @@ export const ChatView: React.FC = () => {
     // la pantalla. El `min-h-0` es a propósito: el mínimo de
     // 480px obligaba a la página a desplazarse en móviles
     // pequeños, justo lo que se quiere evitar.
-    <div className="-mx-4 -my-6 mx-auto flex h-[calc(100dvh-4rem)] min-h-0 w-full max-w-[1500px] flex-col gap-3 px-2 sm:mx-auto sm:my-0 sm:h-[calc(100dvh-7rem)] sm:min-h-[480px] sm:gap-3 sm:px-4">
+    <div
+      style={
+        viewportChat
+          ? ({
+              '--chat-vh': `${viewportChat.alto}px`,
+              '--chat-vt': `${viewportChat.top}px`,
+            } as React.CSSProperties)
+          : undefined
+      }
+      className={`-mx-4 -my-6 mx-auto flex h-[calc(100dvh-4rem)] min-h-0 w-full max-w-[1500px] flex-col gap-3 px-2 sm:mx-auto sm:my-0 sm:h-[calc(100dvh-7rem)] sm:min-h-[480px] sm:gap-3 sm:px-4 ${
+        chatEnfocado ? 'chat-pantalla' : ''
+      }`}
+    >
       {/* Cabecera de la sección: identidad contenida, sin saturar.
           Degradado oscuro con un velo violeta/azul muy tenue;
           el color fuerte queda solo en el icono y el primario. */}
@@ -3059,7 +3106,7 @@ export const ChatView: React.FC = () => {
                 }
               >
               {/* Chat Top Header */}
-              <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] bg-[#0e0e17]/95 px-3 py-2.5 sm:px-5 sm:py-3 backdrop-blur">
+              <div className="chat-cabecera-conversacion flex items-center justify-between gap-2 border-b border-white/[0.06] bg-[#0e0e17]/95 px-3 py-2.5 sm:px-5 sm:py-3 backdrop-blur">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   {/* Volver a la lista. Solo en móvil, donde la
                       lista no está al lado: sin esto, al abrir un
