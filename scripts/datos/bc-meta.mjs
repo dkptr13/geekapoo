@@ -20,7 +20,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Studio Pierrot',
   categorias: ['Shonen & Acción', 'Fantasía & Magia'],
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Comedia', 'Shonen'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Comedia', 'Shonen', 'Magia', 'Fantasía medieval', 'Demonios'],
 };
 
 export const ANIME_ID = 'black-clover';

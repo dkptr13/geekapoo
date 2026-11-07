@@ -21,7 +21,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Science SARU',
   categorias: ['Acción & Aventura', 'Thriller & Misterio'],
-  generos: ['Acción', 'Terror', 'Sobrenatural', 'Drama', 'Psicológico'],
+  generos: ['Acción', 'Terror', 'Sobrenatural', 'Drama', 'Psicológico', 'Demonios'],
 };
 
 export const ANIME_ID = 'devilman-crybaby';

@@ -35,7 +35,7 @@ export const ANIME = {
   // cajones claros. Son dos.
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Aventura', 'Drama', 'Fantasía', 'Sobrenatural'],
+  generos: ['Acción', 'Aventura', 'Drama', 'Fantasía', 'Sobrenatural', 'Demonios', 'Shonen'],
 };
 
 export const ANIME_ID = 'kimetsu-no-yaiba';

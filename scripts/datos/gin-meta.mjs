@@ -40,7 +40,7 @@ export const ANIME = {
   // Comedia y accion con fondo de ciencia ficcion y parodia.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Comedia', 'Ciencia ficción', 'Histórico', 'Parodia', 'Shonen'],
+  generos: ['Acción', 'Comedia', 'Ciencia ficción', 'Histórico', 'Parodia', 'Shonen', 'Drama', 'Samuráis'],
 };
 
 export const ANIME_ID = 'gintama';

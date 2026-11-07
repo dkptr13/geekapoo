@@ -27,7 +27,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Sobrenatural'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Sobrenatural', 'Magia', 'Monstruos', 'Histórico'],
 };
 
 export const ANIME_ID = 'fate-grand-order-absolute-demonic-front-babylonia';

@@ -24,7 +24,7 @@ export const ANIME = {
   // dos.
   categorias: ['Fantasía & Aventura', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Venganza'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Venganza', 'Ecchi', 'Tragedia', 'Magia'],
 };
 
 export const ANIME_ID = 'redo-of-healer';

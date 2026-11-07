@@ -97,7 +97,7 @@ export const ANIME = {
 
   categorias: ['Romance', 'Comedia'],
 
-  generos: ['Romance', 'Comedia', 'Recuentos de la vida', 'Escolar'],
+  generos: ['Romance', 'Comedia', 'Recuentos de la vida', 'Escolar', 'Harem'],
 };
 
 export const ANIME_ID = 'saekano-how-to-raise-a-boring-girlfriend';

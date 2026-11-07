@@ -27,7 +27,7 @@ export const ANIME = {
   // Horror y comedia con fondo de sobrenatural.
   categorias: ['Seinen & Psicológico', 'Thriller & Misterio'],
 
-  generos: ['Horror', 'Comedia', 'Sobrenatural', 'Escolar'],
+  generos: ['Terror', 'Comedia', 'Sobrenatural', 'Escolar', 'Recuentos de la vida'],
 };
 
 export const ANIME_ID = 'mieruko-chan';

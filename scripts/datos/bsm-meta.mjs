@@ -27,7 +27,7 @@ export const ANIME = {
   // duelos y comedia romantica para el dormitorio. Son dos.
   categorias: ['Shonen & Acción', 'Romance & Comedia'],
 
-  generos: ['Acción', 'Comedia', 'Romance', 'Escolar'],
+  generos: ['Acción', 'Comedia', 'Romance', 'Escolar', 'Ecchi'],
 };
 
 export const ANIME_ID = 'armed-girls-machiavellism';

@@ -28,7 +28,7 @@ export const ANIME = {
   // Ciencia ficción y comedia con fondo de coming-of-age.
   categorias: ['Ciencia Ficción & Futuro', 'Comedia & Slice of Life'],
 
-  generos: ['Ciencia ficción', 'Comedia', 'Mecha', 'Coming-of-age', 'Seinen'],
+  generos: ['Ciencia ficción', 'Comedia', 'Mecha', 'Coming-of-age', 'Seinen', 'Acción'],
 };
 
 export const ANIME_ID = 'flcl';

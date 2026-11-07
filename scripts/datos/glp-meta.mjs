@@ -31,7 +31,7 @@ export const ANIME = {
   // Acción y misterio con fondo de ciencia ficción.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Misterio', 'Ciencia ficción', 'Shonen', 'Ecchi'],
+  generos: ['Acción', 'Misterio', 'Ciencia ficción', 'Shonen', 'Ecchi', 'Sobrenatural'],
 };
 
 export const ANIME_ID = 'gleipnir';

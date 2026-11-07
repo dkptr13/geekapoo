@@ -56,7 +56,7 @@ export const ANIME = {
   // cyberpunk con thriller y psicológico.
   categorias: ['Ciencia Ficción & Cyberpunk', 'Seinen & Psicológico', 'Thriller & Misterio'],
 
-  generos: ['Acción', 'Ciencia ficción', 'Psicológico', 'Thriller'],
+  generos: ['Acción', 'Ciencia ficción', 'Psicológico', 'Thriller', 'Crimen', 'Cyberpunk'],
 };
 
 export const ANIME_ID = 'psycho-pass';

@@ -22,7 +22,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'WIT Studio',
   categorias: ['Ciencia Ficción & Futuro', 'Thriller & Misterio'],
-  generos: ['Acción', 'Ciencia ficción', 'Drama', 'Música', 'Thriller'],
+  generos: ['Acción', 'Ciencia ficción', 'Drama', 'Música', 'Thriller', 'Tragedia'],
 };
 
 export const ANIME_ID = 'vivy-fluorite-eye-s-song';

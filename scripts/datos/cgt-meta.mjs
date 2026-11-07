@@ -22,7 +22,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Mecha', 'Ciencia ficción', 'Drama', 'Militar'],
+  generos: ['Acción', 'Mecha', 'Ciencia ficción', 'Drama', 'Militar', 'Thriller'],
 };
 
 export const ANIME_ID = 'code-geass-lelouch-of-the-rebellion-ii-transgression';

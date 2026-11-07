@@ -37,7 +37,7 @@ export const ANIME = {
 
   categorias: ['Seinen & Psicológico', 'Misterio & Misterio'],
 
-  generos: ['Misterio', 'Drama', 'Histórico', 'Palacio'],
+  generos: ['Misterio', 'Drama', 'Histórico', 'Palacio', 'Trabajo'],
 };
 
 export const ANIME_ID = 'el-diario-de-la-boticaria';

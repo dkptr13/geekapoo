@@ -41,7 +41,7 @@ export const ANIME = {
   // trabajo y cartas mal escritas.
   categorias: ['Josei & Drama', 'Seinen & Psicológico'],
 
-  generos: ['Drama', 'Romance', 'Fantasía', 'Recuentos de la vida'],
+  generos: ['Drama', 'Romance', 'Fantasía', 'Recuentos de la vida', 'Tragedia', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'violet-evergarden';

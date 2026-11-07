@@ -29,7 +29,7 @@ export const ANIME = {
   // Comedia y acción con fondo de artes marciales.
   categorias: ['Comedia & Slice of Life', 'Shonen & Acción'],
 
-  generos: ['Comedia', 'Acción', 'Artes marciales', 'Romance', 'Shonen'],
+  generos: ['Comedia', 'Acción', 'Artes marciales', 'Romance', 'Shonen', 'Ecchi', 'Recuentos de la vida', 'Harem'],
 };
 
 export const ANIME_ID = 'ranma-1-2';

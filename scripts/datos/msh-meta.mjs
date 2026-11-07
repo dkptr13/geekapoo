@@ -29,7 +29,7 @@ export const ANIME = {
   // Slice of life y sobrenatural con fondo de misterio.
   categorias: ['Comedia & Slice of Life', 'Thriller & Misterio'],
 
-  generos: ['Slice of life', 'Sobrenatural', 'Misterio', 'Histórico', 'Seinen'],
+  generos: ['Recuentos de la vida', 'Sobrenatural', 'Misterio', 'Histórico', 'Seinen', 'Aventura', 'Fantasía', 'Psicológico'],
 };
 
 export const ANIME_ID = 'mushi-shi';

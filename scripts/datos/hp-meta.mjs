@@ -36,7 +36,7 @@ export const ANIME = {
   // todos los públicos, pero con un corazón que late debajo.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Fantasía', 'Horror', 'Ninja', 'Supervivencia'],
+  generos: ['Acción', 'Fantasía', 'Terror', 'Ninja', 'Supervivencia', 'Aventura', 'Misterio', 'Sobrenatural', 'Shonen', 'Samuráis'],
 };
 
 export const ANIME_ID = 'hell-s-paradise';

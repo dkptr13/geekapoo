@@ -49,7 +49,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Ciencia Ficción & Cyberpunk'],
 
-  generos: ['Acción', 'Aventura', 'Ciencia ficción', 'Comedia'],
+  generos: ['Acción', 'Aventura', 'Ciencia ficción', 'Comedia', 'Apocalipsis', 'Supervivencia', 'Shonen'],
 };
 
 export const ANIME_ID = 'dr-stone';

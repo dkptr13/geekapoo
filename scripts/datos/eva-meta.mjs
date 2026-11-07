@@ -85,7 +85,7 @@ export const ANIME = {
     'Fantasía & Aventura',
   ],
 
-  generos: ['Acción', 'Drama', 'Psicológico', 'Mecha', 'Sobrenatural'],
+  generos: ['Acción', 'Drama', 'Psicológico', 'Mecha', 'Sobrenatural', 'Misterio', 'Ciencia ficción', 'Coming-of-age', 'Distopía', 'Apocalipsis', 'Monstruos'],
 };
 
 export const ANIME_ID = 'neon-genesis-evangelion';

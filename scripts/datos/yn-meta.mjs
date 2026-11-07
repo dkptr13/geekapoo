@@ -26,7 +26,7 @@ export const ANIME = {
   // fin del mundo. Son dos.
   categorias: ['Romance & Comedia', 'Fantasía & Aventura'],
 
-  generos: ['Drama', 'Romance', 'Sobrenatural', 'Escolar'],
+  generos: ['Drama', 'Romance', 'Sobrenatural', 'Escolar', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'kimi-no-na-wa';

@@ -44,7 +44,7 @@ export const ANIME = {
   // Shonen de accion con fondo de superheroes y crecimiento.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Superhéroes', 'Escolar', 'Shonen', 'Comedia'],
+  generos: ['Acción', 'Superhéroes', 'Escolar', 'Shonen', 'Comedia', 'Aventura', 'Crimen'],
 };
 
 export const ANIME_ID = 'my-hero-academia';

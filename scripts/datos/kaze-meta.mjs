@@ -15,7 +15,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Studio Ghibli',
   categorias: ['Drama', 'Romance & Comedia'],
-  generos: ['Drama', 'Romance', 'Histórico'],
+  generos: ['Drama', 'Romance', 'Histórico', 'Trabajo'],
 };
 
 export const ANIME_ID = 'el-viento-se-levanta';

@@ -17,7 +17,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Madhouse',
   categorias: ['Josei & Drama', 'Romance & Comedia'],
-  generos: ['Drama', 'Romance', 'Música', 'Josei', 'Recuentos de la vida'],
+  generos: ['Drama', 'Romance', 'Música', 'Josei', 'Recuentos de la vida', 'Shojo', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'nana';

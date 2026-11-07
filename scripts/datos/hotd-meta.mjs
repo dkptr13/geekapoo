@@ -26,7 +26,7 @@ export const ANIME = {
   // dos.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Terror', 'Zombis', 'Escolar'],
+  generos: ['Acción', 'Terror', 'Zombis', 'Escolar', 'Drama', 'Ecchi', 'Romance', 'Sobrenatural', 'Supervivencia', 'Apocalipsis'],
 };
 
 export const ANIME_ID = 'high-school-of-the-dead';

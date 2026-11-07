@@ -31,7 +31,7 @@ export const ANIME = {
   // que suena, y el telefono va a sonar todo el rato.
   categorias: ['Acción & Aventura'],
 
-  generos: ['Acción', 'Aventura', 'Terror', 'Sobrenatural', 'Drama'],
+  generos: ['Acción', 'Aventura', 'Terror', 'Sobrenatural', 'Drama', 'Demonios', 'Tragedia'],
 };
 
 export const ANIME_ID = 'chainsaw-man';

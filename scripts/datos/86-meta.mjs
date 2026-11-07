@@ -30,7 +30,7 @@ export const ANIME = {
   // Son dos y no una: la serie sale en las dos listas.
   categorias: ['Ciencia Ficción & Cyberpunk', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Drama', 'Mecha', 'Ciencia ficción', 'Militar'],
+  generos: ['Acción', 'Drama', 'Mecha', 'Ciencia ficción', 'Militar', 'Distopía', 'Supervivencia'],
 };
 
 export const ANIME_ID = '86-eighty-six';

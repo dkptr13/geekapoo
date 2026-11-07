@@ -28,7 +28,7 @@ export const ANIME = {
   // Horror y thriller con fondo de supervivencia.
   categorias: ['Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Horror', 'Thriller', 'Misterio', 'Psicológico', 'Supervivencia'],
+  generos: ['Terror', 'Thriller', 'Misterio', 'Psicológico', 'Supervivencia', 'Acción', 'Aventura', 'Asesinos'],
 };
 
 export const ANIME_ID = 'angels-of-death';

@@ -21,7 +21,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'P.A. Works',
   categorias: ['Drama & Recuerdos', 'Comedia & Slice of Life'],
-  generos: ['Drama', 'Comedia', 'Acción', 'Sobrenatural', 'Escolar'],
+  generos: ['Drama', 'Comedia', 'Acción', 'Sobrenatural', 'Escolar', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'angel-beats';

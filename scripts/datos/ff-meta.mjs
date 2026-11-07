@@ -39,7 +39,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Fantasía', 'Sobrenatural', 'Ciencia ficción', 'Shōnen'],
+  generos: ['Acción', 'Fantasía', 'Sobrenatural', 'Ciencia ficción', 'Shonen', 'Drama', 'Demonios'],
 };
 
 export const ANIME_ID = 'fire-force';

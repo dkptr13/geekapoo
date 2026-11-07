@@ -84,7 +84,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura'],
 
-  generos: ['Isekai', 'Aventura', 'Fantasía', 'Juego'],
+  generos: ['Isekai', 'Aventura', 'Fantasía', 'Juego', 'Comedia', 'Ecchi'],
 };
 
 export const ANIME_ID = 'no-game-no-life';

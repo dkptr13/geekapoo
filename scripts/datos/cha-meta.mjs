@@ -35,7 +35,7 @@ export const ANIME = {
   // the Elite, que junta las tres: psicológico, thriller y escolar.
   categorias: ['Seinen & Psicológico', 'Thriller & Misterio', 'Shojo & Escolar'],
 
-  generos: ['Drama', 'Escolar', 'Sobrenatural', 'Romance'],
+  generos: ['Drama', 'Escolar', 'Sobrenatural', 'Romance', 'Comedia', 'Ciencia ficción'],
 };
 
 export const ANIME_ID = 'charlotte';

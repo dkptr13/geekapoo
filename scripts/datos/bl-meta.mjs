@@ -37,7 +37,7 @@ export const ANIME = {
   // el programa.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Deportes', 'Fútbol', 'Competencia', 'Supervivencia', 'Ekstasis'],
+  generos: ['Deportes', 'Fútbol', 'Competencia', 'Supervivencia', 'Acción', 'Drama', 'Shonen'],
 };
 
 export const ANIME_ID = 'blue-lock';

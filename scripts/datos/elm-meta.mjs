@@ -27,7 +27,7 @@ export const ANIME = {
 
   categorias: ['Thriller & Misterio', 'Fantasía & Aventura'],
 
-  generos: ['Drama', 'Fantasía', 'Misterio', 'Sobrenatural'],
+  generos: ['Drama', 'Fantasía', 'Misterio', 'Sobrenatural', 'Magia'],
 };
 
 export const ANIME_ID = 'lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note';

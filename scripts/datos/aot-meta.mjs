@@ -38,7 +38,7 @@ export const ANIME = {
   estudio: 'WIT Studio',
 
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
-  generos: ['Acción', 'Militar', 'Drama', 'Apocalipsis', 'Tragedia'],
+  generos: ['Acción', 'Militar', 'Drama', 'Apocalipsis', 'Tragedia', 'Fantasía', 'Misterio', 'Monstruos', 'Venganza', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'ataque-a-los-titanes';

@@ -35,7 +35,7 @@ export const ANIME = {
   // el peso de la amistad: accion y drama psicologico.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Deportes', 'Voleibol', 'Equipo', 'Amistad', 'Competencia'],
+  generos: ['Deportes', 'Voleibol', 'Equipo', 'Amistad', 'Competencia', 'Comedia', 'Drama', 'Shonen'],
 };
 
 export const ANIME_ID = 'haikyuu';

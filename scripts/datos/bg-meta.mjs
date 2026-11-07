@@ -39,7 +39,7 @@ export const ANIME = {
   // no una: la serie sale en las tres listas.
   categorias: ['Romance & Comedia', 'Shojo & Escolar', 'Seinen & Psicológico'],
 
-  generos: ['Romance', 'Comedia', 'Drama', 'Misterio', 'Psicológico', 'Sobrenatural', 'Escolar'],
+  generos: ['Romance', 'Comedia', 'Drama', 'Misterio', 'Psicológico', 'Sobrenatural', 'Escolar', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'seishun-buta-yaro-wa-bunny-girl-senpai-no-yume-wo-minai';

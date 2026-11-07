@@ -31,7 +31,7 @@ export const ANIME = {
   // sino una institucion que borra lo que no le conviene.
   categorias: ['Fantasía & Aventura'],
 
-  generos: ['Fantasía', 'Aventura', 'Drama', 'Magia'],
+  generos: ['Aventura', 'Fantasía medieval', 'Magia', 'Drama', 'Fantasía', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'witch-hat-atelier';

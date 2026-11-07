@@ -42,7 +42,7 @@ export const ANIME = {
   // (Horror, Drama). "Seinen" se deja fuera a proposito, igual que se
   // hizo con Kaguya: la demografia va en "categorias" y aqui van los
   // generos.
-  generos: ['Acción', 'Psicológico', 'Horror', 'Drama', 'Sobrenatural', 'Fantasía Oscura'],
+  generos: ['Acción', 'Psicológico', 'Terror', 'Drama', 'Sobrenatural', 'Fantasía Oscura', 'Misterio', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'tokyo-ghoul';

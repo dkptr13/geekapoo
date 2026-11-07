@@ -26,7 +26,7 @@ export const ANIME = {
   // del mundo. Son dos.
   categorias: ['Romance & Comedia', 'Fantasía & Aventura'],
 
-  generos: ['Drama', 'Romance', 'Sobrenatural'],
+  generos: ['Drama', 'Romance', 'Sobrenatural', 'Recuentos de la vida'],
 };
 
 export const ANIME_ID = 'tenki-no-ko';

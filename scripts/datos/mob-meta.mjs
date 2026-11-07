@@ -31,7 +31,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Comedia', 'Sobrenatural', 'Psicológico', 'Shōnen'],
+  generos: ['Acción', 'Comedia', 'Sobrenatural', 'Psicológico', 'Shonen', 'Drama', 'Recuentos de la vida', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'mob-psycho-100';

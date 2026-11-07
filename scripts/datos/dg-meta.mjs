@@ -25,7 +25,7 @@ export const ANIME = {
   // y ciencia ficcion por los sigilos. Son tres.
   categorias: ['Shonen & Acción', 'Thriller & Misterio', 'Ciencia Ficción & Cyberpunk'],
 
-  generos: ['Acción', 'Misterio', 'Ciencia ficción', 'Supervivencia'],
+  generos: ['Acción', 'Misterio', 'Ciencia ficción', 'Supervivencia', 'Thriller'],
 };
 
 export const ANIME_ID = 'darwin-s-game';

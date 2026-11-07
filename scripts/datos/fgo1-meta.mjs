@@ -23,7 +23,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Fantasía', 'Sobrenatural'],
+  generos: ['Acción', 'Fantasía', 'Sobrenatural', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-grand-order-first-order';

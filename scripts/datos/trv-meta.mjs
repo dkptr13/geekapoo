@@ -60,7 +60,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Thriller & Misterio'],
 
-  generos: ['Acción', 'Drama', 'Sobrenatural', 'Crimen'],
+  generos: ['Acción', 'Drama', 'Sobrenatural', 'Crimen', 'Romance', 'Venganza'],
 };
 
 /**

@@ -19,7 +19,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Bones',
   categorias: ['Shonen & Acción', 'Fantasía & Magia'],
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Comedia', 'Sobrenatural'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Comedia', 'Sobrenatural', 'Shonen', 'Magia', 'Escolar'],
 };
 
 export const ANIME_ID = 'soul-eater';

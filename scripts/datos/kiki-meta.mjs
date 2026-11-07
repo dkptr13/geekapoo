@@ -15,7 +15,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Studio Ghibli',
   categorias: ['Fantasía & Aventura', 'Kodomo & Familiar'],
-  generos: ['Aventura', 'Drama', 'Fantasía', 'Recuentos de la vida'],
+  generos: ['Aventura', 'Drama', 'Fantasía', 'Recuentos de la vida', 'Coming-of-age', 'Magia'],
 };
 
 export const ANIME_ID = 'kiki-la-aprendiz-de-bruja';

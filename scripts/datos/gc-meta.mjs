@@ -26,7 +26,7 @@ export const ANIME = {
   // ficcion y psicologico, con accion shonen de propina. Son tres.
   categorias: ['Ciencia Ficción & Cyberpunk', 'Seinen & Psicológico', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Drama', 'Mecha', 'Psicológico', 'Romance', 'Ciencia ficción'],
+  generos: ['Acción', 'Drama', 'Mecha', 'Psicológico', 'Romance', 'Ciencia ficción', 'Distopía', 'Apocalipsis'],
 };
 
 export const ANIME_ID = 'guilty-crown';

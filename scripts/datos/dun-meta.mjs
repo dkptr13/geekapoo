@@ -22,7 +22,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'TRIGGER',
   categorias: ['Fantasía & Aventura', 'Comedia & Slice of Life'],
-  generos: ['Aventura', 'Comedia', 'Fantasía'],
+  generos: ['Aventura', 'Comedia', 'Fantasía', 'Mazmorras', 'Recetas', 'Magia', 'Fantasía medieval'],
 };
 
 export const ANIME_ID = 'delicious-in-dungeon';

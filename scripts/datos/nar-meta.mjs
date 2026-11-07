@@ -37,7 +37,7 @@ export const ANIME = {
   // no es solo pelea, es gente que se quiere y se pierde.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Drama', 'Ninja'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Drama', 'Ninja', 'Comedia', 'Sobrenatural', 'Shonen', 'Coming-of-age', 'Artes marciales'],
 };
 
 export const ANIME_ID = 'naruto';

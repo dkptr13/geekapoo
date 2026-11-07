@@ -34,7 +34,7 @@ export const ANIME = {
   // personajes muy marcados y drama deportivo.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Deportes', 'Voleibol', 'Equipo', 'Amistad', 'Competencia'],
+  generos: ['Deportes', 'Voleibol', 'Equipo', 'Amistad', 'Competencia', 'Comedia', 'Drama', 'Shonen'],
 };
 
 export const ANIME_ID = 'haikyuu-la-batalla-del-basurero';

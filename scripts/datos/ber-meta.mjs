@@ -27,7 +27,7 @@ export const ANIME = {
   // Dark fantasy y acción con fondo de drama.
   categorias: ['Fantasía & Magia', 'Seinen & Psicológico'],
 
-  generos: ['Dark fantasy', 'Acción', 'Drama', 'Seinen', 'Medieval'],
+  generos: ['Fantasía Oscura', 'Acción', 'Drama', 'Seinen', 'Fantasía medieval', 'Aventura', 'Fantasía', 'Terror', 'Sobrenatural', 'Militar'],
 };
 
 export const ANIME_ID = 'berserk';

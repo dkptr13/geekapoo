@@ -28,7 +28,7 @@ export const ANIME = {
   // Ciencia ficción y misterio con fondo de psicológico.
   categorias: ['Ciencia Ficción & Futuro', 'Thriller & Misterio'],
 
-  generos: ['Ciencia ficción', 'Misterio', 'Psicológico', 'Drama', 'Seinen'],
+  generos: ['Ciencia ficción', 'Misterio', 'Psicológico', 'Drama', 'Seinen', 'Sobrenatural', 'Cyberpunk'],
 };
 
 export const ANIME_ID = 'serial-experiments-lain';

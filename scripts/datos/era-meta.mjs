@@ -35,7 +35,7 @@ export const ANIME = {
   // of the Elite, que junta las tres.
   categorias: ['Seinen & Psicológico', 'Thriller & Misterio', 'Shojo & Escolar'],
 
-  generos: ['Drama', 'Psicológico', 'Misterio', 'Thriller'],
+  generos: ['Drama', 'Psicológico', 'Misterio', 'Thriller', 'Sobrenatural', 'Crimen'],
 };
 
 export const ANIME_ID = 'erased';

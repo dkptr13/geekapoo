@@ -40,7 +40,7 @@ export const ANIME = {
   // fichas de romance y de instituto, no con las de acción.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Comedia', 'Romance', 'Escolar', 'Recuentos de la vida'],
+  generos: ['Comedia', 'Romance', 'Escolar', 'Recuentos de la vida', 'Drama', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'love-chunibyo-and-other-delusions';

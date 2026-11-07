@@ -29,7 +29,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Bones',
   categorias: ['Shonen & Acción', 'Thriller & Misterio'],
-  generos: ['Acción', 'Comedia', 'Misterio', 'Sobrenatural'],
+  generos: ['Acción', 'Comedia', 'Misterio', 'Sobrenatural', 'Crimen'],
 };
 
 export const ANIME_ID = 'bungo-stray-dogs';

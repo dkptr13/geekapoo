@@ -25,7 +25,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Romance & Comedia'],
 
-  generos: ['Acción', 'Comedia', 'Ecchi', 'Fantasía', 'Chicas mágicas'],
+  generos: ['Acción', 'Comedia', 'Ecchi', 'Fantasía', 'Chicas mágicas', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-kaleid-liner-prisma-illya';

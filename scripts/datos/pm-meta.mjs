@@ -34,7 +34,7 @@ export const ANIME = {
   // primera es la principal en la ficha. Drama adulto y romance.
   categorias: ['Josei & Drama', 'Romance & Comedia'],
 
-  generos: ['Drama', 'Romance', 'Ciencia ficción', 'Tragedia'],
+  generos: ['Drama', 'Romance', 'Ciencia ficción', 'Tragedia', 'Recuentos de la vida'],
 };
 
 export const ANIME_ID = 'plastic-memories';

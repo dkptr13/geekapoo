@@ -25,7 +25,7 @@ export const ANIME = {
   // Fantasia de acero con zombis y trenes: bichos y vias. Son dos.
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Drama', 'Fantasía', 'Zombis'],
+  generos: ['Acción', 'Drama', 'Fantasía', 'Zombis', 'Terror', 'Sobrenatural', 'Apocalipsis'],
 };
 
 export const ANIME_ID = 'kabaneri-of-the-iron-fortress';

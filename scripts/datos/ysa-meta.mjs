@@ -45,7 +45,7 @@ export const ANIME = {
   // este catalogo "Comedia" leeria como la categoria "Romance &
   // Comedia" y esta serie no es una comedia. "Shounen" es la
   // demografia del manga original, no el tono del anime.
-  generos: ['Romance', 'Drama', 'Musical'],
+  generos: ['Romance', 'Drama', 'Música', 'Recuentos de la vida', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'your-lie-in-april';

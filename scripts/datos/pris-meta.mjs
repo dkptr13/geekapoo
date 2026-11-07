@@ -22,7 +22,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Drama', 'Fantasía', 'Psicológico'],
+  generos: ['Acción', 'Drama', 'Fantasía', 'Psicológico', 'Tragedia', 'Shonen'],
 };
 
 export const ANIME_ID = 'fate-kaleid-liner-prisma-illya-sekka-no-chikai';

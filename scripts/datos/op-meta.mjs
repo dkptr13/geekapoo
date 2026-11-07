@@ -59,7 +59,7 @@ export const ANIME = {
   // Aventura y accion con fondo de piratas y poderes sobrenaturales.
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Aventura', 'Comedia', 'Fantasía', 'Shonen'],
+  generos: ['Acción', 'Aventura', 'Comedia', 'Fantasía', 'Shonen', 'Drama'],
 };
 
 export const ANIME_ID = 'one-piece';

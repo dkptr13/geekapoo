@@ -28,7 +28,7 @@ export const ANIME = {
   // y fantasia oscura. Son dos.
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Comedia', 'Fantasía', 'Isekai'],
+  generos: ['Acción', 'Comedia', 'Fantasía', 'Isekai', 'Parodia', 'Magia'],
 };
 
 export const ANIME_ID = 'kage-no-jitsuryokusha-ni-naritakute';

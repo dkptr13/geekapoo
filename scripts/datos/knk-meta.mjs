@@ -30,7 +30,7 @@ export const ANIME = {
   // reencuentro. Son dos.
   categorias: ['Shojo & Escolar', 'Romance & Comedia'],
 
-  generos: ['Drama', 'Romance', 'Escolar'],
+  generos: ['Drama', 'Romance', 'Escolar', 'Recuentos de la vida', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'koe-no-katachi';

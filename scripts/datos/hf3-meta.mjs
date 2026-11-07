@@ -24,7 +24,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Drama', 'Fantasía', 'Psicológico', 'Sobrenatural', 'Suspense'],
+  generos: ['Acción', 'Drama', 'Fantasía', 'Psicológico', 'Sobrenatural', 'Thriller', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-stay-night-heaven-s-feel-iii-spring-song';

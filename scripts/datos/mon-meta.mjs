@@ -28,7 +28,7 @@ export const ANIME = {
   // Thriller y misterio con fondo de drama.
   categorias: ['Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Thriller', 'Misterio', 'Psicológico', 'Drama', 'Seinen'],
+  generos: ['Thriller', 'Misterio', 'Psicológico', 'Drama', 'Seinen', 'Terror', 'Crimen', 'Venganza'],
 };
 
 export const ANIME_ID = 'monster';

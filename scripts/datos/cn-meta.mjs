@@ -26,7 +26,7 @@ export const ANIME = {
   // noche y existencialismo. Son dos.
   categorias: ['Romance & Comedia', 'Seinen & Psicológico'],
 
-  generos: ['Comedia', 'Romance', 'Sobrenatural'],
+  generos: ['Comedia', 'Romance', 'Sobrenatural', 'Psicológico', 'Recuentos de la vida', 'Vampiros', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'call-of-the-night';

@@ -27,7 +27,7 @@ export const ANIME = {
   // cabeza. Son dos.
   categorias: ['Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Misterio', 'Psicológico', 'Sobrenatural'],
+  generos: ['Acción', 'Misterio', 'Psicológico', 'Sobrenatural', 'Terror', 'Thriller', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'mirai-nikki';

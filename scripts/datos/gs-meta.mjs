@@ -27,7 +27,7 @@ export const ANIME = {
   // espadas. Son dos.
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Mazmorras'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Mazmorras', 'Venganza'],
 };
 
 export const ANIME_ID = 'goblin-slayer';

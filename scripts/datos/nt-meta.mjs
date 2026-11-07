@@ -18,7 +18,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'A-1 Pictures',
   categorias: ['Shonen & Accion', 'Fantasia & Magia'],
-  generos: ['Accion', 'Aventura', 'Fantasia', 'Shonen', 'Comedia'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Shonen', 'Comedia', 'Ecchi', 'Sobrenatural', 'Magia', 'Demonios'],
 };
 
 export const ANIME_ID = 'nanatsu-no-taizai';

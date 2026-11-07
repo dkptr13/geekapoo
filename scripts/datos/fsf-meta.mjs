@@ -30,7 +30,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Misterio', 'Sobrenatural'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Misterio', 'Sobrenatural', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-strange-fake';

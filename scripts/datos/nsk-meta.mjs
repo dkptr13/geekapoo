@@ -30,7 +30,7 @@ export const ANIME = {
   // de siempre, como las Quintillizas.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Comedia', 'Romance', 'Escolar', 'Harem'],
+  generos: ['Comedia', 'Romance', 'Escolar', 'Harem', 'Recuentos de la vida'],
 };
 
 export const ANIME_ID = 'nisekoi';

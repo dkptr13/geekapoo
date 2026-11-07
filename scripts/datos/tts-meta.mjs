@@ -27,7 +27,7 @@ export const ANIME = {
   // por cada uno. Son dos.
   categorias: ['Romance & Comedia', 'Fantasía & Aventura'],
 
-  generos: ['Drama', 'Romance', 'Sobrenatural', 'Fantasía'],
+  generos: ['Drama', 'Romance', 'Sobrenatural', 'Fantasía', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'the-tunnel-to-summer-the-exit-of-goodbyes';

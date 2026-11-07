@@ -28,7 +28,7 @@ export const ANIME = {
   // una: la serie encaja en las tres listas y la wiki la enseña en las tres.
   categorias: ['Fantasía & Aventura', 'Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Aventura', 'Drama', 'Fantasía', 'Psicológico', 'Romance', 'Thriller'],
+  generos: ['Acción', 'Aventura', 'Drama', 'Fantasía', 'Psicológico', 'Romance', 'Thriller', 'Isekai', 'Tragedia', 'Seinen'],
 };
 
 export const ANIME_ID = 're-zero-comenzando-la-vida-en-otro-mundo';

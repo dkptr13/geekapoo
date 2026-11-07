@@ -24,7 +24,7 @@ export const ANIME = {
   // entre clase, eventos y casa. Los dos cajones de siempre.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Romance', 'Comedia', 'Recuentos de la vida', 'Escolar', 'Cosplay'],
+  generos: ['Romance', 'Comedia', 'Recuentos de la vida', 'Escolar', 'Cosplay', 'Ecchi'],
 };
 
 export const ANIME_ID = 'my-dress-up-darling';

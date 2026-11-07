@@ -27,7 +27,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Fantasía', 'Romance'],
+  generos: ['Acción', 'Fantasía', 'Romance', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-prototype';

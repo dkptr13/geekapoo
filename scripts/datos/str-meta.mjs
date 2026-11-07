@@ -28,7 +28,7 @@ export const ANIME = {
   // Thriller y misterio con fondo de ciencia ficción.
   categorias: ['Thriller & Misterio', 'Ciencia Ficción & Futuro'],
 
-  generos: ['Misterio', 'Thriller', 'Ciencia ficción', 'Sobrenatural', 'Drama'],
+  generos: ['Misterio', 'Thriller', 'Ciencia ficción', 'Sobrenatural', 'Drama', 'Acción', 'Shonen'],
 };
 
 export const ANIME_ID = 'summer-time-render';

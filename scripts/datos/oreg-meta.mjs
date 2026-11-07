@@ -29,7 +29,7 @@ export const ANIME = {
   // cajones de siempre, como Takagi pero con veneno.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Comedia', 'Drama', 'Romance', 'Escolar'],
+  generos: ['Comedia', 'Drama', 'Romance', 'Escolar', 'Recuentos de la vida'],
 };
 
 export const ANIME_ID = 'yahari-ore-no-seishun-love-come-wa-machigatteiru';

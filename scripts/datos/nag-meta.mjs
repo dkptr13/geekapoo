@@ -38,7 +38,7 @@ export const ANIME = {
   // mismo: romance y comedia por delante.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Romance', 'Comedia', 'Drama', 'Escolar'],
+  generos: ['Romance', 'Comedia', 'Drama', 'Escolar', 'Recuentos de la vida'],
 };
 
 export const ANIME_ID = 'don-t-toy-with-me-miss-nagatoro';

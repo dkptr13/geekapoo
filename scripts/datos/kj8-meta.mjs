@@ -27,7 +27,7 @@ export const ANIME = {
   // de superacion de manual. Son tres.
   categorias: ['Shonen & Acción', 'Ciencia Ficción & Cyberpunk', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Ciencia ficción', 'Monstruos', 'Militar'],
+  generos: ['Acción', 'Ciencia ficción', 'Monstruos', 'Militar', 'Shonen'],
 };
 
 export const ANIME_ID = 'kaiju-no-8';

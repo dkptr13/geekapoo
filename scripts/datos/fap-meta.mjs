@@ -26,7 +26,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Drama', 'Fantasía', 'Sobrenatural'],
+  generos: ['Acción', 'Drama', 'Fantasía', 'Sobrenatural', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-apocrypha';

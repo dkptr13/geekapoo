@@ -29,7 +29,7 @@ export const ANIME = {
   // Son dos.
   categorias: ['Shonen & Acción', 'Romance & Comedia'],
 
-  generos: ['Acción', 'Comedia', 'Espionaje', 'Familiar'],
+  generos: ['Acción', 'Comedia', 'Espionaje', 'Familiar', 'Recuentos de la vida', 'Sobrenatural', 'Asesinos'],
 };
 
 export const ANIME_ID = 'spy-family';

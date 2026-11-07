@@ -35,7 +35,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Romance & Comedia'],
 
-  generos: ['Acción', 'Comedia', 'Ciencia ficción', 'Harem', 'Monstruos', 'Shōnen'],
+  generos: ['Acción', 'Comedia', 'Ciencia ficción', 'Harem', 'Monstruos', 'Shonen', 'Sobrenatural', 'Superhéroes', 'Parodia'],
 };
 
 export const ANIME_ID = 'one-punch-man';

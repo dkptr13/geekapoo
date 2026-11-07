@@ -40,7 +40,7 @@ export const ANIME = {
   // categoria romantica y la escolar.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Romance', 'Deportes', 'Bádminton', 'Baloncesto', 'Escolar', 'Recuentos de la vida'],
+  generos: ['Romance', 'Deportes', 'Bádminton', 'Baloncesto', 'Escolar', 'Recuentos de la vida', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'blue-box';

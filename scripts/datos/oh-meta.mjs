@@ -17,7 +17,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Bones',
   categorias: ['Shojo & Romance', 'Romance & Comedia'],
-  generos: ['Romance', 'Comedia', 'Escolar', 'Shojo'],
+  generos: ['Romance', 'Comedia', 'Escolar', 'Shojo', 'Drama', 'Recuentos de la vida', 'Parodia', 'Harem'],
 };
 
 export const ANIME_ID = 'ouran-high-school-host-club';

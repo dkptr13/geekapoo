@@ -29,7 +29,7 @@ export const ANIME = {
   // Comedia y fantasía con fondo de slice of life.
   categorias: ['Comedia & Slice of Life', 'Fantasía & Magia'],
 
-  generos: ['Comedia', 'Fantasía', 'Slice of Life', 'Shonen'],
+  generos: ['Comedia', 'Fantasía', 'Recuentos de la vida', 'Shonen', 'Dragones', 'Monstruos', 'Magia', 'Isekai'],
 };
 
 export const ANIME_ID = 'miss-kobayashi-s-dragon-maid';

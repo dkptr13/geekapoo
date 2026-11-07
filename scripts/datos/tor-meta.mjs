@@ -65,7 +65,7 @@ export const ANIME = {
 
   categorias: ['Romance', 'Comedia'],
 
-  generos: ['Romance', 'Comedia', 'Drama', 'Escolar'],
+  generos: ['Romance', 'Comedia', 'Drama', 'Escolar', 'Recuentos de la vida'],
 };
 
 export const ANIME_ID = 'toradora';

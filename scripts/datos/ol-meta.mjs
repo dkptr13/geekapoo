@@ -33,7 +33,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Ciencia ficción', 'Sobrenatural'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Ciencia ficción', 'Sobrenatural', 'Isekai', 'Fantasía medieval', 'Magia'],
 };
 
 export const ANIME_ID = 'overlord';

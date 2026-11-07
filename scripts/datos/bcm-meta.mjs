@@ -17,7 +17,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Studio Pierrot',
   categorias: ['Shonen & Acción', 'Fantasía & Magia'],
-  generos: ['Acción', 'Aventura', 'Fantasía'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Magia', 'Shonen', 'Venganza'],
 };
 
 export const ANIME_ID = 'black-clover-la-espada-del-rey-mago';

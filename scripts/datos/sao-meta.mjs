@@ -38,7 +38,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Shojo & Romance'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Romance', 'Ciencia ficción'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Romance', 'Ciencia ficción', 'Isekai', 'Juego'],
 };
 
 export const ANIME_ID = 'sword-art-online';

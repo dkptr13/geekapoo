@@ -28,7 +28,7 @@ export const ANIME = {
   // shonen y mala leche adulta. Son dos.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Comedia', 'Terror', 'Zombis'],
+  generos: ['Acción', 'Comedia', 'Terror', 'Zombis', 'Aventura', 'Sobrenatural', 'Apocalipsis', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'zom-100-bucket-list-of-the-dead';

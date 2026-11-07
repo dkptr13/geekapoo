@@ -31,7 +31,7 @@ export const ANIME = {
 
   categorias: ['Seinen & Psicológico', 'Acción & Aventura'],
 
-  generos: ['Acción', 'Aventura', 'Drama', 'Psicológico', 'Familiar'],
+  generos: ['Acción', 'Aventura', 'Drama', 'Psicológico', 'Venganza', 'Histórico', 'Coming-of-age', 'Seinen', 'Militar'],
 };
 
 export const ANIME_ID = 'vinland-saga';

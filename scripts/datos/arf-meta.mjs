@@ -34,7 +34,7 @@ export const ANIME = {
   // Isekai de accion con fondo de romance y venganza.
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Isekai', 'Acción', 'Fantasía', 'Aventura', 'Romance', 'Harem'],
+  generos: ['Isekai', 'Acción', 'Fantasía', 'Aventura', 'Romance', 'Harem', 'Psicológico', 'Magia', 'Mazmorras'],
 };
 
 export const ANIME_ID = 'arifureta-from-commonplace-to-world-s-strongest';

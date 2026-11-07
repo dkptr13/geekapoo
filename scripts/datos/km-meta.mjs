@@ -26,7 +26,7 @@ export const ANIME = {
   // escolar de propina. Son dos.
   categorias: ['Romance & Comedia', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Comedia', 'Romance', 'Ecchi', 'Escolar'],
+  generos: ['Acción', 'Comedia', 'Romance', 'Ecchi', 'Escolar', 'Harem'],
 };
 
 export const ANIME_ID = 'kampfer';

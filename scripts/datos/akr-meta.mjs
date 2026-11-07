@@ -20,7 +20,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Tokyo Movie Shinsha',
   categorias: ['Ciencia Ficción & Cyberpunk', 'Seinen & Psicológico'],
-  generos: ['Acción', 'Ciencia ficción', 'Terror', 'Psicológico'],
+  generos: ['Acción', 'Ciencia ficción', 'Terror', 'Psicológico', 'Aventura', 'Sobrenatural', 'Cyberpunk', 'Apocalipsis', 'Distopía'],
 };
 
 export const ANIME_ID = 'akira';

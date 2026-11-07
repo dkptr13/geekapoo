@@ -41,7 +41,7 @@ export const ANIME = {
   // junta cyberpunk con thriller y psicológico.
   categorias: ['Ciencia Ficción & Cyberpunk', 'Seinen & Psicológico', 'Thriller & Misterio'],
 
-  generos: ['Ciencia ficción', 'Thriller', 'Drama', 'Misterio'],
+  generos: ['Ciencia ficción', 'Thriller', 'Drama', 'Misterio', 'Psicológico'],
 };
 
 export const ANIME_ID = 'steins-gate';

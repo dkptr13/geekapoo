@@ -45,7 +45,7 @@ export const ANIME = {
   // drama cuando las cosas se ponen de verdad malas.
   categorias: ['Fantasía & Aventura', 'Romance & Comedia'],
 
-  generos: ['Fantasía', 'Aventura', 'Comedia', 'Romance', 'Sobrenatural'],
+  generos: ['Fantasía', 'Aventura', 'Comedia', 'Romance', 'Sobrenatural', 'Acción', 'Isekai', 'Magia'],
 };
 
 export const ANIME_ID = 'tsukimichi-moonlit-fantasy';

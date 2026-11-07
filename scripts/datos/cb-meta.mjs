@@ -28,7 +28,7 @@ export const ANIME = {
   // Ciencia ficción y acción con fondo de jazz.
   categorias: ['Ciencia Ficción & Futuro', 'Shonen & Acción'],
 
-  generos: ['Ciencia ficción', 'Acción', 'Jazz', 'Drama', 'Seinen'],
+  generos: ['Ciencia ficción', 'Acción', 'Jazz', 'Drama', 'Seinen', 'Aventura', 'Crimen'],
 };
 
 export const ANIME_ID = 'cowboy-bebop';

@@ -15,7 +15,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Studio Ghibli',
   categorias: ['Fantasía & Aventura', 'Seinen & Psicológico'],
-  generos: ['Aventura', 'Drama', 'Fantasía', 'Sobrenatural'],
+  generos: ['Aventura', 'Drama', 'Fantasía', 'Sobrenatural', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'el-chico-y-la-garza';

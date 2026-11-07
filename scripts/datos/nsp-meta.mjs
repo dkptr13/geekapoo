@@ -39,7 +39,7 @@ export const ANIME = {
   // el duelo: no es solo pelea, es gente que se quiere y se pierde.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Drama', 'Ninja', 'Militar'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Drama', 'Ninja', 'Militar', 'Comedia', 'Sobrenatural', 'Shonen', 'Crimen', 'Venganza', 'Artes marciales', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'naruto-shippuden';

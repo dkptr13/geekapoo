@@ -46,7 +46,7 @@ export const ANIME = {
   // DanMachi: hoyo, reliquias y expedición.
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Aventura', 'Drama', 'Fantasía', 'Misterio'],
+  generos: ['Aventura', 'Drama', 'Fantasía', 'Misterio', 'Terror', 'Ciencia ficción', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'made-in-abyss';

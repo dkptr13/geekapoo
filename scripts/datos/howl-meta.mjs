@@ -15,7 +15,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Studio Ghibli',
   categorias: ['Fantasía & Aventura', 'Romance & Comedia'],
-  generos: ['Aventura', 'Drama', 'Fantasía', 'Romance'],
+  generos: ['Aventura', 'Drama', 'Fantasía', 'Romance', 'Magia'],
 };
 
 export const ANIME_ID = 'el-castillo-ambulante';

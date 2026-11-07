@@ -32,7 +32,7 @@ export const ANIME = {
   // Fantasia musical con fondo de ciencia ficcion y romance.
   categorias: ['Fantasía & Aventura', 'Romance & Comedia'],
 
-  generos: ['Fantasía', 'Música', 'Ciencia ficción', 'Romance'],
+  generos: ['Fantasía', 'Música', 'Ciencia ficción', 'Romance', 'Acción', 'Comedia', 'Drama', 'Coming-of-age', 'Juego'],
 };
 
 export const ANIME_ID = 'cosmic-princess-kaguya';

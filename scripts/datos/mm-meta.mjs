@@ -26,7 +26,7 @@ export const ANIME = {
   // siempre, como Takagi.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Comedia', 'Romance', 'Escolar', 'Recuentos de la vida'],
+  generos: ['Comedia', 'Romance', 'Escolar', 'Recuentos de la vida', 'Venganza'],
 };
 
 export const ANIME_ID = 'masamune-kun-no-revenge';

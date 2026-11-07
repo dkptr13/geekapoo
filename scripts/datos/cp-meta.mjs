@@ -28,7 +28,7 @@ export const ANIME = {
 
   categorias: ['Romance & Comedia', 'Fantasía & Aventura'],
 
-  generos: ['Comedia', 'Parodia', 'Sobrenatural'],
+  generos: ['Comedia', 'Parodia', 'Sobrenatural', 'Magia'],
 
   // AniList no tiene banner para este titulo.
 };

@@ -23,7 +23,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'david production',
   categorias: ['Shonen & Acción', 'Ciencia Ficción & Futuro'],
-  generos: ['Acción', 'Comedia', 'Ciencia ficción', 'Sobrenatural'],
+  generos: ['Acción', 'Comedia', 'Ciencia ficción', 'Sobrenatural', 'Shonen'],
 };
 
 export const ANIME_ID = 'undead-unluck';

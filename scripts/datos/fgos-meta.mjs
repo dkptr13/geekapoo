@@ -23,7 +23,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Drama', 'Fantasía', 'Sobrenatural'],
+  generos: ['Acción', 'Drama', 'Fantasía', 'Sobrenatural', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-grand-order-solomon';

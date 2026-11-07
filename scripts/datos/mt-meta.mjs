@@ -61,7 +61,7 @@ export const ANIME = {
   // el que lleva las tres temporadas.
   estudio: 'Studio Bind',
   categorias: ['Fantasía & Aventura', 'Seinen & Psicológico'],
-  generos: ['Isekai', 'Aventura', 'Fantasía', 'Drama', 'Romance'],
+  generos: ['Isekai', 'Aventura', 'Fantasía', 'Drama', 'Romance', 'Ecchi', 'Magia', 'Coming-of-age'],
 };
 
 /** El id es el slug del título, que es lo que construye el panel. */

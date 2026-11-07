@@ -41,7 +41,7 @@ export const ANIME = {
   // dos y no una.
   categorias: ['Fantasía & Aventura', 'Romance & Comedia'],
 
-  generos: ['Aventura', 'Comedia', 'Fantasía', 'Parodia'],
+  generos: ['Aventura', 'Comedia', 'Ecchi', 'Fantasía', 'Isekai', 'Parodia', 'Magia'],
 };
 
 export const ANIME_ID = 'konosuba';

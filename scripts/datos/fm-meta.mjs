@@ -25,7 +25,7 @@ export const ANIME = {
   // puntos. Son dos.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Comedia', 'Drama', 'Romance', 'Escolar'],
+  generos: ['Comedia', 'Drama', 'Romance', 'Escolar', 'Ecchi'],
 };
 
 export const ANIME_ID = 'more-than-a-married-couple-but-not-lovers';

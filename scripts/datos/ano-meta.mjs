@@ -32,7 +32,7 @@ export const ANIME = {
   // Thriller y misterio con fondo de horror psicológico.
   categorias: ['Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Horror', 'Misterio', 'Psicológico', 'Sobrenatural', 'Escolar'],
+  generos: ['Terror', 'Misterio', 'Psicológico', 'Sobrenatural', 'Escolar', 'Thriller', 'Tragedia', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'another';

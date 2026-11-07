@@ -20,7 +20,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Studio Pierrot',
   categorias: ['Shonen & Acción', 'Fantasía & Magia'],
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Sobrenatural', 'Shonen'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Sobrenatural', 'Shonen', 'Demonios'],
 };
 
 export const ANIME_ID = 'bleach';

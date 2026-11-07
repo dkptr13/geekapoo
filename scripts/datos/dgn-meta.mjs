@@ -29,7 +29,7 @@ export const ANIME = {
   // Misterio y thriller con fondo de survival horror.
   categorias: ['Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Misterio', 'Thriller', 'Horror', 'Escolar', 'Psicológico'],
+  generos: ['Misterio', 'Thriller', 'Terror', 'Escolar', 'Psicológico', 'Ciencia ficción', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'danganronpa-the-animation';

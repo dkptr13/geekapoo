@@ -20,7 +20,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'TMS Entertainment',
   categorias: ['Shojo & Romance', 'Drama & Recuerdos'],
-  generos: ['Drama', 'Romance', 'Shojo', 'Recuentos de la vida', 'Sobrenatural'],
+  generos: ['Drama', 'Romance', 'Shojo', 'Recuentos de la vida', 'Sobrenatural', 'Comedia', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'fruits-basket';

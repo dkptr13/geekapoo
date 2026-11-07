@@ -45,7 +45,7 @@ export const ANIME = {
   // ficción, y lo de los espíritus es la misma cosa pasada de rosca.
   categorias: ['Shonen & Acción', 'Romance & Comedia', 'Ciencia Ficción & Cyberpunk'],
 
-  generos: ['Acción', 'Comedia', 'Romance', 'Sobrenatural', 'Ciencia ficción', 'Escolar'],
+  generos: ['Acción', 'Comedia', 'Romance', 'Sobrenatural', 'Ciencia ficción', 'Escolar', 'Drama', 'Shonen'],
 };
 
 export const ANIME_ID = 'dandadan';

@@ -46,7 +46,7 @@ export const ANIME = {
   // como DanMachi, que junta fantasía y shonen.
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Aventura', 'Drama', 'Fantasía', 'Sobrenatural'],
+  generos: ['Aventura', 'Drama', 'Fantasía', 'Sobrenatural', 'Psicológico', 'Coming-of-age', 'Tragedia'],
 };
 
 export const ANIME_ID = 'to-your-eternity';

@@ -15,7 +15,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Topcraft',
   categorias: ['Ciencia Ficción & Futuro', 'Fantasía & Aventura'],
-  generos: ['Acción', 'Aventura', 'Drama', 'Fantasía', 'Ciencia ficción'],
+  generos: ['Acción', 'Aventura', 'Drama', 'Fantasía', 'Ciencia ficción', 'Apocalipsis'],
 };
 
 export const ANIME_ID = 'nausicaa-del-valle-del-viento';

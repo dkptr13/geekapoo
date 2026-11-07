@@ -34,7 +34,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Ecchi', 'Harem', 'Sobrenatural'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Ecchi', 'Harem', 'Sobrenatural', 'Romance', 'Demonios'],
 };
 
 export const ANIME_ID = 'shinmai-maou-no-testament';

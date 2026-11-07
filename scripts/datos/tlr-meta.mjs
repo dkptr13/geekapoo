@@ -31,7 +31,7 @@ export const ANIME = {
   // Harem ecchi escolar con alienigenas: risas y colas. Son dos.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Comedia', 'Ecchi', 'Romance', 'Harem'],
+  generos: ['Comedia', 'Ecchi', 'Romance', 'Harem', 'Ciencia ficción', 'Escolar', 'Parodia'],
 };
 
 export const ANIME_ID = 'to-love-ru';

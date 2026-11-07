@@ -27,7 +27,7 @@ export const ANIME = {
   // Acción y comedia con fondo de samuráis.
   categorias: ['Shonen & Acción', 'Comedia & Slice of Life'],
 
-  generos: ['Acción', 'Comedia', 'Samuráis', 'Aventura', 'Histórico'],
+  generos: ['Acción', 'Comedia', 'Samuráis', 'Aventura', 'Histórico', 'Asesinos', 'Artes marciales'],
 };
 
 export const ANIME_ID = 'samurai-champloo';

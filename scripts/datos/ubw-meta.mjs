@@ -26,7 +26,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Fantasía', 'Sobrenatural'],
+  generos: ['Acción', 'Fantasía', 'Sobrenatural', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-stay-night-unlimited-blade-works';

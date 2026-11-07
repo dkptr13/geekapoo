@@ -31,7 +31,7 @@ export const ANIME = {
   // tocan, con Shonen delante porque el manga es de Gangan Joker.
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Misterio'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Misterio', 'Dragones', 'Venganza', 'Shonen', 'Magia'],
 };
 
 export const ANIME_ID = 'ragna-crimson';

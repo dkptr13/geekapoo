@@ -35,7 +35,7 @@ export const ANIME = {
   // Classroom of the Elite, que junta las tres.
   categorias: ['Seinen & Psicológico', 'Thriller & Misterio', 'Shojo & Escolar'],
 
-  generos: ['Thriller', 'Psicológico', 'Misterio', 'Drama'],
+  generos: ['Thriller', 'Psicológico', 'Misterio', 'Drama', 'Sobrenatural', 'Crimen'],
 };
 
 export const ANIME_ID = 'death-note';

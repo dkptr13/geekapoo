@@ -28,7 +28,7 @@ export const ANIME = {
   // Thriller y misterio con fondo de drama.
   categorias: ['Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Thriller', 'Misterio', 'Drama', 'Psicológico', 'Seinen'],
+  generos: ['Thriller', 'Misterio', 'Drama', 'Psicológico', 'Seinen', 'Crimen'],
 };
 
 export const ANIME_ID = 'terror-in-resonance';

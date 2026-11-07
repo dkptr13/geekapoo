@@ -79,7 +79,7 @@ export const ANIME = {
 
   categorias: ['Comedia'],
 
-  generos: ['Comedia', 'Recuentos de la vida', 'Universidad', 'Buceo'],
+  generos: ['Comedia', 'Recuentos de la vida', 'Universitario', 'Buceo', 'Deportes', 'Seinen'],
 };
 
 export const ANIME_ID = 'grand-blue';

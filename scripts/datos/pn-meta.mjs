@@ -36,7 +36,7 @@ export const ANIME = {
 
   categorias: ['Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Terror', 'Misterio', 'Supervivencia', 'Psicológico'],
+  generos: ['Acción', 'Terror', 'Misterio', 'Supervivencia', 'Psicológico', 'Drama', 'Fantasía', 'Thriller', 'Tragedia'],
 };
 
 export const ANIME_ID = 'the-promised-neverland';

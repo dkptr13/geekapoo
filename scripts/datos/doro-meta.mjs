@@ -22,7 +22,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'MAPPA',
   categorias: ['Seinen & Psicológico', 'Fantasía & Aventura'],
-  generos: ['Acción', 'Aventura', 'Comedia', 'Fantasía', 'Terror', 'Misterio'],
+  generos: ['Acción', 'Aventura', 'Comedia', 'Fantasía', 'Terror', 'Misterio', 'Distopía', 'Magia', 'Seinen'],
 };
 
 export const ANIME_ID = 'dorohedoro';

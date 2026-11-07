@@ -26,7 +26,7 @@ export const ANIME = {
   // turnos. Son dos.
   categorias: ['Romance & Comedia', 'Seinen & Psicológico'],
 
-  generos: ['Comedia', 'Romance', 'Recuentos de la vida', 'Curro'],
+  generos: ['Comedia', 'Romance', 'Recuentos de la vida', 'Trabajo', 'Seinen'],
 };
 
 export const ANIME_ID = 'smoking-behind-the-supermarket-with-you';

@@ -37,7 +37,7 @@ export const ANIME = {
   // Romance y comedia escolar con un fondo de soledad y crecimiento.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Romance', 'Comedia', 'Escolar', 'Recuentos de la vida', 'Drama'],
+  generos: ['Romance', 'Comedia', 'Escolar', 'Recuentos de la vida', 'Drama', 'Shojo', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'kimi-ni-todoke-from-me-to-you';

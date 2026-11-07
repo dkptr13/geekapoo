@@ -42,7 +42,7 @@ export const ANIME = {
   // AniList no tiene "mahou shoujo" entre sus generos, solo como
   // etiqueta: la serie llega como drama psicologico y fantasia. Se
   // anaden a mano las dos etiquetas con las que se busca en el filtro.
-  generos: ['Drama', 'Psicológico', 'Thriller', 'Fantasía', 'Magia', 'Chicas mágicas'],
+  generos: ['Drama', 'Psicológico', 'Thriller', 'Fantasía', 'Magia', 'Chicas mágicas', 'Acción'],
 };
 
 export const ANIME_ID = 'puella-magi-madoka-magica';

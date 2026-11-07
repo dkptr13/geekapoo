@@ -32,7 +32,7 @@ export const ANIME = {
   // Son dos.
   categorias: ['Romance & Comedia', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Comedia', 'Romance', 'Harem'],
+  generos: ['Acción', 'Comedia', 'Romance', 'Harem', 'Ecchi', 'Fantasía', 'Mecha', 'Ciencia ficción'],
 };
 
 export const ANIME_ID = 'date-a-live';

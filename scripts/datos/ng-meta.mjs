@@ -19,7 +19,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Bones',
   categorias: ['Shonen & Acción', 'Fantasía & Magia'],
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Sobrenatural', 'Comedia'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Sobrenatural', 'Comedia', 'Shonen'],
 };
 
 export const ANIME_ID = 'noragami';

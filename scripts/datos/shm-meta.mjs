@@ -26,7 +26,7 @@ export const ANIME = {
   // moral. Son dos.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Comedia', 'Ecchi', 'Escolar'],
+  generos: ['Comedia', 'Ecchi', 'Escolar', 'Distopía', 'Parodia'],
 };
 
 export const ANIME_ID = 'shimoneta';

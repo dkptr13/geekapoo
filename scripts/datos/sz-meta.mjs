@@ -27,7 +27,7 @@ export const ANIME = {
   // y terremoto. Son dos.
   categorias: ['Fantasía & Aventura', 'Seinen & Psicológico'],
 
-  generos: ['Aventura', 'Drama', 'Fantasía', 'Sobrenatural'],
+  generos: ['Aventura', 'Drama', 'Fantasía', 'Sobrenatural', 'Misterio', 'Coming-of-age', 'Magia'],
 };
 
 export const ANIME_ID = 'suzume-no-tojimari';

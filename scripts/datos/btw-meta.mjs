@@ -26,7 +26,7 @@ export const ANIME = {
   // claros. Son dos.
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Fantasía', 'Magia', 'Dragones'],
+  generos: ['Acción', 'Fantasía', 'Magia', 'Dragones', 'Shonen'],
 };
 
 export const ANIME_ID = 'burn-the-witch';

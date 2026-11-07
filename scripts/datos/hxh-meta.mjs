@@ -38,7 +38,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Shōnen'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Shonen', 'Artes marciales'],
 };
 
 export const ANIME_ID = 'hunter-x-hunter';

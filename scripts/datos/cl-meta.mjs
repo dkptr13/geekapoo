@@ -21,7 +21,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Kyoto Animation',
   categorias: ['Drama & Recuerdos', 'Romance & Comedia'],
-  generos: ['Drama', 'Romance', 'Recuentos de la vida', 'Escolar', 'Sobrenatural'],
+  generos: ['Drama', 'Romance', 'Recuentos de la vida', 'Escolar', 'Sobrenatural', 'Comedia', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'clannad';

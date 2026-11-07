@@ -26,7 +26,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Fantasía', 'Sobrenatural', 'Romance'],
+  generos: ['Acción', 'Fantasía', 'Sobrenatural', 'Romance', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-stay-night';

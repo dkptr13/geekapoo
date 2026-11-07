@@ -26,7 +26,7 @@ export const ANIME = {
   // amor. Son dos.
   categorias: ['Ciencia Ficción & Cyberpunk', 'Romance & Comedia'],
 
-  generos: ['Drama', 'Romance', 'Ciencia ficción'],
+  generos: ['Drama', 'Romance', 'Ciencia ficción', 'Psicológico'],
 };
 
 export const ANIME_ID = 'hello-world';

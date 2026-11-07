@@ -27,7 +27,7 @@ export const ANIME = {
   // drama adulto joven e intensidad. Son dos.
   categorias: ['Josei & Drama', 'Seinen & Psicológico'],
 
-  generos: ['Drama', 'Música', 'Recuentos de la vida'],
+  generos: ['Drama', 'Música', 'Recuentos de la vida', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'girls-band-cry';

@@ -35,7 +35,7 @@ export const ANIME = {
   // Ciencia ficción cyberpunk con fondo de tragedia y acción.
   categorias: ['Ciencia Ficción & Cyberpunk', 'Seinen & Psicológico'],
 
-  generos: ['Cyberpunk', 'Acción', 'Sci-Fi', 'Tragedia', 'Drama'],
+  generos: ['Cyberpunk', 'Acción', 'Ciencia ficción', 'Tragedia', 'Drama', 'Venganza', 'Distopía', 'Crimen'],
 };
 
 export const ANIME_ID = 'cyberpunk-edgerunners-season-2';

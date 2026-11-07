@@ -23,7 +23,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Drama', 'Fantasía', 'Chicas mágicas'],
+  generos: ['Acción', 'Drama', 'Fantasía', 'Chicas mágicas', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-kaleid-liner-prisma-illya-licht-namae-no-nai-shoujo';

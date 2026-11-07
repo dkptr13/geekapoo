@@ -47,7 +47,7 @@ export const ANIME = {
   // el rencor: es una historia de seinen con elVillano por delante.
   categorias: ['Fantasía & Aventura', 'Seinen & Psicológico'],
 
-  generos: ['Fantasía', 'Acción', 'Aventura', 'Drama', 'Ciencia ficción'],
+  generos: ['Fantasía', 'Acción', 'Aventura', 'Drama', 'Ciencia ficción', 'Isekai', 'Fantasía medieval', 'Magia', 'Venganza'],
 };
 
 export const ANIME_ID = 'the-rising-of-the-shield-hero';

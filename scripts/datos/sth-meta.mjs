@@ -25,7 +25,7 @@ export const ANIME = {
   // Son dos.
   categorias: ['Fantasía & Aventura', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Drama', 'Fantasía', 'Militar'],
+  generos: ['Acción', 'Drama', 'Fantasía', 'Militar', 'Fantasía medieval', 'Demonios'],
 };
 
 export const ANIME_ID = 'sentenced-to-be-a-hero';

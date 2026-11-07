@@ -22,7 +22,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'OLM / P.I.C.S.',
   categorias: ['Seinen & Psicológico', 'Thriller & Misterio'],
-  generos: ['Drama', 'Misterio', 'Psicológico', 'Thriller'],
+  generos: ['Drama', 'Misterio', 'Psicológico', 'Thriller', 'Crimen', 'Trabajo'],
 };
 
 export const ANIME_ID = 'odd-taxi';

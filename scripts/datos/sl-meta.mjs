@@ -24,7 +24,7 @@ export const ANIME = {
   // fantasia de manual. Son dos.
   categorias: ['Shonen & Acción', 'Fantasía & Aventura'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Mazmorras', 'Magia', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'solo-leveling';

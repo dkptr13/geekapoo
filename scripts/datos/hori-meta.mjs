@@ -22,7 +22,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'CloverWorks',
   categorias: ['Romance & Comedia', 'Comedia & Slice of Life'],
-  generos: ['Romance', 'Comedia', 'Recuentos de la vida', 'Escolar'],
+  generos: ['Romance', 'Comedia', 'Recuentos de la vida', 'Escolar', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'horimiya';

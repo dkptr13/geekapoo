@@ -26,7 +26,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'MADHOUSE',
   categorias: ['Seinen & Psicológico', 'Thriller & Misterio'],
-  generos: ['Acción', 'Aventura', 'Drama', 'Thriller'],
+  generos: ['Acción', 'Aventura', 'Drama', 'Thriller', 'Crimen', 'Seinen'],
 };
 
 export const ANIME_ID = 'black-lagoon';

@@ -34,7 +34,7 @@ export const ANIME = {
   // dos cajones de la comedia romantica escolar, como Takagi.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Romance', 'Comedia', 'Drama', 'Escolar'],
+  generos: ['Romance', 'Comedia', 'Drama', 'Escolar', 'Recuentos de la vida', 'Harem'],
 };
 
 export const ANIME_ID = 'las-quintillizas';

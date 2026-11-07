@@ -23,7 +23,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Fantasía', 'Psicológico', 'Sobrenatural'],
+  generos: ['Acción', 'Fantasía', 'Psicológico', 'Sobrenatural', 'Magia'],
 };
 
 export const ANIME_ID = 'fate-stay-night-heaven-s-feel-i-presage-flower';

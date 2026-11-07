@@ -54,7 +54,7 @@ export const ANIME = {
   // un idol golpeandola con una pala.
   categorias: ['Seinen & Psicológico', 'Thriller & Misterio'],
 
-  generos: ['Psicológico', 'Drama', 'Sobrenatural', 'Thriller'],
+  generos: ['Psicológico', 'Drama', 'Sobrenatural', 'Thriller', 'Misterio', 'Venganza'],
 };
 
 export const ANIME_ID = 'oshi-no-ko';

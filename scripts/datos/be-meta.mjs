@@ -19,7 +19,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'A-1 Pictures',
   categorias: ['Shonen & Accion', 'Fantasia & Magia'],
-  generos: ['Accion', 'Sobrenatural', 'Fantasia', 'Demonios', 'Shonen'],
+  generos: ['Acción', 'Sobrenatural', 'Fantasía', 'Demonios', 'Shonen'],
 };
 
 export const ANIME_ID = 'blue-exorcist';

@@ -29,7 +29,7 @@ export const ANIME = {
   // Horror y ciencia ficción con fondo de thriller.
   categorias: ['Ciencia Ficción & Futuro', 'Thriller & Misterio'],
 
-  generos: ['Horror', 'Ciencia ficción', 'Thriller', 'Psicológico', 'Seinen'],
+  generos: ['Terror', 'Ciencia ficción', 'Thriller', 'Psicológico', 'Seinen', 'Acción', 'Drama', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'parasyte-the-maxim';

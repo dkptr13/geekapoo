@@ -30,7 +30,7 @@ export const ANIME = {
   // y clases. Son tres.
   categorias: ['Seinen & Psicológico', 'Thriller & Misterio', 'Shojo & Escolar'],
 
-  generos: ['Drama', 'Psicológico', 'Misterio', 'Escolar'],
+  generos: ['Drama', 'Psicológico', 'Misterio', 'Escolar', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'classroom-of-the-elite';

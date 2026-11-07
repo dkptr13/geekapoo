@@ -36,7 +36,7 @@ export const ANIME = {
   // mismo: romance y comedia por delante.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Romance', 'Comedia', 'Drama', 'Escolar'],
+  generos: ['Romance', 'Comedia', 'Drama', 'Escolar', 'Harem'],
 };
 
 export const ANIME_ID = 'the-shiunji-family-children';

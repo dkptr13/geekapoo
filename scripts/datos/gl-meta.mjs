@@ -18,7 +18,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Gainax',
   categorias: ['Shonen & Acción', 'Ciencia Ficción & Futuro'],
-  generos: ['Acción', 'Aventura', 'Mecha', 'Ciencia ficción', 'Drama'],
+  generos: ['Acción', 'Aventura', 'Mecha', 'Ciencia ficción', 'Drama', 'Comedia', 'Romance', 'Coming-of-age', 'Distopía'],
 };
 
 export const ANIME_ID = 'gurren-lagann';

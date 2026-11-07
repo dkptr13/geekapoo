@@ -39,7 +39,7 @@ export const ANIME = {
   // trama tiene más de Seinen que de aventura ligera.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Fantasía', 'Drama', 'Aventura', 'Militar'],
+  generos: ['Acción', 'Fantasía', 'Drama', 'Aventura', 'Militar', 'Shonen'],
 };
 
 export const ANIME_ID = 'fullmetal-alchemist-brotherhood';

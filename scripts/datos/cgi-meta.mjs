@@ -28,7 +28,7 @@ export const ANIME = {
   // Mecha y ciencia ficcion con fondo de drama militar y estrategia.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Mecha', 'Ciencia ficción', 'Drama', 'Militar'],
+  generos: ['Acción', 'Mecha', 'Ciencia ficción', 'Drama', 'Militar', 'Thriller'],
 };
 
 export const ANIME_ID = 'code-geass-lelouch-of-the-rebellion-i-initiation';

@@ -26,7 +26,7 @@ export const ANIME = {
   // drama de venganza por debajo. Son tres.
   categorias: ['Shonen & Acción', 'Ciencia Ficción & Cyberpunk', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Drama', 'Fantasía', 'Distopía'],
+  generos: ['Acción', 'Drama', 'Fantasía', 'Distopía', 'Supervivencia', 'Shonen', 'Venganza', 'Apocalipsis'],
 };
 
 export const ANIME_ID = 'gachiakuta';

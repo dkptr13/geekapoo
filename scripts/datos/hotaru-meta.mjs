@@ -15,7 +15,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'Studio Ghibli',
   categorias: ['Drama', 'Seinen & Psicológico'],
-  generos: ['Drama', 'Bélico', 'Histórico'],
+  generos: ['Drama', 'Militar', 'Histórico', 'Tragedia', 'Supervivencia'],
 };
 
 export const ANIME_ID = 'la-tumba-de-las-luciernagas';

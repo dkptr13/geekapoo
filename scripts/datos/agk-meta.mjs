@@ -61,7 +61,7 @@ export const ANIME = {
   // se quedan fuera a proposito: hay romance de verdad (el triangulo con
   // Esdeath), pero ponerlo en la sinopsis haria leer la serie como una
   // historia de amor con cuchillos, que no es lo que hace.
-  generos: ['Acción', 'Aventura', 'Fantasía Oscura', 'Drama', 'Psicológico'],
+  generos: ['Acción', 'Aventura', 'Fantasía Oscura', 'Drama', 'Psicológico', 'Fantasía', 'Terror', 'Thriller', 'Asesinos', 'Shonen', 'Crimen'],
 };
 
 export const ANIME_ID = 'akame-ga-kill';

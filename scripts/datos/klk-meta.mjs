@@ -33,7 +33,7 @@ export const ANIME = {
   // Acción y comedia con fondo de ciencia ficción y venganza.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Comedia', 'Ciencia ficción', 'Ecchi', 'Shonen'],
+  generos: ['Acción', 'Comedia', 'Ciencia ficción', 'Ecchi', 'Shonen', 'Venganza', 'Distopía', 'Parodia'],
 };
 
 export const ANIME_ID = 'kill-la-kill';

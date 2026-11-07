@@ -25,7 +25,7 @@ export const ANIME = {
   // y chicas de instituto. Son dos.
   categorias: ['Romance & Comedia', 'Shojo & Escolar'],
 
-  generos: ['Comedia', 'Música', 'Recuentos de la vida', 'Escolar'],
+  generos: ['Comedia', 'Música', 'Recuentos de la vida', 'Escolar', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'bocchi-the-rock';

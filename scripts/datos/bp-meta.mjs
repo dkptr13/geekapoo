@@ -28,7 +28,7 @@ export const ANIME = {
   // Acción y horror con fondo de drama.
   categorias: ['Shonen & Acción', 'Thriller & Misterio'],
 
-  generos: ['Acción', 'Horror', 'Drama', 'Vampiros', 'Shonen'],
+  generos: ['Acción', 'Terror', 'Drama', 'Vampiros', 'Shonen', 'Misterio', 'Sobrenatural', 'Demonios'],
 };
 
 export const ANIME_ID = 'blood';

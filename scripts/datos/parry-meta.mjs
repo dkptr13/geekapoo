@@ -35,7 +35,7 @@ export const ANIME = {
 
   categorias: ['Fantasía & Aventura', 'Shonen & Acción'],
 
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Comedia', 'Magia'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Comedia', 'Magia', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'i-parry-everything';

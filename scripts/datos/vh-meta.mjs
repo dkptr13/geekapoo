@@ -27,7 +27,7 @@ export const ANIME = {
   // dinero: accion shonen con mala leche adulta. Son dos.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Comedia', 'Escolar'],
+  generos: ['Acción', 'Comedia', 'Escolar', 'Artes marciales'],
 };
 
 export const ANIME_ID = 'viral-hit';

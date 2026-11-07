@@ -21,7 +21,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: "Brain's Base",
   categorias: ['Acción & Aventura', 'Thriller & Misterio'],
-  generos: ['Acción', 'Misterio', 'Sobrenatural', 'Comedia', 'Histórico'],
+  generos: ['Acción', 'Misterio', 'Sobrenatural', 'Comedia', 'Histórico', 'Crimen'],
 };
 
 export const ANIME_ID = 'baccano';

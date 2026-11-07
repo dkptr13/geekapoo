@@ -32,7 +32,7 @@ export const ANIME = {
 
   categorias: ['Shonen & Acción', 'Romance & Comedia'],
 
-  generos: ['Acción', 'Aventura', 'Comedia', 'Romance'],
+  generos: ['Acción', 'Aventura', 'Comedia', 'Romance', 'Drama', 'Asesinos', 'Crimen'],
 };
 
 export const ANIME_ID = 'marriagetoxin';

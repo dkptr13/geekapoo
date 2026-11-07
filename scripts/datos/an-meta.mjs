@@ -21,7 +21,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'A-1 Pictures',
   categorias: ['Drama & Recuerdos', 'Comedia & Slice of Life'],
-  generos: ['Drama', 'Sobrenatural', 'Recuentos de la vida', 'Romance', 'Escolar'],
+  generos: ['Drama', 'Sobrenatural', 'Recuentos de la vida', 'Romance', 'Escolar', 'Coming-of-age'],
 };
 
 export const ANIME_ID = 'anohana-the-flower-we-saw-that-day';

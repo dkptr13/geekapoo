@@ -36,7 +36,7 @@ export const ANIME = {
   // Comedia y acción escolar con fondo de crecimiento personal.
   categorias: ['Shonen & Acción', 'Comedia'],
 
-  generos: ['Acción', 'Comedia', 'Escolar', 'Shonen', 'Ciencia ficción'],
+  generos: ['Acción', 'Comedia', 'Escolar', 'Shonen', 'Ciencia ficción', 'Drama', 'Sobrenatural', 'Asesinos'],
 };
 
 export const ANIME_ID = 'assassination-classroom';

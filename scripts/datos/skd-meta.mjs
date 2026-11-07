@@ -35,7 +35,7 @@ export const ANIME = {
   // siempre acaba haciéndolo.
   categorias: ['Shonen & Acción', 'Seinen & Psicológico'],
 
-  generos: ['Acción', 'Comedia', 'Ninja', 'Asesinos'],
+  generos: ['Acción', 'Comedia', 'Ninja', 'Asesinos', 'Crimen'],
 };
 
 export const ANIME_ID = 'sakamoto-days';

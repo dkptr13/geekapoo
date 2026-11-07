@@ -29,7 +29,7 @@ export const ANIME = {
   // Horror y thriller con fondo de supervivencia.
   categorias: ['Thriller & Misterio', 'Seinen & Psicológico'],
 
-  generos: ['Horror', 'Thriller', 'Misterio', 'Supervivencia', 'Escolar'],
+  generos: ['Terror', 'Thriller', 'Misterio', 'Supervivencia', 'Escolar', 'Drama', 'Sobrenatural'],
 };
 
 export const ANIME_ID = 'king-s-game';

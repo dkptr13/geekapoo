@@ -19,7 +19,7 @@ export const ANIME = {
   estado: 'finished',
   estudio: 'A-1 Pictures',
   categorias: ['Shonen & Acción', 'Fantasía & Magia'],
-  generos: ['Acción', 'Aventura', 'Fantasía', 'Comedia', 'Shonen'],
+  generos: ['Acción', 'Aventura', 'Fantasía', 'Comedia', 'Shonen', 'Magia', 'Dragones'],
 };
 
 export const ANIME_ID = 'fairy-tail';
