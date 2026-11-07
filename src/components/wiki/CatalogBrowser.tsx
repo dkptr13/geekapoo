@@ -32,6 +32,7 @@ import {
   type MainTab,
 } from '../../utils/wikiFilter';
 import type { Anime, Character, Episode, Thread } from '../../types';
+import { WikiPopularityRankings } from './WikiPopularityRankings';
 // ======================================================
 // VISTA DE CATÁLOGO
 // ======================================================
@@ -271,7 +272,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           parecía un recuadro más del panel, y tapaba hueco
           además de Dani. */}
       <aside className="min-w-0 lg:col-span-4 xl:col-span-3">
-        <div className="lg:sticky lg:top-20">
+        <div className="lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1">
           <div className="relative flex justify-center">
             <img
               src="/img/recomendacion.webp"
@@ -308,6 +309,10 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                 Sorpréndeme
               </button>
             )}
+          </div>
+
+          <div className="mt-4">
+            <WikiPopularityRankings onSelectAnime={onSelectAnime} />
           </div>
         </div>
       </aside>

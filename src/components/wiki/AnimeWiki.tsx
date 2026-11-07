@@ -28,6 +28,7 @@ import { AuthorBadge } from '../gamification/AuthorBadge';
 import { ReportDialog } from '../community/ReportDialog';
 import { MentionText } from '../community/MentionText';
 import { EmojiPickerButton } from '../community/EmojiPickerButton';
+import { CommunityRatingCard } from './CommunityRatingCard';
 import { AutoGrowTextarea } from '../common/AutoGrowTextarea';
 import { insertarTextoEnCursor } from '../../utils/textarea';
 import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
@@ -47,6 +48,7 @@ import {
   type IndiceBusqueda,
   type TemporadasPorAnime,
 } from '../../services/searchIndex';
+import { registrarVisitaAnime } from '../../services/animeStats';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
 import { animeCategories, isInCategory } from '../../data/animeCategories';
 import CatalogBrowser from './CatalogBrowser';
@@ -243,6 +245,36 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
     Boolean(urlAnime) && animes.length > 0,
   );
   const currentAnime = animeDoc ?? staticAnime;
+
+  // Visitas reales a la ficha. Se llama al abrir una serie, no en
+  // cada render. La sesión local evita repetir la llamada; la Cloud
+  // Function vuelve a deduplicar en servidor (UID o huella anónima
+  // durante 24 h).
+  const visitasPedidas = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const animeId = currentAnime?.id;
+    if (!urlAnime || !animeId) return;
+
+    const clave = `geekapoo:visita:${animeId}`;
+    try {
+      const ultima = Number(sessionStorage.getItem(clave) ?? 0);
+      if (Number.isFinite(ultima) && Date.now() - ultima < 86_400_000) return;
+    } catch {
+      // Sin sessionStorage se sigue: el servidor deduplica.
+    }
+
+    if (visitasPedidas.current.has(animeId)) return;
+    visitasPedidas.current.add(animeId);
+
+    void registrarVisitaAnime(animeId).then((resultado) => {
+      if (!resultado.contado) return;
+      try {
+        sessionStorage.setItem(clave, String(Date.now()));
+      } catch {
+        // La visita ya está contada en servidor.
+      }
+    });
+  }, [urlAnime, currentAnime?.id]);
 
   // SEO de la ficha. Las páginas de anime ya salen prerenderizadas
   // con estos mismos datos; esto mantiene el <head> correcto al
@@ -1371,9 +1403,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                   )}
                 </h1>
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-300">
-                  <span className="flex items-center gap-1 font-bold text-amber-400">
+                  <span
+                    className="flex items-center gap-1 font-bold text-amber-400"
+                    title="Puntuación de IMDb"
+                  >
                     <Star size={14} className="fill-amber-400" />
-                    {ficha.rating}/10
+                    {ficha.rating > 0 ? `${ficha.rating}/10` : 'No disponible'}
                   </span>
                   <span>•</span>
                   <span>{ficha.year}</span>
@@ -1530,8 +1565,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                   <span className="font-semibold text-white">{ficha.year || '—'}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-zinc-800">
-                  <span className="text-zinc-400">Puntuación de la comunidad:</span>
-                  <span className="font-semibold text-amber-400">{ficha.rating} / 10</span>
+                  <span className="text-zinc-400">Puntuación de IMDb:</span>
+                  <span className="flex items-center gap-1 font-semibold text-amber-400">
+                    <Star size={11} className="fill-amber-400" />
+                    {ficha.rating > 0 ? `${ficha.rating} / 10` : 'No disponible'}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-zinc-800">
                   <span className="text-zinc-400">Capítulos emitidos:</span>
@@ -1544,6 +1582,14 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               </div>
 
             </section>
+
+            <CommunityRatingCard
+              animeId={currentAnime.id}
+              animeTitle={currentAnime.title}
+              sum={currentAnime.communityRatingSum}
+              count={currentAnime.communityRatingCount}
+              avg={currentAnime.communityRatingAvg}
+            />
           </div>
         </div>
       )}

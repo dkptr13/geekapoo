@@ -163,6 +163,10 @@ const anime = {
   likesCount: v.num(0),
   likedBy: v.arr([]),
   commentsCount: v.num(0),
+  viewsCount: v.num(0),
+  communityRatingSum: v.num(0),
+  communityRatingCount: v.num(0),
+  communityRatingAvg: v.dbl(0),
   streaming: v.arr([]),
   createdAt: v.ts(new Date().toISOString()),
 };

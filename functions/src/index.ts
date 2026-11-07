@@ -40,6 +40,8 @@
  * mano. El panel de administracion lo activa.
  */
 
+import { createHash } from 'crypto';
+
 import { initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore, FieldPath, Timestamp } from 'firebase-admin/firestore';
 import { onDocumentCreated, onDocumentDeleted, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/v2/firestore';
@@ -79,6 +81,14 @@ initializeApp();
 const db = getFirestore();
 
 const USERS = 'users';
+/** Catálogo de series. Los agregados de la wiki viven aquí. */
+const ANIMES = 'animes';
+/** Votos de la comunidad: `animeRatings/{animeId}/votes/{uid}`. */
+const ANIME_RATINGS = 'animeRatings';
+/** Registro de deduplicación de visitas. Solo lo toca el Admin SDK. */
+const ANIME_VIEW_LOGS = 'animeViewLogs';
+/** Una visita por usuario/huella y anime cada 24 horas. */
+const VENTANA_VISITA_MS = 24 * 60 * 60 * 1000;
 /**
  * Reservas de nombres de usuario. El id es el identificador
  * normalizado y el documento guarda el uid propietario. Solo lo
@@ -2682,6 +2692,206 @@ export const miUsername = onCall(async (request) => {
     (doc) => doc.data()?.confirmed === true,
   );
   return { username: confirmada ? confirmada.id : null };
+});
+
+// ======================================================
+// ESTADÍSTICAS DE LA WIKI
+// ======================================================
+
+/** IP del cliente, teniendo en cuenta el proxy de Hosting. */
+function ipDelCliente(request: { rawRequest?: unknown }): string {
+  const raw = request.rawRequest as
+    | { ip?: string; headers?: Record<string, string | string[] | undefined> }
+    | undefined;
+  const reenviada = raw?.headers?.['x-forwarded-for'];
+  const primera = Array.isArray(reenviada) ? reenviada[0] : reenviada;
+  return (primera?.split(',')[0] ?? raw?.ip ?? '').trim();
+}
+
+/** Huella opaca para deduplicar visitas anónimas. No se guarda la IP. */
+function huellaDeVisitante(valor: string): string {
+  return createHash('sha256')
+    .update(`geekapoo:visita:${valor}`)
+    .digest('hex')
+    .slice(0, 32);
+}
+
+/**
+ * Registra una visita real a la ficha de un anime.
+ *
+ * La llama el cliente al abrir la ficha, no en cada render. Para
+ * usuarios registrados deduplica por UID; para anónimos usa una
+ * huella opaca de IP + navegador. En ambos casos, una visita por
+ * anime y 24 horas. Si no se puede construir una identidad fiable,
+ * no se cuenta.
+ */
+export const registrarVisitaAnime = onCall(async (request) => {
+  const animeId =
+    typeof request.data?.animeId === 'string' ? request.data.animeId.trim() : '';
+
+  if (!animeId || animeId.length > 150 || animeId.includes('/')) {
+    throw new HttpsError('invalid-argument', 'La serie no es válida.');
+  }
+
+  const uid = (request.auth as { uid?: string } | undefined)?.uid;
+  let visitante = '';
+
+  if (uid) {
+    try {
+      await exigirActivo(request.auth);
+    } catch {
+      return { contado: false };
+    }
+    visitante = `u_${uid}`;
+  } else {
+    const raw = request.rawRequest as
+      | { headers?: Record<string, string | string[] | undefined> }
+      | undefined;
+    const userAgent = String(raw?.headers?.['user-agent'] ?? '');
+    if (
+      !userAgent ||
+      /bot|crawl|spider|preview|facebookexternalhit|slurp|whatsapp|telegrambot/i.test(
+        userAgent,
+      )
+    ) {
+      return { contado: false };
+    }
+    const ip = ipDelCliente(request);
+    if (!ip) return { contado: false };
+    visitante = `a_${huellaDeVisitante(`${ip}|${userAgent}`)}`;
+  }
+
+  const animeRef = db.doc(`${ANIMES}/${animeId}`);
+  const visitaRef = db.doc(`${ANIME_VIEW_LOGS}/${animeId}_${visitante}`);
+
+  let contado = false;
+  let viewsCount = 0;
+
+  await db.runTransaction(async (tx) => {
+    // La transacción puede reintentarse: no se arrastra el resultado
+    // de un intento anterior.
+    contado = false;
+
+    const [anime, visita] = await Promise.all([
+      tx.get(animeRef),
+      tx.get(visitaRef),
+    ]);
+
+    if (!anime.exists) {
+      throw new HttpsError('not-found', 'Esa serie no existe.');
+    }
+
+    viewsCount = Math.max(0, Number(anime.data()?.viewsCount) || 0);
+
+    if (visita.exists) {
+      const at = visita.get('at');
+      if (
+        at instanceof Timestamp &&
+        Date.now() - at.toMillis() < VENTANA_VISITA_MS
+      ) {
+        return;
+      }
+    }
+
+    tx.set(visitaRef, {
+      animeId,
+      visitante,
+      ...(uid ? { uid } : {}),
+      at: FieldValue.serverTimestamp(),
+    });
+    tx.update(animeRef, { viewsCount: FieldValue.increment(1) });
+    contado = true;
+    viewsCount += 1;
+  });
+
+  return { contado, viewsCount };
+});
+
+/**
+ * Vota o cambia el voto de una serie.
+ *
+ * El documento del voto es `animeRatings/{animeId}/votes/{uid}`: no
+ * puede haber dos votos del mismo usuario. La suma, el contador y la
+ * media se actualizan en la misma transacción.
+ */
+export const votarAnime = onCall(async (request) => {
+  const uid = await exigirActivo(request.auth);
+  const animeId =
+    typeof request.data?.animeId === 'string' ? request.data.animeId.trim() : '';
+  const score =
+    typeof request.data?.score === 'number' ? request.data.score : Number.NaN;
+
+  if (!animeId || animeId.length > 150 || animeId.includes('/')) {
+    throw new HttpsError('invalid-argument', 'La serie no es válida.');
+  }
+  if (!Number.isInteger(score) || score < 1 || score > 10) {
+    throw new HttpsError(
+      'invalid-argument',
+      'La puntuación debe ser un número entero entre 1 y 10.',
+    );
+  }
+
+  const animeRef = db.doc(`${ANIMES}/${animeId}`);
+  const votoRef = db.doc(`${ANIME_RATINGS}/${animeId}/votes/${uid}`);
+
+  let media = 0;
+  let votos = 0;
+
+  await db.runTransaction(async (tx) => {
+    const [anime, voto] = await Promise.all([
+      tx.get(animeRef),
+      tx.get(votoRef),
+    ]);
+
+    if (!anime.exists) {
+      throw new HttpsError('not-found', 'Esa serie no existe.');
+    }
+
+    const datos = anime.data() ?? {};
+    const suma = Math.max(0, Number(datos.communityRatingSum) || 0);
+    const cuenta = Math.max(0, Number(datos.communityRatingCount) || 0);
+    const anterior = voto.exists ? Number(voto.get('score')) : 0;
+    const anteriorValido =
+      Number.isInteger(anterior) && anterior >= 1 && anterior <= 10;
+
+    if (anteriorValido && anterior === score) {
+      votos = cuenta;
+      media = cuenta > 0 ? Math.round((suma / cuenta) * 10) / 10 : 0;
+      return;
+    }
+
+    let nuevaSuma = suma;
+    let nuevaCuenta = cuenta;
+
+    if (anteriorValido) {
+      nuevaSuma = suma - anterior + score;
+    } else {
+      nuevaSuma = suma + score;
+      nuevaCuenta = cuenta + 1;
+    }
+
+    nuevaSuma = Math.max(0, nuevaSuma);
+    nuevaCuenta = Math.max(0, nuevaCuenta);
+    media = nuevaCuenta > 0 ? Math.round((nuevaSuma / nuevaCuenta) * 10) / 10 : 0;
+    votos = nuevaCuenta;
+
+    const campos: Record<string, unknown> = {
+      animeId,
+      uid,
+      score,
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+    if (!voto.exists) campos.createdAt = FieldValue.serverTimestamp();
+
+    tx.set(votoRef, campos, { merge: true });
+    tx.update(animeRef, {
+      communityRatingSum: nuevaSuma,
+      communityRatingCount: nuevaCuenta,
+      communityRatingAvg: media,
+    });
+  });
+
+  return { media, votos, miVoto: score };
 });
 
 /**

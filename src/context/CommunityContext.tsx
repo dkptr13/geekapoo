@@ -1222,6 +1222,9 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         patchCached<Anime[]>('search:animes:v1', (lista) =>
           actualizarLikeEnLista(lista, id, uid, liked),
         );
+        // El ranking de la Wiki se calcula aparte: al cambiar un
+        // Me gusta, la próxima visita debe volver a pedirlo.
+        invalidateCache('wiki:ranking:likes', PUBLIC_CACHE);
         break;
       case 'episode':
         setEpisodes((prev) => actualizarLikeEnGrupos(prev, id, uid, liked));

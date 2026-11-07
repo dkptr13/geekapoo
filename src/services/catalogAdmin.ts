@@ -265,6 +265,13 @@ export async function createAnime(input: NewAnimeInput): Promise<string> {
     likesCount: 0,
     likedBy: [],
     commentsCount: 0,
+    // Agregados de la wiki. Nacen a cero para que los rankings no
+    // dejen fuera una serie recién creada; solo los mueven las
+    // Cloud Functions.
+    viewsCount: 0,
+    communityRatingSum: 0,
+    communityRatingCount: 0,
+    communityRatingAvg: 0,
     createdAt: serverTimestamp(),
   });
 

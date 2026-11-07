@@ -65,6 +65,10 @@ const CAMPOS = {
     'episodesCount',
     'seasonsCount',
     'likesCount',
+    'viewsCount',
+    'communityRatingSum',
+    'communityRatingCount',
+    'communityRatingAvg',
     'coverUrl',
     'bannerUrl',
     'coverFocus',
@@ -222,6 +226,10 @@ function animeDe(doc) {
     likesCount: numero(valor(f.likesCount)),
     likedBy: [],
     commentsCount: 0,
+    viewsCount: numero(valor(f.viewsCount)),
+    communityRatingSum: numero(valor(f.communityRatingSum)),
+    communityRatingCount: numero(valor(f.communityRatingCount)),
+    communityRatingAvg: numero(valor(f.communityRatingAvg)),
   };
 }
 

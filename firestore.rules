@@ -267,6 +267,38 @@ service cloud.firestore {
                .hasAny(['commentsCount']);
     }
 
+    /**
+     * Los agregados de la wiki (visitas y puntuacion) no se pueden
+     * tocar desde ningun cliente, ni siquiera con rol de admin. Los
+     * actualizan solo las Cloud Functions con el Admin SDK.
+     */
+    function sinEstadisticasWiki() {
+      return !request.resource.data.diff(resource.data)
+               .affectedKeys()
+               .hasAny(['viewsCount', 'communityRatingSum',
+                        'communityRatingCount', 'communityRatingAvg']);
+    }
+
+    /**
+     * Un anime nuevo puede nacer con las estadisticas a cero para que
+     * los rankings no lo dejen fuera, pero nunca con valores
+     * inventados.
+     */
+    function estadisticasWikiEnCero() {
+      return (!('viewsCount' in request.resource.data)
+              || (request.resource.data.viewsCount is number
+                  && request.resource.data.viewsCount == 0))
+             && (!('communityRatingSum' in request.resource.data)
+                 || (request.resource.data.communityRatingSum is number
+                     && request.resource.data.communityRatingSum == 0))
+             && (!('communityRatingCount' in request.resource.data)
+                 || (request.resource.data.communityRatingCount is number
+                     && request.resource.data.communityRatingCount == 0))
+             && (!('communityRatingAvg' in request.resource.data)
+                 || (request.resource.data.communityRatingAvg is number
+                     && request.resource.data.communityRatingAvg == 0));
+    }
+
     // Un "me gusta" del catálogo es un cambio de UN solo uid: el de
     // quien escribe. No se puede añadir ni quitar a otra persona, y
     // el contador tiene que ser exactamente el tamaño de la lista.
@@ -2403,13 +2435,31 @@ service cloud.firestore {
     match /animes/{animeId} {
       allow read: if true;
       allow create: if (isAdmin() || isModerator())
+                    && estadisticasWikiEnCero()
                     && (!('commentsCount' in request.resource.data)
                         || (request.resource.data.commentsCount is number
                             && request.resource.data.commentsCount == 0));
       allow update: if ((isAdmin() || isModerator())
-                        && sinContadorDeComentarios())
+                        && sinContadorDeComentarios()
+                        && sinEstadisticasWiki())
                     || likeDelCatalogoValido();
       allow delete: if isAdmin() || isModerator();
+    }
+
+    // ======================================================
+    // VOTOS DE LA COMUNIDAD Y VISITAS DE LA WIKI
+    // ======================================================
+    //
+    // Los votos individuales solo los lee su dueño; el agregado
+    // público vive en el documento del anime. Las visitas y los
+    // votos los escriben las Cloud Functions con el Admin SDK.
+    match /animeRatings/{animeId}/votes/{uid} {
+      allow get: if isSignedIn() && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+
+    match /animeViewLogs/{logId} {
+      allow read, write: if false;
     }
 
     // ======================================================

@@ -1,4 +1,4 @@
-# Auditoría y reducción del consumo de Firebase
+﻿# Auditoría y reducción del consumo de Firebase
 
 Fecha: 2026-11-02 (primera fase). Actualizado: 2026-11-04 (tercera fase).
 
@@ -684,3 +684,17 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 - **Reglas:** `usernames` y `usernameAliases` no se leen ni se escriben desde el cliente; solo las callables con Admin SDK. No hay índices nuevos: la consulta de compatibilidad usa el índice automático de `users.username`.
 - **Pruebas:** suite completa de reglas `891 passing`; `tests/firestore.usernames.rules.test.cjs` (18 pruebas); `tests/identidad.emulator.mjs` (Auth + Functions + Firestore Emulator: `crearPerfilUsuario`, duplicado y carrera simultánea, reservado, reserva confirmada que no se libera ni sin perfil, `miUsername` tras borrar el perfil, rechazo de un identificador distinto y recreación con el mismo, liberación ajena y liberación propia); `tests/logica.usuarios.ts` (normalización, listas de reservados y plazo de 7 días); `npm run lint`, `npm run build` y build de Functions.
 - **Orden de despliegue:** Functions primero (callables nuevas), después reglas, después la migración y por último la web. La migración es idempotente y se puede repetir; conviene ejecutarla antes de publicar la web para que ninguna cuenta antigua quede sin `@usuario`.
+
+## 19. Wiki: rankings, visitas y puntuación de la comunidad (2026-11-07)
+
+- **Tres indicadores separados:** `likesCount` mide los Me gusta y alimenta «Series más gustadas»; `viewsCount` mide visitas reales y alimenta «Series más vistas»; `communityRatingSum`, `communityRatingCount` y `communityRatingAvg` guardan la puntuación 1-10. `rating` sigue siendo exclusivamente la nota externa de IMDb.
+- **Rankings:** dos tarjetas bajo «Sorpréndeme» en el catálogo. Consultan `animes` ya ordenados y limitados (5 para la tarjeta, hasta 300 en el ranking completo) con caché de 5 minutos. No descargan votos ni visitas individuales.
+- **Me gusta:** se reutiliza el sistema existente de `animes.likedBy`/`likesCount`. No se mezcla con favoritos ni con la puntuación.
+- **Visitas:** `registrarVisitaAnime` se llama al abrir una ficha, no en cada render. Deduplica por UID para registrados y por una huella opaca de IP + navegador para anónimos, una vez por anime y 24 horas. El registro de deduplicación vive en `animeViewLogs` y solo lo toca el Admin SDK.
+- **Puntuación:** `votarAnime` valida 1-10 en servidor. El voto vive en `animeRatings/{animeId}/votes/{uid}`, por lo que no puede haber dos votos del mismo usuario. La suma, el contador y la media se actualizan en la misma transacción; cambiar el voto no crea otro.
+- **IMDb:** la ficha técnica muestra «Puntuación de IMDb» a partir de `rating`. Si no hay nota, muestra «No disponible»; nunca usa la media de Geekapoo para rellenarla.
+- **Reglas:** los clientes, incluidos admins, no pueden escribir `viewsCount` ni `communityRating*` en `animes`. Cada usuario solo puede leer su propio voto; `animeViewLogs` no es accesible desde el cliente.
+- **Migración:** `scripts/migrar-estadisticas-anime.mjs` (simulación por defecto) inicializa a 0 las visitas y los votos de las series existentes. Dry-run actual: 211 series. Para aplicar: `npm run migrar:stats-anime -- --escribir`.
+- **Compatibilidad:** no se tocan filtros, buscador, temporadas, episodios, personajes, disponibilidad regional, favoritos ni UID. No hay índices nuevos: los rankings usan índices automáticos de un solo campo.
+- **Pruebas:** suite completa de reglas `907 passing`; `tests/firestore.anime-stats.rules.test.cjs` (11 pruebas), `tests/anime-stats.emulator.mjs` (votos, cambios de voto, medias, visitas deduplicadas y rankings ordenados), `tests/logica.wiki-stats.ts` y `npm run lint`/`npm run build`.
+- **Orden de despliegue:** Functions → migración de estadísticas → reglas → web. La migración es idempotente y debe ejecutarse antes de publicar la web para que el ranking de visitas incluya también las series con 0 visitas.

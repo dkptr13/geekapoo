@@ -899,6 +899,21 @@ export interface Anime {
   likesCount: number;
   likedBy?: string[];
   commentsCount: number;
+  /**
+   * Visitas válidas y deduplicadas a la ficha.
+   *
+   * Lo escribe solo la Cloud Function `registrarVisitaAnime`; el
+   * cliente no puede tocarlo. Se inicializa a 0 en la migración para
+   * que el ranking pueda ordenar por este campo sin dejar fuera las
+   * series que todavía no han recibido visitas.
+   */
+  viewsCount?: number;
+  /** Suma de los votos 1-10 de la comunidad. Solo la escribe la callable. */
+  communityRatingSum?: number;
+  /** Número de votos válidos de la comunidad. Solo la escribe la callable. */
+  communityRatingCount?: number;
+  /** Media calculada (suma / votos), redondeada a un decimal. */
+  communityRatingAvg?: number;
 }
 
 /** Técnica principal declarada por quien publica un fanart. */
