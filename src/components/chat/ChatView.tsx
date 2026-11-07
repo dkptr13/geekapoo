@@ -1472,6 +1472,30 @@ export const ChatView: React.FC = () => {
     };
   }, []);
 
+  // Al abrirse el teclado, la lista se queda con menos altura. Si el
+  // usuario está escribiendo, se vuelve al final para que siga viendo
+  // la conversación y no un hueco vacío por encima del compositor.
+  const altoAnterior = useRef<number | null>(null);
+  useEffect(() => {
+    const alto = viewportChat?.alto ?? null;
+    if (alto === null) return;
+
+    const previo = altoAnterior.current;
+    altoAnterior.current = alto;
+
+    if (
+      previo !== null &&
+      alto < previo &&
+      document.activeElement === inputRef.current
+    ) {
+      setLejosDelFinal(false);
+      messagesEndRef.current?.scrollIntoView({
+        behavior: 'instant',
+        block: 'end',
+      });
+    }
+  }, [viewportChat?.alto]);
+
   if (!currentUser) {
     return null;
   }
