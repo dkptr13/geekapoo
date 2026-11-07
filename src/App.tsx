@@ -80,6 +80,13 @@ const {
   const navigate = useNavigate();
   const enFichaAnime = slugDeRuta(pathname) !== null;
 
+  // El hilo abierto sigue siendo el protagonista del SEO aunque
+  // HomeFeed borre `?hilo=` de la URL tras colocar el scroll. Sin
+  // esto, App volvería a escribir el SEO de la portada encima.
+  // Se declara antes de `setCurrentTab` para que ese handler no
+  // dependa de una variable declarada más abajo.
+  const [hiloEnfocadoApp, setHiloEnfocadoApp] = useState('');
+
   // Compatibilidad con enlaces antiguos. Notificaciones, reportes y
   // marcadores guardados siguen usando "?tab=wiki&anime=<id>": se
   // reescriben a la ruta nueva en cuanto se abren, sin recargar y
@@ -217,11 +224,6 @@ const {
   // no un booleano porque así dos pulsaciones seguidas funcionan
   // las dos.
   const [searchFocusToken, setSearchFocusToken] = useState(0);
-
-  // El hilo abierto sigue siendo el protagonista del SEO aunque
-  // HomeFeed borre `?hilo=` de la URL tras colocar el scroll. Sin
-  // esto, App volvería a escribir el SEO de la portada encima.
-  const [hiloEnfocadoApp, setHiloEnfocadoApp] = useState('');
 
   const pathAnterior = useRef(pathname);
   useEffect(() => {
