@@ -1224,30 +1224,70 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
         </div>
       )}
 
-      {/* SERIES HERO BANNER */}
+      {/* SERIES HERO: portada completa en móvil y banner en escritorio */}
       <div className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900">
-        {/* La altura del banner. Pasó de "h-64 sm:h-80" (256px en móvil y
-            320px en escritorio) a esto, que son 384px y 544px.
+        {/* Este wrapper contiene la imagen y el título. En escritorio el
+            título se posiciona contra él (no contra las pestañas), así
+            que sigue pegado al borde inferior del banner. */}
+        <div className="relative">
+        {/* En móvil la caja es 2:3 para que quepa la portada entera.
+            Desde sm recupera la altura del banner panorámico. */}
+        <div className="relative aspect-[2/3] w-full overflow-hidden bg-zinc-800 sm:aspect-auto sm:h-[34rem]">
+          {/* MÓVIL: portada completa. El fondo desenfocado rellena
+              las franjas si la portada no es exactamente 2:3. */}
+          <div className="absolute inset-0 sm:hidden">
+            {ficha.coverUrl && (
+              <img
+                src={ficha.coverUrl}
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                fetchPriority="high"
+                className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl"
+                style={encuadre(ficha.coverFocus)}
+              />
+            )}
+            <QuickImageEditor
+              section={coverIsSeason ? 'seasons' : 'animes'}
+              itemId={coverIsSeason ? seasonOfView!.id : currentAnime.id}
+              field="coverUrl"
+              label={
+                coverIsSeason
+                  ? `Portada de la temporada ${seasonOfView!.number} de ${currentAnime.title}`
+                  : `Portada de ${currentAnime.title}`
+              }
+              src={ficha.coverUrl}
+              alt={
+                coverIsSeason
+                  ? `Portada de la temporada ${seasonOfView!.number} de ${currentAnime.title}`
+                  : `Portada de ${currentAnime.title}`
+              }
+              loading="eager"
+              fetchPriority="high"
+              containerClassName="relative h-full w-full"
+              className="h-full w-full object-contain"
+              imgStyle={encuadre(ficha.coverFocus)}
+              badgeClassName="top-2 right-2"
+              empty={
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-950 via-zinc-900 to-zinc-900">
+                  <span className="text-sm font-semibold text-zinc-600">
+                    Sin portada
+                  </span>
+                </div>
+              }
+            />
+          </div>
 
-            Se puede subir sin más porque todo lo que va encima esta
-            anclado con "absolute": las etiquetas arriba a la izquierda,
-            el boton de "Me gusta" arriba a la derecha y el bloque del
-            titulo con "bottom-6". Al estar anclado a los bordes, un
-            banner mas alto no empuja nada, solo deja ver mas imagen.
+          {/* ESCRITORIO: el banner de siempre. */}
+          <div className="absolute inset-0 hidden sm:block">
+            {/* Si el anime no tiene banner, se pinta el degradado en
+                lugar de un <img> con src vacío, que es lo que
+                justamente se veía roto en la wiki.
 
-            Los dos valores arbitrarios van entre corchetes porque no son
-            de serie: 96 es el mayor salto de la escala de Tailwind y se
-            queda corto en pantallas anchas, y 34rem es lo que se le
-            añade para llegar a un alto que no parezca una franja. */}
-        <div className="relative h-96 sm:h-[34rem] w-full overflow-hidden bg-zinc-800">
-          {/* Si el anime no tiene banner, se pinta el degradado en
-              lugar de un <img> con src vacío, que es lo que
-              justamente se veía roto en la wiki.
-
-              El editor rápido apunta a la temporada cuando el
-              banner que se ve es el suyo, y al anime cuando se está
-              viendo el del anime. */}
-          <QuickImageEditor
+                El editor rápido apunta a la temporada cuando el
+                banner que se ve es el suyo, y al anime cuando se está
+                viendo el del anime. */}
+            <QuickImageEditor
             section={bannerIsSeason ? 'seasons' : 'animes'}
             itemId={bannerIsSeason ? seasonOfView!.id : currentAnime.id}
             field="bannerUrl"
@@ -1294,9 +1334,10 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                 </span>
               </div>
             }
-          />
+            />
+          </div>
 
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent sm:via-zinc-950/60" />
 
 {/* Status & Studio badges
 
@@ -1354,73 +1395,76 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             </button>
           </div>
 
-          {/* Bottom Title overlay */}
-          <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="flex items-end gap-4">
-              <QuickImageEditor
-                section={coverIsSeason ? 'seasons' : 'animes'}
-                itemId={coverIsSeason ? seasonOfView!.id : currentAnime.id}
-                field="coverUrl"
-                label={
-                  coverIsSeason
-                    ? `Portada de la temporada ${seasonOfView!.number} de ${currentAnime.title}`
-                    : `Portada de ${currentAnime.title}`
-                }
-                src={ficha.coverUrl}
-                alt={
-                  coverIsSeason
-                    ? `Portada de la temporada ${seasonOfView!.number} de ${currentAnime.title}`
-                    : `Portada de ${currentAnime.title}`
-                }
-                loading="eager"
-                containerClassName="hidden sm:block shrink-0"
-                className="w-24 h-32 rounded-2xl object-cover ring-4 ring-zinc-900 shadow-2xl"
-                imgStyle={encuadre(ficha.coverFocus)}
+        </div>
 
-                badgeClassName="-top-2 -right-2"
-                empty={
-                  <div className="flex h-32 w-24 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-800 text-[10px] text-zinc-600 ring-4 ring-zinc-900">
-                    Sin portada
-                  </div>
-                }
-              />
-              <div>
-                {currentAnime.japaneseTitle && (
-                  <span className="text-xs font-medium text-violet-400">
-                    {currentAnime.japaneseTitle}
+        {/* Bloque del título. En móvil va debajo de la portada para no
+            tapar el póster; desde sm vuelve a flotar sobre el banner. */}
+        <div className="relative z-10 flex flex-col gap-4 border-t border-white/[0.06] bg-zinc-950/90 px-4 pb-5 pt-4 sm:absolute sm:bottom-6 sm:left-6 sm:right-6 sm:flex-row sm:items-end sm:justify-between sm:border-0 sm:bg-transparent sm:p-0">
+          <div className="flex items-end gap-4">
+            <QuickImageEditor
+              section={coverIsSeason ? 'seasons' : 'animes'}
+              itemId={coverIsSeason ? seasonOfView!.id : currentAnime.id}
+              field="coverUrl"
+              label={
+                coverIsSeason
+                  ? `Portada de la temporada ${seasonOfView!.number} de ${currentAnime.title}`
+                  : `Portada de ${currentAnime.title}`
+              }
+              src={ficha.coverUrl}
+              alt={
+                coverIsSeason
+                  ? `Portada de la temporada ${seasonOfView!.number} de ${currentAnime.title}`
+                  : `Portada de ${currentAnime.title}`
+              }
+              loading="eager"
+              containerClassName="hidden sm:block shrink-0"
+              className="hidden h-32 w-24 rounded-2xl object-cover ring-4 ring-zinc-900 shadow-2xl sm:block"
+              imgStyle={encuadre(ficha.coverFocus)}
+
+              badgeClassName="-top-2 -right-2"
+              empty={
+                <div className="hidden h-32 w-24 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-800 text-[10px] text-zinc-600 ring-4 ring-zinc-900 sm:flex">
+                  Sin portada
+                </div>
+              }
+            />
+            <div className="min-w-0">
+              {currentAnime.japaneseTitle && (
+                <span className="text-xs font-medium text-violet-400">
+                  {currentAnime.japaneseTitle}
+                </span>
+              )}
+              <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
+                {currentAnime.title}
+                {/* El nombre de la temporada va debajo del de la
+                    serie, no delante: el título de la serie es el
+                    que la identifica, y "Segunda Parte" es el
+                    subtítulo de esa. */}
+                {seasonOfView?.title && (
+                  <span className="ml-2 text-lg font-bold text-violet-300 sm:text-2xl">
+                    · {seasonOfView.title}
                   </span>
                 )}
-                <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-                  {currentAnime.title}
-                  {/* El nombre de la temporada va debajo del de la
-                      serie, no delante: el título de la serie es el
-                      que la identifica, y "Segunda Parte" es el
-                      subtítulo de esa. */}
-                  {seasonOfView?.title && (
-                    <span className="ml-2 text-lg font-bold text-violet-300 sm:text-2xl">
-                      · {seasonOfView.title}
-                    </span>
-                  )}
-                </h1>
-                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-300">
-                  <span
-                    className="flex items-center gap-1 font-bold text-amber-400"
-                    title="Puntuación de IMDb"
-                  >
-                    <Star size={14} className="fill-amber-400" />
-                    {ficha.rating > 0 ? `${ficha.rating}/10` : 'No disponible'}
-                  </span>
-                  <span>•</span>
-                  <span>{ficha.year}</span>
-                  <span>•</span>
-                  <span>{ficha.studio}</span>
-                  <span>•</span>
-                  <span>{ficha.episodesCount} Episodios</span>
-                </div>
-
+              </h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-300">
+                <span
+                  className="flex items-center gap-1 font-bold text-amber-400"
+                  title="Puntuación de IMDb"
+                >
+                  <Star size={14} className="fill-amber-400" />
+                  {ficha.rating > 0 ? `${ficha.rating}/10` : 'No disponible'}
+                </span>
+                <span>•</span>
+                <span>{ficha.year}</span>
+                <span>•</span>
+                <span>{ficha.studio}</span>
+                <span>•</span>
+                <span>{ficha.episodesCount} Episodios</span>
               </div>
+
             </div>
           </div>
+        </div>
         </div>
 
 {/* TABS NAVIGATION (Información, Episodios, Personajes)

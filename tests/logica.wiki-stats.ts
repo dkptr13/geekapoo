@@ -59,6 +59,12 @@ assert.ok(
   'la ficha debe tener puntuación, IMDb y visitas deduplicadas',
 );
 assert.ok(
+  ficha.includes('aspect-[2/3]') &&
+    ficha.includes('object-contain') &&
+    ficha.includes('sm:h-[34rem]'),
+  'en móvil la portada completa sustituye al banner recortado',
+);
+assert.ok(
   ratingCard.includes('votarAnime') &&
     ratingCard.includes('Puntuación de la comunidad') &&
     ratingCard.includes('Modificar mi voto'),
