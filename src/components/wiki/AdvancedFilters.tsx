@@ -142,7 +142,11 @@ export const AdvancedFilters: FC<AdvancedFiltersProps> = ({
       </button>
 
       {abierto && (
-        <div className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-80 max-w-[calc(100vw-2rem)] space-y-5 overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-2xl shadow-black/60">
+        /* Se ancla a la izquierda del botón. Con `right-0` el panel
+           se salía por el borde izquierdo en móvil, donde el botón
+           está pegado al principio de la fila. El ancho máximo deja
+           siempre un margen dentro de la pantalla. */
+        <div className="absolute left-0 top-full z-50 mt-2 max-h-[70vh] w-80 max-w-[calc(100vw-3rem)] space-y-5 overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-2xl shadow-black/60">
           {/* CATEGORÍA DEL HILO */}
           {conCategoriaForo && (
             <section>
