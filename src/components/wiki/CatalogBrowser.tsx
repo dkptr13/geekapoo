@@ -262,7 +262,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           : animesVisibles.length > 0;
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[200px_minmax(0,1fr)_290px] xl:grid-cols-[260px_minmax(0,1fr)_330px] 2xl:grid-cols-[300px_minmax(0,1fr)_360px]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[200px_minmax(0,1fr)_310px] xl:grid-cols-[260px_minmax(0,1fr)_360px] 2xl:grid-cols-[300px_minmax(0,1fr)_400px]">
       {/* ==================================================
           LA CHICA, A LA IZQUIERDA
       ==================================================

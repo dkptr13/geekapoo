@@ -41,7 +41,7 @@ assert.ok(
 assert.ok(
   catalogo.includes('order-2') &&
     catalogo.includes('order-3') &&
-    catalogo.includes('xl:grid-cols-[260px_minmax(0,1fr)_330px]'),
+    catalogo.includes('xl:grid-cols-[260px_minmax(0,1fr)_360px]'),
   'en móvil los rankings van antes del catálogo y en escritorio a la derecha',
 );
 assert.ok(
