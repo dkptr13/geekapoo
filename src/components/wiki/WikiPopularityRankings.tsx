@@ -110,7 +110,7 @@ const Miniatura: FC<{ anime: Anime; size?: 'sm' | 'md' }> = ({
   size = 'sm',
 }) => {
   const clase =
-    size === 'sm' ? 'h-11 w-8 rounded-lg' : 'h-14 w-10 rounded-xl';
+    size === 'sm' ? 'h-12 w-9 rounded-lg' : 'h-16 w-12 rounded-xl';
 
   return anime.coverUrl ? (
     <span
@@ -152,12 +152,12 @@ const FilaRanking: FC<{
       type="button"
       onClick={onSelect}
       title={`Abrir la ficha de ${anime.title}`}
-      className={`group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1 text-left transition-all duration-200 ${
+      className={`group flex w-full items-center gap-3 rounded-xl px-2.5 py-1.5 text-left transition-all duration-200 ${
         podium ? 'hover:bg-white/[0.06]' : 'hover:bg-white/[0.035]'
       }`}
     >
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md font-mono text-[10px] font-black tabular-nums ${clasePodium(
+        className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md font-mono text-[10px] font-black tabular-nums ${clasePodium(
           posicion,
         )}`}
       >
@@ -167,22 +167,22 @@ const FilaRanking: FC<{
       <Miniatura anime={anime} size={tamano} />
 
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-xs font-bold leading-tight text-zinc-100 transition-colors group-hover:text-white">
+        <span className="block truncate text-[13px] font-bold leading-tight text-zinc-100 transition-colors group-hover:text-white">
           {anime.title}
         </span>
 
         <span className="mt-1.5 flex items-center gap-2">
-          <span className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+          <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
             <span
               className={`block h-full rounded-full bg-gradient-to-r ${meta.barra}`}
               style={{ width: `${ancho}%` }}
             />
           </span>
           <span
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-[3px] font-mono text-[9px] font-bold tabular-nums ${meta.contador}`}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-[3px] font-mono text-[10px] font-bold tabular-nums ${meta.contador}`}
             title={`${formatearNumero(valor)} ${meta.etiqueta}`}
           >
-            <Icono size={9} className="shrink-0 opacity-80" />
+            <Icono size={10} className="shrink-0 opacity-80" />
             {numeroCorto(valor)}
           </span>
         </span>
@@ -194,12 +194,12 @@ const FilaRanking: FC<{
 const Esqueleto: FC<{ filas?: number }> = ({ filas = 5 }) => (
   <div className="animate-pulse space-y-1 px-2 pb-2">
     {Array.from({ length: filas }).map((_, i) => (
-      <div key={i} className="flex items-center gap-2.5 px-2.5 py-1">
-        <span className="h-5 w-5 shrink-0 rounded-md bg-zinc-800" />
-        <span className="h-11 w-8 shrink-0 rounded-lg bg-zinc-800" />
+      <div key={i} className="flex items-center gap-3 px-2.5 py-1.5">
+        <span className="h-[22px] w-[22px] shrink-0 rounded-md bg-zinc-800" />
+        <span className="h-12 w-9 shrink-0 rounded-lg bg-zinc-800" />
         <span className="min-w-0 flex-1 space-y-2">
           <span className="block h-2.5 w-3/4 rounded bg-zinc-800" />
-          <span className="block h-1 w-full rounded bg-zinc-800/70" />
+          <span className="block h-1.5 w-full rounded bg-zinc-800/70" />
         </span>
       </div>
     ))}
@@ -262,7 +262,7 @@ const ModalRanking: FC<{
         role="dialog"
         aria-modal="true"
         aria-label={meta.titulo}
-        className="geo-pop-in flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/70 sm:rounded-3xl"
+        className="geo-pop-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/70 sm:rounded-3xl"
       >
         <div className="relative border-b border-white/[0.07] bg-zinc-900/95 px-4 py-3.5">
           <div
@@ -276,10 +276,10 @@ const ModalRanking: FC<{
                 <Icono size={17} />
               </span>
               <div className="min-w-0">
-                <h3 className="truncate text-sm font-black text-white">
+                <h3 className="truncate text-base font-black text-white">
                   {meta.titulo}
                 </h3>
-                <p className="mt-0.5 text-[10px] text-zinc-500">
+                <p className="mt-0.5 text-[11px] text-zinc-500">
                   Ranking completo · {entries.length} series
                 </p>
               </div>
@@ -354,15 +354,15 @@ const TarjetaRanking: FC<{
       <div className="relative flex items-start justify-between gap-2 px-3.5 pb-2 pt-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <span
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${meta.iconoClase}`}
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${meta.iconoClase}`}
           >
-            <Icono size={15} />
+            <Icono size={16} />
           </span>
           <div className="min-w-0">
-            <h3 className="truncate text-[12px] font-black leading-tight text-white">
+            <h3 className="truncate text-[13px] font-black leading-tight text-white">
               {meta.titulo}
             </h3>
-            <p className="mt-0.5 truncate text-[9.5px] text-zinc-500">
+            <p className="mt-0.5 truncate text-[10px] text-zinc-500">
               {meta.subtitulo}
             </p>
           </div>
@@ -372,11 +372,11 @@ const TarjetaRanking: FC<{
           type="button"
           onClick={() => setVerTodos(true)}
           aria-label="Ver todos"
-          className="group/ver inline-flex shrink-0 items-center gap-1 rounded-full border border-violet-400/20 bg-violet-500/[0.08] px-2 py-1 text-[9px] font-bold text-violet-200 transition-colors hover:border-violet-300/40 hover:bg-violet-500/15 hover:text-white"
+          className="group/ver inline-flex shrink-0 items-center gap-1 rounded-full border border-violet-400/20 bg-violet-500/[0.08] px-2.5 py-1.5 text-[10px] font-bold text-violet-200 transition-colors hover:border-violet-300/40 hover:bg-violet-500/15 hover:text-white"
         >
           <span className="inline lg:hidden xl:inline">Ver todos</span>
           <ArrowRight
-            size={9}
+            size={10}
             className="transition-transform group-hover/ver:translate-x-0.5"
           />
         </button>
