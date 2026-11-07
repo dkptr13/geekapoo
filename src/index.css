@@ -199,17 +199,21 @@
 }
 
 /* ======================================================
-   CHAT A PANTALLA COMPLETA EN MÓVIL
+   CHAT A PANTALLA COMPLETA EN MÓVIL Y TABLET
    ======================================================
    Al abrir una conversación (privada, grupo o club) el chat
    tapa la barra del sitio y ocupa el viewport completo, como
    una app de mensajería. La lista de chats, en cambio, sigue
    dentro de la web con su barra superior.
 
+   Llega hasta lg (1024px), donde el chat ya tiene la lista
+   lateral y su propio botón de volver. Así las tablets en
+   vertical también aprovechan toda la pantalla.
+
    `--chat-vh` lo actualiza ChatView con visualViewport: en
    iOS el teclado no cambia 100dvh, pero sí la altura visible.
    Así el compositor queda por encima del teclado. */
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .chat-pantalla {
     position: fixed !important;
     top: var(--chat-vt, 0px) !important;

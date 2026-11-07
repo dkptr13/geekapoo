@@ -2166,8 +2166,8 @@ export const ChatView: React.FC = () => {
     if (!result.ok) setCodeError(result.error);
   };
 
-  // En móvil, una conversación abierta tapa el navbar y ocupa
-  // toda la pantalla. La lista de chats, en cambio, se queda
+  // En móvil y tablet, una conversación abierta tapa el navbar y
+  // ocupa toda la pantalla. La lista de chats, en cambio, se queda
   // dentro de la web con su barra superior.
   const chatEnfocado =
     Boolean(activeRoomId && activeRoom) && tabChats !== 'descubrir';

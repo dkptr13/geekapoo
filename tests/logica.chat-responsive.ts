@@ -68,8 +68,8 @@ tiene('max-h-[90dvh]', 'los modales dejan sitio al viewport');
 tiene('chat-pantalla', 'la conversación usa la pantalla completa en móvil');
 tiene('visualViewport', 'el alto del chat sigue al teclado de iOS');
 assert.ok(
-  css.includes('.chat-pantalla') && css.includes('max-width: 767px'),
-  'la pantalla completa del chat está limitada a móvil',
+  css.includes('.chat-pantalla') && css.includes('max-width: 1023px'),
+  'la pantalla completa del chat cubre móvil y tablet',
 );
 
 console.log('  chat responsive: OK');
