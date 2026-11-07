@@ -110,7 +110,7 @@ const Miniatura: FC<{ anime: Anime; size?: 'sm' | 'md' }> = ({
   size = 'sm',
 }) => {
   const clase =
-    size === 'sm' ? 'h-14 w-10 rounded-lg' : 'h-[72px] w-14 rounded-xl';
+    size === 'sm' ? 'h-16 w-12 rounded-lg' : 'h-20 w-[60px] rounded-xl';
 
   return anime.coverUrl ? (
     <span
@@ -157,7 +157,7 @@ const FilaRanking: FC<{
       }`}
     >
       <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md font-mono text-[11px] font-black tabular-nums ${clasePodium(
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md font-mono text-xs font-black tabular-nums ${clasePodium(
           posicion,
         )}`}
       >
@@ -167,22 +167,22 @@ const FilaRanking: FC<{
       <Miniatura anime={anime} size={tamano} />
 
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold leading-tight text-zinc-100 transition-colors group-hover:text-white">
+        <span className="block truncate text-[15px] font-bold leading-tight text-zinc-100 transition-colors group-hover:text-white">
           {anime.title}
         </span>
 
         <span className="mt-1.5 flex items-center gap-2">
-          <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+          <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
             <span
               className={`block h-full rounded-full bg-gradient-to-r ${meta.barra}`}
               style={{ width: `${ancho}%` }}
             />
           </span>
           <span
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 font-mono text-[11px] font-bold tabular-nums ${meta.contador}`}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-xs font-bold tabular-nums ${meta.contador}`}
             title={`${formatearNumero(valor)} ${meta.etiqueta}`}
           >
-            <Icono size={11} className="shrink-0 opacity-80" />
+            <Icono size={12} className="shrink-0 opacity-80" />
             {numeroCorto(valor)}
           </span>
         </span>
@@ -195,11 +195,11 @@ const Esqueleto: FC<{ filas?: number }> = ({ filas = 5 }) => (
   <div className="animate-pulse space-y-1 px-2 pb-2">
     {Array.from({ length: filas }).map((_, i) => (
       <div key={i} className="flex items-center gap-3 px-3 py-1">
-        <span className="h-6 w-6 shrink-0 rounded-md bg-zinc-800" />
-        <span className="h-14 w-10 shrink-0 rounded-lg bg-zinc-800" />
+        <span className="h-7 w-7 shrink-0 rounded-md bg-zinc-800" />
+        <span className="h-16 w-12 shrink-0 rounded-lg bg-zinc-800" />
         <span className="min-w-0 flex-1 space-y-2">
           <span className="block h-3 w-3/4 rounded bg-zinc-800" />
-          <span className="block h-1.5 w-full rounded bg-zinc-800/70" />
+          <span className="block h-2 w-full rounded bg-zinc-800/70" />
         </span>
       </div>
     ))}
@@ -354,12 +354,12 @@ const TarjetaRanking: FC<{
       <div className="relative flex items-start justify-between gap-2 px-4 pb-2 pt-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <span
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${meta.iconoClase}`}
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${meta.iconoClase}`}
           >
-            <Icono size={18} />
+            <Icono size={20} />
           </span>
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-black leading-tight text-white">
+            <h3 className="truncate text-[15px] font-black leading-tight text-white">
               {meta.titulo}
             </h3>
             <p className="mt-0.5 truncate text-[11px] text-zinc-500">
@@ -372,11 +372,11 @@ const TarjetaRanking: FC<{
           type="button"
           onClick={() => setVerTodos(true)}
           aria-label="Ver todos"
-          className="group/ver inline-flex shrink-0 items-center gap-1 rounded-full border border-violet-400/20 bg-violet-500/[0.08] px-3 py-1.5 text-[11px] font-bold text-violet-200 transition-colors hover:border-violet-300/40 hover:bg-violet-500/15 hover:text-white"
+          className="group/ver inline-flex shrink-0 items-center gap-1 rounded-full border border-violet-400/20 bg-violet-500/[0.08] px-3 py-2 text-xs font-bold text-violet-200 transition-colors hover:border-violet-300/40 hover:bg-violet-500/15 hover:text-white"
         >
           <span className="inline lg:hidden xl:inline">Ver todos</span>
           <ArrowRight
-            size={11}
+            size={12}
             className="transition-transform group-hover/ver:translate-x-0.5"
           />
         </button>
@@ -422,7 +422,7 @@ const TarjetaRanking: FC<{
 export const WikiPopularityRankings: FC<{
   onSelectAnime: (id: string) => void;
 }> = ({ onSelectAnime }) => (
-  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-1">
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
     <TarjetaRanking metric="likes" onSelectAnime={onSelectAnime} />
     <TarjetaRanking metric="views" onSelectAnime={onSelectAnime} />
   </div>
