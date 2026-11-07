@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Bell, CheckCheck, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 
@@ -35,6 +35,8 @@ export const NotificationBell: React.FC = () => {
 
   const [tiempoRefresh, setTiempoRefresh] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
+  /** Posición calculada para que el panel quepa siempre en el viewport. */
+  const [panelBox, setPanelBox] = useState<{ left: number; width: number } | null>(null);
   const [confirmarBorrarTodas, setConfirmarBorrarTodas] = useState(false);
   const [borrandoTodas, setBorrandoTodas] = useState(false);
   const [errorAccion, setErrorAccion] = useState('');
@@ -100,6 +102,33 @@ export const NotificationBell: React.FC = () => {
       setConfirmarBorrarTodas(false);
       setBorrandoTodas(false);
     }
+  }, [openPanel]);
+
+  // El panel está anclado a la campana, que en móvil no está pegada
+  // al borde derecho: la hamburguesa y el avatar van detrás. Con
+  // `right-0` y el ancho del viewport, se salía por la izquierda.
+  // Se calcula una posición dentro de la pantalla y se recalcula al
+  // girar el móvil o cambiar el tamaño de la ventana.
+  useLayoutEffect(() => {
+    if (!openPanel) return;
+    const wrapper = panelRef.current;
+    if (!wrapper) return;
+
+    const ajustar = () => {
+      const rect = wrapper.getBoundingClientRect();
+      const viewport = window.innerWidth;
+      const width = Math.min(380, Math.max(0, viewport - 32));
+      const left = Math.max(16, Math.min(rect.right - width, viewport - 16 - width));
+      setPanelBox({ left: left - rect.left, width });
+    };
+
+    ajustar();
+    window.addEventListener('resize', ajustar);
+    window.visualViewport?.addEventListener('resize', ajustar);
+    return () => {
+      window.removeEventListener('resize', ajustar);
+      window.visualViewport?.removeEventListener('resize', ajustar);
+    };
   }, [openPanel]);
 
   // ====================================================
@@ -214,6 +243,11 @@ export const NotificationBell: React.FC = () => {
       {openPanel && (
         <div
           className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-[calc(100vw-2rem)] max-w-[380px] overflow-y-auto overscroll-contain rounded-xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl backdrop-blur-xl"
+          style={
+            panelBox
+              ? { left: panelBox.left, right: 'auto', width: panelBox.width }
+              : undefined
+          }
         >
           {/* ==============================================
               CABECERA
