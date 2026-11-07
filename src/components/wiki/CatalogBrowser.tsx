@@ -262,7 +262,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           : animesVisibles.length > 0;
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[200px_minmax(0,1fr)_270px] xl:grid-cols-[260px_minmax(0,1fr)_300px] 2xl:grid-cols-[300px_minmax(0,1fr)_320px]">
       {/* ==================================================
           LA CHICA, A LA IZQUIERDA
       ==================================================
@@ -271,7 +271,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           la página, no un panel. Con el borde y el degradado
           parecía un recuadro más del panel, y tapaba hueco
           además de Dani. */}
-      <aside className="min-w-0 lg:col-span-4 xl:col-span-3">
+      <aside className="order-1 min-w-0 lg:order-none">
         <div className="lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1">
           <div className="relative flex justify-center">
             <img
@@ -310,19 +310,15 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
               </button>
             )}
           </div>
-
-          <div className="mt-4">
-            <WikiPopularityRankings onSelectAnime={onSelectAnime} />
-          </div>
         </div>
       </aside>
 
       {/* ==================================================
           CATEGORÍAS Y SERIES
       ==================================================
-          Todo lo demás va a su derecha, porque la ilustración se
-          queda a la izquierda occupying su sitio. */}
-      <div className="min-w-0 space-y-8 lg:col-span-8 xl:col-span-9">
+          El catálogo ocupa la columna central: Kapo-chan queda a
+          la izquierda y los rankings en el carril derecho. */}
+      <div className="order-3 min-w-0 space-y-8 lg:order-none">
       {/* ==================================================
           CATEGORÍAS
       ==================================================
@@ -346,7 +342,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
           {ALL_ANIME_CATEGORIES.map((cat) => {
             const count = byCategory.get(normalize(cat.name))?.length ?? 0;
             const isActive = normalize(selectedCategory) === normalize(cat.name);
@@ -544,7 +540,7 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           )}
           </>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {animesVisibles.map((anime) => {
               const peli = esPelicula(anime);
               const duracion = duracionDe(anime);
@@ -615,6 +611,21 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
         )}
       </section>
       </div>
+
+      {/* ==================================================
+          RANKINGS DE LA COMUNIDAD, A LA DERECHA
+      ==================================================
+          Dos tarjetas sticky con lo más gustado y lo más visto.
+          En móvil se colocan después de Kapo-chan y antes del
+          catálogo; en tablet pasan a una fila completa debajo. */}
+      <aside
+        aria-label="Rankings de la comunidad"
+        className="order-2 min-w-0 lg:order-none lg:pt-16"
+      >
+        <div className="lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:overscroll-contain lg:pb-24 lg:pr-1">
+          <WikiPopularityRankings onSelectAnime={onSelectAnime} />
+        </div>
+      </aside>
     </div>
   );
 };

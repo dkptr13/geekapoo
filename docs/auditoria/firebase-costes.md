@@ -688,7 +688,7 @@ En desarrollo, React StrictMode duplica algunos efectos y por eso se ven dos agr
 ## 19. Wiki: rankings, visitas y puntuación de la comunidad (2026-11-07)
 
 - **Tres indicadores separados:** `likesCount` mide los Me gusta y alimenta «Series más gustadas»; `viewsCount` mide visitas reales y alimenta «Series más vistas»; `communityRatingSum`, `communityRatingCount` y `communityRatingAvg` guardan la puntuación 1-10. `rating` sigue siendo exclusivamente la nota externa de IMDb.
-- **Rankings:** dos tarjetas bajo «Sorpréndeme» en el catálogo. Consultan `animes` ya ordenados y limitados (5 para la tarjeta, hasta 300 en el ranking completo) con caché de 5 minutos. No descargan votos ni visitas individuales.
+- **Rankings:** dos tarjetas en el carril derecho del catálogo (Kapo-chan a la izquierda, catálogo en el centro). En móvil se colocan después de Kapo-chan y antes del catálogo. Consultan `animes` ya ordenados y limitados (5 para la tarjeta, hasta 300 en el ranking completo) con caché de 5 minutos. No descargan votos ni visitas individuales.
 - **Me gusta:** se reutiliza el sistema existente de `animes.likedBy`/`likesCount`. No se mezcla con favoritos ni con la puntuación.
 - **Visitas:** `registrarVisitaAnime` se llama al abrir una ficha, no en cada render. Deduplica por UID para registrados y por una huella opaca de IP + navegador para anónimos, una vez por anime y 24 horas. El registro de deduplicación vive en `animeViewLogs` y solo lo toca el Admin SDK.
 - **Puntuación:** `votarAnime` valida 1-10 en servidor. El voto vive en `animeRatings/{animeId}/votes/{uid}`, por lo que no puede haber dos votos del mismo usuario. La suma, el contador y la media se actualizan en la misma transacción; cambiar el voto no crea otro.

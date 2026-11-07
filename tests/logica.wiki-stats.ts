@@ -2,9 +2,9 @@
 //
 //   npx tsx tests/logica.wiki-stats.ts
 //
-// Fija lo que no puede perderse: rankings bajo «Sorpréndeme», módulo
-// de puntuación en la ficha, IMDb separado, visitas con deduplicación
-// y agregados protegidos en reglas.
+// Fija lo que no puede perderse: rankings en el carril derecho de la
+// wiki, módulo de puntuación en la ficha, IMDb separado, visitas con
+// deduplicación y agregados protegidos en reglas.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -32,12 +32,17 @@ const funciones = leer('functions', 'src', 'index.ts');
 const reglas = leer('firestore.rules');
 
 assert.ok(
-  catalogo.includes('<WikiPopularityRankings'),
-  'los rankings deben estar en el aside del catálogo',
+  catalogo.includes('aria-label="Rankings de la comunidad"') &&
+    catalogo.includes('<WikiPopularityRankings') &&
+    catalogo.indexOf('aria-label="Rankings de la comunidad"') <
+      catalogo.indexOf('<WikiPopularityRankings'),
+  'los rankings deben estar en el carril derecho del catálogo',
 );
 assert.ok(
-  catalogo.indexOf('Sorpréndeme') < catalogo.indexOf('<WikiPopularityRankings'),
-  'los rankings van debajo de «Sorpréndeme»',
+  catalogo.includes('order-2') &&
+    catalogo.includes('order-3') &&
+    catalogo.includes('xl:grid-cols-[260px_minmax(0,1fr)_300px]'),
+  'en móvil los rankings van antes del catálogo y en escritorio a la derecha',
 );
 assert.ok(
   rankings.includes('Series más gustadas') &&
