@@ -184,7 +184,7 @@ export const NewsWidget: FC = () => {
   }, []);
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/90 p-5">
+    <section className="geo-panel rounded-2xl border border-zinc-800 p-5">
       <div className="mb-4 flex items-center gap-2">
         <Newspaper size={16} className="text-violet-400" />
         <h2 className="text-sm font-bold uppercase tracking-wider text-white">

@@ -145,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="panel-scroll -mr-2 min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain pr-2">
 
         {/* Categorías más populares */}
-        <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
+        <section className="geo-panel rounded-2xl border p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Tag size={16} className="text-violet-300" />
@@ -203,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </section>
 
         {/* Hilos destacados del día */}
-        <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
+        <section className="geo-panel rounded-2xl border p-5">
           <div className="mb-4 flex items-center gap-2">
             <TrendingUp size={16} className="text-pink-400" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-white">
@@ -257,7 +257,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Extras / Personaje de la semana */}
         {featuredAnime && (
-        <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] shadow-[0_16px_48px_-20px_rgba(0,0,0,0.8)]">
+        <section className="geo-panel overflow-hidden rounded-2xl border shadow-[0_16px_48px_-20px_rgba(0,0,0,0.8)]">
           <div className="relative h-28 w-full">
             <QuickImageEditor
               section="animes"
@@ -298,7 +298,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Obras de la semana */}
         {weeklyWorks.length > 0 && (
-        <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
+        <section className="geo-panel rounded-2xl border p-5">
           <div className="mb-4 flex items-center gap-2">
             <Flame size={16} className="text-orange-400" />
             <h2 className="text-sm font-bold uppercase tracking-wider">

@@ -1003,7 +1003,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
       La migaja solo aparece en la ficha: en el catálogo no hay
       ninguna serie abierta y ponerla sería mentir. */}
-      <div className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">
+      <div className="geo-panel space-y-3 rounded-2xl border border-zinc-800 p-4">
         {/* Fila de cabecera: título → botón de filtros → buscador.
             En móvil el título va arriba y filtros + buscador debajo,
             para que nada se solape. */}

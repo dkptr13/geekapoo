@@ -1119,7 +1119,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
       {/* 2b. SUBFILTROS DE FANARTS */}
       {esFanarts && (
-        <div className="rounded-2xl border border-violet-500/15 bg-zinc-900/45 p-3 sm:p-4">
+        <div className="geo-panel rounded-2xl border border-violet-500/15 p-3 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-violet-200">
               <Palette size={14} className="text-violet-300" />

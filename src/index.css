@@ -33,6 +33,23 @@
   --geo-shadow-lg: 0 16px 48px -20px rgba(0, 0, 0, 0.85);
 }
 
+/* ======================================================
+   PANELES GRISES CON EL FONDO DEL HERO
+   ======================================================
+   El hero de Inicio usa un degradado oscuro con un halo
+   violeta. Esta clase lleva ese mismo lenguaje a las
+   tarjetas de sección (Categorías, Hilos del Día, Obras,
+   noticias y cabeceras de la wiki) sin tocar su contenido. */
+.geo-panel {
+  border-color: var(--geo-border);
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(124, 58, 237, 0.16), transparent 56%),
+    linear-gradient(135deg, #10101a 0%, #0c0c14 55%, #12102a 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 64px -24px rgba(0, 0, 0, 0.8);
+}
+
 /* Scrollbar global más discreta. */
 ::-webkit-scrollbar {
   width: 8px;

@@ -352,14 +352,22 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
                 key={cat.id}
                 onClick={() => onSelectCategory(isActive ? 'all' : cat.name)}
                 title={cat.description}
-                className={`group relative overflow-hidden rounded-2xl border bg-gradient-to-br p-4 text-left transition-all ${
-                  cat.color
-                } ${
+                className={`geo-panel group relative overflow-hidden rounded-2xl border p-4 text-left transition-all ${cat.color} ${
                   isActive
                     ? 'ring-2 ring-violet-400'
                     : 'opacity-80 hover:opacity-100'
                 }`}
               >
+                {/* El color de la categoría tiñe el fondo oscuro; así
+                    conserva su identidad sin perder el violeta del hero. */}
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${cat.color} opacity-60`}
+                />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-violet-500/10 blur-3xl"
+                />
                 <div className="relative z-10">
                   <div className="flex items-baseline justify-between gap-2">
                     <h3 className="text-xs font-bold leading-tight">{cat.name}</h3>
