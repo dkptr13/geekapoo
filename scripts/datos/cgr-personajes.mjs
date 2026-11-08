@@ -27,7 +27,7 @@ export const PERSONAJES = [
     'La princesa de Britannia y general. Fuerte y decidida.'],
 
   ['Gilbert G.P. Guilford', '', 'supporting', 'ギルバート・G・P・ギルフォード', 'Yoshiyuki Kouno',
-    'El caballero de Cornelia. Leal y honorable.'],
+    'El caballero personal de Cornelia, que sigue a su lado tras la guerra y la acompaña a Zilkhstan para rescatar a Nunnally.'],
 
   ['Jeremiah Gottwald', '', 'antagonist', 'ジェレミア・ゴットバルト', 'Ken Narita',
     'El caballero de Britannia que persigue a Zero. Leal y honorable.'],

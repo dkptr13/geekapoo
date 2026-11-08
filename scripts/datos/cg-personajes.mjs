@@ -28,7 +28,7 @@ export const PERSONAJES = [
     'La hermana de Lelouch, ciega y en silla de ruedas. El motivo por el que lucha.'],
 
   ['Gilbert G.P. Guilford', '', 'supporting', 'ギルバート・G・P・ギルフォード', 'Yoshiyuki Kouno',
-    'El caballero de Cornelia. Leal y honorable.'],
+    'El caballero personal y confidente de Cornelia. Tras la desaparición de Darlton toma el mando de los Glaston Knights y le permanece leal incluso cuando Britannia deja de importarle.'],
 
   ['Jeremiah Gottwald', '', 'antagonist', 'ジェレミア・ゴットバルト', 'Ken Narita',
     'El caballero de Britannia que persigue a Zero. Leal y honorable.'],
@@ -40,7 +40,7 @@ export const PERSONAJES = [
     'El miembro de los Caballeros Negros que se convierte en líder. Serio y responsable.'],
 
   ['Andreas Darlton', '', 'antagonist', 'アンドレアス・ダールトン', 'Kiyoyuki Yanada',
-    'El caballero de Cornelia. Leal y honorable.'],
+    'El general de Britannia que instruyó a Cornelia en táctica y dirigió a los Glaston Knights, todos hijos adoptivos suyos. Leal a la princesa hasta el final.'],
 
   ['Villetta Nu', '', 'supporting', 'ヴィレッタ・ヌゥ', 'Akeno Watanabe',
     'La caballero de Britannia que se infiltra en la escuela. Astuta y calculadora.'],
