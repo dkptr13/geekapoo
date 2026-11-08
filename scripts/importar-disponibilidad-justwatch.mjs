@@ -1,5 +1,14 @@
 // Rellena la disponibilidad regional de streaming desde JustWatch.
-//    node scripts/importar-disponibilidad-justwatch.mjs [--anime <id>[,<id>...]] [--escribir]
+//    node scripts/importar-disponibilidad-justwatch.mjs [--anime <id>[,<id>...]] [--escribir] [--podar]
+//
+// Con `--anime` solo se consultan y se tocan las filas de esos animes.
+// Con varios animes se leen en bloques de hasta 30 `animeId`; una
+// importación completa mantiene la lectura de toda la colección.
+//
+// Sin `--escribir` no toca Firestore: es el modo de simulación.
+// `--podar` (junto con `--escribir`) elimina las filas obsoletas de los
+// animes seleccionados. Nunca toca otros animes y protege las filas
+// manuales de plataformas/regiones que este importador no conoce.
 //
 // ── DE DONDE SALEN LOS DATOS ────────────────────────────────────────
 //
@@ -32,10 +41,29 @@
 // ficha; el script los vuelve a pedir y avisa si el titulo no es el
 // esperado.
 
-import { coleccion, escribir, uno, crear, s, momento } from './firestore-rest.mjs';
+import {
+  borrar,
+  cliente,
+  coleccion,
+  crear,
+  escribir,
+  momento,
+  s,
+  uno,
+} from './firestore-rest.mjs';
+import {
+  bloquesDe,
+  claveDisponibilidad,
+  clasificarDisponibilidad,
+  crearConsultaDisponibilidad,
+  indiceExistente,
+  leerPaginado,
+  normalizarIds,
+} from './disponibilidad-justwatch-logic.mjs';
 
 const args = process.argv.slice(2);
 const escribirEnBase = args.includes('--escribir');
+const podar = args.includes('--podar');
 const soloAnime = new Set(
   args
     .flatMap((a, i) => (a === '--anime' ? (args[i + 1] ?? '').split(',') : []))
@@ -43,6 +71,22 @@ const soloAnime = new Set(
     .filter(Boolean),
 );
 const filtrarAnime = soloAnime.size > 0;
+
+const metricas = {
+  animesProcesados: 0,
+  consultas: 0,
+  documentos: 0,
+  nuevas: 0,
+  actualizadas: 0,
+  sinCambios: 0,
+  repetidas: 0,
+  obsoletas: 0,
+  protegidas: 0,
+  eliminadas: 0,
+  escritas: 0,
+  sinJustwatch: 0,
+  filas: 0,
+};
 
 const REGIONES = ['ES', 'MX', 'AR', 'CO', 'CL', 'US', 'JP', 'FR', 'DE', 'GB'];
 
@@ -448,6 +492,14 @@ const PAISES_EXTRA = {
   'rtve-play': ['ES'],
 };
 
+/**
+ * Plataformas que este importador puede generar. Las filas obsoletas de
+ * una plataforma ajena a esta lista se consideran manuales y no se borran.
+ */
+const PLATAFORMAS_CONOCIDAS = [
+  ...new Set([...Object.values(NUCLEO), ...Object.values(EXTRA)]),
+].sort();
+
 /** Como se llama cada plataforma nueva en Firestore. */
 const PLATAFORMAS_NUEVAS = [
   { id: 'animebox', name: 'AnimeBox', badgeColor: '#e91e63', order: 200 },
@@ -627,8 +679,10 @@ function construirFilas(ofertasPorPais) {
   return filas;
 }
 
-async function crearPlataformas() {
+async function crearPlataformas(metricasLectura) {
   for (const plataforma of PLATAFORMAS_NUEVAS) {
+    metricasLectura.consultas += 1;
+    metricasLectura.documentos += 1;
     const ya = await uno('streamingPlatforms', plataforma.id);
 
     if (ya) {
@@ -646,26 +700,121 @@ async function crearPlataformas() {
   }
 }
 
-const animes = await coleccion('animes');
-const idsDelCatalogo = new Set(animes.map((a) => a.id));
+function filaDesdeDocumento(documento) {
+  const campos = documento.fields ?? {};
 
-const yaExistentes = await coleccion('streamingAvailability');
-const porAnime = new Map();
-
-for (const fila of yaExistentes) {
-  const animeId = fila.f.animeId?.stringValue ?? '';
-
-  if (!animeId) continue;
-
-  if (!porAnime.has(animeId)) porAnime.set(animeId, new Set());
-
-  porAnime
-    .get(animeId)
-    .add(`${fila.f.platformId?.stringValue}__${fila.f.region?.stringValue}`);
+  return {
+    id: documento.name?.split('/').pop() ?? '',
+    animeId: campos.animeId?.stringValue ?? '',
+    platformId: campos.platformId?.stringValue ?? '',
+    region: campos.region?.stringValue ?? '',
+    status: campos.status?.stringValue ?? '',
+    accessType: campos.accessType?.stringValue ?? 'unknown',
+    url: campos.url?.stringValue ?? '',
+    verifiedAt: campos.verifiedAt?.stringValue ?? '',
+    updatedAt: campos.updatedAt?.timestampValue ?? '',
+  };
 }
 
+/** Lee solo las filas de los animes seleccionados. */
+async function leerDisponibilidad(ids, metricasLectura) {
+  if (!filtrarAnime) {
+    const stats = { consultas: 0, documentos: 0 };
+    const filas = await coleccion('streamingAvailability', { stats });
+
+    metricasLectura.consultas += stats.consultas;
+    metricasLectura.documentos += stats.documentos;
+
+    return filas.map(filaDesdeDocumento);
+  }
+
+  const { cabeceras, BASE } = await cliente();
+  const filas = [];
+
+  for (const bloque of bloquesDe(ids)) {
+    const { documentos, consultas } = await leerPaginado(async ({ startAfter }) => {
+      const structuredQuery = crearConsultaDisponibilidad(bloque, startAfter);
+      const respuesta = await fetch(`${BASE}:runQuery`, {
+        method: 'POST',
+        headers: cabeceras,
+        body: JSON.stringify({ structuredQuery }),
+      });
+
+      if (!respuesta.ok) {
+        const detalle = (await respuesta.text()).slice(0, 300);
+        throw new Error(
+          `consulta streamingAvailability (${bloque.length} animes): ` +
+            `${respuesta.status}: ${detalle}`,
+        );
+      }
+
+      const payload = await respuesta.json();
+
+      // `runQuery` devuelve una entrada por documento y, al final, una
+      // entrada con `readTime` que no tiene `document`.
+      return payload
+        .filter((entrada) => entrada.document)
+        .map((entrada) => entrada.document);
+    });
+
+    metricasLectura.consultas += consultas;
+    metricasLectura.documentos += documentos.length;
+    filas.push(...documentos.map(filaDesdeDocumento));
+  }
+
+  return filas;
+}
+
+/**
+ * En modo filtrado se comprueba solo la existencia de los animes
+ * seleccionados. La lectura completa de `animes` se reserva para la
+ * reconstrucción completa.
+ */
+async function leerIdsCatalogo(ids, metricasLectura) {
+  const idsDelCatalogo = new Set();
+
+  if (!filtrarAnime) {
+    const stats = { consultas: 0, documentos: 0 };
+    const animes = await coleccion('animes', { stats });
+
+    metricasLectura.consultas += stats.consultas;
+    metricasLectura.documentos += stats.documentos;
+    animes.forEach((anime) => idsDelCatalogo.add(anime.id));
+
+    return idsDelCatalogo;
+  }
+
+  for (const id of ids) {
+    metricasLectura.consultas += 1;
+    metricasLectura.documentos += 1;
+
+    if (await uno('animes', id)) idsDelCatalogo.add(id);
+  }
+
+  return idsDelCatalogo;
+}
+
+const idsFichas = Object.keys(FICHAS);
+const idsSeleccionados = normalizarIds(
+  filtrarAnime ? idsFichas.filter((id) => soloAnime.has(id)) : idsFichas,
+);
+const idsConFicha = idsSeleccionados.filter((id) => FICHAS[id]?.id);
+
+console.log(
+  `\nModo: ${filtrarAnime ? 'filtrado' : 'completo'} · ` +
+    `${idsConFicha.length} anime(s) con ficha de JustWatch`,
+);
+
+if (idsSeleccionados.length === 0) {
+  console.log('No hay animes seleccionados que estén en FICHAS.');
+}
+
+const idsDelCatalogo = await leerIdsCatalogo(idsSeleccionados, metricas);
+const idsAProcesar = idsConFicha.filter((id) => idsDelCatalogo.has(id));
+const yaExistentes = await leerDisponibilidad(idsAProcesar, metricas);
+const indice = indiceExistente(yaExistentes);
+
 let totalFilas = 0;
-let totalNuevas = 0;
 let totalDisponibles = 0;
 let totalSinJustwatch = 0;
 
@@ -679,6 +828,7 @@ for (const [animeId, ficha] of Object.entries(FICHAS)) {
 
   if (!ficha.id) {
     console.log(`\n${animeId}: sin ficha en JustWatch, no hay ofertas que copiar`);
+    metricas.sinJustwatch++;
     totalSinJustwatch++;
     continue;
   }
@@ -737,19 +887,49 @@ for (const [animeId, ficha] of Object.entries(FICHAS)) {
     console.log(`   ${plataforma.padEnd(28)} ${regiones.join(' ')}`);
   }
 
-  const existentes = porAnime.get(animeId) ?? new Set();
-  const nuevas = filas.filter((f) => !existentes.has(`${f.platformId}__${f.region}`));
+  const filasConAnime = filas.map((fila) => ({ ...fila, animeId }));
+  const clasificacion = clasificarDisponibilidad({
+    generadas: filasConAnime,
+    existentes: indice,
+    animeIds: new Set([animeId]),
+    regionesPermitidas: REGIONES,
+    plataformasConocidas: PLATAFORMAS_CONOCIDAS,
+  });
 
-  if (nuevas.length) {
-    console.log(`   ${nuevas.length} filas nuevas`);
-  }
+  const nuevas = clasificacion.nuevas;
+  const modificadas = clasificacion.modificadas;
+  const sinCambios = clasificacion.sinCambios;
+  const obsoletas = clasificacion.obsoletas;
+  const protegidas = clasificacion.protegidas;
+  const clavesProtegidas = new Set(
+    protegidas.map((fila) => claveDisponibilidad(fila)),
+  );
 
-  totalFilas += filas.length;
-  totalNuevas += nuevas.length;
+  console.log(
+    `   ${nuevas.length} nuevas, ${modificadas.length} modificadas, ` +
+      `${sinCambios.length} sin cambios, ${obsoletas.length} obsoletas` +
+      (protegidas.length ? `, ${protegidas.length} protegidas` : '') +
+      (clasificacion.repetidas.length ? `, ${clasificacion.repetidas.length} repetidas` : ''),
+  );
+
+  metricas.animesProcesados += 1;
+  metricas.filas += filasConAnime.length;
+  metricas.nuevas += nuevas.length;
+  metricas.actualizadas += modificadas.length;
+  metricas.sinCambios += sinCambios.length;
+  metricas.repetidas += clasificacion.repetidas.length;
+  metricas.obsoletas += obsoletas.length;
+  metricas.protegidas += protegidas.length;
+
+  totalFilas += filasConAnime.length;
   totalDisponibles += disponibles.length;
 
   if (escribirEnBase) {
-    for (const fila of filas) {
+    for (const fila of filasConAnime) {
+      if (clavesProtegidas.has(claveDisponibilidad(fila))) {
+        continue;
+      }
+
       const id = `${animeId}__${fila.platformId}__${fila.region}`;
       const campos = {
         animeId: s(animeId),
@@ -778,17 +958,53 @@ for (const [animeId, ficha] of Object.entries(FICHAS)) {
       campos.url = fila.url ? s(fila.url) : { nullValue: null };
 
       await escribir('streamingAvailability', id, campos, mascara);
+      metricas.escritas += 1;
+    }
+
+    // La poda es opt-in y se limita a las filas de ESTE anime que se
+    // acaban de clasificar. `obsoletas` ya excluye otros animes y las
+    // filas protegidas (plataformas/regiones manuales o sin verificar).
+    if (podar) {
+      for (const fila of obsoletas) {
+        await borrar('streamingAvailability', fila.id);
+        metricas.eliminadas += 1;
+      }
     }
   }
 }
 
 if (escribirEnBase) {
   console.log('\nPlataformas nuevas:');
-  await crearPlataformas();
+  await crearPlataformas(metricas);
 }
 
 console.log(
-  `\n${totalFilas} filas, ${totalNuevas} nuevas, ${totalDisponibles} disponibles` +
+  `\n${totalFilas} filas generadas, ${metricas.nuevas} nuevas, ` +
+    `${metricas.actualizadas} con cambios, ${metricas.sinCambios} sin cambios, ` +
+    `${totalDisponibles} disponibles` +
     (totalSinJustwatch ? `, ${totalSinJustwatch} fichas sin ficha en JustWatch` : '') +
     (escribirEnBase ? ' (escritas)' : ' (simulacion: usa --escribir)'),
+);
+
+console.log(
+  `\nResumen de lectura y cambios:\n` +
+    `  Modo: ${filtrarAnime ? 'filtrado' : 'completo'}\n` +
+    `  Animes procesados: ${metricas.animesProcesados}\n` +
+    `  Consultas REST: ${metricas.consultas}\n` +
+    `  Documentos leidos de Firestore: ${metricas.documentos}\n` +
+    `  Filas generadas: ${metricas.filas}\n` +
+    `  Filas escritas: ${metricas.escritas}\n` +
+    `  Nuevas: ${metricas.nuevas}\n` +
+    `  Actualizadas (datos): ${metricas.actualizadas}\n` +
+    `  Sin cambios: ${metricas.sinCambios}\n` +
+    `  Repetidas: ${metricas.repetidas}\n` +
+    `  Obsoletas detectadas: ${metricas.obsoletas}\n` +
+    `  Protegidas (manuales/sin verificar): ${metricas.protegidas}\n` +
+    `  Obsoletas eliminadas: ${metricas.eliminadas}` +
+    (podar && !escribirEnBase
+      ? '\n  Poda: simulada (no se ha borrado nada; usa --escribir)'
+      : podar
+        ? ''
+        : '\n  Poda: desactivada (usa --podar para borrar obsoletas)') +
+    `\n  Índice local reutilizado: no (Firestore es la fuente de verdad)`,
 );

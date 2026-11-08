@@ -70,6 +70,7 @@ export async function cliente() {
     const out = [];
     let pageToken;
     let pagina = 0;
+    const stats = op.stats;
 
     for (;;) {
       const p = new URLSearchParams({ pageSize: '1000' });
@@ -89,9 +90,15 @@ export async function cliente() {
       if (!r.ok) await fallo(`listar ${col}`, r);
 
       const d = await r.json();
+      const docs = d.documents || [];
 
-      for (const doc of d.documents || []) {
+      for (const doc of docs) {
         out.push({ id: doc.name.split('/').pop(), f: doc.fields || {} });
+      }
+
+      if (stats) {
+        stats.consultas = (stats.consultas ?? 0) + 1;
+        stats.documentos = (stats.documentos ?? 0) + docs.length;
       }
 
       pagina++;
