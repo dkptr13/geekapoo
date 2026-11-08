@@ -1,6 +1,12 @@
 # Índice de búsqueda: cuándo refrescarlo y cómo
 
-Fecha: 2026-11-04
+> **Actualizado el 2026-11-08:** el generador ya soporta actualización
+> incremental (`--only`, `--anime`, `--dry-run`) y publicación atómica.
+> Este documento conserva la explicación histórica y las cifras de la
+> versión anterior. Para operar o pasar instrucciones a otro agente, usa
+> [`docs/guia-agentes-datos.md`](guia-agentes-datos.md).
+
+Fecha: 2026-11-04 (cifras históricas)
 
 Ámbito: Wiki, ficha, buscador, perfiles, editor de tier lists, sitemap y páginas estáticas de anime.
 
