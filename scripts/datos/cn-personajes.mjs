@@ -39,7 +39,7 @@ export const PERSONAJES = [
    "Amiga de Kou del instituto. Sale en las dos."],
 
   ["Hatsuka Suzushiro", "", "supporting", "蘿蔔ハツカ", "Azumi Waki",
-   "Vampira del grupo de la noche. Sale en las dos."],
+   "Vampiro del grupo de la noche, de aspecto andrógino. Sale en las dos."],
 
   ["Mahiru Seki", "", "supporting", "夕真昼", "Kenshou Ono",
    "Amigo de Kou del instituto. Sale en las dos."],

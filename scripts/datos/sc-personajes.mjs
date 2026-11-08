@@ -78,7 +78,7 @@ export const PERSONAJES = [
     'El samurái que busca a Fuu. Poderoso y misterioso.'],
 
   ['Sara', '', 'supporting', '沙羅', 'Sakiko Tamagawa',
-    'La joven que ayuda a la tripulación. Dulce y valiente.'],
+    'Goze ciega y letal que se cruza con el trío al final del viaje.'],
 
   ['Kouza', '', 'supporting', 'コザ', 'Ai Maeda',
     'El joven que ayuda a la tripulación. Valiente y servicial.'],

@@ -21,10 +21,10 @@ export const PERSONAJES = [
     'La anciana que ve fantasmas y ayuda a Miko. Sabia y servicial.'],
 
   ['Zen Touno', '', 'supporting', '遠野善', 'Yuuichi Nakamura',
-    'El compañero de clase de Miko. Alegre y sin filtro.'],
+    'El profesor temporal de Miko y Hana. Amante de los gatos y rodeado de espíritus.'],
 
   ['Gozuka', '', 'supporting', '豪塚', 'Atsushi Imaruoka',
-    'El compañero de clase de Miko. Alegre y sin filtro.'],
+    'El hombre que adoptó al gato que Miko rechazó. Rudo por fuera y amante de los gatos.'],
 
   ['Zen no Haha', '', 'supporting', '善の母', 'Mai Nakahara',
     'La madre de Zen. Cariñosa y protectora.'],
@@ -36,16 +36,16 @@ export const PERSONAJES = [
     'El hermano menor de Miko. Alegre y sin filtro.'],
 
   ['Satoru', '', 'supporting', 'サトル', 'You Taichi',
-    'El compañero de clase de Miko. Alegre y sin filtro.'],
+    'El veterinario y amigo de Zen. Atiende a los gatos que este recoge.'],
 
   ['Mamoru Yotsuya', '', 'supporting', '四谷真守', 'Kousuke Toriumi',
     'El padre de Miko. Cariñoso y protector.'],
 
   ['Junji Rousoku', '', 'supporting', 'ロウソク淳二', 'Nobuo Tobita',
-    'El compañero de clase de Miko. Alegre y sin filtro.'],
+    "Presentador del programa de terror 'Yaba Kowa'. Parodia de Inagawa Junji."],
 
   ['Arai', '', 'supporting', '荒井', 'Hana Satou',
-    'El compañero de clase de Miko. Alegre y sin filtro.'],
+    'La profesora de Miko y Hana. Dejó el cargo por la baja de maternidad.'],
 
   ['Hitoe', '', 'supporting', 'ひとえ', 'Ayaka Nanase',
     'La compañera de clase de Miko. Dulce y valiente.'],
@@ -54,16 +54,13 @@ export const PERSONAJES = [
     'La compañera de clase de Miko. Dulce y valiente.'],
 
   ['Kainushi', '', 'supporting', '飼い主', 'Hitomi Shogawa',
-    'El compañero de clase de Miko. Alegre y sin filtro.'],
-
-  ['Arai', '', 'supporting', '新井', 'Miho Wataya',
-    'El compañero de clase de Miko. Alegre y sin filtro.'],
+    'Dueño de una mascota que aparece en el parque. Papel menor.'],
 
   ['Horiguchi', '', 'supporting', '堀口', 'Kaya Okuno',
     'El compañero de clase de Miko. Alegre y sin filtro.'],
 
   ['Kido', '', 'supporting', '木戸', 'Harumi Sakurai',
-    'La compañera de clase de Miko. Dulce y valiente.'],
+    'La enfermera del instituto. Atrae a los espíritus por su energía.'],
 
   ['Morino', '', 'supporting', '森野', 'Miyuri Shimabukuro',
     'La compañera de clase de Miko. Dulce y valiente.'],

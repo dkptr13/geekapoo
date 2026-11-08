@@ -57,7 +57,7 @@ export const PERSONAJES = [
     'La mujer que ayuda a Shinichi. Sabia y servicial.'],
 
   ['Kusano', '', 'supporting', '草野', 'Takaya Aoyagi',
-    'Un parásito que se enfrenta a Shinichi. Letal y frío.'],
+    'Parásito aliado de Reiko Tamura. Desconfía de ella y trama matarla con Hikawa y Maesawa.'],
 
   ['Yuuko Tachikawa', '', 'supporting', '立川裕子', 'Kiyono Yasuno',
     'La compañera de Shinichi. Dulce y preocupada.'],

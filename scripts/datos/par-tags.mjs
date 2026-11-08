@@ -21,7 +21,7 @@ export const TAGS = {
   'Mitsuo': ['Matón', 'Fuerte', 'Decidido'],
   'Makiko Hayase': ['Compañera', 'Dulce', 'Servicial'],
   'Mitsuyo': ['Ayuda', 'Sabia', 'Servicial'],
-  'Kusano': ['Parásito', 'Letal', 'Frío'],
+  'Kusano': ['Parásito', 'Reiko Tamura', 'Rebelión'],
   'Yuuko Tachikawa': ['Compañera', 'Dulce', 'Preocupada'],
   'Akiho Suzuki': ['Compañera', 'Dulce', 'Preocupada'],
   'B': ['Parásito', 'Letal', 'Frío'],

@@ -28,6 +28,6 @@ export const TAGS = {
   'Bunta Ogura': ['Joven', 'Valiente', 'Servicial'],
   'Budoukiba': ['Portugués', 'Misterioso', 'Viajero'],
   'Enshirou Mariya': ['Samurái', 'Poderoso', 'Misterioso'],
-  'Sara': ['Joven', 'Dulce', 'Valiente'],
+  'Sara': ['Goze', 'Ciega', 'Antagonista'],
   'Kouza': ['Joven', 'Valiente', 'Servicial'],
 };

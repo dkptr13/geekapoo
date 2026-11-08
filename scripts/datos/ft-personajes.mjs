@@ -358,31 +358,31 @@ export const PERSONAJES = [
    'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],
 
   ['Wolfheim', '', 'supporting', 'ウルフヘイム', 'Shinya Takahashi',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   'Miembro del Consejo Mágico y uno de los Diez Santos Magos, dentro de los Cuatro Dioses de Ishgar.'],
 
   ['Yajeel', '', 'supporting', 'ヤジール', 'Takashi Matsuyama',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   'Ministro del Imperio de Álvarez y abuelo de Ajeel Raml.'],
 
   ['Draculos Hyberion', '', 'supporting', 'ドラキュロス・ハイベリオン', 'Hiroki Yasumoto',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   'Presidente del Consejo Mágico y uno de los Diez Santos Magos.'],
 
   ['Marin Hollow', '', 'supporting', 'マリン・ホーロウ', 'Tomohiro Yamaguchi',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   'Soldado del Imperio de Álvarez y exmiembro del Escuadrón de Brandish.'],
 
   ['Grammi', '', 'supporting', 'グラミー', 'Manami Numakura',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   'Sirvienta de Layla Heartfilia y madre de Brandish. Fue asesinada por Zoldeo.'],
 
   ['Belserion', '', 'supporting', 'ベルせリオン', 'Takuya Kirimoto',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   'El Dragón Sabio que fue mentor y amigo de Irene. Le enseñó la magia de dragón.'],
 
   ['Juliet Sun', '', 'supporting', 'ジュリエット・サン', 'Aiko  Ninomiya',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   'Soldado del Imperio de Álvarez y exmiembro del Escuadrón de Irene. Compañera de Heine.'],
 
   ['Orochi Head', '', 'supporting', 'オロチヘッド', 'Atsushi Tamaru',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   "Mago de Orochi's Fin, el gremio que atacó Lamia Scale."],
 
   ['Heine Lunasea', '', 'supporting', 'ハイネ・ルナシー', 'Manami Hanawa',
-   'Miembro de los Spriggan 12. Sirve a Zeref y al Imperio Álvarez.'],
+   'Soldado del Imperio de Álvarez y exmiembro del Escuadrón de Irene.'],
 
   ['Rita Dreyar', '', 'supporting', 'リタ . ドレアー', 'Eri Inagawa',
    'Personaje secundario de Fairy Tail. Aparece en los arcos de la serie y se cruza con los protagonistas.'],

@@ -15,7 +15,7 @@ export const TAGS = {
   "Kabura Honda": ["Vampira", "Grupo", "Noche"],
   "Midori Kohakobe": ["Vampira", "Grupo", "Noche"],
   "Akira Asai": ["Amiga", "Instituto", "Dia"],
-  "Hatsuka Suzushiro": ["Vampira", "Grupo", "Noche"],
+  "Hatsuka Suzushiro": ["Vampiro", "Grupo", "Noche"],
   "Mahiru Seki": ["Amigo", "Instituto", "Dia"],
   "Kiyosumi Shirakawa": ["Locutora", "Ciudad", "Noche"],
   "Arisa": ["Noche", "Ciudad"],

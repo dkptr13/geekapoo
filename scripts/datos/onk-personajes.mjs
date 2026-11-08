@@ -106,13 +106,13 @@ export const PERSONAJES = [
      'La fan numero uno de Ruby en el colegio, la que crecio con ella viéndola en la television. Es la fan de verdad, la que quiere a Ruby por Ruby y no por la industria.'],
 
   ['Yuki Sumi', '1,2,3', 'supporting', '鷲見ゆき', 'Saori Ōnishi',
-     'La fan que organizo la campana contra Ai en el colegio. No es mala persona: es la que mas sufria con la presion de la idol y la que acabo tomando el camino equivocado.'],
+     'Modelo de instituto y concursante del reality LoveNow. Compañera de reparto de Aqua y Akane.'],
 
   ['Nobuyuki Kumano', '1,2,3', 'supporting', '熊野ノブユキ', 'Tomohiro Ohno',
-     'El que monto la campana en el colegio para que se acabara el fenomeno Ai. Es el que mas se acerca a Ruby en la primera temporada y el que se lleva el peor final.'],
+     'Bailarín y concursante del reality LoveNow. Compañero de reparto de Aqua y Akane.'],
 
   ['Kengo Morimoto', '1,2,3', 'supporting', '森本ケンゴ', 'Taito Ban',
-   'El compañero de clase que organizaba la cacería de brujas sin saber lo que estaba haciendo. Sale poco y por eso se le reconoce: es de los que hacen cosas que no entienden.'],
+   'Músico y concursante del reality LoveNow. Compañero de reparto de Aqua y Akane.'],
 
   ['Melt Narushima', '1,2,3', 'supporting', '鳴嶋メルト', 'Seiji Maeda',
    'El chico que sale con Ai en el show de television del primer capitulo, cuando la idol todavia no sabe que se esta muriendo. Es la prueba de que ella lo perdio todo el dia que se lo dijeron.'],
