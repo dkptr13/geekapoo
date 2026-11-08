@@ -122,8 +122,8 @@ export const PERSONAJES = [
   ['Suigetsu Houzuki', '1', 'supporting', '鬼灯水月', 'Takashi Kondou',
     'El hermano del Mizukage que despierta en una cápsula de agua dos años después de la invasión de Pain y que se une a Sasuke.'],
 
-  ['Karin', '1', 'supporting', 'カリン', 'Kanako Tojo',
-    'La vampira que lleva mil años viva y que tiene un ojo que ve a distancia. Es la que más se ríe de Sasuke, y la primera en decirle que se parece a Itachi.'],
+  ['Karin', '1', 'supporting', '香燐', 'Kanako Tojo',
+    'Kunoichi de Otogakure y miembro del clan Uzumaki. Cura a quien la muerde y detecta presencias a distancia, habilidades que la hacen invaluable para Orochimaru y después para Sasuke. Se une a Team Taka y participa en la guerra contra la Alianza Shinobi.'],
 
   ['Jugo', '1', 'supporting', 'ユウゴ', 'Shuhei Sakaguchi',
     'El chico de los impulsos homicidas que lleva la enzima original del Senju en el cuerpo y que puede volverse piedra.'],
@@ -170,7 +170,7 @@ export const PERSONAJES = [
   ['Chiyo', '1', 'supporting', 'チヨ', 'Ikuko Tani',
     'La abuela de Suna que sella a Shukaku dentro de Gaara y que se enfrenta a Sasori con sus propias marionetas.'],
 
-  ['Kankuro', '1', 'supporting', '我愛羅カンクロウ', 'Yasuyuki Kase',
+  ['Kankuro', '1', 'supporting', 'カンクロウ', 'Yasuyuki Kase',
     'El hermano de Gaara y el que usa las marionetas con hilo, el vehículo de Sasori cuando era un crío.'],
 
   ['Mei Terumi', '1', 'supporting', '照美メイ', 'Yurika Hino',

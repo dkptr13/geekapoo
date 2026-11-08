@@ -149,7 +149,7 @@ const SOLO_T3 = [
    'Anciana y perceptiva, es el Agua Dios y la abuela de Isolte Cruel.'],
   ['Isolte Cruel', '3', 'antagonist', 'イゾルテ・クルーエル', 'Yoko Hikasa',
    'Aprendiz de su abuela, el Agua Dios, y Rey del Agua. Manipuladora y muy consciente de su propio poder.'],
-  ['Perugius Dola', '1,3', 'antagonist', 'ペルギウス・ドラ', 'Rikiya Koyama',
+  ['Perugius Dola', '1,3', 'antagonist', 'ペルギウス・ドーラ', 'Rikiya Koyama',
    'El Rey Dragón Acorazado. Vive en una fortaleza flotante y lleva veinte años esperando que Laplace regrese para matarlo otra vez.'],
 ];
 

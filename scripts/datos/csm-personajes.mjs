@@ -103,7 +103,7 @@ export const PERSONAJES = [
   ["Beam", "1,2", "supporting", "ビーム", "Natsuki Hanae",
    "Demonio que se ofrece a morir por Chainsaw Man y sabe que por eso los demas lo quieren muerto. Sale del capitolo 11 hurtando un coche de policia para llorar a un hombre, y esa es toda la razon por la que ese capitolo existe."],
 
-  ["Tenshi no Akuma", "1,2", "supporting", "天使の悪神", "Maaya Uchida",
+  ["Tenshi no Akuma", "1,2", "supporting", "天使の悪魔", "Maaya Uchida",
    "El Diablo Angel, el que tiene alas y no puede tocar el suelo. Se lleva a Denji de la oficina y obliga a los otros dos a perseguirlo por el bosque. No lo quiere muerto todavia: quiere algo peor, y de ahi viene el plan de Aki en el capitolo 8."],
 
   ["Bouryoku no Majin", "1,2", "supporting", "暴力の魔人", "Yuyuya Uchida",

@@ -62,10 +62,10 @@ export const PERSONAJES = [
   ['Mem-cho', '1,2,3', 'supporting', 'MEMちょ', 'Rumi Okubo',
      'La que va con las relaciones publicas y dice lo que nadie mas dice delante de la camara. Es la unica que ve venir la mania y aun asi sigue ahi, y por eso termina siendo la voz de Ruby.'],
 
-  ['Ichigo Saitō', '1,2,3', 'supporting', '斎藤壱護', 'Hisao Egawa',
+  ['Ichigo Saitō', '1,2,3', 'supporting', '斉藤壱護', 'Hisao Egawa',
    'El amigo de la escuela de Ruby, que salio corriendo de su fansim cuando se le fue de las manos con la idol. Doce anos desaparece, y cuando Ruby lo encuentra resulta que tambien estaba buscando al asesino.'],
 
-  ['Miyako Saitō', '1,2,3', 'supporting', '斎藤ミヤコ', 'Lynn',
+  ['Miyako Saitō', '1,2,3', 'supporting', '斉藤ミヤコ', 'Lynn',
    'La madre de Ichigo, la que le dijo a Ruby en el peor momento que su hijo se fue porque un fan la estaba acosando. Es la adulta que hace bien su trabajo y a quien nadie hizo caso. Reaparece al final de la tercera temporada.'],
 
   ['Pieyon', '1,2,3', 'supporting', 'ぴえヨン', 'Taishi Murata',
