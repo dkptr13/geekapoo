@@ -24,6 +24,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCommunity } from '../../context/CommunityContext';
 import { useQueryState } from '../../hooks/useQueryState';
 import type { UploadProvider } from '../../services/imageUpload';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 
 import { MigrationPanel } from './MigrationPanel';
 import {
@@ -188,13 +189,14 @@ export const UserRoleManager: FC<UserRoleManagerProps> = ({
                 <tr key={u.id} className="bg-white/[0.02]">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <img
-                        src={u.avatarUrl || PLACEHOLDER}
+                      <AvatarUsuario
+                        src={u.avatarUrl}
+                        fallbackSrc={PLACEHOLDER}
                         alt={u.username}
-                        className="h-7 w-7 rounded-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = PLACEHOLDER;
-                        }}
+                        frame={u.avatarFrame}
+                        color={u.profileColor}
+                        sizeClass="h-7 w-7"
+                        shapeClass="rounded-full"
                       />
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-white">

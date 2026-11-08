@@ -13,6 +13,7 @@ import {
 
 import { useAuth } from '../../context/AuthContext';
 import { useCommunity } from '../../context/CommunityContext';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import {
   ajustarXpAdmin,
   concederMedallaAdmin,
@@ -205,10 +206,14 @@ const UserPicker: React.FC<{
                     className="flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors hover:bg-violet-500/10"
                   >
                     {u.avatarUrl ? (
-                      <img
+                      <AvatarUsuario
                         src={u.avatarUrl}
+                        fallbackSrc="/img/avatar-comunidad.webp"
                         alt=""
-                        className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
+                        frame={u.avatarFrame}
+                        color={u.profileColor}
+                        sizeClass="h-7 w-7"
+                        shapeClass="rounded-full"
                       />
                     ) : (
                       <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-violet-600/20 text-[10px] font-bold text-violet-300">

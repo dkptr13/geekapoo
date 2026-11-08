@@ -15,6 +15,8 @@
 import assert from 'node:assert/strict';
 
 import {
+  AVATAR_PRESETS,
+  AVATAR_ROJO_CLASICO,
   BANNERS_PERFIL,
   BANNER_PREDETERMINADO_ID,
   BANNER_PROPIO_NIVEL,
@@ -27,6 +29,7 @@ import {
   bannerDePerfil,
   colorDePerfil,
   desbloqueadoPorNivel,
+  estiloColorDePerfil,
   fondoAGuardar,
   fondoDePerfil,
   marcoDeAvatar,
@@ -294,6 +297,87 @@ assert.deepEqual(
 assert.ok(
   soloUrl && Object.values(soloUrl).every((v) => v !== undefined),
   'ningun valor undefined con solo URL',
+);
+
+// ──────────────────────────────────────────────────────────
+// 5. COLECCIÓN PREMIUM
+// ──────────────────────────────────────────────────────────
+
+assert.ok(COLORES_PERFIL.length >= 12, 'hay al menos 12 estilos de color');
+for (const nombre of [
+  'Aurora',
+  'Nebulosa',
+  'Sakura',
+  'Cyberpunk',
+  'Inferno',
+  'Esmeralda',
+  'Atardecer',
+  'Galaxia',
+  'Dorado imperial',
+  'Océano',
+  'Eclipse',
+  'Hielo celestial',
+]) {
+  assert.ok(
+    COLORES_PERFIL.some((c) => c.nombre === nombre),
+    `existe el estilo ${nombre}`,
+  );
+}
+for (const c of COLORES_PERFIL) {
+  assert.ok(c.gradiente.includes('gradient'), `${c.id} tiene degradado completo`);
+  assert.ok(!c.gradiente.includes('_'), `${c.id} usa CSS válido, sin guiones bajos`);
+  assert.equal(estiloColorDePerfil(c.hex, c.nivelMinimo).id, c.id);
+}
+
+const idsMarcos = new Set(MARCOS_AVATAR.map((m) => m.id));
+assert.equal(idsMarcos.size, MARCOS_AVATAR.length, 'no hay marcos duplicados');
+for (const id of [
+  'oro-imperial',
+  'plata-celestial',
+  'cristal-real',
+  'obsidiana',
+  'sakura',
+  'aura-magica',
+  'dragon',
+  'celestial',
+  'llamas',
+  'espiritu',
+  'cyberpunk',
+  'holografico',
+  'circuito-digital',
+  'nucleo-energetico',
+  'galaxia',
+  'dimensional',
+  'cristales-flotantes',
+  'eclipse',
+  'fenix',
+  'aura-violeta',
+  'dorado-imperial',
+]) {
+  assert.ok(idsMarcos.has(id), `existe el marco ${id}`);
+}
+assert.ok(
+  MARCOS_AVATAR.find((m) => m.id === 'cristales-flotantes')!.nivelMinimo >= 30,
+  'el marco legendario de cristales es exclusivo',
+);
+assert.ok(
+  MARCOS_AVATAR.find((m) => m.id === 'dorado-imperial')!.nivelMinimo >= 30,
+  'el dorado imperial es exclusivo',
+);
+
+for (const b of BANNERS_PERFIL) {
+  assert.ok(b.css.includes('gradient'), `${b.id} tiene un fondo elaborado`);
+  assert.ok(!b.css.includes('_'), `${b.id} usa CSS válido, sin guiones bajos`);
+}
+for (const id of ['sakura', 'aurora', 'cyberpunk', 'imperio', 'galaxia', 'fenix']) {
+  assert.ok(BANNERS_PERFIL.some((b) => b.id === id), `existe el banner ${id}`);
+}
+
+assert.equal(AVATAR_PRESETS[0], AVATAR_ROJO_CLASICO, 'el avatar rojo se conserva primero');
+assert.ok(AVATAR_PRESETS.length > 40, 'se aprovechan los retratos de public/img');
+assert.ok(
+  AVATAR_PRESETS.slice(1).every((url) => url.startsWith('/img/avatars/')),
+  'los avatares nuevos son recursos locales del proyecto',
 );
 
 console.log('logica.perfil-custom: OK');

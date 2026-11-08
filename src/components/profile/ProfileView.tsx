@@ -32,6 +32,7 @@ import {
 import { encuadre } from '../../utils/safeData';
 
 import { ProfileHeader } from './ProfileHeader';
+import { AvatarUsuario } from './AvatarUsuario';
 import { ProfileStats } from './ProfileStats';
 import { ProfileMedals } from './ProfileMedals';
 import { ProfileActivity } from './ProfileActivity';
@@ -160,10 +161,14 @@ export const ProfileView: React.FC<ProfileViewProps> = (props) => {
     return (
       <div className="mx-auto max-w-3xl rounded-3xl border border-white/[0.06] bg-white/[0.03] p-6 sm:p-8">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
-          <img
-            src={perfil.avatarUrl || AVATAR_POR_DEFECTO}
+          <AvatarUsuario
+            src={perfil.avatarUrl}
+            fallbackSrc={AVATAR_POR_DEFECTO}
             alt={perfil.username}
-            className="h-20 w-20 flex-shrink-0 rounded-3xl object-cover ring-4 ring-white/10"
+            frame={perfil.avatarFrame}
+            color={perfil.profileColor}
+            sizeClass="h-20 w-20"
+            shapeClass="rounded-3xl"
           />
           <div className="min-w-0">
             <h2 className="truncate text-xl font-black text-white">

@@ -260,6 +260,641 @@
 }
 
 /* ======================================================
+   AVATARES COLECCIONABLES
+   ======================================================
+   El avatar va dentro de `.avatar-marco`; el marco se pinta con
+   pseudo-elementos y tres adornos, sin imágenes extra. Los efectos
+   viven fuera del recorte del avatar para no tapar la cara. */
+.avatar-marco {
+  position: relative;
+  display: inline-flex;
+  isolation: isolate;
+  vertical-align: middle;
+}
+
+.avatar-marco > img {
+  border-radius: inherit;
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-marco::before,
+.avatar-marco::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.avatar-marco::before {
+  inset: -6%;
+  padding: 2px;
+  z-index: 1;
+  background: var(--marco-bg, linear-gradient(135deg, rgba(139, 92, 246, 0.7), rgba(56, 189, 248, 0.45)));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 4px var(--marco-glow, rgba(139, 92, 246, 0.35)));
+}
+
+.avatar-marco::after {
+  inset: -14%;
+  z-index: 0;
+  background:
+    radial-gradient(circle, var(--avatar-accent, rgba(139, 92, 246, 0.3)) 0%, transparent 58%),
+    radial-gradient(circle, var(--marco-glow, rgba(139, 92, 246, 0.3)), transparent 68%);
+  filter: blur(7px);
+  opacity: 0.62;
+}
+
+.avatar-marco[data-marco='ninguno']::before {
+  inset: -2%;
+  padding: 1px;
+  background: var(--avatar-accent, rgba(139, 92, 246, 0.45));
+  opacity: 0.55;
+  filter: none;
+}
+
+.avatar-marco[data-marco='ninguno']::after {
+  display: none;
+}
+
+.avatar-marco .avatar-deco {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ── Elegantes ─────────────────────────────────────── */
+
+.avatar-marco[data-marco='neon'] {
+  --marco-bg: conic-gradient(from 20deg, #22d3ee, #8b5cf6, #ec4899, #22d3ee);
+  --marco-glow: rgba(139, 92, 246, 0.55);
+}
+
+.avatar-marco[data-marco='dorado'],
+.avatar-marco[data-marco='oro-imperial'] {
+  --marco-bg: conic-gradient(from 45deg, #fef3c7, #f59e0b, #78350f, #fbbf24, #fef3c7);
+  --marco-glow: rgba(250, 204, 21, 0.5);
+}
+
+.avatar-marco[data-marco='oro-imperial'] .avatar-deco-1 {
+  display: block;
+  left: 50%;
+  top: -14%;
+  width: 18%;
+  height: 18%;
+  transform: translateX(-50%) rotate(45deg);
+  background: linear-gradient(135deg, #fff7ed, #f59e0b 55%, #78350f);
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.8);
+}
+
+.avatar-marco[data-marco='plata-celestial'] {
+  --marco-bg: conic-gradient(from 30deg, #f8fafc, #94a3b8, #e2e8f0, #64748b, #f8fafc);
+  --marco-glow: rgba(226, 232, 240, 0.45);
+}
+
+.avatar-marco[data-marco='plata-celestial'] .avatar-deco-1,
+.avatar-marco[data-marco='cristal-real'] .avatar-deco-1,
+.avatar-marco[data-marco='cristal-real'] .avatar-deco-2 {
+  display: block;
+  width: 8%;
+  height: 8%;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 7px rgba(255, 255, 255, 0.9);
+}
+
+.avatar-marco[data-marco='plata-celestial'] .avatar-deco-1 {
+  right: -4%;
+  top: 16%;
+}
+
+.avatar-marco[data-marco='cristal-real'] {
+  --marco-bg: conic-gradient(from 200deg, rgba(186, 230, 253, 0.95), rgba(255, 255, 255, 0.65), rgba(125, 211, 252, 0.8), rgba(224, 242, 254, 0.95));
+  --marco-glow: rgba(125, 211, 252, 0.45);
+}
+
+.avatar-marco[data-marco='cristal-real'] .avatar-deco-1 {
+  left: 2%;
+  top: -7%;
+}
+
+.avatar-marco[data-marco='cristal-real'] .avatar-deco-2 {
+  right: -2%;
+  bottom: 4%;
+  width: 5%;
+  height: 5%;
+}
+
+.avatar-marco[data-marco='obsidiana'] {
+  --marco-bg: conic-gradient(from 120deg, #18181b, #3f3f46, #7c3aed, #18181b);
+  --marco-glow: rgba(124, 58, 237, 0.28);
+}
+
+.avatar-marco[data-marco='obsidiana'] .avatar-deco-1 {
+  display: block;
+  inset: -2%;
+  border-radius: inherit;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+}
+
+/* ── Anime y fantasía ─────────────────────────────── */
+
+.avatar-marco[data-marco='sakura'] {
+  --marco-bg: conic-gradient(from 10deg, #fbcfe8, #ec4899, #f9a8d4, #c4b5fd, #fbcfe8);
+  --marco-glow: rgba(244, 114, 182, 0.5);
+}
+
+.avatar-marco[data-marco='sakura'] .avatar-deco-1,
+.avatar-marco[data-marco='sakura'] .avatar-deco-2,
+.avatar-marco[data-marco='sakura'] .avatar-deco-3 {
+  display: block;
+  width: 19%;
+  height: 13%;
+  background: linear-gradient(135deg, #fbcfe8, #f472b6);
+  border-radius: 80% 0 80% 0;
+  box-shadow: 0 0 6px rgba(244, 114, 182, 0.65);
+}
+
+.avatar-marco[data-marco='sakura'] .avatar-deco-1 {
+  left: -5%;
+  top: 8%;
+  transform: rotate(-28deg);
+}
+
+.avatar-marco[data-marco='sakura'] .avatar-deco-2 {
+  right: -4%;
+  top: 20%;
+  transform: rotate(32deg) scale(0.8);
+}
+
+.avatar-marco[data-marco='sakura'] .avatar-deco-3 {
+  right: 16%;
+  bottom: -7%;
+  transform: rotate(15deg) scale(0.65);
+}
+
+.avatar-marco[data-marco='aura-magica'],
+.avatar-marco[data-marco='aura-violeta'] {
+  --marco-glow: rgba(167, 139, 250, 0.65);
+}
+
+.avatar-marco[data-marco='aura-magica'] {
+  --marco-bg: conic-gradient(from 20deg, rgba(196, 181, 253, 0.95), rgba(124, 58, 237, 0.5), rgba(236, 72, 153, 0.75), rgba(196, 181, 253, 0.95));
+}
+
+.avatar-marco[data-marco='aura-violeta'] {
+  --marco-bg: conic-gradient(from 0deg, #a78bfa, #7c3aed, #f0abfc, #7c3aed, #a78bfa);
+}
+
+.avatar-marco[data-marco='aura-violeta']::after {
+  inset: -22%;
+  opacity: 1;
+  animation: avatar-aura 3.8s ease-in-out infinite;
+}
+
+.avatar-marco[data-marco='aura-violeta'] .avatar-deco-1,
+.avatar-marco[data-marco='aura-violeta'] .avatar-deco-2,
+.avatar-marco[data-marco='aura-magica'] .avatar-deco-1 {
+  display: block;
+  width: 5%;
+  height: 5%;
+  border-radius: 50%;
+  background: #e9d5ff;
+  box-shadow: 0 0 8px #a855f7;
+}
+
+.avatar-marco[data-marco='aura-violeta'] .avatar-deco-1 {
+  left: 2%;
+  top: -4%;
+  animation: avatar-particle 3s ease-in-out infinite;
+}
+
+.avatar-marco[data-marco='aura-violeta'] .avatar-deco-2 {
+  right: 0;
+  bottom: 0;
+  animation: avatar-particle 3.6s ease-in-out -1.2s infinite;
+}
+
+.avatar-marco[data-marco='aura-magica'] .avatar-deco-1 {
+  right: 3%;
+  top: 2%;
+  animation: avatar-particle 4s ease-in-out infinite;
+}
+
+.avatar-marco[data-marco='dragon'] {
+  --marco-bg: conic-gradient(from 90deg, #f59e0b, #7f1d1d, #ef4444, #fbbf24, #7f1d1d);
+  --marco-glow: rgba(239, 68, 68, 0.45);
+}
+
+.avatar-marco[data-marco='dragon'] .avatar-deco-1,
+.avatar-marco[data-marco='dragon'] .avatar-deco-2 {
+  display: block;
+  width: 12%;
+  height: 17%;
+  background: linear-gradient(180deg, #fbbf24, #7f1d1d);
+  clip-path: polygon(50% 0, 100% 100%, 50% 76%, 0 100%);
+}
+
+.avatar-marco[data-marco='dragon'] .avatar-deco-1 {
+  left: 5%;
+  top: -10%;
+  transform: rotate(-18deg);
+}
+
+.avatar-marco[data-marco='dragon'] .avatar-deco-2 {
+  right: 5%;
+  top: -10%;
+  transform: rotate(18deg);
+}
+
+.avatar-marco[data-marco='celestial'] {
+  --marco-bg: conic-gradient(from 220deg, #c7d2fe, #6366f1, #fef9c3, #4338ca, #c7d2fe);
+  --marco-glow: rgba(165, 180, 252, 0.55);
+}
+
+.avatar-marco[data-marco='celestial'] .avatar-deco-1,
+.avatar-marco[data-marco='celestial'] .avatar-deco-2,
+.avatar-marco[data-marco='celestial'] .avatar-deco-3 {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 7px #c7d2fe;
+}
+
+.avatar-marco[data-marco='celestial'] .avatar-deco-1 {
+  left: 5%;
+  top: -4%;
+}
+
+.avatar-marco[data-marco='celestial'] .avatar-deco-2 {
+  right: 0;
+  top: 32%;
+}
+
+.avatar-marco[data-marco='celestial'] .avatar-deco-3 {
+  left: 28%;
+  bottom: -5%;
+}
+
+.avatar-marco[data-marco='llamas'],
+.avatar-marco[data-marco='fenix'] {
+  --marco-glow: rgba(249, 115, 22, 0.6);
+}
+
+.avatar-marco[data-marco='llamas'] {
+  --marco-bg: conic-gradient(from 160deg, #fbbf24, #ef4444, #7f1d1d, #f59e0b, #fbbf24);
+}
+
+.avatar-marco[data-marco='llamas'] .avatar-deco-1,
+.avatar-marco[data-marco='llamas'] .avatar-deco-2,
+.avatar-marco[data-marco='fenix'] .avatar-deco-1,
+.avatar-marco[data-marco='fenix'] .avatar-deco-2 {
+  display: block;
+  width: 13%;
+  height: 25%;
+  background: linear-gradient(180deg, #fef08a, #f97316 45%, rgba(127, 29, 29, 0));
+  clip-path: polygon(50% 0, 100% 100%, 50% 78%, 0 100%);
+  filter: blur(0.4px);
+  animation: avatar-flame 1.9s ease-in-out infinite alternate;
+}
+
+.avatar-marco[data-marco='llamas'] .avatar-deco-1,
+.avatar-marco[data-marco='fenix'] .avatar-deco-1 {
+  left: -3%;
+  bottom: -11%;
+}
+
+.avatar-marco[data-marco='llamas'] .avatar-deco-2,
+.avatar-marco[data-marco='fenix'] .avatar-deco-2 {
+  right: -2%;
+  bottom: -10%;
+  animation-delay: -0.8s;
+}
+
+.avatar-marco[data-marco='espiritu'] {
+  --marco-bg: conic-gradient(from 120deg, rgba(204, 251, 241, 0.9), rgba(45, 212, 191, 0.35), rgba(224, 242, 254, 0.8), rgba(45, 212, 191, 0.35));
+  --marco-glow: rgba(153, 246, 228, 0.4);
+}
+
+.avatar-marco[data-marco='espiritu'] .avatar-deco-1,
+.avatar-marco[data-marco='espiritu'] .avatar-deco-2 {
+  display: block;
+  width: 6%;
+  height: 6%;
+  border-radius: 50%;
+  background: rgba(204, 251, 241, 0.75);
+  filter: blur(1px);
+  animation: avatar-particle 4.4s ease-in-out infinite;
+}
+
+.avatar-marco[data-marco='espiritu'] .avatar-deco-1 {
+  left: -2%;
+  top: 22%;
+}
+
+.avatar-marco[data-marco='espiritu'] .avatar-deco-2 {
+  right: 4%;
+  bottom: -2%;
+  animation-delay: -1.7s;
+}
+
+/* ── Tecnológicos ───────────────────────────────────── */
+
+.avatar-marco[data-marco='cyberpunk'] {
+  --marco-bg: conic-gradient(from 0deg, #22d3ee 0 20%, transparent 20% 25%, #ec4899 25% 45%, transparent 45% 50%, #22d3ee 50% 70%, transparent 70% 75%, #ec4899 75% 95%, transparent 95%);
+  --marco-glow: rgba(236, 72, 153, 0.45);
+}
+
+.avatar-marco[data-marco='cyberpunk'] .avatar-deco-1,
+.avatar-marco[data-marco='cyberpunk'] .avatar-deco-2 {
+  display: block;
+  width: 18%;
+  height: 3px;
+  border-radius: 2px;
+  background: #22d3ee;
+  box-shadow: 0 0 7px #22d3ee;
+}
+
+.avatar-marco[data-marco='cyberpunk'] .avatar-deco-1 {
+  right: -7%;
+  top: 22%;
+}
+
+.avatar-marco[data-marco='cyberpunk'] .avatar-deco-2 {
+  left: -7%;
+  bottom: 18%;
+  background: #ec4899;
+  box-shadow: 0 0 7px #ec4899;
+}
+
+.avatar-marco[data-marco='holografico'] {
+  --marco-bg: conic-gradient(from 30deg, #22d3ee, #a78bfa, #f0abfc, #facc15, #34d399, #22d3ee);
+  --marco-glow: rgba(167, 139, 250, 0.5);
+}
+
+.avatar-marco[data-marco='holografico']::before {
+  animation: avatar-hue 6s linear infinite;
+}
+
+.avatar-marco[data-marco='circuito-digital'] {
+  --marco-bg: repeating-conic-gradient(from 0deg, #34d399 0 7deg, rgba(52, 211, 153, 0.15) 7deg 14deg);
+  --marco-glow: rgba(52, 211, 153, 0.35);
+}
+
+.avatar-marco[data-marco='circuito-digital'] .avatar-deco-1,
+.avatar-marco[data-marco='circuito-digital'] .avatar-deco-2 {
+  display: block;
+  width: 7%;
+  height: 7%;
+  border: 1px solid rgba(110, 231, 183, 0.9);
+  background: rgba(6, 78, 59, 0.85);
+  box-shadow: 0 0 5px rgba(52, 211, 153, 0.8);
+}
+
+.avatar-marco[data-marco='circuito-digital'] .avatar-deco-1 {
+  left: -3%;
+  top: 18%;
+}
+
+.avatar-marco[data-marco='circuito-digital'] .avatar-deco-2 {
+  right: -3%;
+  bottom: 18%;
+}
+
+.avatar-marco[data-marco='nucleo-energetico'] {
+  --marco-bg: conic-gradient(from 210deg, rgba(125, 211, 252, 0.95), #0284c7, #a5f3fc, #0369a1, rgba(125, 211, 252, 0.95));
+  --marco-glow: rgba(56, 189, 248, 0.55);
+}
+
+.avatar-marco[data-marco='nucleo-energetico']::after {
+  inset: -18%;
+  animation: avatar-core 2.8s ease-in-out infinite;
+}
+
+/* ── Especiales ─────────────────────────────────────── */
+
+.avatar-marco[data-marco='galaxia'] {
+  --marco-bg: conic-gradient(from 20deg, #a5b4fc, #4c1d95, #f0abfc, #312e81, #a5b4fc);
+  --marco-glow: rgba(129, 140, 248, 0.55);
+}
+
+.avatar-marco[data-marco='galaxia'] .avatar-deco-1,
+.avatar-marco[data-marco='galaxia'] .avatar-deco-2,
+.avatar-marco[data-marco='galaxia'] .avatar-deco-3 {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px #a5b4fc;
+}
+
+.avatar-marco[data-marco='galaxia'] .avatar-deco-1 {
+  left: 0;
+  top: 10%;
+}
+
+.avatar-marco[data-marco='galaxia'] .avatar-deco-2 {
+  right: 4%;
+  top: -5%;
+}
+
+.avatar-marco[data-marco='galaxia'] .avatar-deco-3 {
+  left: 32%;
+  bottom: -6%;
+}
+
+.avatar-marco[data-marco='dimensional'] {
+  --marco-bg: conic-gradient(from 60deg, #7c3aed, transparent 16%, #c4b5fd 22%, transparent 35%, #7c3aed 50%, transparent 64%, #4c1d95 72%, transparent 88%);
+  --marco-glow: rgba(124, 58, 237, 0.5);
+}
+
+.avatar-marco[data-marco='dimensional']::before {
+  inset: -9%;
+  transform: rotate(-8deg);
+}
+
+.avatar-marco[data-marco='dimensional'] .avatar-deco-1 {
+  display: block;
+  inset: -14%;
+  border: 1px dashed rgba(196, 181, 253, 0.45);
+  border-radius: inherit;
+  transform: rotate(8deg);
+}
+
+.avatar-marco[data-marco='cristales-flotantes'] {
+  --marco-bg: conic-gradient(from 200deg, #a5f3fc, #0891b2, #e0f2fe, #22d3ee, #a5f3fc);
+  --marco-glow: rgba(103, 232, 249, 0.55);
+}
+
+.avatar-marco[data-marco='cristales-flotantes'] .avatar-deco-1,
+.avatar-marco[data-marco='cristales-flotantes'] .avatar-deco-2,
+.avatar-marco[data-marco='cristales-flotantes'] .avatar-deco-3 {
+  display: block;
+  width: 13%;
+  height: 21%;
+  background: linear-gradient(135deg, #ecfeff, #22d3ee 55%, #0369a1);
+  clip-path: polygon(50% 0, 100% 28%, 78% 100%, 22% 100%, 0 28%);
+  filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.8));
+}
+
+.avatar-marco[data-marco='cristales-flotantes'] .avatar-deco-1 {
+  left: -8%;
+  top: 12%;
+  transform: rotate(-18deg);
+  animation: avatar-crystal 4s ease-in-out infinite;
+}
+
+.avatar-marco[data-marco='cristales-flotantes'] .avatar-deco-2 {
+  right: -7%;
+  top: -4%;
+  width: 10%;
+  height: 16%;
+  transform: rotate(24deg);
+  animation: avatar-crystal 3.4s ease-in-out -0.9s infinite;
+}
+
+.avatar-marco[data-marco='cristales-flotantes'] .avatar-deco-3 {
+  right: 4%;
+  bottom: -8%;
+  width: 8%;
+  height: 13%;
+  transform: rotate(12deg);
+  animation: avatar-crystal 4.6s ease-in-out -2s infinite;
+}
+
+.avatar-marco[data-marco='eclipse'] {
+  --marco-bg: conic-gradient(from 140deg, #cbd5e1, #18181b 28%, #7c3aed 55%, #020617 78%, #cbd5e1);
+  --marco-glow: rgba(167, 139, 250, 0.42);
+}
+
+.avatar-marco[data-marco='eclipse'] .avatar-deco-1 {
+  display: block;
+  right: -6%;
+  top: -7%;
+  width: 24%;
+  height: 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #e2e8f0 0 30%, #64748b 31% 45%, transparent 46%);
+  filter: drop-shadow(0 0 6px rgba(226, 232, 240, 0.6));
+}
+
+.avatar-marco[data-marco='fenix'] {
+  --marco-bg: conic-gradient(from 0deg, #fef08a, #f59e0b, #b91c1c, #fbbf24, #fef08a);
+}
+
+.avatar-marco[data-marco='fenix'] .avatar-deco-1,
+.avatar-marco[data-marco='fenix'] .avatar-deco-2 {
+  width: 16%;
+  height: 30%;
+  background: linear-gradient(180deg, #fef9c3, #f59e0b 42%, #b91c1c 75%, transparent);
+  animation: avatar-flame 1.3s ease-in-out infinite alternate;
+}
+
+.avatar-marco[data-marco='fenix'] .avatar-deco-1 {
+  left: -4%;
+  top: -10%;
+  transform: rotate(-35deg);
+}
+
+.avatar-marco[data-marco='fenix'] .avatar-deco-2 {
+  right: -4%;
+  top: -10%;
+  transform: rotate(35deg);
+  animation-delay: -0.6s;
+}
+
+.avatar-marco[data-marco='dorado-imperial'] {
+  --marco-bg: conic-gradient(from 30deg, #fff7ed, #fbbf24 18%, #78350f 30%, #fef08a 48%, #b45309 62%, #fbbf24 82%, #fff7ed);
+  --marco-glow: rgba(250, 204, 21, 0.65);
+}
+
+.avatar-marco[data-marco='dorado-imperial']::before {
+  inset: -8%;
+  padding: 3px;
+  filter: drop-shadow(0 0 7px rgba(250, 204, 21, 0.75));
+}
+
+.avatar-marco[data-marco='dorado-imperial'] .avatar-deco-1 {
+  display: block;
+  left: 50%;
+  top: -18%;
+  width: 24%;
+  height: 18%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #fef9c3, #fbbf24 45%, #92400e);
+  clip-path: polygon(0 100%, 12% 45%, 28% 70%, 50% 0, 72% 70%, 88% 45%, 100% 100%);
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.8));
+}
+
+.avatar-marco[data-marco='dorado-imperial'] .avatar-deco-2 {
+  display: block;
+  left: -8%;
+  bottom: 12%;
+  width: 11%;
+  height: 11%;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #fff7ed, #f59e0b 55%, #78350f);
+  box-shadow: 0 0 7px rgba(250, 204, 21, 0.75);
+}
+
+.avatar-marco[data-marco='dorado-imperial'] .avatar-deco-3 {
+  display: block;
+  right: -8%;
+  bottom: 12%;
+  width: 11%;
+  height: 11%;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #fff7ed, #f59e0b 55%, #78350f);
+  box-shadow: 0 0 7px rgba(250, 204, 21, 0.75);
+}
+
+@keyframes avatar-aura {
+  0%, 100% { transform: scale(1); opacity: 0.72; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+@keyframes avatar-particle {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.55; }
+  50% { transform: translateY(-6px) scale(1.25); opacity: 1; }
+}
+
+@keyframes avatar-flame {
+  from { transform: rotate(-3deg) scaleY(0.94); }
+  to { transform: rotate(3deg) scaleY(1.06); }
+}
+
+@keyframes avatar-crystal {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -7px; }
+}
+
+@keyframes avatar-core {
+  0%, 100% { opacity: 0.55; transform: scale(0.98); }
+  50% { opacity: 0.95; transform: scale(1.06); }
+}
+
+@keyframes avatar-hue {
+  to { filter: hue-rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-marco *,
+  .avatar-marco::before,
+  .avatar-marco::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ======================================================
    SISTEMA VISUAL DEL CHAT
    ======================================================
    Un solo lenguaje para cabecera, lateral, hilo y

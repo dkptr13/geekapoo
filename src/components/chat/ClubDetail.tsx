@@ -28,6 +28,7 @@ import { useClubs } from '../../context/ClubsContext';
 import { CLUB_CATEGORIES } from '../../types';
 import type { Club, ClubMember, ClubRango } from '../../types';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { ClubModerationPanel } from './ClubModerationPanel';
 import { ClubPermisosPanel } from './ClubPermisosPanel';
 import { ClubRoleBadge } from './ClubRoleBadge';
@@ -454,13 +455,21 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                     <button
                       type="button"
                       onClick={() => goToProfile(m.uid)}
-                      className="h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-800"
+                      className="flex-shrink-0 rounded-lg"
                       title="Ver perfil"
                     >
                       {avatarDe(m.uid) ? (
-                        <img src={avatarDe(m.uid)} alt="" className="h-full w-full object-cover" />
+                        <AvatarUsuario
+                          src={avatarDe(m.uid)}
+                          fallbackSrc="/img/avatar-comunidad.webp"
+                          alt=""
+                          frame={fichaDe(m.uid)?.avatarFrame}
+                          color={fichaDe(m.uid)?.profileColor}
+                          sizeClass="h-9 w-9"
+                          shapeClass="rounded-lg"
+                        />
                       ) : (
-                        <span className="flex h-full w-full items-center justify-center text-[11px] font-bold text-zinc-500">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800 text-[11px] font-bold text-zinc-500">
                           {m.uid.slice(0, 2).toUpperCase()}
                         </span>
                       )}
@@ -688,7 +697,15 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                 <div key={r.id} className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
                   <div className="flex items-center gap-2.5">
                     {r.fromAvatar ? (
-                      <img src={r.fromAvatar} alt="" className="h-9 w-9 rounded-lg object-cover" />
+                      <AvatarUsuario
+                        src={r.fromAvatar}
+                        fallbackSrc="/img/avatar-comunidad.webp"
+                        alt=""
+                        frame={fichaDe(r.fromId)?.avatarFrame}
+                        color={fichaDe(r.fromId)?.profileColor}
+                        sizeClass="h-9 w-9"
+                        shapeClass="rounded-lg"
+                      />
                     ) : (
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800 text-xs font-bold text-zinc-400">
                         {r.fromName.slice(0, 2).toUpperCase()}

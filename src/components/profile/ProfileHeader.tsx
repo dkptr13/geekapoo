@@ -8,9 +8,10 @@ import { nivelDesdeXp, rangoDeNivel } from '../../utils/progression';
 import {
   bannerDePerfil,
   colorDePerfil,
-  marcoDeAvatar,
+  estiloColorDePerfil,
 } from '../../data/profileCustomization';
 import { FollowButton } from '../follows/FollowButton';
+import { AvatarUsuario } from './AvatarUsuario';
 import { CapaDecoraciones } from './ProfileDecor';
 import type { User } from '../../types';
 import type { GamificationConfig } from '../../types/gamification';
@@ -128,8 +129,8 @@ export const ProfileHeader: React.FC<{
   // función se ve como la casa. Si el valor guardado está
   // bloqueado para su nivel, los resolvedores caen al defecto.
   const color = colorDePerfil(perfil.profileColor, level);
+  const colorStyle = estiloColorDePerfil(perfil.profileColor, level);
   const banner = bannerDePerfil(perfil.bannerUrl, level);
-  const marco = marcoDeAvatar(perfil.avatarFrame, level);
   const personaje = perfil.favoriteCharacter?.name?.trim()
     ? perfil.favoriteCharacter
     : null;
@@ -194,19 +195,22 @@ export const ProfileHeader: React.FC<{
       <div className="relative flex flex-col gap-6 p-6 pt-24 sm:flex-row sm:items-start sm:p-8 sm:pt-28">
         {/* ── Avatar ────────────────────────────────────── */}
         <div className="relative shrink-0 self-center sm:self-start">
-          <img
-            src={perfil.avatarUrl || avatarPorDefecto}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-4 rounded-[2rem] opacity-30 blur-2xl"
+            style={{ background: colorStyle.gradiente }}
+          />
+          <AvatarUsuario
+            src={perfil.avatarUrl}
+            fallbackSrc={avatarPorDefecto}
             alt={`Avatar de ${nombre}`}
-            // `onError` es el fallback de verdad: si la URL está
-            // rota, o el archivo se borró de Storage, el navegador
-            // pinta su icono de imagen rota encima de la tarjeta y
-            // se rompe el efecto. Aquí se cambia por el avatar por
-            // defecto, que es justo lo que debe verse.
-            onError={(e) => {
-              e.currentTarget.src = avatarPorDefecto;
-            }}
-            style={{ boxShadow: `0 0 0 4px ${color}55, 0 25px 50px -12px rgba(0,0,0,0.8)` }}
-            className={`h-28 w-28 rounded-3xl object-cover ring-4 ${marco} sm:h-32 sm:w-32`}
+            frame={perfil.avatarFrame}
+            level={level}
+            color={color}
+            sizeClass="h-28 w-28 sm:h-32 sm:w-32"
+            shapeClass="rounded-3xl"
+            loading="eager"
+            className="relative z-10 shadow-2xl shadow-black/60"
           />
 
           {/* El nivel sobre el avatar. Es el dato que más se mira
@@ -215,7 +219,7 @@ export const ProfileHeader: React.FC<{
           <span
             title={`Nivel ${level}`}
             style={{ backgroundColor: color }}
-            className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-xl border-2 border-zinc-900 font-mono text-xs font-black text-white shadow-lg"
+            className="absolute -bottom-2 -right-2 z-20 flex h-9 w-9 items-center justify-center rounded-xl border-2 border-zinc-900 font-mono text-xs font-black text-white shadow-lg"
           >
             {level}
           </span>
@@ -226,7 +230,7 @@ export const ProfileHeader: React.FC<{
               onClick={onEditar}
               aria-label="Editar perfil"
               title="Editar perfil"
-              className="absolute -left-2 -top-2 flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] bg-zinc-900 text-zinc-300 transition-colors hover:border-violet-400/40 hover:text-white"
+              className="absolute -left-2 -top-2 z-20 flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] bg-zinc-900 text-zinc-300 transition-colors hover:border-violet-400/40 hover:text-white"
             >
               <Camera size={14} />
             </button>
@@ -343,7 +347,7 @@ export const ProfileHeader: React.FC<{
                 className="h-full rounded-full transition-[width] duration-700 ease-out"
                 style={{
                   width: `${Math.round(progreso * 100)}%`,
-                  background: `linear-gradient(90deg, ${color}, ${color}99)`,
+                  background: colorStyle.gradiente,
                 }}
               />
             </div>

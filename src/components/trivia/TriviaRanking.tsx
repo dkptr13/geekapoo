@@ -3,6 +3,7 @@ import type { FC } from 'react';
 import { Flame, Loader2, Trophy } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { MEDALLAS_PODIO, leerRanking, type FilaRanking } from '../../services/trivia';
 
 // ======================================================
@@ -110,10 +111,14 @@ export const TriviaRanking: FC<{ fecha: string }> = ({ fecha }) => {
               </span>
 
               {f.avatarUrl ? (
-                <img
+                <AvatarUsuario
                   src={f.avatarUrl}
+                  fallbackSrc="/img/avatar-comunidad.webp"
                   alt=""
-                  className="h-5 w-5 flex-shrink-0 rounded-full object-cover"
+                  frame={usersList.find((u) => u.uid === f.userId)?.avatarFrame}
+                  color={usersList.find((u) => u.uid === f.userId)?.profileColor}
+                  sizeClass="h-5 w-5"
+                  shapeClass="rounded-full"
                 />
               ) : (
                 <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 text-[9px]">

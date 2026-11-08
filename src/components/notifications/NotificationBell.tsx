@@ -4,6 +4,7 @@ import { Bell, CheckCheck, ChevronRight, Trash2, AlertTriangle } from 'lucide-re
 
 import { useNotifications } from '../../context/NotificationsContext';
 import { useAuth } from '../../context/AuthContext';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { tiempoRelativo, iconoDe, textoDe, esNotificacionImportante } from '../../utils/notificaciones';
 import { useGoToNotification } from '../../hooks/useGoToNotification';
 
@@ -354,17 +355,21 @@ export const NotificationBell: React.FC = () => {
                       className="chat-boton flex min-w-0 flex-1 items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.04]"
                     >
                       {/* Avatar */}
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.04] text-xs text-zinc-400">
-                        {aviso.actorAvatar ? (
-                          <img
-                            src={aviso.actorAvatar}
-                            alt={aviso.actorName}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-sm">{iconoDe(n)}</span>
-                        )}
-                      </div>
+                      {aviso.actorAvatar ? (
+                        <AvatarUsuario
+                          src={aviso.actorAvatar}
+                          fallbackSrc="/img/avatar-comunidad.webp"
+                          alt={aviso.actorName}
+                          frame={actor?.avatarFrame}
+                          color={actor?.profileColor}
+                          sizeClass="h-9 w-9"
+                          shapeClass="rounded-full"
+                        />
+                      ) : (
+                        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-sm text-zinc-400">
+                          {iconoDe(n)}
+                        </span>
+                      )}
 
                       {/* Contenido */}
                       <div className="min-w-0 flex-1">

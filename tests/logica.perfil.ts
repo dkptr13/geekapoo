@@ -395,6 +395,17 @@ assert.ok(
 // fallara, no habria forma de volver al avatar por defecto.
 assert.ok(validarEditable(editable({ avatarUrl: '' })).ok, 'una URL vacia es legal');
 
+// Los retratos del catalogo viven en el propio proyecto, no en
+// Storage: son rutas locales y tambien tienen que valer.
+assert.ok(
+  validarEditable(editable({ avatarUrl: '/img/avatars/avatar-01.jpg' })).ok,
+  'un avatar local del catalogo es legal',
+);
+assert.ok(
+  validarEditable(editable({ avatarUrl: '/img/avatars/../../etc/passwd' })).errores.avatarUrl,
+  'una ruta local inventada no vale',
+);
+
 // Si HAY un error anterior, sigue estando: tocar un campo no
 // borra el error de otro. Si se borrara, alguien con un nombre
 // demasiado largo y una bio larga veria como el segundo aviso

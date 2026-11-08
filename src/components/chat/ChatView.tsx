@@ -56,6 +56,7 @@ import {
   ocultarMensajeParaMi,
 } from '../../services/chats';
 import { useAuth } from '../../context/AuthContext';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { doc, getDocFromServer } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { ChatAparienciaPanel } from './ChatAparienciaPanel';
@@ -2604,10 +2605,14 @@ export const ChatView: React.FC = () => {
                           className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-3"
                         >
                           <div className="flex items-center gap-2.5">
-                            <img
+                            <AvatarUsuario
                               src={req.fromAvatar}
+                              fallbackSrc="/img/avatar-comunidad.webp"
                               alt={req.fromName}
-                              className="h-9 w-9 rounded-lg object-cover"
+                              frame={liveUserOf(req.fromId)?.avatarFrame}
+                              color={liveUserOf(req.fromId)?.profileColor}
+                              sizeClass="h-9 w-9"
+                              shapeClass="rounded-lg"
                             />
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-xs font-bold text-white">
@@ -2672,10 +2677,14 @@ export const ChatView: React.FC = () => {
                         key={req.id}
                         className="flex items-center gap-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3"
                       >
-                        <img
+                        <AvatarUsuario
                           src={req.fromAvatar}
+                          fallbackSrc="/img/avatar-comunidad.webp"
                           alt={req.fromName}
-                          className="h-8 w-8 rounded-lg object-cover"
+                          frame={liveUserOf(req.fromId)?.avatarFrame}
+                          color={liveUserOf(req.fromId)?.profileColor}
+                          sizeClass="h-8 w-8"
+                          shapeClass="rounded-lg"
                         />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[11px] font-semibold text-zinc-200">
@@ -2716,10 +2725,14 @@ export const ChatView: React.FC = () => {
                           key={id}
                           className="flex items-center gap-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2"
                         >
-                          <img
+                          <AvatarUsuario
                             src={u.avatarUrl}
+                            fallbackSrc="/img/avatar-comunidad.webp"
                             alt={u.username}
-                            className="h-7 w-7 rounded-lg object-cover"
+                            frame={u.avatarFrame}
+                            color={u.profileColor}
+                            sizeClass="h-7 w-7"
+                            shapeClass="rounded-lg"
                           />
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[11px] font-semibold text-zinc-300">
@@ -2888,11 +2901,23 @@ export const ChatView: React.FC = () => {
                   >
                     <div className="relative flex-shrink-0">
                       {roomAvatar ? (
-                        <img
-                          src={roomAvatar}
-                          alt={displayName}
-                          className="h-11 w-11 rounded-xl object-cover ring-1 ring-white/10"
-                        />
+                        isDirect ? (
+                          <AvatarUsuario
+                            src={roomAvatar}
+                            fallbackSrc="/img/avatar-comunidad.webp"
+                            alt={displayName}
+                            frame={otherParty?.avatarFrame}
+                            color={otherParty?.profileColor}
+                            sizeClass="h-11 w-11"
+                            shapeClass="rounded-xl"
+                          />
+                        ) : (
+                          <img
+                            src={roomAvatar}
+                            alt={displayName}
+                            className="h-11 w-11 rounded-xl object-cover ring-1 ring-white/10"
+                          />
+                        )
                       ) : (
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/30 to-sky-500/20 text-violet-200 text-sm font-bold ring-1 ring-white/10">
                           {displayName[0]}
@@ -3163,10 +3188,23 @@ export const ChatView: React.FC = () => {
 
                   <div className="relative flex-shrink-0">
                     {activeRoomAvatar ? (
-                      <img
+                      <AvatarUsuario
                         src={activeRoomAvatar}
+                        fallbackSrc="/img/avatar-comunidad.webp"
                         alt={activeRoomName}
-                        className="h-10 w-10 rounded-xl object-cover ring-1 ring-white/10"
+                        frame={
+                          activeRoom?.type === 'direct'
+                            ? activeOtherParty?.avatarFrame
+                            : null
+                        }
+                        color={
+                          activeRoom?.type === 'direct'
+                            ? activeOtherParty?.profileColor
+                            : undefined
+                        }
+                        sizeClass="h-10 w-10"
+                        shapeClass="rounded-xl"
+                        loading="eager"
                       />
                     ) : (
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/40 to-sky-500/25 text-white text-sm font-bold ring-1 ring-white/10">
@@ -3731,10 +3769,14 @@ export const ChatView: React.FC = () => {
                             title="Ver su perfil"
                             className="chat-boton mt-0.5 flex-shrink-0 rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                           >
-                            <img
+                            <AvatarUsuario
                               src={senderAvatarOf(msg)}
+                              fallbackSrc="/img/avatar-comunidad.webp"
                               alt=""
-                              className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10 shrink-0"
+                              frame={liveUserOf(msg.senderId)?.avatarFrame}
+                              color={liveUserOf(msg.senderId)?.profileColor}
+                              sizeClass="h-8 w-8"
+                              shapeClass="rounded-full"
                             />
                           </button>
                         )}
@@ -4198,10 +4240,14 @@ export const ChatView: React.FC = () => {
                             title="Ver su perfil"
                             className="flex-shrink-0 rounded-lg transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                           >
-                            <img
+                            <AvatarUsuario
                               src={u.avatarUrl}
+                              fallbackSrc="/img/avatar-comunidad.webp"
                               alt=""
-                              className="h-8 w-8 rounded-lg object-cover"
+                              frame={u.avatarFrame}
+                              color={u.profileColor}
+                              sizeClass="h-8 w-8"
+                              shapeClass="rounded-lg"
                             />
                           </button>
                           <div className="min-w-0 flex-1">
@@ -5083,10 +5129,14 @@ export const ChatView: React.FC = () => {
                       key={user.uid}
                       className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-zinc-950 p-3"
                     >
-                      <img
+                      <AvatarUsuario
                         src={user.avatarUrl}
+                        fallbackSrc="/img/avatar-comunidad.webp"
                         alt={user.displayName || user.username}
-                        className="h-10 w-10 rounded-xl object-cover ring-2 ring-violet-500/30"
+                        frame={user.avatarFrame}
+                        color={user.profileColor}
+                        sizeClass="h-10 w-10"
+                        shapeClass="rounded-xl"
                       />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-bold text-white">
@@ -5115,10 +5165,14 @@ export const ChatView: React.FC = () => {
               {addFeedback?.user && (
                 <div className="rounded-2xl border border-violet-500/40 bg-zinc-950 p-4 space-y-3">
                   <div className="flex items-center gap-3">
-                    <img
+                    <AvatarUsuario
                       src={addFeedback.user.avatarUrl}
+                      fallbackSrc="/img/avatar-comunidad.webp"
                       alt={addFeedback.user.username}
-                      className="h-12 w-12 rounded-2xl object-cover ring-2 ring-violet-500/40"
+                      frame={addFeedback.user.avatarFrame}
+                      color={addFeedback.user.profileColor}
+                      sizeClass="h-12 w-12"
+                      shapeClass="rounded-2xl"
                     />
                     <div>
                       <h4 className="text-sm font-bold text-white">

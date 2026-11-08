@@ -3,6 +3,7 @@ import { Image as ImageIcon, Link2, Loader2, MessageSquare, Pin, X } from 'lucid
 
 import { fechaLegible } from '../../data/clubModeracion';
 import { useAuth } from '../../context/AuthContext';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import type { ChatFijado } from '../../services/chatFijados';
 
 // ======================================================
@@ -114,10 +115,14 @@ export const ChatFijadosPanel: React.FC<ChatFijadosPanelProps> = ({
               >
                 <div className="flex items-start gap-2.5">
                   {f.autorAvatar ? (
-                    <img
+                    <AvatarUsuario
                       src={f.autorAvatar}
+                      fallbackSrc="/img/avatar-comunidad.webp"
                       alt=""
-                      className="h-8 w-8 flex-shrink-0 rounded-full object-cover ring-1 ring-white/10"
+                      frame={usersList.find((u) => u.uid === f.autorId)?.avatarFrame}
+                      color={usersList.find((u) => u.uid === f.autorId)?.profileColor}
+                      sizeClass="h-8 w-8"
+                      shapeClass="rounded-full"
                     />
                   ) : (
                     <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 text-[11px] font-black text-white">

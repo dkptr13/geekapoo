@@ -9,6 +9,7 @@ import { nivelDesdeXp } from '../../utils/progression';
 import { textoTitulo } from '../gamification/AuthorBadge';
 import { CONFIG_POR_DEFECTO } from '../../types/gamification';
 import { FollowButton } from './FollowButton';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { etiquetaLista } from '../../utils/follows';
 import type { Follow } from '../../types/follows';
 import type { User } from '../../types';
@@ -302,10 +303,14 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                         title={`Ver el perfil de ${perfil?.username ?? 'esta persona'}`}
                       >
                         {perfil?.avatarUrl ? (
-                          <img
+                          <AvatarUsuario
                             src={perfil.avatarUrl}
+                            fallbackSrc="/img/avatar-comunidad.webp"
                             alt={perfil.username}
-                            className="h-10 w-10 flex-shrink-0 rounded-xl object-cover ring-2 ring-white/10"
+                            frame={perfil.avatarFrame}
+                            color={perfil.profileColor}
+                            sizeClass="h-10 w-10"
+                            shapeClass="rounded-xl"
                           />
                         ) : (
                           <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/[0.04] text-zinc-400 ring-2 ring-white/10">

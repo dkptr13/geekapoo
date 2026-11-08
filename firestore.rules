@@ -1282,18 +1282,99 @@ service cloud.firestore {
 
     // ── Personalizacion del perfil ────────────────────
     //
-    // Solo FORMATOS: tipos, tamanos, https y valores de las
-    // listas de `src/data/profileCustomization.ts` (colores,
-    // presets de banner y marcos). Si esa lista cambia, hay que
-    // cambiarla aqui tambien: las reglas no importan codigo.
-    //
-    // Los desbloqueos por nivel NO se miran aqui. Se miran en el
-    // cliente antes de dejar elegir (con candado) y al guardar se
-    // vuelven a filtrar: son cosmetica que no concede XP, nivel,
-    // medallas ni rol, asi que falsearlos desde la consola no
-    // escala a ningun privilegio. Lo que de verdad protege (no
-    // tocar xp, level, medals, stats...) sigue en las listas de
-    // `hasAny` de abajo, intactas.
+    // Los ids y formatos salen de `src/data/profileCustomization.ts`.
+    // Ademas de validar la lista, se comprueba el nivel guardado en
+    // el documento (`resource.data.level`, del servidor): un cliente
+    // manipulado no puede equiparse un marco o color que aun no ha
+    // desbloqueado. El nivel no puede escribirlo el usuario.
+    function nivelPerfil() {
+      return 'level' in resource.data && resource.data.level is number
+        ? resource.data.level
+        : 1;
+    }
+
+    function colorPermitido(valor) {
+      return (valor == '#38bdf8' && nivelPerfil() >= 1)
+          || (valor == '#8b5cf6' && nivelPerfil() >= 1)
+          || (valor == '#ec4899' && nivelPerfil() >= 3)
+          || (valor == '#22d3ee' && nivelPerfil() >= 1)
+          || (valor == '#ef4444' && nivelPerfil() >= 8)
+          || (valor == '#10b981' && nivelPerfil() >= 5)
+          || (valor == '#f59e0b' && nivelPerfil() >= 3)
+          || (valor == '#4338ca' && nivelPerfil() >= 12)
+          || (valor == '#eab308' && nivelPerfil() >= 10)
+          || (valor == '#0284c7' && nivelPerfil() >= 6)
+          || (valor == '#71717a' && nivelPerfil() >= 1)
+          || (valor == '#7dd3fc' && nivelPerfil() >= 15);
+    }
+
+    function marcoPermitido(valor) {
+      return (valor == 'ninguno' && nivelPerfil() >= 1)
+          || (valor == 'neon' && nivelPerfil() >= 5)
+          || (valor == 'dorado' && nivelPerfil() >= 10)
+          || (valor == 'oro-imperial' && nivelPerfil() >= 30)
+          || (valor == 'plata-celestial' && nivelPerfil() >= 18)
+          || (valor == 'cristal-real' && nivelPerfil() >= 12)
+          || (valor == 'obsidiana' && nivelPerfil() >= 15)
+          || (valor == 'sakura' && nivelPerfil() >= 8)
+          || (valor == 'aura-magica' && nivelPerfil() >= 10)
+          || (valor == 'dragon' && nivelPerfil() >= 22)
+          || (valor == 'celestial' && nivelPerfil() >= 25)
+          || (valor == 'llamas' && nivelPerfil() >= 14)
+          || (valor == 'espiritu' && nivelPerfil() >= 20)
+          || (valor == 'cyberpunk' && nivelPerfil() >= 6)
+          || (valor == 'holografico' && nivelPerfil() >= 16)
+          || (valor == 'circuito-digital' && nivelPerfil() >= 9)
+          || (valor == 'nucleo-energetico' && nivelPerfil() >= 18)
+          || (valor == 'galaxia' && nivelPerfil() >= 28)
+          || (valor == 'dimensional' && nivelPerfil() >= 32)
+          || (valor == 'cristales-flotantes' && nivelPerfil() >= 40)
+          || (valor == 'eclipse' && nivelPerfil() >= 24)
+          || (valor == 'fenix' && nivelPerfil() >= 35)
+          || (valor == 'aura-violeta' && nivelPerfil() >= 26)
+          || (valor == 'dorado-imperial' && nivelPerfil() >= 45);
+    }
+
+    function bannerPermitido(valor) {
+      return (valor == 'preset:defecto' && nivelPerfil() >= 1)
+          || (valor == 'preset:ocaso' && nivelPerfil() >= 1)
+          || (valor == 'preset:abismo' && nivelPerfil() >= 3)
+          || (valor == 'preset:neon' && nivelPerfil() >= 5)
+          || (valor == 'preset:cosmos' && nivelPerfil() >= 8)
+          || (valor == 'preset:leyenda' && nivelPerfil() >= 10)
+          || (valor == 'preset:sakura' && nivelPerfil() >= 5)
+          || (valor == 'preset:aurora' && nivelPerfil() >= 12)
+          || (valor == 'preset:cyberpunk' && nivelPerfil() >= 14)
+          || (valor == 'preset:imperio' && nivelPerfil() >= 25)
+          || (valor == 'preset:oceano' && nivelPerfil() >= 9)
+          || (valor == 'preset:eclipse' && nivelPerfil() >= 18)
+          || (valor == 'preset:galaxia' && nivelPerfil() >= 30)
+          || (valor == 'preset:fenix' && nivelPerfil() >= 35)
+          || (valor == 'preset:hielo' && nivelPerfil() >= 20)
+          || (valor == 'preset:dragon' && nivelPerfil() >= 16)
+          || (valor == 'preset:atardecer' && nivelPerfil() >= 10);
+    }
+
+    function fondoPermitido(valor) {
+      return (valor == 'defecto' && nivelPerfil() >= 1)
+          || (valor == 'ocaso' && nivelPerfil() >= 1)
+          || (valor == 'abismo' && nivelPerfil() >= 3)
+          || (valor == 'neon' && nivelPerfil() >= 5)
+          || (valor == 'cosmos' && nivelPerfil() >= 8)
+          || (valor == 'leyenda' && nivelPerfil() >= 10)
+          || (valor == 'sakura' && nivelPerfil() >= 5)
+          || (valor == 'aurora' && nivelPerfil() >= 12)
+          || (valor == 'cyberpunk' && nivelPerfil() >= 14)
+          || (valor == 'imperio' && nivelPerfil() >= 25)
+          || (valor == 'oceano' && nivelPerfil() >= 9)
+          || (valor == 'eclipse' && nivelPerfil() >= 18)
+          || (valor == 'galaxia' && nivelPerfil() >= 30)
+          || (valor == 'fenix' && nivelPerfil() >= 35)
+          || (valor == 'hielo' && nivelPerfil() >= 20)
+          || (valor == 'dragon' && nivelPerfil() >= 16)
+          || (valor == 'atardecer' && nivelPerfil() >= 10);
+    }
+
     function personalizacionValida() {
       let d = request.resource.data;
 
@@ -1301,15 +1382,13 @@ service cloud.firestore {
               || (d.bannerUrl is string
                   && d.bannerUrl.size() <= 500
                   && (d.bannerUrl == ''
-                      || d.bannerUrl in ['preset:defecto', 'preset:ocaso', 'preset:abismo', 'preset:neon']
-                      || d.bannerUrl.matches('https://.*'))))
+                      || bannerPermitido(d.bannerUrl)
+                      || (d.bannerUrl.matches('https://.*') && nivelPerfil() >= 3))))
              && (!('profileColor' in d)
-                 || (d.profileColor is string
-                     && d.profileColor in ['#8b5cf6', '#71717a', '#22d3ee', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#eab308']))
+                 || (d.profileColor is string && colorPermitido(d.profileColor)))
              && (!('avatarFrame' in d)
                  || d.avatarFrame == null
-                 || (d.avatarFrame is string
-                     && d.avatarFrame in ['ninguno', 'neon', 'dorado']))
+                 || (d.avatarFrame is string && marcoPermitido(d.avatarFrame)))
              && (!('favoriteCharacter' in d)
                  || d.favoriteCharacter == null
                  || (d.favoriteCharacter is map
@@ -1330,11 +1409,13 @@ service cloud.firestore {
                  || (d.profileBackground is map
                      && (!('preset' in d.profileBackground)
                          || (d.profileBackground.preset is string
-                             && d.profileBackground.preset in ['defecto', 'ocaso', 'abismo', 'neon', 'cosmos', 'leyenda']))
+                             && fondoPermitido(d.profileBackground.preset)))
                      && (!('url' in d.profileBackground)
                          || (d.profileBackground.url is string
                              && d.profileBackground.url.size() <= 500
-                             && (d.profileBackground.url == '' || d.profileBackground.url.matches('https://.*'))))
+                             && (d.profileBackground.url == ''
+                                 || (d.profileBackground.url.matches('https://.*')
+                                     && nivelPerfil() >= 3))))
                      && (!('position' in d.profileBackground)
                          || (d.profileBackground.position is string
                              && d.profileBackground.position in ['center', 'top', 'bottom']))

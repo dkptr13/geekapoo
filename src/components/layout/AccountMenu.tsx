@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 
 import type { User as Usuario } from '../../types';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 
 // ======================================================
 // MENÚ DE CUENTA
@@ -108,17 +109,21 @@ export const AccountMenu: React.FC<{
         title={abierto ? 'Cerrar el menú de cuenta' : 'Abrir el menú de cuenta'}
         className="chat-boton flex items-center gap-2 rounded-xl px-2 py-2 transition-colors hover:bg-white/[0.05]"
       >
-        <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300">
-          {usuario.avatarUrl ? (
-            <img
-              src={usuario.avatarUrl}
-              alt={nombre}
-              className="h-full w-full object-cover"
-            />
-          ) : (
+        {usuario.avatarUrl ? (
+          <AvatarUsuario
+            src={usuario.avatarUrl}
+            fallbackSrc="/img/avatar-comunidad.webp"
+            alt={nombre}
+            frame={usuario.avatarFrame}
+            color={usuario.profileColor}
+            sizeClass="h-8 w-8"
+            shapeClass="rounded-full"
+          />
+        ) : (
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300">
             <User size={16} />
-          )}
-        </span>
+          </span>
+        )}
 
         <span className="hidden text-left sm:block">
           <span className="block max-w-[140px] truncate text-xs font-bold text-white">
@@ -154,17 +159,21 @@ export const AccountMenu: React.FC<{
         >
           {/* ── Cabecera ─────────────────────────── */}
           <div className="flex items-center gap-3 border-b border-white/[0.06] bg-white/[0.02] px-4 py-3">
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300">
-              {usuario.avatarUrl ? (
-                <img
-                  src={usuario.avatarUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : (
+            {usuario.avatarUrl ? (
+              <AvatarUsuario
+                src={usuario.avatarUrl}
+                fallbackSrc="/img/avatar-comunidad.webp"
+                alt=""
+                frame={usuario.avatarFrame}
+                color={usuario.profileColor}
+                sizeClass="h-10 w-10"
+                shapeClass="rounded-full"
+              />
+            ) : (
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-violet-400/20 bg-violet-500/10 text-violet-300">
                 <User size={18} />
-              )}
-            </span>
+              </span>
+            )}
             <span className="min-w-0">
               <span className="block truncate text-sm font-black text-white">{nombre}</span>
               <span className="block truncate text-[11px] text-zinc-400">{rolTexto}</span>

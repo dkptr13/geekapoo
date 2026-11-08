@@ -31,6 +31,7 @@ import { useSiteContent } from '../../context/SiteContentContext';
 import { useNotifications } from '../../context/NotificationsContext';
 import { NotificationBell } from '../notifications/NotificationBell';
 import { AccountMenu } from './AccountMenu';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { useQueryState, useQueryStateBatch } from '../../hooks/useQueryState';
 
 
@@ -576,17 +577,21 @@ export default function Navbar({
                   }}
                   className="flex w-full items-center gap-3 rounded-xl border border-white/[0.04] px-4 py-3 text-left transition-colors hover:bg-white/[0.05]"
                 >
-                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-violet-500/40 bg-purple-600/20">
-                    {currentUser.avatarUrl ? (
-                      <img
-                        src={currentUser.avatarUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
+                  {currentUser.avatarUrl ? (
+                    <AvatarUsuario
+                      src={currentUser.avatarUrl}
+                      fallbackSrc="/img/avatar-comunidad.webp"
+                      alt=""
+                      frame={currentUser.avatarFrame}
+                      color={currentUser.profileColor}
+                      sizeClass="h-8 w-8"
+                      shapeClass="rounded-full"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-violet-500/40 bg-purple-600/20">
                       <User size={16} className="text-purple-300" />
-                    )}
-                  </span>
+                    </span>
+                  )}
 
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold text-white">

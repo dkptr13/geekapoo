@@ -323,13 +323,14 @@ export function validarEditable(
 
   const avatar = (datos.avatarUrl ?? '').trim();
   if (avatar) {
+    const avatarLocal = /^\/img\/avatars\/[a-z0-9-]+\.(?:jpe?g|png|webp)$/i.test(avatar);
     if (avatar.length > MAX_AVATAR_URL) {
       errores.avatarUrl = `La URL del avatar es demasiado larga (maximo ${MAX_AVATAR_URL}).`;
-    } else if (!/^https?:\/\//i.test(avatar)) {
-      // Solo http(s). Sin esto, un "javascript:alert(...)" en el
-      // campo se guardaria y el atributo src lo ejecutaria en
-      // algunos navegadores. Firestore no lo comprueba.
-      errores.avatarUrl = 'La URL tiene que empezar por http:// o https://';
+    } else if (!avatarLocal && !/^https?:\/\//i.test(avatar)) {
+      // Solo http(s) o los avatares locales del catálogo. Sin esto,
+      // un "javascript:alert(...)" en el campo se guardaria y el
+      // atributo src lo ejecutaria en algunos navegadores.
+      errores.avatarUrl = 'La URL tiene que ser https:// o un avatar de Geekapoo.';
     }
   }
 

@@ -28,7 +28,7 @@ const fuente = readFileSync(join(raiz, 'src', 'components', 'home', 'HomeFeed.ts
 /** El `className` del `<img>` con ese `alt`. */
 function clasesDe(alt: string): string {
   const re = new RegExp(
-    `<img[\\s\\S]*?alt="${alt}"[\\s\\S]*?className="([^"]+)"`,
+    `<(?:img|StableImage)[\\s\\S]*?alt="${alt}"[\\s\\S]*?className="([^"]+)"`,
   );
   const m = fuente.match(re);
 

@@ -15,6 +15,7 @@ import { useCommunity } from '../../context/CommunityContext';
 import { useAuth } from '../../context/AuthContext';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { QuickImageEditor } from '../admin/QuickImageEditor';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { anyMatches, encuadre, matchesText as matches, toText } from '../../utils/safeData';
 import {
   cargarIndiceBusqueda,
@@ -245,10 +246,14 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                     className="group flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/90 p-3 text-left transition-all hover:border-cyan-500/50"
                   >
                     {u.avatarUrl ? (
-                      <img
+                      <AvatarUsuario
                         src={u.avatarUrl}
+                        fallbackSrc="/img/avatar-comunidad.webp"
                         alt=""
-                        className="h-12 w-12 rounded-xl object-cover ring-1 ring-cyan-400/20"
+                        frame={u.avatarFrame}
+                        color={u.profileColor}
+                        sizeClass="h-12 w-12"
+                        shapeClass="rounded-xl"
                       />
                     ) : (
                       <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-800">

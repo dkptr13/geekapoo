@@ -10,6 +10,10 @@ import {
   RotateCcw,
   Check,
   Pin,
+  Palette,
+  UserRound,
+  ImageIcon,
+  Crown,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -45,23 +49,26 @@ import {
   POSICIONES_FONDO,
   POSICIONES_PREDEFINIDAS,
   PREFIJO_BANNER,
+  RAREZAS,
   TAMANOS_DECORACION,
   VITRINAS,
   VITRINAS_POR_DEFECTO,
   bannerDePerfil,
   colorDePerfil,
   desbloqueadoPorNivel,
+  estiloColorDePerfil,
   fondoAGuardar,
   fondoDePerfil,
-  marcoDeAvatar,
   sujetarDecoracion,
   type Decoracion,
   type PersonajeFavorito,
+  type Rareza,
   type TamanoDecoracion,
   type TipoVitrina,
 } from '../../data/profileCustomization';
 import { ESTILO_RAREZA } from '../gamification/MedalCard';
 import { CropEditor } from '../common/CropEditor';
+import { AvatarUsuario } from './AvatarUsuario';
 import { ProfileHeader } from './ProfileHeader';
 import { textoTitulo } from '../gamification/AuthorBadge';
 import type { ImageCropSettings } from '../../services/imageCrop';
@@ -106,6 +113,38 @@ const PESTANAS: Array<{ id: Pestana; nombre: string }> = [
 /** Id único para una decoración nueva (sin librerías). */
 const nuevoIdDecoracion = () =>
   `dec-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
+
+const RarezaPill: React.FC<{ rareza: Rareza }> = ({ rareza }) => {
+  const estilo = RAREZAS[rareza];
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${estilo.clase}`}
+    >
+      {rareza === 'legendario' && <Crown size={9} />}
+      {estilo.nombre}
+    </span>
+  );
+};
+
+const TituloSeccion: React.FC<{
+  icono: React.ReactNode;
+  titulo: string;
+  descripcion: string;
+}> = ({ icono, titulo, descripcion }) => (
+  <div className="mb-3 flex items-start gap-2.5">
+    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-400/20 bg-violet-500/10 text-violet-300">
+      {icono}
+    </span>
+    <div className="min-w-0">
+      <h3 className="text-xs font-black uppercase tracking-wider text-zinc-200">
+        {titulo}
+      </h3>
+      <p className="mt-0.5 text-[10px] leading-relaxed text-zinc-500">
+        {descripcion}
+      </p>
+    </div>
+  </div>
+);
 
 export const CustomizeProfileModal: React.FC<{
   onCerrar: () => void;
@@ -594,7 +633,7 @@ export const CustomizeProfileModal: React.FC<{
 
   const bannerVista = bannerDePerfil(vistaPrevia.bannerUrl, level);
   const colorVista = colorDePerfil(vistaPrevia.profileColor, level);
-  const marcoVista = marcoDeAvatar(vistaPrevia.avatarFrame, level);
+  const estiloVista = estiloColorDePerfil(vistaPrevia.profileColor, level);
   const tituloVista = textoTitulo(vistaPrevia);
 
   // ── Guardar ──────────────────────────────────────
@@ -872,53 +911,52 @@ export const CustomizeProfileModal: React.FC<{
 
           {/* ── Vista previa ─────────────────────────── */}
           <div className="shrink-0 border-b border-white/[0.06] px-5 py-3">
-            <div className="relative overflow-hidden rounded-2xl border border-white/[0.06]">
-              {bannerVista.tipo === 'url' ? (
-                <img
-                  src={bannerVista.url}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-16 w-full object-cover"
-                />
-              ) : (
-                <div aria-hidden="true" style={{ background: bannerVista.css }} className="h-16 w-full" />
-              )}
-              <div className="flex items-center gap-3 bg-[#080810]/95 p-3">
-                <img
+            <div className="relative rounded-2xl border border-white/[0.08] bg-[#080810]">
+              <div className="absolute inset-x-0 top-0 h-24 overflow-hidden rounded-t-2xl">
+                {bannerVista.tipo === 'url' ? (
+                  <img
+                    src={bannerVista.url}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    style={{ background: bannerVista.css }}
+                    className="h-full w-full"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#080810] via-transparent to-transparent" />
+              </div>
+              <div className="relative flex items-end gap-3 px-4 pb-4 pt-14">
+                <AvatarUsuario
                   src={vistaPrevia.avatarUrl || avatarPorDefecto}
-                  alt=""
-                  aria-hidden="true"
-                  style={{ boxShadow: `0 0 0 3px ${colorVista}55` }}
-                  className={`h-12 w-12 rounded-2xl object-cover ring-2 ${marcoVista}`}
+                  fallbackSrc={avatarPorDefecto}
+                  alt="Vista previa de tu avatar"
+                  frame={vistaPrevia.avatarFrame}
+                  level={level}
+                  color={colorVista}
+                  sizeClass="h-20 w-20"
+                  shapeClass="rounded-2xl"
+                  loading="eager"
                 />
-                <div className="min-w-0">
+                <div className="min-w-0 pb-1">
                   <p className="truncate text-sm font-black text-white">
                     {vistaPrevia.displayName || currentUser.username || 'Usuario'}
                   </p>
+                  <p className="mt-0.5 truncate text-[10px] text-zinc-500">
+                    {estiloVista.nombre} · Nv. {level}
+                  </p>
                   {tituloVista ? (
-                    <p className="mt-0.5 inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/15 px-1.5 py-px text-[10px] font-bold text-amber-300">
+                    <p className="mt-1 inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/15 px-1.5 py-px text-[10px] font-bold text-amber-300">
                       <Sparkles size={9} />
                       {tituloVista}
                     </p>
                   ) : (
-                    <p className="mt-0.5 text-[10px] text-zinc-600">Sin título</p>
+                    <p className="mt-1 text-[10px] text-zinc-600">Sin título</p>
                   )}
                 </div>
-                {vistaPrevia.favoriteCharacter && (
-                  <p className="ml-auto hidden items-center gap-1.5 text-[10px] text-zinc-400 sm:flex">
-                    {vistaPrevia.favoriteCharacter.imageUrl && (
-                      <img
-                        src={vistaPrevia.favoriteCharacter.imageUrl}
-                        alt=""
-                        aria-hidden="true"
-                        className="h-6 w-6 rounded-lg object-cover"
-                      />
-                    )}
-                    <span className="max-w-24 truncate font-semibold text-zinc-300">
-                      {vistaPrevia.favoriteCharacter.name}
-                    </span>
-                  </p>
-                )}
               </div>
             </div>
           </div>
@@ -948,35 +986,72 @@ export const CustomizeProfileModal: React.FC<{
               <>
                 {/* BANNER */}
                 <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    Banner
-                  </label>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <TituloSeccion
+                    icono={<ImageIcon size={14} />}
+                    titulo="Banner"
+                    descripcion="La cabecera de tu perfil. Cada diseño tiene su propia rareza y desbloqueo."
+                  />
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                     {BANNERS_PERFIL.map((b) => {
                       const desbloqueado = desbloqueadoPorNivel(b.nivelMinimo, level);
-                      const elegido = datos.bannerUrl === `${PREFIJO_BANNER}${b.id}` || (b.id === BANNER_PREDETERMINADO_ID && datos.bannerUrl === '');
+                      const elegido =
+                        datos.bannerUrl === `${PREFIJO_BANNER}${b.id}` ||
+                        (b.id === BANNER_PREDETERMINADO_ID && datos.bannerUrl === '');
                       return (
                         <button
                           key={b.id}
                           type="button"
                           disabled={!desbloqueado}
                           onClick={() =>
-                            cambiar('bannerUrl', b.id === BANNER_PREDETERMINADO_ID ? '' : `${PREFIJO_BANNER}${b.id}`)
+                            cambiar(
+                              'bannerUrl',
+                              b.id === BANNER_PREDETERMINADO_ID
+                                ? ''
+                                : `${PREFIJO_BANNER}${b.id}`,
+                            )
                           }
-                          title={desbloqueado ? b.nombre : `${b.nombre} (nivel ${b.nivelMinimo})`}
-                          className={`relative h-14 overflow-hidden rounded-xl border-2 transition-all ${
+                          title={
+                            desbloqueado
+                              ? b.nombre
+                              : `${b.nombre} · se desbloquea en el nivel ${b.nivelMinimo}`
+                          }
+                          aria-pressed={elegido}
+                          className={`group relative h-24 overflow-hidden rounded-xl border-2 text-left transition-all ${
                             elegido
-                              ? 'scale-[1.02] border-violet-500 shadow-md shadow-violet-500/30'
+                              ? 'border-violet-400 shadow-lg shadow-violet-950/40'
                               : desbloqueado
-                                ? 'border-white/[0.06] opacity-80 hover:opacity-100'
-                                : 'cursor-not-allowed border-white/[0.06] opacity-40'
+                                ? 'border-white/[0.06] hover:border-violet-400/40'
+                                : 'cursor-not-allowed border-white/[0.05]'
                           }`}
                         >
-                          <span aria-hidden="true" style={{ background: b.css }} className="absolute inset-0" />
-                          <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-black/60 py-0.5 text-[10px] font-bold text-white">
-                            {!desbloqueado && <Lock size={9} />}
-                            {b.nombre}
-                            {!desbloqueado && ` · Nv. ${b.nivelMinimo}`}
+                          <span
+                            aria-hidden="true"
+                            style={{ background: b.css }}
+                            className={`absolute inset-0 transition-transform duration-300 group-hover:scale-105 ${
+                              desbloqueado ? '' : 'opacity-50'
+                            }`}
+                          />
+                          <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+                          <span className="absolute left-2 top-2">
+                            <RarezaPill rareza={b.rareza} />
+                          </span>
+                          {!desbloqueado && (
+                            <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/65 px-1.5 py-0.5 text-[9px] font-bold text-zinc-300">
+                              <Lock size={9} /> Nv. {b.nivelMinimo}
+                            </span>
+                          )}
+                          {elegido && (
+                            <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-white shadow-lg">
+                              <Check size={11} />
+                            </span>
+                          )}
+                          <span className="absolute inset-x-2 bottom-2 block">
+                            <span className="block truncate text-[11px] font-black text-white">
+                              {b.nombre}
+                            </span>
+                            <span className="mt-0.5 block truncate text-[9px] text-zinc-400">
+                              {desbloqueado ? b.descripcion : `Nivel ${b.nivelMinimo}`}
+                            </span>
                           </span>
                         </button>
                       );
@@ -1045,75 +1120,104 @@ export const CustomizeProfileModal: React.FC<{
                 </div>
 
                 {/* AVATAR */}
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <img
-                      src={datos.avatarUrl || avatarPorDefecto}
-                      alt="Tu avatar"
-                      onError={(e) => {
-                        e.currentTarget.src = avatarPorDefecto;
-                      }}
-                      className="h-20 w-20 rounded-2xl object-cover ring-2 ring-zinc-800"
-                    />
-                    {subiendo && (
-                      <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[#080810]/70">
-                        <Loader2 size={18} className="animate-spin text-violet-400" />
-                      </span>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] bg-[#080810] px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
-                      <ImagePlus size={14} />
-                      Subir una imagen
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="sr-only"
-                        onChange={(e) => {
-                          const elegido = e.target.files?.[0];
-                          e.target.value = '';
-                          if (!elegido) return;
-                          // El GIF se sube tal cual, sin recorte.
-                          if (esGif(elegido)) {
-                            void alSubirAvatarDirecto(elegido);
-                            return;
-                          }
-                          setAvatarSinRecortar(elegido);
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    O elige uno de los de siempre
-                  </label>
-                  <div className="flex flex-wrap gap-2.5">
-                    {AVATAR_PRESETS.map((url) => {
-                      const elegido = datos.avatarUrl === url;
-                      return (
-                        <button
-                          key={url}
-                          type="button"
-                          onClick={() => cambiar('avatarUrl', url)}
-                          aria-label={`Usar este avatar${elegido ? ' (seleccionado)' : ''}`}
-                          aria-pressed={elegido}
-                          className={`relative h-14 w-14 overflow-hidden rounded-2xl border-2 transition-all ${
-                            elegido
-                              ? 'scale-105 border-violet-500 shadow-md shadow-violet-500/30'
-                              : 'border-white/[0.06] opacity-60 hover:opacity-100'
-                          }`}
-                        >
-                          <img src={url} alt="" className="h-full w-full object-cover" />
-                          {elegido && (
-                            <span className="absolute bottom-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-violet-600 text-[9px] text-white">
-                              ✓
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                  <TituloSeccion
+                    icono={<UserRound size={14} />}
+                    titulo="Avatar"
+                    descripcion="Elige un retrato del catálogo o sube tu propia imagen. El clásico rojo se mantiene."
+                  />
+                  <div className="flex items-center gap-4">
+                    <div className="relative shrink-0">
+                      <AvatarUsuario
+                        src={datos.avatarUrl}
+                        fallbackSrc={avatarPorDefecto}
+                        alt="Tu avatar"
+                        frame={datos.avatarFrame}
+                        level={level}
+                        color={datos.profileColor}
+                        sizeClass="h-24 w-24"
+                        shapeClass="rounded-2xl"
+                        loading="eager"
+                      />
+                      {subiendo && (
+                        <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[#080810]/70">
+                          <Loader2 size={18} className="animate-spin text-violet-400" />
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] bg-[#080810] px-3 py-2.5 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white">
+                        <ImagePlus size={14} />
+                        Subir una imagen
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={(e) => {
+                            const elegido = e.target.files?.[0];
+                            e.target.value = '';
+                            if (!elegido) return;
+                            // El GIF se sube tal cual, sin recorte.
+                            if (esGif(elegido)) {
+                              void alSubirAvatarDirecto(elegido);
+                              return;
+                            }
+                            setAvatarSinRecortar(elegido);
+                          }}
+                        />
+                      </label>
+                      <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">
+                        Tu avatar actual se conserva. Los avatares personalizados no se tocan.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                        Galería de retratos
+                      </span>
+                      <span className="text-[10px] text-zinc-600">
+                        {AVATAR_PRESETS.length} opciones
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-2 sm:grid-cols-7">
+                      {AVATAR_PRESETS.map((url, indice) => {
+                        const elegido = datos.avatarUrl === url;
+                        return (
+                          <button
+                            key={url}
+                            type="button"
+                            onClick={() => cambiar('avatarUrl', url)}
+                            aria-label={`Usar este avatar${elegido ? ' (seleccionado)' : ''}`}
+                            aria-pressed={elegido}
+                            title={indice === 0 ? 'Avatar clásico rojo' : `Avatar ${indice}`}
+                            className={`group relative aspect-square overflow-hidden rounded-xl border-2 transition-all ${
+                              elegido
+                                ? 'scale-[1.04] border-violet-400 shadow-lg shadow-violet-500/25'
+                                : 'border-white/[0.06] hover:border-violet-400/40 hover:scale-[1.02]'
+                            }`}
+                          >
+                            <img
+                              src={url}
+                              alt=""
+                              loading="lazy"
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                            />
+                            {indice === 0 && (
+                              <span className="absolute inset-x-0 bottom-0 bg-black/65 py-0.5 text-center text-[8px] font-bold uppercase tracking-wide text-pink-200">
+                                Clásico
+                              </span>
+                            )}
+                            {elegido && (
+                              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-violet-600 text-[9px] text-white shadow">
+                                <Check size={10} />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
@@ -1122,10 +1226,10 @@ export const CustomizeProfileModal: React.FC<{
                     O pega la URL de una imagen
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     value={datos.avatarUrl}
                     onChange={(e) => cambiar('avatarUrl', e.target.value)}
-                    placeholder="https://..."
+                    placeholder="https://... o /img/avatars/avatar-01.jpg"
                     className={`w-full rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                       errores.avatarUrl ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
@@ -1137,10 +1241,12 @@ export const CustomizeProfileModal: React.FC<{
 
                 {/* COLOR */}
                 <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    Color de perfil
-                  </label>
-                  <div className="flex flex-wrap gap-2.5">
+                  <TituloSeccion
+                    icono={<Palette size={14} />}
+                    titulo="Colores de perfil"
+                    descripcion="Combinaciones completas que tiñen el avatar, el nivel y la barra de progreso."
+                  />
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                     {COLORES_PERFIL.map((c) => {
                       const desbloqueado = desbloqueadoPorNivel(c.nivelMinimo, level);
                       const elegido = datos.profileColor.toLowerCase() === c.hex;
@@ -1150,23 +1256,53 @@ export const CustomizeProfileModal: React.FC<{
                           type="button"
                           disabled={!desbloqueado}
                           onClick={() => cambiar('profileColor', c.hex)}
-                          title={desbloqueado ? c.nombre : `${c.nombre} (nivel ${c.nivelMinimo})`}
+                          title={
+                            desbloqueado
+                              ? c.nombre
+                              : `${c.nombre} · se desbloquea en el nivel ${c.nivelMinimo}`
+                          }
                           aria-label={`${c.nombre}${elegido ? ' (seleccionado)' : ''}`}
                           aria-pressed={elegido}
-                          className={`relative flex h-10 w-10 items-center justify-center rounded-xl border-2 transition-all ${
+                          className={`group relative overflow-hidden rounded-xl border p-2 text-left transition-all ${
                             elegido
-                              ? 'scale-105 border-white shadow-md'
+                              ? 'border-violet-400 bg-violet-500/[0.08] shadow-lg shadow-violet-950/30'
                               : desbloqueado
-                                ? 'border-white/[0.06] hover:scale-105'
-                                : 'cursor-not-allowed border-white/[0.06] opacity-40'
+                                ? 'border-white/[0.06] bg-[#080810] hover:border-violet-400/40'
+                                : 'cursor-not-allowed border-white/[0.05] bg-[#080810]'
                           }`}
-                          style={{ backgroundColor: c.hex }}
                         >
-                          {!desbloqueado ? (
-                            <Lock size={12} className="text-white drop-shadow" />
-                          ) : (
-                            elegido && <Check size={14} className="text-white drop-shadow" />
-                          )}
+                          <span
+                            aria-hidden="true"
+                            style={{ background: c.gradiente }}
+                            className={`relative block h-14 overflow-hidden rounded-lg transition-transform duration-300 group-hover:scale-[1.02] ${
+                              desbloqueado ? '' : 'opacity-50'
+                            }`}
+                          >
+                            <span className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+                            {elegido && (
+                              <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-white shadow">
+                                <Check size={11} />
+                              </span>
+                            )}
+                            {!desbloqueado && (
+                              <span className="absolute inset-0 flex items-center justify-center bg-black/25">
+                                <span className="flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-[9px] font-bold text-zinc-200">
+                                  <Lock size={9} /> Nv. {c.nivelMinimo}
+                                </span>
+                              </span>
+                            )}
+                          </span>
+                          <span className="mt-2 flex items-center justify-between gap-1">
+                            <span className="truncate text-[11px] font-black text-white">
+                              {c.nombre}
+                            </span>
+                            <RarezaPill rareza={c.rareza} />
+                          </span>
+                          <span className="mt-1 line-clamp-2 block text-[9px] leading-relaxed text-zinc-500">
+                            {desbloqueado
+                              ? c.descripcion
+                              : `Se desbloquea en el nivel ${c.nivelMinimo}.`}
+                          </span>
                         </button>
                       );
                     })}
@@ -1178,40 +1314,70 @@ export const CustomizeProfileModal: React.FC<{
 
                 {/* MARCO */}
                 <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    Marco del avatar
-                  </label>
-                  <div className="space-y-2">
+                  <TituloSeccion
+                    icono={<Crown size={14} />}
+                    titulo="Marcos de avatar"
+                    descripcion="Recompensas coleccionables. Los legendarios tienen efectos y adornos exclusivos."
+                  />
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                     {MARCOS_AVATAR.map((m) => {
                       const desbloqueado = desbloqueadoPorNivel(m.nivelMinimo, level);
-                      const elegido = (datos.avatarFrame ?? null) === (m.id === 'ninguno' ? null : m.id);
+                      const elegido =
+                        (datos.avatarFrame ?? null) ===
+                        (m.id === 'ninguno' ? null : m.id);
                       return (
                         <button
                           key={m.id}
                           type="button"
                           disabled={!desbloqueado}
-                          onClick={() => cambiar('avatarFrame', m.id === 'ninguno' ? null : m.id)}
-                          className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${
+                          onClick={() =>
+                            cambiar('avatarFrame', m.id === 'ninguno' ? null : m.id)
+                          }
+                          aria-pressed={elegido}
+                          title={
+                            desbloqueado
+                              ? m.nombre
+                              : `${m.nombre} · se desbloquea en el nivel ${m.nivelMinimo}`
+                          }
+                          className={`relative flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${
                             elegido
-                              ? 'border-violet-500/60 bg-violet-500/10'
+                              ? 'border-violet-400 bg-violet-500/[0.08] shadow-md shadow-violet-950/25'
                               : desbloqueado
-                                ? 'border-white/[0.06] bg-[#080810] hover:border-white/[0.1]'
-                                : 'cursor-not-allowed border-white/[0.06] bg-[#080810] opacity-50'
+                                ? 'border-white/[0.06] bg-[#080810] hover:border-violet-400/40'
+                                : 'cursor-not-allowed border-white/[0.05] bg-[#080810] opacity-70'
                           }`}
                         >
-                          <img
-                            src={datos.avatarUrl || avatarPorDefecto}
+                          <AvatarUsuario
+                            src={datos.avatarUrl}
+                            fallbackSrc={avatarPorDefecto}
                             alt=""
-                            aria-hidden="true"
-                            className={`h-9 w-9 rounded-xl object-cover ring-2 ${m.clase}`}
+                            frame={m.id}
+                            color={datos.profileColor}
+                            sizeClass="h-16 w-16"
+                            shapeClass="rounded-2xl"
                           />
                           <span className="min-w-0 flex-1">
-                            <span className="block text-xs font-bold text-zinc-200">{m.nombre}</span>
-                            <span className="block text-[10px] text-zinc-500">
-                              {desbloqueado ? 'Disponible' : `Nivel ${m.nivelMinimo}`}
+                            <span className="flex items-center gap-1.5">
+                              <span className="truncate text-xs font-black text-zinc-100">
+                                {m.nombre}
+                              </span>
+                              <RarezaPill rareza={m.rareza} />
+                            </span>
+                            <span className="mt-1 line-clamp-2 block text-[10px] leading-relaxed text-zinc-500">
+                              {desbloqueado
+                                ? m.descripcion
+                                : `Se desbloquea en el nivel ${m.nivelMinimo}.`}
                             </span>
                           </span>
-                          {!desbloqueado && <Lock size={13} className="text-zinc-600" />}
+                          {!desbloqueado ? (
+                            <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/60 px-1.5 py-0.5 text-[9px] font-bold text-zinc-300">
+                              <Lock size={9} /> Nv. {m.nivelMinimo}
+                            </span>
+                          ) : elegido ? (
+                            <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-white">
+                              <Check size={11} />
+                            </span>
+                          ) : null}
                         </button>
                       );
                     })}

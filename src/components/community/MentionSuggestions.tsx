@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { RefObject } from 'react';
 
 import { useAuth } from '../../context/AuthContext';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import type { User } from '../../types';
 
 // ======================================================
@@ -97,10 +98,14 @@ export const MentionSuggestions: React.FC<MentionSuggestionsProps> = ({
               onClick={() => elegir(usuario)}
               className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-violet-500/15"
             >
-              <img
+              <AvatarUsuario
                 src={usuario.avatarUrl}
+                fallbackSrc="/img/avatar-comunidad.webp"
                 alt=""
-                className="h-7 w-7 rounded-lg object-cover ring-1 ring-violet-400/25"
+                frame={usuario.avatarFrame}
+                color={usuario.profileColor}
+                sizeClass="h-7 w-7"
+                shapeClass="rounded-lg"
               />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[11px] font-bold text-white">

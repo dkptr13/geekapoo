@@ -40,6 +40,7 @@ import { CommentGif } from '../community/CommentGif';
 import { GifPicker } from '../community/GifPicker';
 import { EmojiPickerButton } from '../community/EmojiPickerButton';
 import { ReportDialog } from '../community/ReportDialog';
+import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { FanartGallery } from '../community/FanartGallery';
 import { FanartImagePicker } from '../community/FanartImagePicker';
 import { MentionSuggestions } from '../community/MentionSuggestions';
@@ -1698,10 +1699,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     title="Ver su perfil"
                     className="flex-shrink-0 rounded-2xl transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                   >
-                    <img
+                    <AvatarUsuario
                       src={avatarDe(thread.authorId, thread.authorAvatar)}
+                      fallbackSrc="/img/avatar-comunidad.webp"
                       alt=""
-                      className="h-10 w-10 rounded-2xl object-cover ring-2 ring-violet-400/25"
+                      frame={autorDe(thread.authorId)?.avatarFrame}
+                      color={autorDe(thread.authorId)?.profileColor}
+                      sizeClass="h-10 w-10"
+                      shapeClass="rounded-2xl"
                     />
                   </button>
                   <div className="min-w-0">
@@ -2163,10 +2168,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                   title="Ver su perfil"
                                   className="flex-shrink-0 rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                                 >
-                                  <img
+                                  <AvatarUsuario
                                     src={avatarDe(comment.authorId, comment.authorAvatar)}
+                                    fallbackSrc="/img/avatar-comunidad.webp"
                                     alt=""
-                                    className="h-6 w-6 rounded-full object-cover"
+                                    frame={autorDe(comment.authorId)?.avatarFrame}
+                                    color={autorDe(comment.authorId)?.profileColor}
+                                    sizeClass="h-6 w-6"
+                                    shapeClass="rounded-full"
                                   />
                                 </button>
                                 <div className="min-w-0 flex-1">
@@ -2399,10 +2408,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                              title="Ver su perfil"
                                              className="flex-shrink-0 rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-violet-400"
                                            >
-                                             <img
+                                             <AvatarUsuario
                                                src={avatarDe(reply.authorId, reply.authorAvatar)}
+                                               fallbackSrc="/img/avatar-comunidad.webp"
                                                alt=""
-                                               className="h-5 w-5 rounded-full object-cover"
+                                               frame={autorDe(reply.authorId)?.avatarFrame}
+                                               color={autorDe(reply.authorId)?.profileColor}
+                                               sizeClass="h-5 w-5"
+                                               shapeClass="rounded-full"
                                              />
                                            </button>
                                            {/* "compacta": las respuestas

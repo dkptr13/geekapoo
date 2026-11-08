@@ -457,6 +457,31 @@ describe('gamificacion: XP y medallas', () => {
       );
     });
 
+    it('los cosmeticos nuevos respetan el nivel del perfil', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          profileColor: '#38bdf8',
+          avatarFrame: 'cyberpunk',
+          bannerUrl: 'preset:aurora',
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          avatarFrame: 'cristales-flotantes',
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          profileColor: '#7dd3fc',
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'users', ALICE), {
+          bannerUrl: 'preset:galaxia',
+        }),
+      );
+    });
+
     it('NO puede pasarse del tope de personajes, decoraciones ni vitrinas', async () => {
       await assertFails(
         updateDoc(doc(db(ALICE), 'users', ALICE), {
