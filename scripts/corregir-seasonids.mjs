@@ -1,6 +1,7 @@
 // Arregla los seasonIds que no apuntan a ninguna temporada real.
 //
-//    node scripts corregir-seasonids.mjs [--dry-run]
+//    node scripts/corregir-seasonids.mjs --anime <id>[,<id>...] [--dry-run]
+//    node scripts/corregir-seasonids.mjs --full [--dry-run]
 //
 // ── QUE PASA ───────────────────────────────────────────────────────
 //
@@ -21,12 +22,42 @@
 // temporadas" (ver `seasonIdsDe` en `utils/seasonData.ts`). Para los
 // animes de una sola temporada, vacio y "todas" son lo mismo.
 
-import { coleccion, escribir, str, s, arrayDe } from './firestore-rest.mjs';
+import { coleccion, escribir, str, arrayDe } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
-const dryRun = process.argv.includes('--dry-run');
+const args = process.argv.slice(2);
+const dryRun = args.includes('--dry-run');
+const full = args.includes('--full');
+const soloAnimes = args
+  .flatMap((arg, i) => (arg === '--anime' ? (args[i + 1] ?? '').split(',') : []))
+  .map((id) => id.trim())
+  .filter(Boolean);
 
-const seasons = await coleccion('seasons');
-const chars = await coleccion('characters');
+if (!full && !soloAnimes.length) {
+  console.error('  uso: corregir-seasonids.mjs --anime <id>[,<id>] | --full');
+  process.exit(1);
+}
+if (full && soloAnimes.length) {
+  console.error('  --full no se puede combinar con --anime.');
+  process.exit(1);
+}
+
+const seasons = full
+  ? await coleccion('seasons')
+  : await leerPorCampo({
+      coleccion: 'seasons',
+      campo: 'animeId',
+      valor: soloAnimes,
+      campos: ['animeId'],
+    });
+const chars = full
+  ? await coleccion('characters')
+  : await leerPorCampo({
+      coleccion: 'characters',
+      campo: 'animeId',
+      valor: soloAnimes,
+      campos: ['animeId', 'name', 'seasonIds'],
+    });
 
 const validos = new Set(seasons.map((x) => x.id));
 

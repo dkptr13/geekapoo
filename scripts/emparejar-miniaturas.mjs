@@ -1,5 +1,6 @@
 // Rellena las miniaturas de capitulo desde AniList, verificando cada una.
-//    node scripts/emparejar-miniaturas.mjs [--anime <id>] [--escribir]
+//    node scripts/emparejar-miniaturas.mjs --anime <id> [--escribir]
+//    node scripts/emparejar-miniaturas.mjs --full [--escribir]
 //
 // ── DONDE ESTAN LAS MINIATURAS ─────────────────────────────────────
 //
@@ -37,6 +38,7 @@
 // dentro de los capitulos que tiene esa temporada.
 
 import { coleccion, escribir, str, num } from './firestore-rest.mjs';
+import { leerPorCampo, leerPorIds } from './firestore-consultas.mjs';
 import * as anilist from './anilist.mjs';
 import { elegirTemporadas } from './temporadas-anilist.mjs';
 import { comoBuscar } from './busquedas-anime.mjs';
@@ -175,13 +177,29 @@ async function streamingDe(idMedia) {
 const args = process.argv.slice(2);
 const escribirEnBase = args.includes('--escribir');
 const relajar = args.includes('--relajar');
+const full = args.includes('--full');
 const soloAnime = args.includes('--anime') ? args[args.indexOf('--anime') + 1] : null;
+
+if (!soloAnime && !full) {
+  console.error('  uso: emparejar-miniaturas.mjs --anime <id> | --full [--escribir]');
+  process.exit(1);
+}
+if (soloAnime && full) {
+  console.error('  --anime y --full no se pueden combinar.');
+  process.exit(1);
+}
 
 // ── Catalogo ───────────────────────────────────────────────────────
 
-const animes = await coleccion('animes');
-const capitulos = await coleccion('episodes');
-const temporadas = await coleccion('seasons');
+const animes = soloAnime
+  ? await leerPorIds({ coleccion: 'animes', ids: [soloAnime] })
+  : await coleccion('animes');
+const capitulos = soloAnime
+  ? await leerPorCampo({ coleccion: 'episodes', campo: 'animeId', valor: soloAnime })
+  : await coleccion('episodes');
+const temporadas = soloAnime
+  ? await leerPorCampo({ coleccion: 'seasons', campo: 'animeId', valor: soloAnime })
+  : await coleccion('seasons');
 
 // Capitulos por anime y por numero de temporada.
 const porAnime = new Map();

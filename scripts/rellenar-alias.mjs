@@ -1,5 +1,5 @@
 // Rellena los alias de búsqueda desde AniList, sin inventar ninguno.
-//    node scripts/rellenar-alias.mjs [--escribir] [--anime <id>] [--solo <animes|personajes>]
+//    node scripts/rellenar-alias.mjs [--escribir] [--anime <id>] [--solo <animes|personajes>] [--full]
 //
 // Escribe dos campos que la búsqueda inteligente ya sabe leer:
 //
@@ -33,20 +33,33 @@
 // la búsqueda los encuentra por el título principal.
 
 import { coleccion, escribir, str, num, arrayDe } from './firestore-rest.mjs';
+import { leerPorCampo, leerPorIds } from './firestore-consultas.mjs';
 import { comoBuscar } from './busquedas-anime.mjs';
 import { arbol } from './anilist.mjs';
 import { mkdir, readFile, writeFile, unlink, readdir } from 'node:fs/promises';
 
 const args = process.argv.slice(2);
 const ESCRIBIR = args.includes('--escribir');
+const FULL = args.includes('--full');
 const solo = (() => {
   const i = args.indexOf('--solo');
   return i >= 0 ? args[i + 1] : null;
 })();
-const soloAnimes = args.reduce((acc, a, k) => (a === '--anime' ? [...acc, args[k + 1]] : acc), []);
+const soloAnimes = args
+  .flatMap((arg, i) => (arg === '--anime' ? (args[i + 1] ?? '').split(',') : []))
+  .map((id) => id.trim())
+  .filter(Boolean);
 
 if (solo && solo !== 'animes' && solo !== 'personajes') {
   console.error('  --solo debe ser: animes | personajes');
+  process.exit(1);
+}
+if (!FULL && soloAnimes.length === 0) {
+  console.error('  uso: rellenar-alias.mjs --anime <id>[,<id>] | --full');
+  process.exit(1);
+}
+if (FULL && soloAnimes.length > 0) {
+  console.error('  --full no se puede combinar con --anime.');
   process.exit(1);
 }
 
@@ -189,9 +202,23 @@ async function guardarCache(ruta, datos) {
 
 // ── Datos ────────────────────────────────────────────────────
 
-const animes = await coleccion('animes');
-const personajes = await coleccion('characters');
-const capitulos = await coleccion('episodes');
+const animes = soloAnimes.length
+  ? await leerPorIds({ coleccion: 'animes', ids: soloAnimes })
+  : await coleccion('animes');
+const personajes = soloAnimes.length
+  ? await leerPorCampo({
+      coleccion: 'characters',
+      campo: 'animeId',
+      valor: soloAnimes,
+    })
+  : await coleccion('characters');
+const capitulos = soloAnimes.length
+  ? await leerPorCampo({
+      coleccion: 'episodes',
+      campo: 'animeId',
+      valor: soloAnimes,
+    })
+  : await coleccion('episodes');
 
 // Capítulos por anime, para detectar pelis (uno solo).
 const capitulosPorAnime = new Map();

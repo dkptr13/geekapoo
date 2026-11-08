@@ -11,7 +11,8 @@
 // El motivo va en la primera linea del guion, que no se guarda en la base
 // de datos pero se queda en el historial.
 
-import { escribir, str, num, coleccion } from './firestore-rest.mjs';
+import { escribir, str, num } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
 const [seasonId, ...resto] = process.argv.slice(2);
 
@@ -34,9 +35,12 @@ if (!cambios.length) {
   process.exit(1);
 }
 
-const capitulos = await coleccion('episodes');
-
-const mios = capitulos.filter((c) => str(c.f, 'seasonId') === seasonId);
+const mios = await leerPorCampo({
+  coleccion: 'episodes',
+  campo: 'seasonId',
+  valor: seasonId,
+  campos: ['seasonId', 'number', 'airDate', 'title'],
+});
 
 let hechos = 0;
 

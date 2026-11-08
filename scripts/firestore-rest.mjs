@@ -124,7 +124,11 @@ export async function cliente() {
 
     const d = await r.json();
 
-    return { id: d.name.split('/').pop(), f: d.fields || {} };
+    return {
+      id: d.name.split('/').pop(),
+      f: d.fields || {},
+      actualizado: d.updateTime || '',
+    };
   }
 
   /**

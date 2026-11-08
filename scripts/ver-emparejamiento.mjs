@@ -1,6 +1,7 @@
 // Comprueba que las imagenes de AniList esten bien emparejadas.
 //
-//    node scripts/ver-emparejamiento.mjs [animeId]
+//    node scripts/ver-emparejamiento.mjs <animeId>
+//    node scripts/ver-emparejamiento.mjs --full
 //
 // ── POR QUE BASTA CON BUSCAR URL REPETIDAS ────────────────────────
 //
@@ -18,10 +19,26 @@
 // la ficha, y entonces la imagen sale rota sin avisar.
 
 import { coleccion, str } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
-const filtro = process.argv[2];
+const args = process.argv.slice(2);
+const full = args.includes('--full');
+const filtro = args.find((arg) => !arg.startsWith('--'));
 
-const chars = await coleccion('characters');
+if (!filtro && !full) {
+  console.error('  uso: node scripts/ver-emparejamiento.mjs <animeId> | --full');
+  process.exit(1);
+}
+
+const chars = filtro
+  ? await leerPorCampo({
+      coleccion: 'characters',
+      campo: 'animeId',
+      valor: filtro,
+      campos: ['animeId', 'name', 'imageUrl'],
+    })
+  : await coleccion('characters');
+
 const conImagen = chars.filter((c) => str(c.f, 'animeId') && str(c.f, 'imageUrl'));
 
 console.log(

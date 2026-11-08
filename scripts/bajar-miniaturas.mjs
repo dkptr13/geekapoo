@@ -10,7 +10,8 @@
 // nada del capitulo: por eso hace falta verlas.
 
 import { writeFile, mkdir } from 'node:fs/promises';
-import { coleccion, str, num } from './firestore-rest.mjs';
+import { str, num } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
 const animeId = process.argv[2] ?? 'grand-blue';
 
@@ -18,10 +19,15 @@ const cuantas = Number(process.argv[3] ?? 12);
 
 const CARPETA = 'C:/Users/Oscar/AppData/Local/Temp/opencode/miniaturas';
 
-const capitulos = await coleccion('episodes');
-
-const mios = capitulos
-  .filter((c) => str(c.f, 'animeId') === animeId && str(c.f, 'thumbnailUrl'))
+const mios = (
+  await leerPorCampo({
+    coleccion: 'episodes',
+    campo: 'animeId',
+    valor: animeId,
+    campos: ['animeId', 'seasonId', 'number', 'thumbnailUrl'],
+  })
+)
+  .filter((c) => str(c.f, 'thumbnailUrl'))
   .sort((a, b) => {
     const ta = (str(a.f, 'seasonId') ?? '').match(/-s(\d+)$/)?.[1] ?? '0';
     const tb = (str(b.f, 'seasonId') ?? '').match(/-s(\d+)$/)?.[1] ?? '0';

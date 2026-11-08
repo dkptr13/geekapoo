@@ -12,7 +12,8 @@
 // emparejar con AniList: es la unica parte del nombre que no cambia
 // entre fuentes.
 
-import { coleccion, str, num } from './firestore-rest.mjs';
+import { str } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
 const animeId = process.argv[2];
 
@@ -22,9 +23,12 @@ if (!animeId) {
   process.exit(1);
 }
 
-const personajes = await coleccion('characters');
-
-const mios = personajes.filter((c) => str(c.f, 'animeId') === animeId);
+const mios = await leerPorCampo({
+  coleccion: 'characters',
+  campo: 'animeId',
+  valor: animeId,
+  campos: ['animeId', 'name', 'japaneseName', 'role', 'imageUrl', 'image', 'importance'],
+});
 
 if (!mios.length) {
   console.log(`no hay personajes de "${animeId}" en la coleccion`);

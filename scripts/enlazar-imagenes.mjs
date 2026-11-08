@@ -6,6 +6,7 @@
 //    --anime <id>      solo este anime, se puede repetir
 //    --forzar          pisa imagenes que ya existem
 //    --dry-run         enseña lo que haria y no escribe nada
+//    --full            recorre todo el catalogo (si no hay --anime)
 //
 // ── QUE HACE Y QUE NO HACE ─────────────────────────────────────────
 //
@@ -44,6 +45,7 @@
 // por episodio: el `thumbnailUrl` de un capitulo no tiene fuente
 // publica. No es un fallo del script, es que el dato no existe.
 import { coleccion, escribir, str, num } from './firestore-rest.mjs';
+import { leerPorCampo, leerPorIds } from './firestore-consultas.mjs';
 import * as anilist from './anilist.mjs';
 import { elegirTemporadas, normalizar } from './temporadas-anilist.mjs';
 import { elegirPersonaje, similitud } from './personajes-anilist.mjs';
@@ -252,7 +254,19 @@ const ANIMES = [
   { id: 'carnival-phantasm', buscar: 'Carnival Phantasm', anilist: 10012 },
   { id: 'fate-strange-fake', buscar: 'Fate/strange Fake', anilist: 166617 },
 ];
-const soloAnimes = argv.reduce((acc, a, k) => (a === '--anime' ? [...acc, argv[k + 1]] : acc), []);
+const soloAnimes = argv
+  .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
+  .map((id) => id.trim())
+  .filter(Boolean);
+
+if (!soloAnimes.length && !flag('--full')) {
+  console.error('  uso: enlazar-imagenes.mjs --anime <id> | --full [--dry-run]');
+  process.exit(1);
+}
+if (soloAnimes.length && flag('--full')) {
+  console.error('  --anime y --full no se pueden combinar.');
+  process.exit(1);
+}
 
 // El titulo con el que se busca en AniList no siempre es el que se
 // guarda en el catalogo. La T3 de Hunter x Hunter va en castellano
@@ -339,10 +353,16 @@ console.log(
 // ── 1. Personajes ──────────────────────────────────────────────────
 if (pide('personajes')) {
   console.log('\n=== PERSONAJES');
-  const chars = await coleccion('characters');
+  const chars = soloAnimes.length ? null : await coleccion('characters');
   for (const anime of ANIMES) {
     if (soloAnimes.length && !soloAnimes.includes(anime.id)) continue;
-    const delAnime = chars.filter((c) => str(c.f, 'animeId') === anime.id);
+    const delAnime = soloAnimes.length
+      ? await leerPorCampo({
+          coleccion: 'characters',
+          campo: 'animeId',
+          valor: anime.id,
+        })
+      : chars.filter((c) => str(c.f, 'animeId') === anime.id);
     if (!delAnime.length) continue;
     const media = await mediaDe(anime);
     if (!media) {
@@ -442,10 +462,16 @@ if (pide('personajes')) {
 // ── 2. Temporadas ──────────────────────────────────────────────────
 if (pide('temporadas')) {
   console.log('\n=== TEMPORADAS');
-  const seasons = await coleccion('seasons');
+  const seasons = soloAnimes.length ? null : await coleccion('seasons');
   for (const anime of ANIMES) {
     if (soloAnimes.length && !soloAnimes.includes(anime.id)) continue;
-    const suyas = seasons.filter((s) => str(s.f, 'animeId') === anime.id);
+    const suyas = soloAnimes.length
+      ? await leerPorCampo({
+          coleccion: 'seasons',
+          campo: 'animeId',
+          valor: anime.id,
+        })
+      : seasons.filter((s) => str(s.f, 'animeId') === anime.id);
     if (!suyas.length) continue;
     const media = await mediaDe(anime);
     if (!media) continue;
@@ -483,7 +509,9 @@ if (pide('temporadas')) {
 // ── 3. Animes ──────────────────────────────────────────────────────
 if (pide('animes')) {
   console.log('\n=== ANIMES');
-  const animes = await coleccion('animes');
+  const animes = soloAnimes.length
+    ? await leerPorIds({ coleccion: 'animes', ids: soloAnimes })
+    : await coleccion('animes');
   for (const a of ANIMES) {
     if (soloAnimes.length && !soloAnimes.includes(a.id)) continue;
     const doc = animes.find((x) => x.id === a.id);

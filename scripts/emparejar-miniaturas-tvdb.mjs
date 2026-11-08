@@ -1,6 +1,7 @@
 // Rellena las miniaturas de capitulo desde TVDB.
 //    $env:TVDB_KEY='...'
-//    node scripts/emparejar-miniaturas-tvdb.mjs [--anime <id>[,<id>...]] [--escribir]
+//    node scripts/emparejar-miniaturas-tvdb.mjs --anime <id>[,<id>...] [--escribir]
+//    node scripts/emparejar-miniaturas-tvdb.mjs --full [--escribir]
 //
 // ── POR QUE TVDB Y NO ANILIST ──────────────────────────────────────
 //
@@ -56,6 +57,7 @@
 
 import { readdir } from 'node:fs/promises';
 import { coleccion, escribir, str, num } from './firestore-rest.mjs';
+import { leerPorCampo, leerPorIds } from './firestore-consultas.mjs';
 import { comoBuscarTvdb } from './busquedas-anime.mjs';
 import { capituloDe } from './emparejar-capitulo.mjs';
 import { limpiar } from './normalizar-titulo.mjs';
@@ -87,6 +89,16 @@ const soloAnime = new Set(
     .filter(Boolean),
 );
 const filtrarAnime = soloAnime.size > 0;
+const full = args.includes('--full');
+
+if (!filtrarAnime && !full) {
+  console.error('  uso: emparejar-miniaturas-tvdb.mjs --anime <id>[,<id>] | --full [--escribir]');
+  process.exit(1);
+}
+if (filtrarAnime && full) {
+  console.error('  --anime y --full no se pueden combinar.');
+  process.exit(1);
+}
 
 // Minimo de capitulos que tienen que coincidir por titulo japones para
 // dar por buena una serie de TVDB.
@@ -211,8 +223,17 @@ for (const [animeId, prefijo] of prefijos) {
 // es lo que hacia falta en su momento.
 const REHACER = args.includes('--rehacer');
 
-const animes = await coleccion('animes');
-const capitulos = await coleccion('episodes');
+const idsAnime = [...soloAnime];
+const animes = filtrarAnime
+  ? await leerPorIds({ coleccion: 'animes', ids: idsAnime })
+  : await coleccion('animes');
+const capitulos = filtrarAnime
+  ? await leerPorCampo({
+      coleccion: 'episodes',
+      campo: 'animeId',
+      valor: idsAnime,
+    })
+  : await coleccion('episodes');
 
 // Capitulos sin miniatura, por anime. Con `--rehacer` entran tambien los
 // que ya la tienen.

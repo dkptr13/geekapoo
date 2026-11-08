@@ -10,7 +10,8 @@
 // entre fuentes.
 
 import { writeFile, mkdir } from 'node:fs/promises';
-import { coleccion, str } from './firestore-rest.mjs';
+import { str } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
 const animeId = process.argv[2] ?? 'toradora';
 
@@ -18,11 +19,14 @@ const cuantas = Number(process.argv[3] ?? 12);
 
 const CARPETA = 'C:/Users/Oscar/AppData/Local/Temp/opencode/personajes';
 
-const personajes = await coleccion('characters');
-
-const mios = personajes.filter(
-  (c) => str(c.f, 'animeId') === animeId && str(c.f, 'imageUrl'),
-);
+const mios = (
+  await leerPorCampo({
+    coleccion: 'characters',
+    campo: 'animeId',
+    valor: animeId,
+    campos: ['animeId', 'name', 'japaneseName', 'imageUrl'],
+  })
+).filter((c) => str(c.f, 'imageUrl'));
 
 if (!mios.length) {
   console.log(`"${animeId}" no tiene personajes con imagen`);

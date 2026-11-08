@@ -30,7 +30,8 @@
 //      correcto que lo haga, porque en un caso asi un nombre igual puede
 //      ser de otra serie. Aqui se comprueba a mano.
 
-import { escribir, str, coleccion } from './firestore-rest.mjs';
+import { escribir, str } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
 const [animeId, nombre, anilistId] = process.argv.slice(2);
 const notaIdx = process.argv.indexOf('--nota');
@@ -78,11 +79,14 @@ console.log(`  imagen: ${ficha.image.large}`);
 
 // ── El personaje del catalogo ───────────────────────────────────────
 
-const personajes = await coleccion('characters');
+const personajes = await leerPorCampo({
+  coleccion: 'characters',
+  campo: 'animeId',
+  valor: animeId,
+  campos: ['animeId', 'name', 'japaneseName', 'imageUrl'],
+});
 
-const mio = personajes.find(
-  (c) => str(c.f, 'animeId') === animeId && str(c.f, 'name') === nombre,
-);
+const mio = personajes.find((c) => str(c.f, 'name') === nombre);
 
 if (!mio) {
   console.log(`\nno hay "${nombre}" en ${animeId}`);

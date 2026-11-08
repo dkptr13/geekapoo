@@ -1,4 +1,6 @@
-import { coleccion, escribir, borrar, str, arrayDe } from 'file:///C:/web%20anime/scripts/firestore-rest.mjs';
+import { coleccion, escribir, borrar, str, arrayDe } from './firestore-rest.mjs';
+import { leerPorIds } from './firestore-consultas.mjs';
+import { leerIndiceLocal } from './indice-local.mjs';
 
 const DEF = 'https://s4.anilist.co/file/anilistcdn/character/large/default.jpg';
 
@@ -61,7 +63,28 @@ await borrar('characters', 'cyberpunk-edgerunners-2-lucy');
 cambios.push('Lucy duplicada: se conserva buh9l6TURhgFnfMpbXUC y se borra cyberpunk-edgerunners-2-lucy');
 
 // ── Imagenes que eran banners del anime, no del personaje ────────
-const personajes = await coleccion('characters');
+const full = process.argv.includes('--full');
+const indice = full ? null : await leerIndiceLocal();
+
+if (!full && !indice) {
+  console.warn(
+    '  No hay índice local; se omite la limpieza global de imágenes. ' +
+      'Usa --full para revisar toda la colección.',
+  );
+}
+
+const candidatos = indice
+  ? indice.characters
+      .filter((c) => String(c.imageUrl ?? '').includes('/media/anime/'))
+      .map((c) => c.id)
+  : [];
+
+const personajes = indice
+  ? await leerPorIds({ coleccion: 'characters', ids: candidatos })
+  : full
+    ? await coleccion('characters')
+    : [];
+
 const conBanner = personajes.filter((c) => str(c.f, 'imageUrl').includes('/media/anime/'));
 for (const c of conBanner) {
   await escribir(

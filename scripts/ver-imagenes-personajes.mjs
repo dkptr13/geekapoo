@@ -1,5 +1,6 @@
 // Comprueba que las imagenes de los personajes cargan.
-//    node scripts/ver-imagenes-personajes.mjs
+//    node scripts/ver-imagenes-personajes.mjs --anime <animeId>
+//    node scripts/ver-imagenes-personajes.mjs --full
 //
 // `ver-miniaturas-vivas.mjs` hace lo mismo con las miniaturas de capitulo.
 // Este es el equivalente para los personajes, que van a otra parte: son
@@ -11,8 +12,25 @@
 // culpa propia.
 
 import { coleccion, str } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
-const personajes = await coleccion('characters');
+const args = process.argv.slice(2);
+const full = args.includes('--full');
+const animeId = args.includes('--anime') ? args[args.indexOf('--anime') + 1] : null;
+
+if (!full && !animeId) {
+  console.error('  uso: node scripts/ver-imagenes-personajes.mjs --anime <id> | --full');
+  process.exit(1);
+}
+
+const personajes = animeId
+  ? await leerPorCampo({
+      coleccion: 'characters',
+      campo: 'animeId',
+      valor: animeId,
+      campos: ['animeId', 'name', 'imageUrl'],
+    })
+  : await coleccion('characters');
 
 const conImagen = personajes.filter((c) => str(c.f, 'imageUrl'));
 

@@ -1,6 +1,7 @@
 // Empareja por fecha de emision en vez de por titulo.
 //    $env:TVDB_KEY='...'
-//    node scripts/emparejar-miniaturas-fecha.mjs [--anime <id>] [--escribir] [--rehacer]
+//    node scripts/emparejar-miniaturas-fecha.mjs --anime <id> [--escribir] [--rehacer]
+//    node scripts/emparejar-miniaturas-fecha.mjs --full [--escribir] [--rehacer]
 //
 // ── POR QUE HACE FALTA UNA SEGUNDA VIA ─────────────────────────────
 //
@@ -54,6 +55,7 @@
 // serie, las fechas no quadrarian.
 
 import { coleccion, escribir, str, num } from './firestore-rest.mjs';
+import { leerPorCampo, leerPorIds } from './firestore-consultas.mjs';
 import { comoBuscarTvdb } from './busquedas-anime.mjs';
 import { capituloEnTvdb } from './temporadas-tvdb.mjs';
 
@@ -68,6 +70,16 @@ const args = process.argv.slice(2);
 const escribirEnBase = args.includes('--escribir');
 const soloAnime = args.includes('--anime') ? args[args.indexOf('--anime') + 1] : null;
 const REHACER = args.includes('--rehacer');
+const full = args.includes('--full');
+
+if (!soloAnime && !full) {
+  console.error('  uso: emparejar-miniaturas-fecha.mjs --anime <id> | --full [--escribir]');
+  process.exit(1);
+}
+if (soloAnime && full) {
+  console.error('  --anime y --full no se pueden combinar.');
+  process.exit(1);
+}
 
 let token = null;
 
@@ -111,8 +123,12 @@ async function capitulosDe(serie) {
 
 // ── Catalogo ───────────────────────────────────────────────────────
 
-const animes = await coleccion('animes');
-const capitulos = await coleccion('episodes');
+const animes = soloAnime
+  ? await leerPorIds({ coleccion: 'animes', ids: [soloAnime] })
+  : await coleccion('animes');
+const capitulos = soloAnime
+  ? await leerPorCampo({ coleccion: 'episodes', campo: 'animeId', valor: soloAnime })
+  : await coleccion('episodes');
 
 /** animeId -> [ {id, temporada, numero, fecha, titulo} ] */
 const porAnime = new Map();

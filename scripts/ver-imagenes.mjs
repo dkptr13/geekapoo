@@ -1,12 +1,18 @@
 // Estado real de las imagenes del catalogo.
 //
-//    node scripts/ver-imagenes.mjs
+//    node scripts/ver-imagenes.mjs --full
 //
 // Un simple recuento, pero con la paginación bien: los 300 de Firestore
 // no son el total, y contarlos sin `nextPageToken` deja fuera lo que
 // sobra. Por eso sale de `firestore-rest.mjs` y no de un fetch suelto.
 
 import { coleccion, str } from './firestore-rest.mjs';
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: node scripts/ver-imagenes.mjs --full');
+  console.error('  Es una auditoría global: requiere --full de forma explícita.');
+  process.exit(1);
+}
 
 const animes = await coleccion('animes');
 const seasons = await coleccion('seasons');
