@@ -47,7 +47,7 @@ export const TAGS = {
   'Yuki Sumi': ['Fans', 'Antes de la serie'],
   'Nobuyuki Kumano': ['Fans', 'Antes de la serie'],
   'Kengo Morimoto': ['Fans', 'Antes de la serie'],
-  'Matsuri Narushima': ['Antes de la serie', 'Amigo'],
+  'Melt Narushima': ['Antes de la serie', 'Amigo'],
   'Frill Shiranui': ['Fans', 'Colegio'],
   'Ryūnosuke Sugano': ['Fans', 'Provocador'],
   'Tsukuyomi': ['Secreto', 'Desconocida'],

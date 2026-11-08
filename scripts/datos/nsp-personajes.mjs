@@ -167,7 +167,7 @@ export const PERSONAJES = [
   ['Shikaku Nara', '1', 'supporting', '奈良シカク', 'Hiroshi Yanaka',
     'El padre de Shikamaru y el general de la Nube que muere en la guerra del mismo modo en que su hijo casi muere.'],
 
-  ['Chiyo', '1', 'supporting', '千々歳チヨ', 'Ikuko Tani',
+  ['Chiyo', '1', 'supporting', 'チヨ', 'Ikuko Tani',
     'La abuela de Suna que sella a Shukaku dentro de Gaara y que se enfrenta a Sasori con sus propias marionetas.'],
 
   ['Kankuro', '1', 'supporting', '我愛羅カンクロウ', 'Yasuyuki Kase',

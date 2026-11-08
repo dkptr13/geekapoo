@@ -114,7 +114,7 @@ export const PERSONAJES = [
   ['Kengo Morimoto', '1,2,3', 'supporting', '森本ケンゴ', 'Taito Ban',
    'El compañero de clase que organizaba la cacería de brujas sin saber lo que estaba haciendo. Sale poco y por eso se le reconoce: es de los que hacen cosas que no entienden.'],
 
-  ['Matsuri Narushima', '1,2,3', 'supporting', '鳴嶋メルト', 'Seiji Maeda',
+  ['Melt Narushima', '1,2,3', 'supporting', '鳴嶋メルト', 'Seiji Maeda',
    'El chico que sale con Ai en el show de television del primer capitulo, cuando la idol todavia no sabe que se esta muriendo. Es la prueba de que ella lo perdio todo el dia que se lo dijeron.'],
 
   ['Frill Shiranui', '1,2,3', 'supporting', '不知火フリル', 'Asami Seto',
