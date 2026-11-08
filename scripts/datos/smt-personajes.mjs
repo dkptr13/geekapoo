@@ -29,8 +29,8 @@ export const PERSONAJES = [
    "La enfermera de la Academia Hijiriga Saka. Ella es consciente de las cosas sobrenaturales que suceden alrededor de los estudiantes y tiende a dar consejos a Basara. Una persona sabia y compasiva, se revela que ella era la mejor amiga de la madre de Basara y una tía de él."],
   ["Zest", "1,3,4,5", "antagonist", "ゼスト", "Seiko Yoshida",
    "Otro demonio, fabricada por Zolgear, envió a mantener un ojo en Mio junto a Lars. Ella es la mano derecha del Demonio Zolgear y es la que originalmente envidia los pactos que Basara tiene con María, Mio y Yuki, ya que se preocupan por los demás."],
-  ["Zolgear", "1,3", "antagonist", "ゾルギ", "Hiroto Kazuki",
+  ["Zolgear", "1,3", "antagonist", "ゾルギア", "Hiroto Kazuki",
    "El demonio que mató a los padres adoptivos de Mio y el antiguo maestro de Zest, que planeaba traicionar a Leohart y obtener los poderes del rey demonio que poseía Mio para su propio bien. Posteriormente en la historia, fue asesinado por ''Lars'' en presencia de Basara."],
-  ["Leohart", "3,4,5", "antagonist", "レオハート,", "Kazuyuki Okitsu",
+  ["Leohart", "3,4,5", "antagonist", "レオハルト", "Kazuyuki Okitsu",
    "El actual Rey Demonio y el hermano menor del demonio Liala."],
 ];

@@ -43,7 +43,7 @@ export const PERSONAJES = [
   ['Charlotte Abelfreyja Drossel', '1', 'supporting', 'シャルロッテ・エーベルフレイヤ・ドロッセル', 'Megumi Nakajima',
     'La princesa joven que viaja de incognito para conocer el mundo real y que le pide a Violet una carta de amor de verdad, la primera que escribe sin que se la pidan.'],
 
-  ['Oscar Webster', '1', 'supporting', 'Oscar Webster', 'Takuya Inagaki',
+  ['Oscar Webster', '1', 'supporting', 'オスカー・ウェブスター', 'Takuya Inagaki',
     'El escritor retirado que ya no escribe y cuya obra de teatro Violet acaba sacando de su borrachera y de su silencio.'],
 
   ['Tiffany Evergarden', '1', 'supporting', 'ティファニー・エヴァーガーデン', 'Toshiko Sawada',

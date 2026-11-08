@@ -59,8 +59,8 @@ export const PERSONAJES = [
   ['Shirou Iori', '', 'supporting', '伊織糸郎', 'Yuuji Ueda',
     'El miembro de los clubes que pelea con Ryuko. Fuerte y directo.'],
 
-  ['Guts', '', 'supporting', 'Guts', 'Katsuyuki Konishi',
-    'El miembro de los clubes que pelea con Ryuko. Fuerte y directo.'],
+  ['Guts', '', 'supporting', 'ガッツ', 'Katsuyuki Konishi',
+    'El carlino de la familia Mankanshoku. Acompaña a Mako y a Ryuko y aparece en los momentos más absurdos.'],
 
   ['Sanzou Soroi', '', 'supporting', '揃三蔵', 'Akio Nojima',
     'El mayordomo de la familia Kiryuin. Leal y servicial.'],

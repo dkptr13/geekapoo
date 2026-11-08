@@ -93,7 +93,7 @@ export const PERSONAJES = [
   ['Abiko Samejima', '1,2,3', 'supporting', '鮫島アビ子', 'Ayane Sakura',
    'La que lleva las cuentas en la produccion. Tiene la mania de que el presupuesto manda, pero cuando Ruby propone lo de interpretarse a su madre es la primera que dice que sale caro y la primera que lo aprueba.'],
 
-  ['GOA', '1,2', 'supporting', 'GOA', 'Daisuke Ono',
+  ['GOA', '1,2', 'supporting', 'ゴア', 'Daisuke Ono',
    'El marca del sello discografico que Ruby firma en la segunda temporada. No es un personaje humano y aun asi se le trata como si lo fuera: lleva el peso del contrato en casi todos los capitulos.'],
 
   ['Sumiaki Raida', '1,2', 'antagonist', '雷田澄彰', 'Kenichi Suzumura',

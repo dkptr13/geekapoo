@@ -104,7 +104,7 @@ export const PERSONAJES = [
   ['Karoo', '2,3,4', 'supporting', 'カルー', 'Hiroaki Hirata',
     'Pato veloz y compañero de Vivi. Corre más que un caballo y lleva a dos personas en la espalda. Sigue a la princesa a todas partes y ayuda a la tripulación en Little Garden.'],
 
-  ['Mr. 9', '2', 'supporting', 'Mr.9', 'Yasuhiro Takato',
+  ['Mr. 9', '2', 'supporting', 'ミスター・ナイン', 'Yasuhiro Takato',
     'Agente fronterizo de Baroque Works emparejado con Miss Wednesday. Es presumido y algo torpe, y cuando descubre que Vivi es la princesa se pone de su parte para protegerla.'],
 
   ['Miss Monday', '2', 'supporting', 'ミス・マンデー', 'Makiko Oomoto',

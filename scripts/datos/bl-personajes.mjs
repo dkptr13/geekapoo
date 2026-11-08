@@ -65,20 +65,20 @@ export const PERSONAJES = [
    "La directora del proyecto Blue Lock. Seria y calculadora."],
 
   ["Ikki Niko", "", "supporting", "二子一揮", "Natsuki Hanae",
-   "El delantero del equipo de Bachira, que se autolesiona para marcar. Agresivo y talentoso."],
+   "El defensa inteligente del Team Y. Lee el juego y organiza la defensa con su visión estratégica."],
 
   ["Gin Gagamaru", "", "supporting", "我牙丸吟", "Shuugo Nakamura",
-   "El delantero del equipo de Bachira, que se autolesiona para marcar. Agresivo y talentoso."],
+   "El portero de reflejos felinos del equipo. Empezó como delantero y acabó siendo el guardameta titular."],
 
   ["Zantetsu Tsurugi", "", "supporting", "剣城斬鉄", "Kazuyuki Okitsu",
-   "El delantero del equipo de Bachira, que se autolesiona para marcar. Agresivo y talentoso."],
+   "El delantero velocista del Team V. Su arranque explosivo y su pierna izquierda lo hacen imparable en carrera."],
 
   ["Asahi Naruhaya", "", "supporting", "成早朝日", "Daishi Kajita",
-   "El delantero del equipo de Bachira, que se autolesiona para marcar. Agresivo y talentoso."],
+   "El delantero del Team Z especialista en moverse sin balón y buscar espacios."],
 
   ["Junichi Wanima", "", "supporting", "鰐間淳壱", "Ryouta Suzuki",
-   "El delantero del equipo de Bachira, que se autolesiona para marcar. Agresivo y talentoso."],
+   "El mayor de los gemelos Wanima y máximo goleador del Team W. Se entiende con Keisuke con solo mirarse."],
 
   ["Keisuke Wanima", "", "supporting", "鰐間計助", "Ryouta Suzuki",
-   "El delantero del equipo de Bachira, que se autolesiona para marcar. Agresivo y talentoso."],
+   "El menor de los gemelos Wanima. Forma con Junichi una pareja sincronizada que ataca por las bandas."],
 ];

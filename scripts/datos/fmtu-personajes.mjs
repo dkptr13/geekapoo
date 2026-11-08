@@ -25,7 +25,7 @@ export const PERSONAJES = [
     'El amigo de Kazehaya, tranquilo y directo. Se enamora de Chizuru.'],
 
   ['Kazuichi Arai', '', 'supporting', '荒井一市', 'Yuuki Ono',
-    'El compañero de clase que se hace amigo de Sawako. Alegre y sin malicia.'],
+    'El profesor de gimnasia y entrenador de béisbol que ejerce de tutor de la clase de Sawako. Ruidoso y despistado.'],
 
   ['Ume Kurumizawa', '1', 'supporting', '胡桃沢梅', 'Aya Hirano',
     'La chica que se hace amiga de Sawako con un motivo oculto: está enamorada de Kazehaya. Su arco es el de la rival.'],

@@ -22,7 +22,7 @@ export const TAGS = {
   'Omiko Hakodate': ['Club', 'Fuerte', 'Directa'],
   'Takiji Kuroido': ['Club', 'Fuerte', 'Directo'],
   'Shirou Iori': ['Club', 'Fuerte', 'Directo'],
-  'Guts': ['Club', 'Fuerte', 'Directo'],
+  'Guts': ['Perro', 'Mascota', 'Mankanshoku'],
   'Sanzou Soroi': ['Mayordomo', 'Leal', 'Servicial'],
   'Nui Harime': ['Costurera', 'Misteriosa', 'Poderosa'],
   'Tsumugu Kinagase': ['Cazador', 'Serio', 'Profesional'],

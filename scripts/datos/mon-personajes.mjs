@@ -36,13 +36,13 @@ export const PERSONAJES = [
     'El director de Kinderheim 511. Misterioso y manipulador.'],
 
   ['Christof Sievernich', '', 'antagonist', 'クリストフ・ジーヴァーニッヒ', 'Masashi Hironaka',
-    'El político que protege a Johan. Ambicioso y corrupto.'],
+    'El heredero de una de las familias neonazis que apoyan a Čapek. Ambicioso y sin escrúpulos.'],
 
   ['Franz Bonaparta', '', 'antagonist', 'フランツ・ボナパルタ', 'Nachi Nozawa',
     'El autor de los libros de cuentos. Misterioso y manipulador.'],
 
   ['Petr Čapek', '', 'supporting', 'ペトル・チャペック', 'Nobuo Tanaka',
-    'El político que protege a Johan. Ambicioso y corrupto.'],
+    'El político checo que lidera la organización neonazi y protege los planes de Johan. Ambicioso y corrupto.'],
 
   ['Rudy-Ulrich Gillen', '', 'supporting', 'ルーディ・ギーレン', 'Takayuki Sugou',
     'El psicólogo que ayuda a Tenma. Brillante y empático.'],

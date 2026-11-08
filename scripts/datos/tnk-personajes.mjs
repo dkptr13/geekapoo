@@ -35,13 +35,13 @@ export const PERSONAJES = [
    "Poli veterano detras de Hodaka. Sale en la peli."],
 
   ["Kana Sakura", "", "supporting", "カナ", "Kana Hanazawa",
-   "Clienta del sol de alquiler. Sale en la peli."],
+   "La novia de Nagi, una niña de cuarto de primaria. Sale en la película."],
 
   ["Uranai Obaba", "", "supporting", "占いおババ", "Masako Nozawa",
    "Adivina del callejon con bola de cristal. Sale en la peli."],
 
   ["Ayane Hanazawa", "", "supporting", "花澤綾音", "Ayane Sakura",
-   "Clienta del sol de alquiler. Sale en la peli."],
+   "La exnovia de Nagi. Sale en la película."],
 
   ["Scoutman Kimura", "", "supporting", "スカウトマン木村", "Ryouhei Kimura",
    "Captador de clubs con malas pulgas. Sale en la peli."],

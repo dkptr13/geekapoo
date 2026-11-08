@@ -28,7 +28,7 @@ export const PERSONAJES = [
   ["Takaya Satou", "", "supporting", "佐藤隆哉", "Takahiro Hikami",
    "Amigo de Banri desde el primer dia, alias Nijigen. El normal que sujeta al grupo."],
 
-  ["Nana", "", "supporting", "Nana", "Satomi Satou",
+  ["Nana", "", "supporting", "ナナ", "Satomi Satou",
    "Vecina de Banri, punk y de banda, amiga de Linda. Ex del club de festivales."],
 
   ["Kosshii", "", "supporting", "コッシー", "Takayuki Kondou",

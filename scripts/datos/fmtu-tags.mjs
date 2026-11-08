@@ -10,7 +10,7 @@ export const TAGS = {
   'Chizuru Yoshida': ['Amiga', 'Fuerte', 'Enamorada'],
   'Ayane Yano': ['Amiga', 'Observadora', 'Madura'],
   'Ryuu Sanada': ['Amigo', 'Tranquilo', 'Enamorado'],
-  'Kazuichi Arai': ['Compañero', 'Amigo', 'Alegre'],
+  'Kazuichi Arai': ['Profesor', 'Entrenador', 'Ruidoso'],
   'Ume Kurumizawa': ['Rival', 'Enamorada', 'Oculta'],
   'Tooru Sanada': ['Hermano', 'Ayuda', 'Discreto'],
   'Tomoko Endou': ['Compañera', 'Amiga', 'Alegre'],

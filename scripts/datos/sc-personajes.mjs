@@ -59,7 +59,7 @@ export const PERSONAJES = [
   ['Moronobu Hishikawa', '', 'supporting', '菱川師宣', 'Shinichirou Miki',
     'El artista que viaja con la tripulación. Talentoso y misterioso.'],
 
-  ['Isaac Kitching', '', 'supporting', 'null', 'Houchuu Ootsuka',
+  ['Isaac Kitching', '', 'supporting', '大二', 'Houchuu Ootsuka',
     'El extranjero que ayuda a la tripulación. Misterioso y sabio.'],
 
   ['Shinsuke', '', 'supporting', '新輔', 'Shigeru Shibuya',
