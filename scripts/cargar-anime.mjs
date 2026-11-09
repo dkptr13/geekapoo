@@ -377,7 +377,7 @@ for (const [nombre, temporada, rol, japones, voz, desc] of PERSONAJES) {
 }
 
 // ──────────────────────────────────────────────────────────
-// 3. LA NOTA DE LA SERIE, EL RECUENTO DE CAPITULOS Y LOS ALIAS
+// 3. LA NOTA, LOS RECUENTOS DE TEMPORADAS Y CAPITULOS, Y LOS ALIAS
 // ──────────────────────────────────────────────────────────
 //
 // Campos del anime que el panel no guarda en "crear anime". Se
@@ -389,6 +389,11 @@ for (const [nombre, temporada, rol, japones, voz, desc] of PERSONAJES) {
 // documento todo lo que no venga en el cuerpo, y el anime se
 // quedaria sin synopsis ni categorias.
 //
+// `seasonsCount` se calcula de TEMPORADAS. El panel lo incrementa al
+// crear una temporada, pero este script las escribe por REST y no pasa
+// por ese incremento; sin ponerlo aqui, el anime se queda a cero en el
+// filtro "Con temporadas" y en la lista del panel.
+//
 // Los alias ("alternativeTitles") van en la misma llamada: son
 // datos del fichero, como la nota, y los pone el agente que anade
 // el anime. Si el fichero no los define, el campo no entra en la
@@ -399,6 +404,7 @@ const animeUrl = `${BASE}/animes/${ANIME_ID}`;
 const camposAnime = {
   rating: v.dbl(RATING_SERIE),
   episodesCount: v.num(EPISODIOS_TOTAL),
+  seasonsCount: v.num(TEMPORADAS.length),
 };
 
 const conAlias = Array.isArray(ALIASES);

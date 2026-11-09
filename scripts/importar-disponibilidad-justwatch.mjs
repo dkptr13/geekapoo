@@ -437,6 +437,22 @@ const FICHAS = {
   'witch-hat-atelier': { id: 'ts435860', titulo: 'Witch Hat Atelier', anio: 2026 },
   'yahari-ore-no-seishun-love-come-wa-machigatteiru': { id: 'ts44387', titulo: 'Yahari Ore no Seishun Love Comedy wa Machigatteiru.', anio: 2013 },
   'zom-100-bucket-list-of-the-dead': { id: 'ts378094', titulo: 'Zom 100: Cien cosas que quiero hacer antes de convertirme en zombi', anio: 2023 },
+  // Películas añadidas en la tanda de noviembre de 2026. El id está
+  // comprobado contra el título y el año de JustWatch en España.
+  belle: { id: 'tm998992', titulo: 'Belle', anio: 2021 },
+  'guardianes-de-la-noche-tren-infinito': {
+    id: 'tm842683',
+    titulo: 'Guardianes de la Noche: Tren infinito',
+    anio: 2020,
+  },
+  'jujutsu-kaisen-0': { id: 'tm1040315', titulo: 'Jujutsu Kaisen 0', anio: 2021 },
+  'la-chica-que-saltaba-a-traves-del-tiempo': {
+    id: 'tm32198',
+    titulo: 'La chica que saltaba a través del tiempo',
+    anio: 2006,
+  },
+  'los-ninos-lobo': { id: 'tm43008', titulo: 'Los niños lobo', anio: 2012 },
+  'the-first-slam-dunk': { id: 'tm1095723', titulo: 'The First Slam Dunk', anio: 2022 },
 };
 
 /**

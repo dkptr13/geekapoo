@@ -253,6 +253,15 @@ const ANIMES = [
   { id: 'lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note', buscar: 'Lord El-Melloi II-sei no Jikenbo: "Rail Zeppelin" Grace note', anilist: 106918 },
   { id: 'carnival-phantasm', buscar: 'Carnival Phantasm', anilist: 10012 },
   { id: 'fate-strange-fake', buscar: 'Fate/strange Fake', anilist: 166617 },
+  // Películas añadidas en la tanda de noviembre de 2026. El id de
+  // AniList va fijado para que el emparejador no confunda Belle con
+  // otra película del mismo nombre.
+  { id: 'jujutsu-kaisen-0', buscar: 'Jujutsu Kaisen 0', anilist: 131573 },
+  { id: 'guardianes-de-la-noche-tren-infinito', buscar: 'Kimetsu no Yaiba: Mugen Ressha-hen', anilist: 112151 },
+  { id: 'the-first-slam-dunk', buscar: 'THE FIRST SLAM DUNK', anilist: 128207 },
+  { id: 'los-ninos-lobo', buscar: 'Ookami Kodomo no Ame to Yuki', anilist: 12355 },
+  { id: 'belle', buscar: 'Ryuu to Sobakasu no Hime', anilist: 127271 },
+  { id: 'la-chica-que-saltaba-a-traves-del-tiempo', buscar: 'Toki wo Kakeru Shoujo', anilist: 2236 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
