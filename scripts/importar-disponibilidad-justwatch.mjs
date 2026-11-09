@@ -477,6 +477,24 @@ const FICHAS = {
     titulo: 'Haru en el reino de los gatos',
     anio: 2002,
   },
+  // Segunda tanda de películas de Studio Ghibli, noviembre de 2026.
+  // El id está comprobado contra el título de JustWatch en España.
+  // Earwig se data en 2020 por su emisión en NHK; JustWatch la lista
+  // en 2021 por el estreno en cines.
+  'recuerdos-del-ayer': { id: 'tm7818', titulo: 'Recuerdos del ayer', anio: 1991 },
+  'porco-rosso': { id: 'tm128586', titulo: 'Porco Rosso', anio: 1992 },
+  'puedo-escuchar-el-mar': {
+    id: 'tm189061',
+    titulo: 'Puedo escuchar el mar',
+    anio: 1993,
+  },
+  pompoko: { id: 'tm120341', titulo: 'Pompoko', anio: 1994 },
+  'mis-vecinos-los-yamada': {
+    id: 'tm62394',
+    titulo: 'Mis vecinos los Yamada',
+    anio: 1999,
+  },
+  'earwig-y-la-bruja': { id: 'tm897377', titulo: 'Earwig y la bruja', anio: 2020 },
 };
 
 /**

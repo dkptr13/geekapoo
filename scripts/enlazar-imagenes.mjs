@@ -271,6 +271,13 @@ const ANIMES = [
   { id: 'la-colina-de-las-amapolas', buscar: 'Coquelicot-zaka kara', anilist: 10029 },
   { id: 'susurros-del-corazon', buscar: 'Mimi wo Sumaseba', anilist: 585 },
   { id: 'haru-en-el-reino-de-los-gatos', buscar: 'Neko no Ongaeshi', anilist: 597 },
+  // Segunda tanda de películas de Studio Ghibli, noviembre de 2026.
+  { id: 'recuerdos-del-ayer', buscar: 'Omoide Poro Poro', anilist: 1029 },
+  { id: 'porco-rosso', buscar: 'Kurenai no Buta', anilist: 416 },
+  { id: 'puedo-escuchar-el-mar', buscar: 'Umi ga Kikoeru', anilist: 743 },
+  { id: 'pompoko', buscar: 'Heisei Tanuki Gassen Ponpoko', anilist: 1030 },
+  { id: 'mis-vecinos-los-yamada', buscar: 'Hoohokekyo Tonari no Yamada-kun', anilist: 415 },
+  { id: 'earwig-y-la-bruja', buscar: 'Aya to Majo', anilist: 119321 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
