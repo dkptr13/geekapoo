@@ -4,7 +4,7 @@
     {
       "source": "/(.*)",
       "has": [{ "type": "host", "value": "geekapoo.vercel.app" }],
-      "destination": "https://geekapoo.es/$1",
+      "destination": "https://www.geekapoo.es/$1",
       "permanent": true
     }
   ],

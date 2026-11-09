@@ -19,7 +19,7 @@ import { useEffect } from 'react';
 //     cerrar el <script>.
 //   · Las páginas privadas llevan noindex/nofollow.
 
-export const SITE_URL = 'https://geekapoo.es';
+export const SITE_URL = 'https://www.geekapoo.es';
 export const SITE_NAME = 'Geekapoo';
 export const DEFAULT_IMAGE = `${SITE_URL}/img/og-geekapoo.png`;
 

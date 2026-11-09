@@ -8,4 +8,4 @@ Disallow: /*?tab=chats
 Disallow: /*?tab=ajustes
 Disallow: /*?tab=perfil
 
-Sitemap: https://geekapoo.es/sitemap.xml
+Sitemap: https://www.geekapoo.es/sitemap.xml

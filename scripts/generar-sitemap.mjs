@@ -31,7 +31,7 @@ const PROYECTO =
 // Cambiar el dominio aquí (o con VITE_SITE_URL en Vercel) cuando
 // geekapoo.es esté registrado.
 const SITIO = (
-  process.env.VITE_SITE_URL || 'https://geekapoo.es'
+  process.env.VITE_SITE_URL || 'https://www.geekapoo.es'
 ).replace(/\/+$/, '');
 
 const COLECCION = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents/animes`;

@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://geekapoo.es"><b>🌐 Entrar en geekapoo.es →</b></a>
+  <a href="https://www.geekapoo.es"><b>🌐 Entrar en geekapoo.es →</b></a>
 </p>
 
 ---
@@ -160,7 +160,7 @@ El catálogo se genera con un índice de búsqueda propio y las fichas de anime 
 <h2 align="center">¿Entras?</h2>
 
 <p align="center">
-  <a href="https://geekapoo.es"><b>www.geekapoo.es</b></a><br>
+  <a href="https://www.geekapoo.es"><b>www.geekapoo.es</b></a><br>
   <sub>Foro, wiki, chat y trivias. Gratis y sin anuncios invasivos.</sub>
 </p>
 

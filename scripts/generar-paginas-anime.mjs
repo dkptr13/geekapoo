@@ -30,7 +30,7 @@ const PLANTILLA = path.join(DIST, 'index.html');
 
 const PROYECTO = process.env.VITE_FIREBASE_PROJECT_ID || 'geekapoo-7624d';
 const SITIO = (
-  process.env.VITE_SITE_URL || 'https://geekapoo.es'
+  process.env.VITE_SITE_URL || 'https://www.geekapoo.es'
 ).replace(/\/+$/, '');
 
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents`;
