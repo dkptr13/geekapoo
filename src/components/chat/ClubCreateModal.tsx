@@ -78,6 +78,11 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
 
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Una vez creado el club, los reintentos ya no pueden volver a
+  // crearlo (el identificador está ocupado). Si las imágenes fallan,
+  // el modal se queda abierto con el aviso y este estado cambia el
+  // botón de "Crear" por "Cerrar".
+  const [creado, setCreado] = useState(false);
 
   const coverInputRef = useRef<HTMLInputElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
@@ -109,7 +114,7 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
 
   const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (enviando) return;
+    if (enviando || creado) return;
 
     setEnviando(true);
     setError(null);
@@ -176,15 +181,25 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
 
       // 3. Se guardan las URL en la ficha del club.
       if (Object.keys(urls).length > 0) {
-        await actualizar(slug, urls);
+        const guardado = await actualizar(slug, urls);
+        if (!guardado.ok) {
+          falloImagen =
+            guardado.error ?? 'No se pudieron guardar las imágenes en el club.';
+        }
       }
 
-      // El club existe aunque la imagen no haya subido: se
-      // avisa, pero no se deshace lo que sí funcionó.
+      // El club existe aunque las imágenes no hayan subido. En ese
+      // caso NO se cierra el modal: si se cerrara, el aviso
+      // desaparecería con él y el usuario creería que las imágenes
+      // se guardaron. Desde la configuración del club puede
+      // ponerlas después.
+      setCreado(true);
+
       if (falloImagen) {
         setError(
-          `El club se creó, pero ${falloImagen} Puedes ponerla desde la configuración del club.`,
+          `El club se creó, pero ${falloImagen} Puedes poner las imágenes desde la configuración del club.`,
         );
+        return;
       }
 
       onClose();
@@ -462,21 +477,33 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
             )}
 
             <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl px-4 py-2 text-xs font-semibold text-zinc-400 transition-colors hover:text-white"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={deshabilitado}
-                className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-600/20 transition-colors hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {enviando && <Loader2 size={14} className="animate-spin" />}
-                <span>{enviando ? 'Creando...' : 'Crear club'}</span>
-              </button>
+              {!creado && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-xl px-4 py-2 text-xs font-semibold text-zinc-400 transition-colors hover:text-white"
+                >
+                  Cancelar
+                </button>
+              )}
+              {creado ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-600/20 transition-colors hover:bg-violet-500"
+                >
+                  Cerrar
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={deshabilitado}
+                  className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-600/20 transition-colors hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {enviando && <Loader2 size={14} className="animate-spin" />}
+                  <span>{enviando ? 'Creando...' : 'Crear club'}</span>
+                </button>
+              )}
             </div>
           </div>
         </form>

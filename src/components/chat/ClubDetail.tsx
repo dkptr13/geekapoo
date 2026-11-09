@@ -21,6 +21,7 @@ import {
   Settings2,
   Ban,
   ShieldCheckIcon,
+  ImagePlus,
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -33,6 +34,7 @@ import { ClubModerationPanel } from './ClubModerationPanel';
 import { ClubPermisosPanel } from './ClubPermisosPanel';
 import { ClubRoleBadge } from './ClubRoleBadge';
 import { SancionDialog } from './ClubSancionDialog';
+import { uploadClubImage } from '../../services/clubImages';
 import {
   advertirMiembro,
   aplicarSancion,
@@ -97,6 +99,14 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
   const [editDesc, setEditDesc] = useState(club.description);
   const [editRules, setEditRules] = useState(club.rules ?? '');
   const [editAccess, setEditAccess] = useState(club.accessType);
+  // Portada e icono. Se suben al elegir el archivo y se guardan en la
+  // ficha al pulsar «Guardar cambios», igual que el resto del formulario.
+  const [editCover, setEditCover] = useState(club.coverUrl ?? '');
+  const [editIcon, setEditIcon] = useState(club.iconUrl ?? '');
+  const [subiendoImagen, setSubiendoImagen] = useState<'portada' | 'icono' | null>(null);
+  const [errorImagen, setErrorImagen] = useState<string | null>(null);
+  const coverInputRef = React.useRef<HTMLInputElement>(null);
+  const iconInputRef = React.useRef<HTMLInputElement>(null);
 
   // Confirmaciones
   const [confirmarEliminar, setConfirmarEliminar] = useState(false);
@@ -190,9 +200,29 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
     setEditDesc(club.description);
     setEditRules(club.rules ?? '');
     setEditAccess(club.accessType);
-  }, [club.name, club.description, club.rules, club.accessType]);
+    setEditCover(club.coverUrl ?? '');
+    setEditIcon(club.iconUrl ?? '');
+  }, [club.name, club.description, club.rules, club.accessType, club.coverUrl, club.iconUrl]);
 
   const avisar = (tipo: 'ok' | 'error', texto: string) => setMensaje({ tipo, texto });
+
+  // Sube la portada o el icono en cuanto se elige el archivo. La URL
+  // se queda en el formulario hasta que se pulsa «Guardar cambios»,
+  // que es lo que la escribe en la ficha del club.
+  const elegirImagen = async (tipo: 'portada' | 'icono', file: File) => {
+    setSubiendoImagen(tipo);
+    setErrorImagen(null);
+
+    try {
+      const url = await uploadClubImage(file, club.slug, tipo);
+      if (tipo === 'portada') setEditCover(url);
+      else setEditIcon(url);
+    } catch (e: unknown) {
+      setErrorImagen(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
+    } finally {
+      setSubiendoImagen(null);
+    }
+  };
 
   const ejecutar = async (
     accion: () => Promise<{ ok: boolean; error?: string }>,
@@ -761,6 +791,100 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
         {/* ── CONFIGURACIÓN ───────────────────────────── */}
         {vista === 'config' && (propietario || puedeEditarAspecto) && (
           <div className="space-y-4">
+            {/* Aspecto: portada e icono */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-bold text-zinc-300">
+                Imagen de portada
+              </label>
+              <button
+                type="button"
+                onClick={() => coverInputRef.current?.click()}
+                disabled={subiendoImagen !== null}
+                className="relative flex h-24 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-zinc-700 bg-zinc-950 transition-colors hover:border-violet-500 disabled:opacity-60"
+              >
+                {editCover ? (
+                  <img
+                    src={editCover}
+                    alt="Portada actual del club"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="flex flex-col items-center gap-1 text-[10px] text-zinc-500">
+                    <ImagePlus size={18} />
+                    <span>Banner horizontal</span>
+                  </span>
+                )}
+                {subiendoImagen === 'portada' && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-zinc-950/70">
+                    <Loader2 size={18} className="animate-spin text-violet-400" />
+                  </span>
+                )}
+              </button>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = '';
+                  if (file) void elegirImagen('portada', file);
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-[11px] font-bold text-zinc-300">
+                Icono del club
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => iconInputRef.current?.click()}
+                  disabled={subiendoImagen !== null}
+                  className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-zinc-700 bg-zinc-950 text-zinc-500 transition-colors hover:border-violet-500 disabled:opacity-60"
+                >
+                  {editIcon ? (
+                    <img
+                      src={editIcon}
+                      alt="Icono actual del club"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <ImagePlus size={18} />
+                  )}
+                  {subiendoImagen === 'icono' && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-zinc-950/70">
+                      <Loader2 size={16} className="animate-spin text-violet-400" />
+                    </span>
+                  )}
+                </button>
+                <p className="text-[10px] leading-relaxed text-zinc-600">
+                  Cuadrado, tipo avatar. Se guarda al pulsar «Guardar cambios».
+                </p>
+              </div>
+              <input
+                ref={iconInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = '';
+                  if (file) void elegirImagen('icono', file);
+                }}
+              />
+            </div>
+
+            {errorImagen && (
+              <p
+                role="alert"
+                className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-[11px] text-red-300"
+              >
+                {errorImagen}
+              </p>
+            )}
+
             <div>
               <label className="mb-1.5 block text-[11px] font-bold text-zinc-300">
                 Nombre del club
@@ -841,14 +965,18 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                       description: editDesc.trim(),
                       rules: editRules.trim(),
                       accessType: editAccess,
+                      coverUrl: editCover,
+                      iconUrl: editIcon,
                     }),
                   'Cambios guardados.',
                 )
               }
-              disabled={procesando}
+              disabled={procesando || subiendoImagen !== null}
               className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
             >
-              {procesando && <Loader2 size={13} className="animate-spin" />}
+              {(procesando || subiendoImagen !== null) && (
+                <Loader2 size={13} className="animate-spin" />
+              )}
               <span>Guardar cambios</span>
             </button>
 

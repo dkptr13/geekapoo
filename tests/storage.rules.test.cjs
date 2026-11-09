@@ -154,7 +154,9 @@ describe('reglas de Storage', () => {
         type: 'group',
         name: 'grupo',
         ownerId: ALICE,
-        memberIds: [ALICE, BOB],
+        // BANEADO_REGISTRO entra para poder probar que un baneo
+        // duradero también bloquea las fotos del chat.
+        memberIds: [ALICE, BOB, BANEADO_REGISTRO],
       });
 
       await setDoc(doc(f, 'users', ALICE), { displayName: 'alice' });
@@ -180,9 +182,9 @@ describe('reglas de Storage', () => {
         name: 'Club de prueba',
         description: 'Club para probar Storage',
         ownerId: ALICE,
-        moderatorIds: [MOD],
+        moderatorIds: [MOD, BANEADO_REGISTRO],
         adminIds: [ADMIN],
-        memberIds: [ALICE, MOD, CARA, MIRROR, ADMIN],
+        memberIds: [ALICE, MOD, CARA, MIRROR, ADMIN, BANEADO_REGISTRO],
         members: {
           [ALICE]: { uid: ALICE, role: 'owner' },
           [MOD]: { uid: MOD, role: 'moderator' },
@@ -340,6 +342,21 @@ describe('reglas de Storage', () => {
     it('un baneo levantado (activo:false) deja subir otra vez', async () => {
       await assertSucceeds(
         subir(DESBANEADO, `community/${DESBANEADO}/1700000000.jpg`),
+      );
+    });
+
+    it('un baneo duradero no sube fotos a la carpeta de un chat', async () => {
+      // Storage solo permite dos documentos de Firestore por
+      // evaluación: la restricción y el chat. Esta prueba cubre que
+      // `baneoDuradero()` sigue bloqueando sin leer `users`.
+      await assertFails(
+        subir(BANEADO_REGISTRO, 'chats/chat1/messages/1700000000-baneado.jpg'),
+      );
+    });
+
+    it('un baneo duradero no sube la portada de un club', async () => {
+      await assertFails(
+        subir(BANEADO_REGISTRO, 'clubs/club1/portada/1700000000-baneado.jpg'),
       );
     });
   });

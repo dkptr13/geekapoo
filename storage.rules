@@ -59,6 +59,23 @@ service firebase.storage {
         && firestore.exists(/databases/(default)/documents/accountRestrictions/$(request.auth.uid));
     }
 
+    // ¿Está baneado, mirando SOLO el registro duradero?
+    //
+    // Cloud Storage permite leer como máximo DOS documentos distintos
+    // de Firestore por evaluación. Las reglas de chats y clubes ya
+    // necesitan leer su propio documento (el chat o el club), así que
+    // no pueden permitirse además las dos lecturas de `isBanned()`:
+    // la petición se denegaría por pasarse del límite, incluso siendo
+    // el dueño. Esta versión lee un único documento.
+    //
+    // La contrapartida es que no cubre la bandera antigua
+    // `users.isBanned` de cuentas baneadas antes de existir
+    // `accountRestrictions`. Esas cuentas se migran con la callable
+    // `sincronizarBaneos`; a partir de ahí el registro duradero manda.
+    function baneoDuradero() {
+      return restriccionActiva();
+    }
+
     // Si el usuario esta baneado.
     //
     // Si existe el registro duradero, manda el, aunque este levantado:
@@ -172,12 +189,16 @@ service firebase.storage {
     // rechaza.
     match /chats/{chatId}/{folder}/{fileName} {
       allow read: if true;
+      // `baneoDuradero()` y no `isBanned()`: entre la restricción y el
+      // chat ya son dos documentos de Firestore, el máximo que permite
+      // Storage. Con `isBanned()` (que además lee `users`) la regla se
+      // pasaba del límite y rechazaba TODAS las subidas.
       allow write: if isSignedIn()
-                   && !isBanned()
+                   && !baneoDuradero()
                    && esImagenSegura()
                    && isChatMember(chatId);
       allow delete: if isSignedIn()
-                   && ((isChatMember(chatId) && !isBanned()) || isAdmin());
+                   && ((isChatMember(chatId) && !baneoDuradero()) || isAdmin());
     }
 
     // Imagenes de los clubes: portada (banner) e icono.
@@ -202,8 +223,12 @@ service firebase.storage {
       // puede editar y no concede permisos en Firestore; si Storage
       // lo mirara, un moderador podría ascender a un miembro solo en
       // el espejo y darle la carpeta de imágenes del club.
+      //
+      // El baneo lo comprueba la regla de escritura con
+      // `baneoDuradero()`: aquí no se puede llamar a `isBanned()`
+      // porque el club ya es el segundo documento de Firestore y
+      // Storage solo permite dos.
       return isSignedIn()
-        && !isBanned()
         && firestore.exists(/databases/(default)/documents/clubs/$(slug))
         && firestore.get(/databases/(default)/documents/clubs/$(slug)).data.memberIds is list
         && request.auth.uid in
@@ -226,7 +251,7 @@ service firebase.storage {
 
     function esPropietarioDeClub(slug) {
       return isSignedIn()
-        && !isBanned()
+        && !baneoDuradero()
         && firestore.exists(/databases/(default)/documents/clubs/$(slug))
         && firestore.get(/databases/(default)/documents/clubs/$(slug)).data.ownerId
              == request.auth.uid;
@@ -234,8 +259,11 @@ service firebase.storage {
 
     match /clubs/{slug}/{folder}/{fileName} {
       allow read: if true;
+      // Igual que en los chats: restricción + club son los dos
+      // documentos permitidos. `isBanned()` añadiría un tercero
+      // (`users`) y Storage denegaría la subida por pasarse del límite.
       allow write: if isSignedIn()
-                   && !isBanned()
+                   && !baneoDuradero()
                    && esImagenSegura()
                    && folder in ['portada', 'icono']
                    && esAdminDeClub(slug);

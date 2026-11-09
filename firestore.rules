@@ -4920,6 +4920,24 @@ service cloud.firestore {
              && d.diff(r).affectedKeys().hasOnly(['memberIds', 'hiddenFor']);
     }
 
+    // Aspecto del chat de club: nombre, avatar y portada. Al editar
+    // la ficha se reflejan también en el documento del chat, que es
+    // el que pinta la lista de conversaciones. Sin esta rama,
+    // `actualizarClub` escribía la ficha y después fallaba al tocar
+    // el chat, dejando la lista con el nombre viejo.
+    function actualizacionDeChatClubAspectoPermitida() {
+      let d = request.resource.data;
+      let r = resource.data;
+
+      return r.type == 'club'
+             && d.type == r.type
+             && d.ownerId == r.ownerId
+             && d.memberIds == r.memberIds
+             && r.slug is string
+             && puedeEditarAspecto(r.slug)
+             && d.diff(r).affectedKeys().hasOnly(['name', 'avatar', 'coverUrl']);
+    }
+
     /**
      * Un mapa personal del chat (`readAt`, `clearedAt`) solo puede
      * cambiar en la clave de quien escribe.
@@ -5241,6 +5259,13 @@ service cloud.firestore {
       allow update: if resource.data.type == 'club'
                     && isActive()
                     && actualizacionDeChatClubVaciadoPermitida();
+
+      // 1f) Aspecto del chat de club (nombre, avatar y portada). Lo
+      // hace `actualizarClub` al guardar la configuración, para que
+      // la lista de conversaciones no se quede con los datos viejos.
+      allow update: if resource.data.type == 'club'
+                    && isActive()
+                    && actualizacionDeChatClubAspectoPermitida();
 
       // 2) Miembro: recibos, ocultar y vaciar SU copia. También cubre
       // al dueño/miembro de un grupo (metadatos, expulsar, transferir,

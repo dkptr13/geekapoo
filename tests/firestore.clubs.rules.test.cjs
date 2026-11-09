@@ -657,6 +657,26 @@ describe('Miembros y roles de un club', () => {
     );
   });
 
+  // `actualizarClub` refleja el nombre y las imágenes en el documento
+  // del chat, que es el que pinta la lista de conversaciones. Si esa
+  // escritura se rechaza, el guardado de la ficha fallaba a medias.
+  it('el propietario cambia el aspecto del chat del club', async () => {
+    await assertSucceeds(
+      updateDoc(doc(db(DUENO), 'chats', 'chat-club-1'), {
+        name: 'Club de Frieren y compañía',
+        avatar: 'https://firebasestorage.googleapis.com/v0/b/x/o/clubs%2Fclub-de-frieren%2Ficono%2Ficono-1.png',
+        coverUrl:
+          'https://firebasestorage.googleapis.com/v0/b/x/o/clubs%2Fclub-de-frieren%2Fportada%2Fportada-1.png',
+      }),
+    );
+  });
+
+  it('pero un miembro normal no cambia el aspecto del chat del club', async () => {
+    await assertFails(
+      updateDoc(doc(db(CARA), 'chats', 'chat-club-1'), { name: 'Otro nombre' }),
+    );
+  });
+
   // ── Ataques de suplantación de rol ───────────────────
   // El moderador intenta intercambiar las fichas del
   // propietario y un miembro: DUENO pasa a member, CARA a
