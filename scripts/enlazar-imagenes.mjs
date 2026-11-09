@@ -262,6 +262,15 @@ const ANIMES = [
   { id: 'los-ninos-lobo', buscar: 'Ookami Kodomo no Ame to Yuki', anilist: 12355 },
   { id: 'belle', buscar: 'Ryuu to Sobakasu no Hime', anilist: 127271 },
   { id: 'la-chica-que-saltaba-a-traves-del-tiempo', buscar: 'Toki wo Kakeru Shoujo', anilist: 2236 },
+  // Películas de Studio Ghibli añadidas en la tanda de noviembre de 2026.
+  // El id de AniList va fijado para que el emparejador no confunda unas
+  // películas con otras del mismo estudio o del mismo nombre.
+  { id: 'el-cuento-de-la-princesa-kaguya', buscar: 'Kaguya-hime no Monogatari', anilist: 16664 },
+  { id: 'el-recuerdo-de-marnie', buscar: 'Omoide no Marnie', anilist: 20555 },
+  { id: 'arrietty-y-el-mundo-de-los-diminutos', buscar: 'Karigurashi no Arrietty', anilist: 7711 },
+  { id: 'la-colina-de-las-amapolas', buscar: 'Coquelicot-zaka kara', anilist: 10029 },
+  { id: 'susurros-del-corazon', buscar: 'Mimi wo Sumaseba', anilist: 585 },
+  { id: 'haru-en-el-reino-de-los-gatos', buscar: 'Neko no Ongaeshi', anilist: 597 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))

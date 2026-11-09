@@ -453,6 +453,30 @@ const FICHAS = {
   },
   'los-ninos-lobo': { id: 'tm43008', titulo: 'Los niños lobo', anio: 2012 },
   'the-first-slam-dunk': { id: 'tm1095723', titulo: 'The First Slam Dunk', anio: 2022 },
+  // Películas de Studio Ghibli añadidas en la tanda de noviembre de 2026.
+  // El id está comprobado contra el título y el año de JustWatch en España.
+  'el-cuento-de-la-princesa-kaguya': {
+    id: 'tm172808',
+    titulo: 'El cuento de la princesa Kaguya',
+    anio: 2013,
+  },
+  'el-recuerdo-de-marnie': { id: 'tm157049', titulo: 'El recuerdo de Marnie', anio: 2014 },
+  'arrietty-y-el-mundo-de-los-diminutos': {
+    id: 'tm102394',
+    titulo: 'Arrietty y el mundo de los diminutos',
+    anio: 2010,
+  },
+  'la-colina-de-las-amapolas': {
+    id: 'tm181563',
+    titulo: 'La colina de las amapolas',
+    anio: 2011,
+  },
+  'susurros-del-corazon': { id: 'tm13620', titulo: 'Susurros del corazón', anio: 1995 },
+  'haru-en-el-reino-de-los-gatos': {
+    id: 'tm116967',
+    titulo: 'Haru en el reino de los gatos',
+    anio: 2002,
+  },
 };
 
 /**
