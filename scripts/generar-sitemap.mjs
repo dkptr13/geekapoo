@@ -1,16 +1,16 @@
 // ======================================================
 // SITEMAP DE LAS PÁGINAS PÚBLICAS
 // ======================================================
-// Incluye solo lo que hoy tiene una URL pública y contenido
-// indexable:
+// Incluye solo lo que hoy tiene HTML estático propio y canonical
+// autorreferente:
 //
-//   · Inicio, wiki y extras.
+//   · Inicio.
 //   · Fichas de anime (con lastmod real e imagen de portada).
 //
-// No entran hilos, perfiles, noticias ni fanarts: los hilos viven
-// dentro de "?hilo=", los perfiles exigen sesión y las noticias
-// enlazan a medios externos. Cuando tengan ruta pública propia, se
-// añadirán aquí.
+// Wiki y extras quedan fuera mientras su HTML inicial sea el shell de
+// la SPA: su canonical inicial sería "/" y entrarían como páginas
+// alternativas. Hilos, perfiles y noticias tampoco tienen URL pública
+// estable todavía.
 //
 // Se genera en cada build desde el índice de búsqueda (sin leer
 // Firestore entero) y, si el índice no existe, cae a Firestore.
@@ -31,7 +31,7 @@ const PROYECTO =
 // Cambiar el dominio aquí (o con VITE_SITE_URL en Vercel) cuando
 // geekapoo.es esté registrado.
 const SITIO = (
-  process.env.VITE_SITE_URL || 'https://www.geekapoo.es'
+  process.env.VITE_SITE_URL || 'https://geekapoo.es'
 ).replace(/\/+$/, '');
 
 const COLECCION = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents/animes`;
@@ -118,16 +118,6 @@ function construirSitemap(animes) {
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>`,
-    `  <url>
-    <loc>${SITIO}/?tab=wiki</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>`,
-    `  <url>
-    <loc>${SITIO}/?tab=extras</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>`,
   ];
 
   for (const anime of animes) {
@@ -168,7 +158,7 @@ try {
   const sitemap = construirSitemap(animes);
   await writeFile(SALIDA, sitemap, 'utf8');
   console.log(
-    `sitemap.xml: ${animes.length + 3} URLs (${animes.length} animes)`,
+    `sitemap.xml: ${animes.length + 1} URLs (${animes.length} animes)`,
   );
 } catch (error) {
   let anterior = 'desconocido';

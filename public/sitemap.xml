@@ -2,23 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://www.geekapoo.es/</loc>
+    <loc>https://geekapoo.es/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/?tab=wiki</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.geekapoo.es/?tab=extras</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.geekapoo.es/anime/86-eighty-six</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/86-eighty-six</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx116589-KawXHB6sApFt.jpg</image:loc>
     </image:image>
@@ -26,8 +16,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/akame-ga-kill</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/akame-ga-kill</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fseasons%2Fakame-ga-kill-s1%2FposterUrl-1791368276491.png?alt=media&amp;token=b5cea47e-0f53-486a-a234-19da16c34172</image:loc>
     </image:image>
@@ -35,8 +25,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/akira</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/akira</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx47-4CR68arv452h.jpg</image:loc>
     </image:image>
@@ -44,8 +34,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/angel-beats</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/angel-beats</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx6547-SYexAn5aFyss.png</image:loc>
     </image:image>
@@ -53,8 +43,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/angels-of-death</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/angels-of-death</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx99629-BXyAJ6PDq4sr.jpg</image:loc>
     </image:image>
@@ -62,8 +52,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/anohana-the-flower-we-saw-that-day</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/anohana-the-flower-we-saw-that-day</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx9989-hImMg6kCMm6I.jpg</image:loc>
     </image:image>
@@ -71,8 +61,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/another</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/another</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx11111-gvvE5bBYsyFo.png</image:loc>
     </image:image>
@@ -80,8 +70,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/arifureta-from-commonplace-to-world-s-strongest</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/arifureta-from-commonplace-to-world-s-strongest</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx100668-DvOn5bMOt4cy.jpg</image:loc>
     </image:image>
@@ -89,8 +79,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/armed-girls-machiavellism</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/armed-girls-machiavellism</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21851-WCBWT6fLgh5z.jpg</image:loc>
     </image:image>
@@ -98,8 +88,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/assassination-classroom</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/assassination-classroom</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20755-dWrhs569YGUO.jpg</image:loc>
     </image:image>
@@ -107,8 +97,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/baccano</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/baccano</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx2251-tTQoWxVy4472.jpg</image:loc>
     </image:image>
@@ -116,8 +106,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/bang-dream-ave-mujica</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/bang-dream-ave-mujica</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx169295-WxoGTeMbje4T.jpg</image:loc>
     </image:image>
@@ -125,8 +115,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/berserk</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/belle</loc>
+    <lastmod>2026-11-09</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx127271-juJIu4WFTM8q.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geekapoo.es/anime/berserk</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx33-PSwfE5B0gejI.jpg</image:loc>
     </image:image>
@@ -134,8 +133,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/black-clover</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/black-clover</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx97940-fyh8o7gNbha0.png</image:loc>
     </image:image>
@@ -143,8 +142,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/black-clover-la-espada-del-rey-mago</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/black-clover-la-espada-del-rey-mago</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx131680-gjs8mMQPmkOQ.png</image:loc>
     </image:image>
@@ -152,8 +151,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/black-lagoon</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/black-lagoon</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx889-4S7N2ciq2cwA.png</image:loc>
     </image:image>
@@ -161,8 +160,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/bleach</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/bleach</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx269-d2GmRkJbMopq.png</image:loc>
     </image:image>
@@ -170,8 +169,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/bleach-la-guerra-sangrienta-de-los-mil-anos</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/bleach-la-guerra-sangrienta-de-los-mil-anos</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx116674-p3zK4PUX2Aag.jpg</image:loc>
     </image:image>
@@ -179,8 +178,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/blood</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/blood</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx150-YRcwKiJEXcLx.png</image:loc>
     </image:image>
@@ -188,8 +187,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/blue-box</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/blue-box</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx170942-KKcLfQzV57nG.jpg</image:loc>
     </image:image>
@@ -197,8 +196,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/blue-exorcist</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/blue-exorcist</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx9919-nXS7JOZrWHfS.jpg</image:loc>
     </image:image>
@@ -206,8 +205,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/blue-lock</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/blue-lock</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx137822-U8naszP96vzC.png</image:loc>
     </image:image>
@@ -215,8 +214,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/bocchi-the-rock</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/bocchi-the-rock</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx130003-HTDmeL4RGeJ4.png</image:loc>
     </image:image>
@@ -224,8 +223,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/bungo-stray-dogs</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/bungo-stray-dogs</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21311-hAXyT8Yoh6G9.jpg</image:loc>
     </image:image>
@@ -233,8 +232,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/burn-the-witch</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/burn-the-witch</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx116673-cy4sgiliurpR.jpg</image:loc>
     </image:image>
@@ -242,8 +241,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/call-of-the-night</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/call-of-the-night</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx141391-M3ZgUKTPENUk.jpg</image:loc>
     </image:image>
@@ -251,8 +250,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/carnival-phantasm</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/carnival-phantasm</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx10012-MNLVctKXaIAf.jpg</image:loc>
     </image:image>
@@ -260,8 +259,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/chainsaw-man</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/chainsaw-man</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx127230-DdP4vAdssLoz.png</image:loc>
     </image:image>
@@ -269,8 +268,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/charlotte</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/charlotte</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20997-axVYrsIfjtYJ.jpg</image:loc>
     </image:image>
@@ -278,8 +277,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/clannad</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/clannad</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx2167-pSDBcyc0vjej.jpg</image:loc>
     </image:image>
@@ -287,8 +286,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/classroom-of-the-elite</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/classroom-of-the-elite</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx98659-WNyPLIZDpGGY.jpg</image:loc>
     </image:image>
@@ -296,8 +295,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/code-geass-lelouch-of-the-re-surrection</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/code-geass-lelouch-of-the-re-surrection</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx97880-sZWHViJfrvXm.jpg</image:loc>
     </image:image>
@@ -305,8 +304,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/code-geass-lelouch-of-the-rebellion</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/code-geass-lelouch-of-the-rebellion</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1575-hsmWM2ydNm1m.jpg</image:loc>
     </image:image>
@@ -314,8 +313,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/code-geass-lelouch-of-the-rebellion-i-initiation</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/code-geass-lelouch-of-the-rebellion-i-initiation</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101811-pRfRiEvgZn4T.png</image:loc>
     </image:image>
@@ -323,8 +322,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/code-geass-lelouch-of-the-rebellion-ii-transgression</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/code-geass-lelouch-of-the-rebellion-ii-transgression</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101812-rCTRQhzHIryT.jpg</image:loc>
     </image:image>
@@ -332,8 +331,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/code-geass-lelouch-of-the-rebellion-iii-glorification</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/code-geass-lelouch-of-the-rebellion-iii-glorification</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101813-ckCNyMkU2Kkc.png</image:loc>
     </image:image>
@@ -341,8 +340,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/cosmic-princess-kaguya</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/cosmic-princess-kaguya</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx201903-v43gxQKw8Tc8.jpg</image:loc>
     </image:image>
@@ -350,8 +349,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/cowboy-bebop</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/cowboy-bebop</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1-GCsPm7waJ4kS.png</image:loc>
     </image:image>
@@ -359,8 +358,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/cyberpunk-edgerunners-2</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/cyberpunk-edgerunners-2</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fanimes%2Fcyberpunk-edgerunners-2%2FcoverUrl-1790838506250.jpg?alt=media&amp;token=5259f7c8-398a-46d7-a39d-18c996294d20</image:loc>
     </image:image>
@@ -368,8 +367,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/cyberpunk-edgerunners-season-2</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/cyberpunk-edgerunners-season-2</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx195539-4LdfmKIHzuxr.png</image:loc>
     </image:image>
@@ -377,8 +376,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/dandadan</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/dandadan</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx171018-60q1B6GK2Ghb.jpg</image:loc>
     </image:image>
@@ -386,8 +385,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/danganronpa-the-animation</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/danganronpa-the-animation</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16592-mFn1gfMXlKtw.jpg</image:loc>
     </image:image>
@@ -395,8 +394,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/danmachi</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/danmachi</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20920-MTREwZOG4BAD.jpg</image:loc>
     </image:image>
@@ -404,8 +403,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/darwin-s-game</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/darwin-s-game</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx105190-lSoQNlnMF6UP.jpg</image:loc>
     </image:image>
@@ -413,8 +412,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/date-a-live</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/date-a-live</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx15583-Sxd2J4RJdRhj.jpg</image:loc>
     </image:image>
@@ -422,8 +421,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/death-note</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/death-note</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1535-kUgkcrfOrkUM.jpg</image:loc>
     </image:image>
@@ -431,8 +430,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/delicious-in-dungeon</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/delicious-in-dungeon</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx153518-IVXPDY5ph3kO.jpg</image:loc>
     </image:image>
@@ -440,8 +439,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/devilman-crybaby</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/devilman-crybaby</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx98460-bLtH2c3jd6sV.png</image:loc>
     </image:image>
@@ -449,8 +448,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/don-t-toy-with-me-miss-nagatoro</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/don-t-toy-with-me-miss-nagatoro</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx120697-BA2TqxB1I5bJ.jpg</image:loc>
     </image:image>
@@ -458,8 +457,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/dorohedoro</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/dorohedoro</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx105228-I4xr84QS9Pvk.jpg</image:loc>
     </image:image>
@@ -467,8 +466,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/dr-stone</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/dr-stone</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx105333-GybuoSoOZfpH.jpg</image:loc>
     </image:image>
@@ -476,8 +475,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/dragon-raja</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/dragon-raja</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx122511-h6FpxJGfKx3I.jpg</image:loc>
     </image:image>
@@ -485,8 +484,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/el-castillo-ambulante</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/el-castillo-ambulante</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx431-o8Lj3XkjHm2k.jpg</image:loc>
     </image:image>
@@ -494,8 +493,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/el-castillo-en-el-cielo</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/el-castillo-en-el-cielo</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx513-yM7Dlt65N4Rl.jpg</image:loc>
     </image:image>
@@ -503,8 +502,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/el-chico-y-la-garza</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/el-chico-y-la-garza</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx109979-BRHXpBkCw4oc.jpg</image:loc>
     </image:image>
@@ -512,8 +511,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/el-diario-de-la-boticaria</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/el-diario-de-la-boticaria</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx161645-QLbzHXiYRgV2.jpg</image:loc>
     </image:image>
@@ -521,8 +520,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/el-viaje-de-chihiro</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/el-viaje-de-chihiro</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx199-sWefXJvXkDOb.jpg</image:loc>
     </image:image>
@@ -530,8 +529,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/el-viento-se-levanta</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/el-viento-se-levanta</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16662-HUI8irtoTdOJ.jpg</image:loc>
     </image:image>
@@ -539,8 +538,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/emiya-san-chi-no-kyou-no-gohan</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/emiya-san-chi-no-kyou-no-gohan</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx100855-r8cXwdCschnX.jpg</image:loc>
     </image:image>
@@ -548,8 +547,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/erased</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/erased</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21234-XmqW39aQ9o7O.jpg</image:loc>
     </image:image>
@@ -557,8 +556,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fairy-tail</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fairy-tail</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx6702-KI4qgSMyI8Pm.png</image:loc>
     </image:image>
@@ -566,8 +565,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-apocrypha</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-apocrypha</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx98035-rdkjeqUUsG2j.jpg</image:loc>
     </image:image>
@@ -575,8 +574,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-extra-last-encore</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-extra-last-encore</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx21717-2gU0L4IvrUVC.jpg</image:loc>
     </image:image>
@@ -584,8 +583,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-grand-order-absolute-demonic-front-babylonia</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-grand-order-absolute-demonic-front-babylonia</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx103275-SN0wwshS3tWA.jpg</image:loc>
     </image:image>
@@ -593,8 +592,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-grand-order-camelot-paladin-agateram</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-grand-order-camelot-paladin-agateram</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx103277-BuAfaC3dKOUp.jpg</image:loc>
     </image:image>
@@ -602,8 +601,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-grand-order-camelot-wandering-agateram</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-grand-order-camelot-wandering-agateram</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx103276-7QhBwJs0O6Gi.jpg</image:loc>
     </image:image>
@@ -611,8 +610,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-grand-order-first-order</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-grand-order-first-order</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx97815-NnWheNnaKCmS.png</image:loc>
     </image:image>
@@ -620,8 +619,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-grand-order-solomon</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-grand-order-solomon</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx116756-jIU2HrnEsDjR.jpg</image:loc>
     </image:image>
@@ -629,8 +628,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-kaleid-liner-prisma-illya</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-kaleid-liner-prisma-illya</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx14829-PZVOr1ZxwOJV.png</image:loc>
     </image:image>
@@ -638,8 +637,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-kaleid-liner-prisma-illya-2wei-herz</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-kaleid-liner-prisma-illya-2wei-herz</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20845-4iTgYkjPsUYh.png</image:loc>
     </image:image>
@@ -647,8 +646,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-kaleid-liner-prisma-illya-2wei</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-kaleid-liner-prisma-illya-2wei</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx20467-GwWFUCzsiUF7.png</image:loc>
     </image:image>
@@ -656,8 +655,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-kaleid-liner-prisma-illya-3rei</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-kaleid-liner-prisma-illya-3rei</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21379-RDJgELNOIGDS.png</image:loc>
     </image:image>
@@ -665,8 +664,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-kaleid-liner-prisma-illya-licht-namae-no-nai-shoujo</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-kaleid-liner-prisma-illya-licht-namae-no-nai-shoujo</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx118743-T2Zm7kA33pnj.jpg</image:loc>
     </image:image>
@@ -674,8 +673,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-kaleid-liner-prisma-illya-sekka-no-chikai</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-kaleid-liner-prisma-illya-sekka-no-chikai</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/b97757-BWFRkX81LpGS.png</image:loc>
     </image:image>
@@ -683,8 +682,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-prototype</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-prototype</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx12565-paVJhzp4BrF0.jpg</image:loc>
     </image:image>
@@ -692,8 +691,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-stay-night</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-stay-night</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx356-mTpMvtillumS.png</image:loc>
     </image:image>
@@ -701,8 +700,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-stay-night-heaven-s-feel-i-presage-flower</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-stay-night-heaven-s-feel-i-presage-flower</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20791-yPCX5GJuMH2k.png</image:loc>
     </image:image>
@@ -710,8 +709,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-stay-night-heaven-s-feel-ii-lost-butterfly</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/fate-stay-night-heaven-s-feel-ii-lost-butterfly</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21718-Hjj26Sapx1bd.jpg</image:loc>
     </image:image>
@@ -719,8 +718,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-stay-night-heaven-s-feel-iii-spring-song</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/fate-stay-night-heaven-s-feel-iii-spring-song</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21719-MSdTlkno0Z0u.jpg</image:loc>
     </image:image>
@@ -728,8 +727,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-stay-night-unlimited-blade-works</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-stay-night-unlimited-blade-works</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx19603-ycT0pyEgDVQu.jpg</image:loc>
     </image:image>
@@ -737,8 +736,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-strange-fake</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-strange-fake</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx166617-34fpC9y47tTx.png</image:loc>
     </image:image>
@@ -746,8 +745,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fate-zero</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fate-zero</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx10087-M4Hd9qrHGrXk.png</image:loc>
     </image:image>
@@ -755,8 +754,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fire-force</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/fire-force</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx105310-2PKUvoaA6fTn.jpg</image:loc>
     </image:image>
@@ -764,8 +763,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/flcl</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/flcl</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx227-qOB9ZhVvNnqO.jpg</image:loc>
     </image:image>
@@ -773,8 +772,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/frieren-beyond-journeys-end</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/frieren-beyond-journeys-end</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fanimes%2Ffrieren-beyond-journeys-end%2FcoverUrl-1791368384481.png?alt=media&amp;token=11262814-3c4c-45b4-b6fa-034b1d57a52b</image:loc>
     </image:image>
@@ -782,8 +781,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fruits-basket</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/fruits-basket</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx105334-AZwEdMu4KFtV.jpg</image:loc>
     </image:image>
@@ -791,8 +790,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/fullmetal-alchemist-brotherhood</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/fullmetal-alchemist-brotherhood</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx5114-nSWCgQlmOMtj.jpg</image:loc>
     </image:image>
@@ -800,8 +799,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/gachiakuta</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/gachiakuta</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx178025-cWJKEsZynkil.jpg</image:loc>
     </image:image>
@@ -809,8 +808,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/gintama</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/gintama</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx918-iOaeBVUn4uK7.jpg</image:loc>
     </image:image>
@@ -818,8 +817,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/girls-band-cry</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/girls-band-cry</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx164212-eKh15LQxkTEx.jpg</image:loc>
     </image:image>
@@ -827,8 +826,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/gleipnir</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/gleipnir</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx108241-Mc28QvkdUkfp.jpg</image:loc>
     </image:image>
@@ -836,8 +835,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/goblin-slayer</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/goblin-slayer</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101165-v5NwPXWPFDuD.jpg</image:loc>
     </image:image>
@@ -845,8 +844,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/golden-time</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/golden-time</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/102755-9YtWYbF83Uk8.jpg</image:loc>
     </image:image>
@@ -854,8 +853,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/grand-blue</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/grand-blue</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx100922-uxEhaCsqMMp3.png</image:loc>
     </image:image>
@@ -863,8 +862,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/guilty-crown</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/guardianes-de-la-noche-tren-infinito</loc>
+    <lastmod>2026-11-09</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx112151-1qlQwPB1RrJe.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geekapoo.es/anime/guilty-crown</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx10793-KCysCbrVNqK9.jpg</image:loc>
     </image:image>
@@ -872,8 +880,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/gurren-lagann</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/gurren-lagann</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx2001-XwRnjzGeFWRQ.png</image:loc>
     </image:image>
@@ -881,8 +889,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/haikyuu</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/haikyuu</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20464-ooZUyBe4ptp9.png</image:loc>
     </image:image>
@@ -890,8 +898,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/haikyuu-la-batalla-del-basurero</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/haikyuu-la-batalla-del-basurero</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx153658-KVnjW77cQw3y.jpg</image:loc>
     </image:image>
@@ -899,8 +907,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/hell-s-paradise</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/hell-s-paradise</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx128893-Gc2t8b8M0mVu.jpg</image:loc>
     </image:image>
@@ -908,8 +916,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/hello-world</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/hello-world</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx106240-XeWQ4YhKzv7h.png</image:loc>
     </image:image>
@@ -917,8 +925,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/high-school-of-the-dead</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/high-school-of-the-dead</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx8074-YB63Ik96fjPj.png</image:loc>
     </image:image>
@@ -926,8 +934,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/horimiya</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/horimiya</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx124080-3i22mRVPBS0T.jpg</image:loc>
     </image:image>
@@ -935,8 +943,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/hunter-x-hunter</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/hunter-x-hunter</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx11061-y5gsT1hoHuHw.png</image:loc>
     </image:image>
@@ -944,8 +952,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/i-parry-everything</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/i-parry-everything</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx170695-Nb1DIg7gIHCF.jpg</image:loc>
     </image:image>
@@ -953,8 +961,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/jojo-s-bizarre-adventure</loc>
-    <lastmod>2026-11-04</lastmod>
+    <loc>https://geekapoo.es/anime/jojo-s-bizarre-adventure</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx14719-VT5dRzTBSZ0w.jpg</image:loc>
     </image:image>
@@ -962,8 +970,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/jujutsu-kaisen</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/jujutsu-kaisen</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://static.posters.cz/image/1300/124049.jpg</image:loc>
     </image:image>
@@ -971,8 +979,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/k-on</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/jujutsu-kaisen-0</loc>
+    <lastmod>2026-11-09</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx131573-rpl82vDEDRm6.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geekapoo.es/anime/k-on</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx5680-r3AI3Cwfv0Aq.png</image:loc>
     </image:image>
@@ -980,8 +997,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kabaneri-of-the-iron-fortress</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/kabaneri-of-the-iron-fortress</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21196-2PfPfIDrxKki.jpg</image:loc>
     </image:image>
@@ -989,8 +1006,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kage-no-jitsuryokusha-ni-naritakute</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kage-no-jitsuryokusha-ni-naritakute</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx130298-YMdcKHytpWNH.jpg</image:loc>
     </image:image>
@@ -998,8 +1015,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kaguya-sama-love-is-war</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/kaguya-sama-love-is-war</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://m.media-amazon.com/images/M/MV5BMTM1ZWViNWMtZWY2ZC00YmYyLTk1ZGEtMzRjOWI2YTM1OTI3XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg</image:loc>
     </image:image>
@@ -1007,8 +1024,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kaiju-no-8</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kaiju-no-8</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx153288-25FBfFJzEQ5O.jpg</image:loc>
     </image:image>
@@ -1016,8 +1033,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kakegurui</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kakegurui</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/b98314-TSJykxVwCCQN.jpg</image:loc>
     </image:image>
@@ -1025,8 +1042,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kampfer</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kampfer</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx6205-3waXg2FNaAFL.png</image:loc>
     </image:image>
@@ -1034,8 +1051,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kaoru-hana-wa-rin-to-saku</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kaoru-hana-wa-rin-to-saku</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx181444-Ut9DDUZdfHwg.jpg</image:loc>
     </image:image>
@@ -1043,8 +1060,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kiki-la-aprendiz-de-bruja</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kiki-la-aprendiz-de-bruja</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx512-UwP8X4BR8YoM.png</image:loc>
     </image:image>
@@ -1052,8 +1069,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kill-la-kill</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kill-la-kill</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/b18679-lbkq7iYESoFW.png</image:loc>
     </image:image>
@@ -1061,8 +1078,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kimetsu-no-yaiba</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kimetsu-no-yaiba</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101922-WBsBl0ClmgYL.jpg</image:loc>
     </image:image>
@@ -1070,8 +1087,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kimi-ni-todoke-from-me-to-you</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kimi-ni-todoke-from-me-to-you</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx6045-JujXjoWtslUM.jpg</image:loc>
     </image:image>
@@ -1079,8 +1096,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kimi-no-na-wa</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kimi-no-na-wa</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21519-SUo3ZQuCbYhJ.png</image:loc>
     </image:image>
@@ -1088,8 +1105,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/king-s-game</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/king-s-game</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx99698-5k8bDkhcJx9B.jpg</image:loc>
     </image:image>
@@ -1097,8 +1114,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/koe-no-katachi</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/koe-no-katachi</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20954-sYRfE5jQRtSB.jpg</image:loc>
     </image:image>
@@ -1106,8 +1123,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/konosuba</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/konosuba</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21202-mPOr80AEjUcZ.png</image:loc>
     </image:image>
@@ -1115,8 +1132,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/kubo-san-wa-mob-wo-yurusanai</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/kubo-san-wa-mob-wo-yurusanai</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx148969-3vPgXpMpQvba.jpg</image:loc>
     </image:image>
@@ -1124,8 +1141,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/la-princesa-mononoke</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/la-chica-que-saltaba-a-traves-del-tiempo</loc>
+    <lastmod>2026-11-09</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx2236-tH5fWFkHyVGg.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geekapoo.es/anime/la-princesa-mononoke</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx164-ySuGzCWVw2cL.jpg</image:loc>
     </image:image>
@@ -1133,8 +1159,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/la-tumba-de-las-luciernagas</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/la-tumba-de-las-luciernagas</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx578-vU6XcOlb1XFU.jpg</image:loc>
     </image:image>
@@ -1142,8 +1168,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/las-quintillizas</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/las-quintillizas</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx103572-cchriAdH95cQ.png</image:loc>
     </image:image>
@@ -1151,8 +1177,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx106918-4T0AdnCg8d64.jpg</image:loc>
     </image:image>
@@ -1160,8 +1186,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/love-chunibyo-and-other-delusions</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/los-ninos-lobo</loc>
+    <lastmod>2026-11-09</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx12355-wNsvhEsXEgrH.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geekapoo.es/anime/love-chunibyo-and-other-delusions</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx14741-CGXEIeUe2roA.jpg</image:loc>
     </image:image>
@@ -1169,8 +1204,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/lycoris-recoil</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/lycoris-recoil</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx143270-rfkyiYXhek5w.jpg</image:loc>
     </image:image>
@@ -1178,8 +1213,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/maboroshi</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/maboroshi</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx136149-jUxwgmQ5Rite.png</image:loc>
     </image:image>
@@ -1187,8 +1222,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/made-in-abyss</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/made-in-abyss</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx97986-TQ7dCgbS3y5s.jpg</image:loc>
     </image:image>
@@ -1196,8 +1231,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/makeine-too-many-losing-heroines</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/makeine-too-many-losing-heroines</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx171457-nmMIk0gNiWsm.jpg</image:loc>
     </image:image>
@@ -1205,8 +1240,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/marriagetoxin</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/marriagetoxin</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx199547-LAaG3cmKCGhr.jpg</image:loc>
     </image:image>
@@ -1214,8 +1249,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/masamune-kun-no-revenge</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/masamune-kun-no-revenge</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx21857-haPDVD7DKDpg.jpg</image:loc>
     </image:image>
@@ -1223,8 +1258,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/mi-vecino-totoro</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/mi-vecino-totoro</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx523-fErBvxOHP7IX.jpg</image:loc>
     </image:image>
@@ -1232,8 +1267,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/mieruko-chan</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/mieruko-chan</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx131083-sKGHkpVDksaZ.png</image:loc>
     </image:image>
@@ -1241,8 +1276,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/mirai-nikki</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/mirai-nikki</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx10620-dUZeNej0W4QN.png</image:loc>
     </image:image>
@@ -1250,8 +1285,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/miss-kobayashi-s-dragon-maid</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/miss-kobayashi-s-dragon-maid</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21776-bwPaYKhnKfUs.png</image:loc>
     </image:image>
@@ -1259,8 +1294,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/mob-psycho-100</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/mob-psycho-100</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21507-6YUSbh2m0N1p.jpg</image:loc>
     </image:image>
@@ -1268,8 +1303,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/monster</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/monster</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx19-gtMC64182sm4.jpg</image:loc>
     </image:image>
@@ -1277,8 +1312,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/more-than-a-married-couple-but-not-lovers</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/more-than-a-married-couple-but-not-lovers</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx141949-tViCIRHPZAyG.jpg</image:loc>
     </image:image>
@@ -1286,8 +1321,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/mushi-shi</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/mushi-shi</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx457-l6cTtNgI9Bi6.png</image:loc>
     </image:image>
@@ -1295,8 +1330,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/mushoku-tensei-jobless-reincarnation</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/mushoku-tensei-jobless-reincarnation</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fseasons%2Fmushoku-tensei-reencarnacion-desde-cero-s1%2FposterUrl-1791369439337.png?alt=media&amp;token=2c731b2d-01b8-46d4-a01a-4993c18971ef</image:loc>
     </image:image>
@@ -1304,8 +1339,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/my-dress-up-darling</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/my-dress-up-darling</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx132405-qP7FQYGmNI3d.jpg</image:loc>
     </image:image>
@@ -1313,8 +1348,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/my-hero-academia</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/my-hero-academia</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21459-nYh85uj2Fuwr.jpg</image:loc>
     </image:image>
@@ -1322,8 +1357,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/nana</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/nana</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx877-6BUYEWp8By8j.png</image:loc>
     </image:image>
@@ -1331,8 +1366,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/nanatsu-no-taizai</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/nanatsu-no-taizai</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20789-Ma5ouSYPkru9.jpg</image:loc>
     </image:image>
@@ -1340,8 +1375,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/naruto</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/naruto</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20-dE6UHbFFg1A5.jpg</image:loc>
     </image:image>
@@ -1349,8 +1384,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/naruto-shippuden</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/naruto-shippuden</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1735-kGfVm0YqCPcu.png</image:loc>
     </image:image>
@@ -1358,8 +1393,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/nausicaa-del-valle-del-viento</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/nausicaa-del-valle-del-viento</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx572-ZE3kHBA6U0X1.jpg</image:loc>
     </image:image>
@@ -1367,8 +1402,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/neon-genesis-evangelion</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/neon-genesis-evangelion</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx30-AI1zr74Dh4ye.jpg</image:loc>
     </image:image>
@@ -1376,8 +1411,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/nisekoi</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/nisekoi</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx18897-G2Fx2ZACsXBU.jpg</image:loc>
     </image:image>
@@ -1385,8 +1420,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/no-game-no-life</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/no-game-no-life</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/b19815-sEOQ9yQaPKlk.jpg</image:loc>
     </image:image>
@@ -1394,8 +1429,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/noragami</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/noragami</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20447-EoQXeygHaVCK.jpg</image:loc>
     </image:image>
@@ -1403,8 +1438,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/odd-taxi</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/odd-taxi</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx128547-nNekWTKqmvEi.jpg</image:loc>
     </image:image>
@@ -1412,8 +1447,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/one-piece</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/one-piece</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21-ELSYx3yMPcKM.jpg</image:loc>
     </image:image>
@@ -1421,8 +1456,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/one-punch-man</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/one-punch-man</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21087-B5DHjqZ3kW4b.jpg</image:loc>
     </image:image>
@@ -1430,8 +1465,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/oshi-no-ko</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/oshi-no-ko</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fseasons%2Foshi-no-ko-s1%2FposterUrl-1791368356079.png?alt=media&amp;token=258f88f0-3984-472c-8705-396b5fd5459e</image:loc>
     </image:image>
@@ -1439,8 +1474,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/ouran-high-school-host-club</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/ouran-high-school-host-club</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx853-fiUtW8yohsSF.jpg</image:loc>
     </image:image>
@@ -1448,8 +1483,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/overlord</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/overlord</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20832-vUNm5zrYWifc.jpg</image:loc>
     </image:image>
@@ -1457,8 +1492,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/parasyte-the-maxim</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/parasyte-the-maxim</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20623-dUARfggnNDOe.jpg</image:loc>
     </image:image>
@@ -1466,8 +1501,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/plastic-memories</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/plastic-memories</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20872-j5PBzzVtrYDM.jpg</image:loc>
     </image:image>
@@ -1475,8 +1510,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/ponyo-en-el-acantilado</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/ponyo-en-el-acantilado</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx2890-wcNtFr6aUYOR.jpg</image:loc>
     </image:image>
@@ -1484,8 +1519,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/psycho-pass</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/psycho-pass</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx13601-i42VFuHpqEOJ.jpg</image:loc>
     </image:image>
@@ -1493,8 +1528,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/puella-magi-madoka-magica</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/puella-magi-madoka-magica</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx9756-QnUGwlwwnsuN.jpg</image:loc>
     </image:image>
@@ -1502,8 +1537,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/ragna-crimson</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/ragna-crimson</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx146493-bThyDJ4ZmbfV.jpg</image:loc>
     </image:image>
@@ -1511,8 +1546,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/ranma-1-2</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/ranma-1-2</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx210-qgahLDYT0t9b.png</image:loc>
     </image:image>
@@ -1520,8 +1555,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/re-zero-comenzando-la-vida-en-otro-mundo</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/re-zero-comenzando-la-vida-en-otro-mundo</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21355-wRVUrGxpvIQQ.jpg</image:loc>
     </image:image>
@@ -1529,8 +1564,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/redo-of-healer</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/redo-of-healer</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113425-tYGRUa5pgZje.jpg</image:loc>
     </image:image>
@@ -1538,8 +1573,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/rent-a-girlfriend</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/rent-a-girlfriend</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113813-SnljeXpU3Pw7.jpg</image:loc>
     </image:image>
@@ -1547,8 +1582,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/saekano-how-to-raise-a-boring-girlfriend</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/saekano-how-to-raise-a-boring-girlfriend</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx20657-pMZBj6K6mLhi.jpg</image:loc>
     </image:image>
@@ -1556,8 +1591,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/sakamoto-days</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/sakamoto-days</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx177709-e5Qx6RlsBgD5.png</image:loc>
     </image:image>
@@ -1565,8 +1600,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/samurai-champloo</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/samurai-champloo</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx205-7tHVFu6dPBm9.png</image:loc>
     </image:image>
@@ -1574,8 +1609,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/seishun-buta-yaro-wa-bunny-girl-senpai-no-yume-wo-minai</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/seishun-buta-yaro-wa-bunny-girl-senpai-no-yume-wo-minai</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101291-wfEdgPqtfU0l.jpg</image:loc>
     </image:image>
@@ -1583,8 +1618,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/sentenced-to-be-a-hero</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/sentenced-to-be-a-hero</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx167152-O1pm6DWwifBD.jpg</image:loc>
     </image:image>
@@ -1592,8 +1627,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/serial-experiments-lain</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/serial-experiments-lain</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx339-xF2wp1NQuQ4r.png</image:loc>
     </image:image>
@@ -1601,8 +1636,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/shimoneta</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/shimoneta</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20910-U7txwG3o9gma.jpg</image:loc>
     </image:image>
@@ -1610,8 +1645,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/shingeki-no-kyojin</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/shingeki-no-kyojin</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fseasons%2Fataque-a-los-titanes-s1%2FposterUrl-1791367940196.png?alt=media&amp;token=9fb9b6d6-0594-4c2c-b3ca-051cf4f3e710</image:loc>
     </image:image>
@@ -1619,8 +1654,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/shinmai-maou-no-testament</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/shinmai-maou-no-testament</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20678-58D9Yhi4GcH2.png</image:loc>
     </image:image>
@@ -1628,8 +1663,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/smoking-behind-the-supermarket-with-you</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/smoking-behind-the-supermarket-with-you</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx196187-0dgFi2CPp3xn.jpg</image:loc>
     </image:image>
@@ -1637,8 +1672,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/solo-leveling</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/solo-leveling</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx151807-it355ZgzquUd.png</image:loc>
     </image:image>
@@ -1646,8 +1681,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/soul-eater</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/soul-eater</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx3588-fSMggQoFSbUI.png</image:loc>
     </image:image>
@@ -1655,8 +1690,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/spy-family</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/spy-family</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx140960-Kb6R5nYQfjmP.jpg</image:loc>
     </image:image>
@@ -1664,8 +1699,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/steins-gate</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/steins-gate</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx9253-tIUXF2gfU8Sg.jpg</image:loc>
     </image:image>
@@ -1673,8 +1708,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/summer-time-render</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/summer-time-render</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx129201-HJBauga2be8I.png</image:loc>
     </image:image>
@@ -1682,8 +1717,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/suzume-no-tojimari</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/suzume-no-tojimari</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx142770-dDaDIRnsv5jN.jpg</image:loc>
     </image:image>
@@ -1691,8 +1726,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/sword-art-online</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/sword-art-online</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx11757-SxYDUzdr9rh2.jpg</image:loc>
     </image:image>
@@ -1700,8 +1735,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/takopi-s-original-sin</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/takopi-s-original-sin</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx185407-7uzY4fA3hokP.jpg</image:loc>
     </image:image>
@@ -1709,8 +1744,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/teasing-master-takagi-san</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/teasing-master-takagi-san</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx99468-XayCplkIL3Gf.png</image:loc>
     </image:image>
@@ -1718,8 +1753,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/tenki-no-ko</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/tenki-no-ko</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx106286-5COcpd0J9VbL.png</image:loc>
     </image:image>
@@ -1727,8 +1762,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/tensei-shitara-slime-datta-ken</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/tensei-shitara-slime-datta-ken</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101280-tDxCVJm714nt.jpg</image:loc>
     </image:image>
@@ -1736,8 +1771,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/terror-in-resonance</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/terror-in-resonance</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20661-aCR7QgzDfOSI.png</image:loc>
     </image:image>
@@ -1745,8 +1780,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/the-promised-neverland</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/the-first-slam-dunk</loc>
+    <lastmod>2026-11-09</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx128207-SWpfVJMRfQ9X.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://geekapoo.es/anime/the-promised-neverland</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101759-8UR7r9MNVpz2.jpg</image:loc>
     </image:image>
@@ -1754,8 +1798,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/the-rising-of-the-shield-hero</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/the-rising-of-the-shield-hero</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx99263-LcazQwdlWzMy.jpg</image:loc>
     </image:image>
@@ -1763,8 +1807,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/the-shiunji-family-children</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/the-shiunji-family-children</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx174802-ILahIZlNWN3R.jpg</image:loc>
     </image:image>
@@ -1772,8 +1816,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/the-tunnel-to-summer-the-exit-of-goodbyes</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/the-tunnel-to-summer-the-exit-of-goodbyes</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx142769-kNyyqpwC9gGV.jpg</image:loc>
     </image:image>
@@ -1781,8 +1825,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/to-love-ru</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/to-love-ru</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx3455-oNiJmsZZTAAj.png</image:loc>
     </image:image>
@@ -1790,8 +1834,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/to-your-eternity</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/to-your-eternity</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx114535-y3NnjexcqKG1.jpg</image:loc>
     </image:image>
@@ -1799,8 +1843,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/tokyo-ghoul</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/tokyo-ghoul</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fseasons%2Ftokyo-ghoul-s1%2FposterUrl-1791368134830.png?alt=media&amp;token=2a9e1a79-b909-4a43-aaaf-1147b65cb889</image:loc>
     </image:image>
@@ -1808,8 +1852,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/tokyo-revengers</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/tokyo-revengers</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx120120-cWDmnmeEntSe.jpg</image:loc>
     </image:image>
@@ -1817,8 +1861,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/toradora</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/toradora</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx4224-PXVMBLNwy2aF.jpg</image:loc>
     </image:image>
@@ -1826,8 +1870,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/tsukimichi-moonlit-fantasy</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/tsukimichi-moonlit-fantasy</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx125206-O2MsOWdW1lVi.jpg</image:loc>
     </image:image>
@@ -1835,8 +1879,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/undead-unluck</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/undead-unluck</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx154116-3ydDI9hhvPgw.png</image:loc>
     </image:image>
@@ -1844,8 +1888,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/vinland-saga</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/vinland-saga</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101348-2fhDFPCuMNiz.jpg</image:loc>
     </image:image>
@@ -1853,8 +1897,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/violet-evergarden</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/violet-evergarden</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21827-ubzq619ZA2E9.png</image:loc>
     </image:image>
@@ -1862,8 +1906,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/viral-hit</loc>
-    <lastmod>2026-11-03</lastmod>
+    <loc>https://geekapoo.es/anime/viral-hit</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx174653-OsnK4BuENjUT.jpg</image:loc>
     </image:image>
@@ -1871,8 +1915,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/vivy-fluorite-eye-s-song</loc>
-    <lastmod>2026-11-05</lastmod>
+    <loc>https://geekapoo.es/anime/vivy-fluorite-eye-s-song</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx128546-UIwyhuhjxmL0.jpg</image:loc>
     </image:image>
@@ -1880,8 +1924,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/witch-hat-atelier</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/witch-hat-atelier</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fseasons%2Fwitch-hat-atelier-s1%2FposterUrl-1791441196951.jpg?alt=media&amp;token=ca5eff7d-f984-4bce-b7d6-878e1de4021d</image:loc>
     </image:image>
@@ -1889,8 +1933,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/yahari-ore-no-seishun-love-come-wa-machigatteiru</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/yahari-ore-no-seishun-love-come-wa-machigatteiru</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx14813-3mNvcKNEQcDs.jpg</image:loc>
     </image:image>
@@ -1898,8 +1942,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/your-lie-in-april</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/your-lie-in-april</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://firebasestorage.googleapis.com/v0/b/geekapoo-7624d.firebasestorage.app/o/content%2Fseasons%2Fyour-lie-in-april-s1%2FposterUrl-1791368574529.webp?alt=media&amp;token=d5c45b78-09d2-4a88-8e16-06fb6558a8e3</image:loc>
     </image:image>
@@ -1907,8 +1951,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.geekapoo.es/anime/zom-100-bucket-list-of-the-dead</loc>
-    <lastmod>2026-11-06</lastmod>
+    <loc>https://geekapoo.es/anime/zom-100-bucket-list-of-the-dead</loc>
+    <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx159831-cJUNqCqzuApc.png</image:loc>
     </image:image>

@@ -1,6 +1,6 @@
 # Kit de lanzamiento — Geekapoo
 
-> Web: https://www.geekapoo.es
+> Web: https://geekapoo.es
 > Objetivo de las 2 primeras semanas: **50 usuarios registrados** y **30 hilos con respuesta**.
 
 ---
@@ -10,7 +10,7 @@
 - [ ] El foro tiene al menos **15–20 hilos** publicados por ti.
 - [ ] Tu perfil tiene avatar, bio y algún logro desbloqueado.
 - [ ] Las normas del foro están visibles y son cortas (3–4 puntos).
-- [ ] El enlace `https://www.geekapoo.es` está en la bio de TikTok, X e Instagram.
+- [ ] El enlace `https://geekapoo.es` está en la bio de TikTok, X e Instagram.
 - [ ] Has probado el registro en el dominio nuevo (Firebase autorizado).
 
 **Regla de oro:** nunca entres a un sitio solo a dejar el enlace. Participa primero, comparte después. Si te pillan spameando una vez, te cierran la puerta para siempre.
@@ -81,7 +81,7 @@ Cada uno trae título y primer mensaje. Cópialos tal cual o adáptalos a tu voz
 > Vale todo: el que cantabas en el coche, el que te sabes de memoria, el que te da vergüenza admitir.
 
 **18. Trivia: adivina el anime por el opening**
-> He subido una tanda de trivias a la web. Probadla y decidme cuántas habéis acertado: https://www.geekapoo.es/?tab=trivia
+> He subido una tanda de trivias a la web. Probadla y decidme cuántas habéis acertado: https://geekapoo.es/?tab=trivia
 
 **19. ¿Qué animes añadiríais a la wiki?**
 > Estamos ampliando el catálogo. Decidme títulos y los voy metiendo con sinopsis, episodios y dónde verlos.
@@ -99,7 +99,7 @@ Cada uno trae título y primer mensaje. Cópialos tal cual o adáptalos a tu voz
 >
 > No vengo a spamear: si os apetece, entrad, echad un ojo a la wiki y decidme qué falta o qué cambiaríais. Me interesa más la opinión que el clic.
 >
-> https://www.geekapoo.es
+> https://geekapoo.es
 >
 > Si a los admins no les parece bien el mensaje, lo borro sin problema.
 
@@ -115,7 +115,7 @@ Cada uno trae título y primer mensaje. Cópialos tal cual o adáptalos a tu voz
 >
 > Ahora mismo hay unas 190 series. Me vendría bien saber qué falta, qué está mal y qué añadiríais. No es una promoción encubierta: si a los mods no les parece bien, lo borro.
 >
-> https://www.geekapoo.es
+> https://geekapoo.es
 
 **Consejo:** revisa las normas del subreddit. Muchos tienen un hilo semanal de autopromoción: úsalo. Si publicas fuera de él, te lo borran y te marcan.
 
@@ -131,11 +131,11 @@ Cada uno trae título y primer mensaje. Cópialos tal cual o adáptalos a tu voz
 
 ### WhatsApp / Telegram (amigos)
 
-> Oye, he montado una comunidad de anime en español: foro, wiki con episodios y dónde ver las series, y trivias. Está empezando y necesito gente de verdad para que no esté vacía. ¿Te apetece entrar y decirme qué te parece? https://www.geekapoo.es
+> Oye, he montado una comunidad de anime en español: foro, wiki con episodios y dónde ver las series, y trivias. Está empezando y necesito gente de verdad para que no esté vacía. ¿Te apetece entrar y decirme qué te parece? https://geekapoo.es
 
 ### Invitación personal (el mensaje más efectivo)
 
-> Hola [nombre], ¿cómo va? Te escribo por algo que he montado: una comunidad de anime en español con wiki, foro y trivias. Estamos empezando y me vendría bien la opinión de alguien que sabe del tema. Si te apetece, entra y dime qué cambiarías: https://www.geekapoo.es — sin compromiso, de verdad.
+> Hola [nombre], ¿cómo va? Te escribo por algo que he montado: una comunidad de anime en español con wiki, foro y trivias. Estamos empezando y me vendría bien la opinión de alguien que sabe del tema. Si te apetece, entra y dime qué cambiarías: https://geekapoo.es — sin compromiso, de verdad.
 
 **Consejo:** mándalo a personas concretas, una por una, y personaliza la primera frase. No copies el mismo mensaje a 50 personas: se nota y molesta.
 

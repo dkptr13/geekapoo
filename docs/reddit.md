@@ -1,6 +1,6 @@
 # Publicar Geekapoo en Reddit
 
-> Web: https://www.geekapoo.es
+> Web: https://geekapoo.es
 > Objetivo: conseguir los primeros usuarios reales, no tráfico de rebote.
 
 ---
@@ -58,7 +58,7 @@ La idea nace de algo que me pasa a menudo: buscar "dónde ver X" o "personajes d
 
 Ahora mismo hay unas 200 series y más de 9.000 episodios. Me vendría bien saber qué falta, qué está mal y qué añadiríais. No es una promoción encubierta: si a los mods no les parece bien, lo borro sin problema.
 
-https://www.geekapoo.es
+https://geekapoo.es
 
 Gracias por leer.
 ```
@@ -84,7 +84,7 @@ Además hay fichas con episodios, personajes, seiyuus, foro, trivias y un sistem
 
 Me interesa sobre todo la opinión de gente de aquí: qué falta, qué datos están mal y qué añadiríais. Si el post no encaja en el sub, decídmelo y lo quito.
 
-https://www.geekapoo.es
+https://geekapoo.es
 
 Gracias.
 ```
@@ -108,7 +108,7 @@ Tiene selector de región, así que podéis poner Argentina y ver en qué plataf
 
 Ahora mismo hay unas 200 series y más de 9.000 episodios. Me vendría bien saber qué falta y qué cambiaríais. Si a los mods no les parece bien el post, lo borro sin problema.
 
-https://www.geekapoo.es
+https://geekapoo.es
 
 Gracias por leer.
 ```

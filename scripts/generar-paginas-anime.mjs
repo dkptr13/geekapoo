@@ -30,7 +30,7 @@ const PLANTILLA = path.join(DIST, 'index.html');
 
 const PROYECTO = process.env.VITE_FIREBASE_PROJECT_ID || 'geekapoo-7624d';
 const SITIO = (
-  process.env.VITE_SITE_URL || 'https://www.geekapoo.es'
+  process.env.VITE_SITE_URL || 'https://geekapoo.es'
 ).replace(/\/+$/, '');
 
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents`;
@@ -100,6 +100,15 @@ const lista = (campo) =>
   (campo?.arrayValue?.values ?? [])
     .map((v) => v.stringValue)
     .filter(Boolean);
+
+/** Recorta texto para bloques visibles, sin cortar a mitad de palabra. */
+const recortarTexto = (valor, max = 200) => {
+  const limpio = String(valor ?? '').replace(/\s+/g, ' ').trim();
+  if (limpio.length <= max) return limpio;
+  const corte = limpio.slice(0, max - 1);
+  const espacio = corte.lastIndexOf(' ');
+  return `${(espacio > 40 ? corte.slice(0, espacio) : corte).trimEnd()}…`;
+};
 
 /** Recorta la sinopsis a un tamaño de meta description. */
 function descripcionCorta(sinopsis, titulo) {
@@ -283,8 +292,42 @@ async function leerEpisodios() {
   return mapa;
 }
 
-async function leerPersonajesPrincipales() {
-  const docs = await consultar('characters', 'role', 'main');
+async function leerTemporadas() {
+  const docs = await leerColeccion('seasons', [
+    'animeId',
+    'number',
+    'title',
+    'synopsis',
+    'year',
+    'episodesCount',
+    'posterUrl',
+  ]);
+  const mapa = new Map();
+
+  for (const doc of docs) {
+    const f = doc.fields ?? {};
+    const animeId = texto(f.animeId);
+    if (!animeId) continue;
+
+    if (!mapa.has(animeId)) mapa.set(animeId, []);
+    mapa.get(animeId).push({
+      number: numero(f.number) ?? 0,
+      title: texto(f.title),
+      synopsis: texto(f.synopsis),
+      year: texto(f.year),
+      episodesCount: numero(f.episodesCount) ?? 0,
+      posterUrl: texto(f.posterUrl),
+    });
+  }
+
+  for (const listaTemporadas of mapa.values()) {
+    listaTemporadas.sort((a, b) => a.number - b.number);
+  }
+
+  return mapa;
+}
+
+async function leerPersonajesPrincipales() {  const docs = await consultar('characters', 'role', 'main');
   const mapa = new Map();
 
   for (const doc of docs) {
@@ -370,6 +413,8 @@ function mapasDesdeIndice(indice) {
       number: ep.number,
       title: ep.title,
       airDate: ep.airDate ?? '',
+      description: ep.description ?? '',
+      duration: ep.duration ?? '',
     });
   }
   for (const listaEpisodios of episodios.values()) {
@@ -386,11 +431,29 @@ function mapasDesdeIndice(indice) {
     personajes.get(p.animeId).push({
       name: p.name,
       voiceActor: p.voiceActor ?? '',
+      description: p.description ?? '',
       likes: p.likesCount ?? 0,
     });
   }
   for (const listaPersonajes of personajes.values()) {
     listaPersonajes.sort((a, b) => b.likes - a.likes);
+  }
+
+  const temporadas = new Map();
+  for (const s of indice.seasons ?? []) {
+    if (!s.animeId) continue;
+    if (!temporadas.has(s.animeId)) temporadas.set(s.animeId, []);
+    temporadas.get(s.animeId).push({
+      number: s.number,
+      title: s.title ?? '',
+      synopsis: s.synopsis ?? '',
+      year: s.year ?? '',
+      episodesCount: s.episodesCount ?? 0,
+      posterUrl: s.posterUrl ?? '',
+    });
+  }
+  for (const listaTemporadas of temporadas.values()) {
+    listaTemporadas.sort((a, b) => a.number - b.number);
   }
 
   // El índice puede traer la disponibilidad. Si es un índice antiguo
@@ -410,7 +473,7 @@ function mapasDesdeIndice(indice) {
     }
   }
 
-  return { episodios, personajes, streaming };
+  return { episodios, personajes, temporadas, streaming };
 }
 
 async function leerNombresPlataformas() {
@@ -431,25 +494,76 @@ async function leerNombresPlataformas() {
 function bloqueEpisodios(episodios) {
   if (!episodios?.length) return '';
 
-  const visibles = episodios.slice(0, 24);
+  const visibles = episodios.slice(0, 8);
   const filas = visibles
-    .map(
-      (e) =>
-        `<li style="margin:0 0 6px;color:#d4d4d8">Episodio ${e.number}: ${escaparHtml(e.title)}</li>`,
-    )
+    .map((e) => {
+      const fecha = e.airDate
+        ? ` <span style="color:#71717a">· ${escaparHtml(e.airDate)}</span>`
+        : '';
+      const descripcion = e.description
+        ? `<br><span style="color:#a1a1aa">${escaparHtml(recortarTexto(e.description, 200))}</span>`
+        : '';
+      return `<li style="margin:0 0 10px;color:#d4d4d8"><strong>Episodio ${e.number}: ${escaparHtml(e.title)}</strong>${fecha}${descripcion}</li>`;
+    })
     .join('');
 
   const resto =
     episodios.length > visibles.length
-      ? `<p style="margin:8px 0 0;font-size:13px;color:#71717a">Y ${episodios.length - visibles.length} episodios más en la ficha completa.</p>`
+      ? `<p style="margin:10px 0 0;font-size:13px;color:#71717a">Y ${episodios.length - visibles.length} episodios más en la ficha completa.</p>`
       : '';
 
   return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Episodios (${episodios.length})</h2>
     <ol style="margin:0;padding-left:20px;font-size:14px;line-height:1.6">${filas}</ol>${resto}`;
 }
 
+function bloquePelicula(episodios) {
+  if (!episodios?.length) return '';
+
+  const pelicula = episodios[0];
+  const datos = [pelicula.duration ? `${pelicula.duration} min` : '', pelicula.airDate]
+    .filter(Boolean)
+    .join(' · ');
+  const descripcion = pelicula.description
+    ? `<p style="margin:0 0 12px;font-size:15px;line-height:1.75;color:#d4d4d8">${escaparHtml(recortarTexto(pelicula.description, 400))}</p>`
+    : '';
+
+  return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Película</h2>
+    ${descripcion}
+    ${datos ? `<p style="margin:0;font-size:13px;color:#71717a">${escaparHtml(datos)}</p>` : ''}`;
+}
+
+function bloqueTemporadas(temporadas, sinopsisAnime) {
+  if (!temporadas?.length) return '';
+
+  const normalizada = String(sinopsisAnime ?? '').replace(/\s+/g, ' ').trim();
+  const visibles = temporadas.slice(0, 4);
+  const filas = visibles
+    .map((temporada) => {
+      const titulo = temporada.title
+        ? `: ${escaparHtml(temporada.title)}`
+        : '';
+      const episodios = temporada.episodesCount
+        ? ` · ${temporada.episodesCount} episodios`
+        : '';
+      const sinopsis =
+        temporada.synopsis &&
+        String(temporada.synopsis).replace(/\s+/g, ' ').trim() !== normalizada
+          ? `<br><span style="color:#a1a1aa">${escaparHtml(recortarTexto(temporada.synopsis, 220))}</span>`
+          : '';
+
+      return `<li style="margin:0 0 10px;color:#d4d4d8"><strong>Temporada ${temporada.number}</strong>${titulo}${episodios}${sinopsis}</li>`;
+    })
+    .join('');
+
+  return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Temporadas (${temporadas.length})</h2>
+    <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.6">${filas}</ul>`;
+}
+
 function bloqueStreaming(plataformas, nombres) {
-  if (!plataformas?.length) return '';
+  if (!plataformas?.length) {
+    return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Dónde verla en España</h2>
+      <p style="margin:0;font-size:14px;line-height:1.7;color:#a1a1aa">No tenemos disponibilidad confirmada en España para esta serie. Puede que no esté disponible legalmente o que aún no hayamos verificado la plataforma.</p>`;
+  }
 
   const filas = plataformas
     .map((p) => {
@@ -469,36 +583,71 @@ function bloquePersonajes(personajes) {
 
   const visibles = personajes.slice(0, 8);
   const filas = visibles
-    .map(
-      (p) =>
-        `<li style="margin:0 0 6px;color:#d4d4d8">${escaparHtml(p.name)}${
-          p.voiceActor
-            ? ` <span style="color:#71717a">(voz: ${escaparHtml(p.voiceActor)})</span>`
-            : ''
-        }</li>`,
-    )
+    .map((p) => {
+      const voz = p.voiceActor
+        ? ` <span style="color:#71717a">(voz: ${escaparHtml(p.voiceActor)})</span>`
+        : '';
+      const descripcion = p.description
+        ? `<br><span style="color:#a1a1aa">${escaparHtml(recortarTexto(p.description, 180))}</span>`
+        : '';
+      return `<li style="margin:0 0 10px;color:#d4d4d8"><strong>${escaparHtml(p.name)}</strong>${voz}${descripcion}</li>`;
+    })
     .join('');
 
   return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Personajes principales</h2>
     <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.7">${filas}</ul>`;
 }
 
-function contenidoEstatico(anime, extras) {
-  const estado = ESTADOS[anime.status] ?? (anime.status || '');
-  const meta = [
-    anime.year,
-    anime.studio,
-    anime.episodes ? `${anime.episodes} episodios` : '',
-    estado,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
-  const generos = anime.genres.length
-    ? `<p style="margin:0 0 20px;font-size:13px;color:#a1a1aa">Géneros: ${escaparHtml(
-        anime.genres.join(' · '),
-      )}</p>`
+function bloqueFichaTecnica(anime, duracion) {
+  const pelicula = anime.episodes === 1;
+  const estado = ESTADOS[anime.status] ?? anime.status ?? '';
+  const minutos = duracion
+    ? /\d+\s*(min|m)$/i.test(duracion)
+      ? duracion
+      : `${duracion} min`
     : '';
+
+  const filas = [
+    ['Formato', pelicula ? 'Película' : 'Serie'],
+    ['Año', anime.year],
+    ['Estudio', anime.studio],
+    ['Estado', estado],
+    [
+      pelicula ? 'Duración' : 'Episodios',
+      pelicula ? minutos : anime.episodes ? String(anime.episodes) : '',
+    ],
+    ['Nota de la comunidad', anime.rating != null ? `${anime.rating}/10` : ''],
+    ['Géneros', anime.genres?.length ? anime.genres.join(' · ') : ''],
+  ].filter(([, valor]) => valor);
+
+  const htmlFilas = filas
+    .map(
+      ([etiqueta, valor]) =>
+        `<tr><th align="left" style="padding:6px 12px 6px 0;color:#71717a;font-weight:600;white-space:nowrap">${escaparHtml(etiqueta)}</th><td style="padding:6px 0;color:#d4d4d8">${escaparHtml(valor)}</td></tr>`,
+    )
+    .join('');
+
+  return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Ficha técnica</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">${htmlFilas}</table>`;
+}
+
+function bloqueRelacionados(relacionados) {
+  if (!relacionados?.length) return '';
+
+  const filas = relacionados
+    .map(
+      (anime) =>
+        `<li style="margin:0 0 6px"><a href="/anime/${encodeURIComponent(anime.slug)}" style="color:#a78bfa">${escaparHtml(anime.title)}</a></li>`,
+    )
+    .join('');
+
+  return `<h2 style="margin:28px 0 10px;font-size:18px;font-weight:700">Otras series y películas que te pueden interesar</h2>
+    <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.7">${filas}</ul>`;
+}
+
+function contenidoEstatico(anime, extras) {
+  const pelicula = anime.episodes === 1;
+  const duracion = String(extras.episodios?.[0]?.duration ?? '').trim();
 
   const nota =
     anime.rating != null
@@ -511,17 +660,46 @@ function contenidoEstatico(anime, extras) {
     <p style="margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a78bfa">Wiki de anime · Geekapoo</p>
     <h1 style="margin:0 0 6px;font-size:34px;line-height:1.15;font-weight:800">${escaparHtml(anime.title)}</h1>
     ${anime.japaneseTitle ? `<p style="margin:0 0 14px;font-size:15px;color:#a1a1aa">${escaparHtml(anime.japaneseTitle)}</p>` : ''}
-    <p style="margin:0 0 12px;font-size:14px;color:#a1a1aa">${escaparHtml(meta)}</p>
     ${nota}
     <h2 style="margin:26px 0 8px;font-size:18px;font-weight:700">Sinopsis</h2>
     <p style="margin:0 0 20px;font-size:15px;line-height:1.75;color:#d4d4d8">${escaparHtml(anime.synopsis)}</p>
-    ${generos}
+    ${bloqueFichaTecnica(anime, duracion)}
+    ${pelicula ? '' : bloqueTemporadas(extras.temporadas, anime.synopsis)}
+    ${pelicula ? bloquePelicula(extras.episodios) : bloqueEpisodios(extras.episodios)}
     ${bloqueStreaming(extras.streaming, extras.nombresPlataformas)}
-    ${anime.episodes === 1 ? '' : bloqueEpisodios(extras.episodios)}
     ${bloquePersonajes(extras.personajes)}
+    ${bloqueRelacionados(extras.relacionados)}
     <a href="/?tab=wiki" style="display:inline-block;margin-top:26px;padding:11px 20px;border-radius:12px;background:#7c3aed;color:#fff;font-size:14px;font-weight:700;text-decoration:none">Explorar la wiki completa</a>
   </div>
 </div>`;
+}
+
+function bloqueInicio(animes) {
+  const top = [...animes]
+    .sort(
+      (a, b) =>
+        (b.rating ?? 0) - (a.rating ?? 0) ||
+        (b.likesCount ?? 0) - (a.likesCount ?? 0),
+    )
+    .slice(0, 30);
+
+  const enlaces = top
+    .map(
+      (anime) =>
+        `<li style="margin:0 0 6px"><a href="/anime/${encodeURIComponent(anime.slug)}" style="color:#a78bfa">${escaparHtml(anime.title)}</a></li>`,
+    )
+    .join('');
+
+  return `<div id="inicio-estatico" style="min-height:100vh;background:#080810;color:#e4e4e7;font-family:Outfit,system-ui,sans-serif;padding:48px 20px">
+    <div style="max-width:820px;margin:0 auto">
+      <p style="margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a78bfa">Comunidad anime, manga y cultura geek</p>
+      <h1 style="margin:0 0 10px;font-size:34px;line-height:1.15;font-weight:800">Geekapoo</h1>
+      <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:#d4d4d8">Foro, wiki de anime con episodios y personajes, chats, trivias y logros. Un espacio libre y respetuoso para la comunidad otaku y geek en español.</p>
+      <h2 style="margin:0 0 10px;font-size:18px;font-weight:700">Series y películas destacadas</h2>
+      <ul style="margin:0 0 24px;padding-left:20px;font-size:14px;line-height:1.7">${enlaces}</ul>
+      <p style="margin:0"><a href="/?tab=wiki" style="color:#a78bfa">Ver toda la wiki</a></p>
+    </div>
+  </div>`;
 }
 
 function jsonLd(anime) {
@@ -670,7 +848,7 @@ try {
   // se generan igual con lo que haya. Si el índice está disponible,
   // los episodios, personajes y streaming salen de ahí y no se
   // vuelven a leer.
-  const [episodios, personajes, streaming, nombresPlataformas] =
+  const [episodios, personajes, temporadas, streaming, nombresPlataformas] =
     await Promise.all([
       desdeIndice
         ? Promise.resolve(desdeIndice.episodios)
@@ -684,6 +862,12 @@ try {
             console.warn(`Sin personajes: ${e.message}`);
             return new Map();
           }),
+      desdeIndice
+        ? Promise.resolve(desdeIndice.temporadas)
+        : leerTemporadas().catch((e) => {
+            console.warn(`Sin temporadas: ${e.message}`);
+            return new Map();
+          }),
       desdeIndice?.streaming
         ? Promise.resolve(desdeIndice.streaming)
         : leerDisponibilidadEspana().catch((e) => {
@@ -695,9 +879,48 @@ try {
 
   let generadas = 0;
   for (const anime of animes) {
+    const categorias = new Set(
+      [...(anime.categories ?? []), anime.category].filter(Boolean),
+    );
+
+    const relacionados = animes
+      .filter(
+        (otro) =>
+          otro.slug !== anime.slug &&
+          [...categorias].some(
+            (categoria) =>
+              (otro.categories ?? []).includes(categoria) ||
+              otro.category === categoria,
+          ),
+      )
+      .sort(
+        (a, b) =>
+          (b.rating ?? 0) - (a.rating ?? 0) ||
+          (b.likesCount ?? 0) - (a.likesCount ?? 0),
+      )
+      .slice(0, 6);
+
+    if (relacionados.length < 6) {
+      const relleno = animes
+        .filter(
+          (otro) =>
+            otro.slug !== anime.slug &&
+            !relacionados.some((r) => r.slug === otro.slug),
+        )
+        .sort(
+          (a, b) =>
+            (b.rating ?? 0) - (a.rating ?? 0) ||
+            (b.likesCount ?? 0) - (a.likesCount ?? 0),
+        )
+        .slice(0, 6 - relacionados.length);
+      relacionados.push(...relleno);
+    }
+
     const extras = {
       episodios: episodios.get(anime.id) ?? [],
       personajes: personajes.get(anime.id) ?? [],
+      temporadas: temporadas.get(anime.id) ?? [],
+      relacionados,
       streaming: (streaming.get(anime.id) ?? []).sort((a, b) =>
         (nombresPlataformas[a.platformId] ?? a.platformId).localeCompare(
           nombresPlataformas[b.platformId] ?? b.platformId,
@@ -712,6 +935,22 @@ try {
     await mkdir(carpeta, { recursive: true });
     await writeFile(path.join(carpeta, 'index.html'), html, 'utf8');
     generadas += 1;
+  }
+
+  // Bloque estático de la portada: da contenido y enlaces internos
+  // rastreables desde "/" sin esperar a React. React lo sustituye al
+  // montar, así que no cambia la experiencia.
+  const inicioHtml = await readFile(PLANTILLA, 'utf8');
+  if (inicioHtml.includes('<div id="root"></div>')) {
+    await writeFile(
+      PLANTILLA,
+      inicioHtml.replace(
+        '<div id="root"></div>',
+        `<div id="root">${bloqueInicio(animes)}</div>`,
+      ),
+      'utf8',
+    );
+    console.log('inicio: bloque estatico con enlaces internos');
   }
 
   console.log(
