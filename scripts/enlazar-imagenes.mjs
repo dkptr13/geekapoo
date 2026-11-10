@@ -278,6 +278,15 @@ const ANIMES = [
   { id: 'pompoko', buscar: 'Heisei Tanuki Gassen Ponpoko', anilist: 1030 },
   { id: 'mis-vecinos-los-yamada', buscar: 'Hoohokekyo Tonari no Yamada-kun', anilist: 415 },
   { id: 'earwig-y-la-bruja', buscar: 'Aya to Majo', anilist: 119321 },
+  // Películas añadidas en la tanda de noviembre de 2026. El id de AniList
+  // va fijado para que el emparejador no confunda unas películas con otras
+  // del mismo estudio o del mismo nombre.
+  { id: 'cuentos-de-terramar', buscar: 'Ged Senki', anilist: 1829 },
+  { id: 'perfect-blue', buscar: 'PERFECT BLUE', anilist: 437 },
+  { id: 'paprika', buscar: 'Paprika', anilist: 1943 },
+  { id: 'tokyo-godfathers', buscar: 'Tokyo Godfathers', anilist: 759 },
+  { id: 'ghost-in-the-shell', buscar: 'Koukaku Kidoutai', anilist: 43 },
+  { id: 'el-nino-y-la-bestia', buscar: 'Bakemono no Ko', anilist: 20981 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))

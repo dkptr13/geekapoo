@@ -495,6 +495,18 @@ const FICHAS = {
     anio: 1999,
   },
   'earwig-y-la-bruja': { id: 'tm897377', titulo: 'Earwig y la bruja', anio: 2020 },
+  // Películas añadidas en la tanda de noviembre de 2026. El id está
+  // comprobado contra el título y el año de JustWatch en España.
+  'cuentos-de-terramar': { id: 'tm45525', titulo: 'Tales from Earthsea', anio: 2006 },
+  'perfect-blue': { id: 'tm190768', titulo: 'Perfect Blue', anio: 1998 },
+  paprika: { id: 'tm25303', titulo: 'Paprika', anio: 2006 },
+  'tokyo-godfathers': { id: 'tm129879', titulo: 'Tokyo Godfathers', anio: 2003 },
+  'ghost-in-the-shell': { id: 'tm9668', titulo: 'Ghost in the Shell', anio: 1995 },
+  'el-nino-y-la-bestia': {
+    id: 'tm141863',
+    titulo: 'The Boy and the Beast',
+    anio: 2015,
+  },
 };
 
 /**
@@ -503,8 +515,9 @@ const FICHAS = {
  * Los canales de Amazon de un servicio (Crunchyroll, HIDIVE, dAnime,
  * AnimeBox) se quedan con el servicio: el contenido y la suscripcion son
  * los mismos.
- * Las tiendas de compra y alquiler que no interesan aqui (Amazon Video,
- * Fandango, DVDs) no estan en la lista.
+ * Las tiendas de compra y alquiler que no interesan aqui (Fandango, DVDs)
+ * no estan en la lista. Amazon Video y Rakuten TV si estan, pero solo se
+ * escriben sus filas de España.
  */
 const NUCLEO = {
   crunchyroll: 'crunchyroll',
@@ -535,6 +548,10 @@ const EXTRA = {
   filmin: 'filmin',
   atres: 'atresplayer',
   rtve: 'rtve-play',
+  acontraplus: 'acontra-plus',
+  plutotv: 'pluto-tv',
+  amazon: 'amazon-video',
+  wuaki: 'rakuten-tv',
 };
 
 /** Paises donde opera cada plataforma que no es global. */
@@ -548,6 +565,10 @@ const PAISES_EXTRA = {
   filmin: ['ES'],
   atresplayer: ['ES'],
   'rtve-play': ['ES'],
+  'acontra-plus': ['ES'],
+  'pluto-tv': ['ES'],
+  'amazon-video': ['ES'],
+  'rakuten-tv': ['ES'],
 };
 
 /**
@@ -570,6 +591,10 @@ const PLATAFORMAS_NUEVAS = [
     order: 230,
   },
   { id: 'apple-tv', name: 'Apple TV (alquiler y compra)', badgeColor: '#52525b', order: 240 },
+  { id: 'acontra-plus', name: 'Acontra Plus', badgeColor: '#ea580c', order: 250 },
+  { id: 'pluto-tv', name: 'Pluto TV', badgeColor: '#facc15', order: 260 },
+  { id: 'amazon-video', name: 'Amazon (alquiler y compra)', badgeColor: '#ff9900', order: 270 },
+  { id: 'rakuten-tv', name: 'Rakuten TV (alquiler y compra)', badgeColor: '#bf0000', order: 280 },
 ];
 
 const ACCESO = {
