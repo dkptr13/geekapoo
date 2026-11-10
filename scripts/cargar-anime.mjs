@@ -351,6 +351,11 @@ let creadosPersonajes = 0;
 for (const [nombre, temporada, rol, japones, voz, desc] of PERSONAJES) {
   const temporadas = temporada === '' ? [] : temporada.split(',').map(Number);
 
+  // `seasonKeys` es lo que consulta la ficha para paginar personajes.
+  // Sin el, el documento existe pero la pestana de personajes sale
+  // vacia. Los compartidos (sin temporada) llevan el comodin '*'.
+  const idsTemporadas = temporadas.map((n) => v.str(idTemporada(n)));
+
   const tags = TAGS[nombre] ?? [];
   if (tags.length === 0) {
     throw new Error(`"${nombre}" no tiene etiquetas en ${prefijo}-tags.mjs`);
@@ -358,7 +363,8 @@ for (const [nombre, temporada, rol, japones, voz, desc] of PERSONAJES) {
 
   const r = await crearSiNoExiste('characters', `${ANIME_ID}-${slugify(nombre)}`, {
     animeId: v.str(ANIME_ID),
-    seasonIds: v.arr(temporadas.map((n) => v.str(idTemporada(n)))),
+    seasonIds: v.arr(idsTemporadas),
+    seasonKeys: v.arr(idsTemporadas.length ? idsTemporadas : [v.str('*')]),
     name: v.str(nombre),
     slug: v.str(slugify(nombre)),
     description: v.str(desc),

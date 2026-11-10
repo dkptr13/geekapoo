@@ -1,7 +1,9 @@
 // Rellena `seasonKeys` en los personajes existentes.
 //
-//   node scripts/actualizar-season-keys.mjs            (simulación)
-//   node scripts/actualizar-season-keys.mjs --escribir (escribe)
+//   node scripts/actualizar-season-keys.mjs                     (simulación)
+//   node scripts/actualizar-season-keys.mjs --escribir           (escribe)
+//   node scripts/actualizar-season-keys.mjs --anime <id>[,<id>]  (solo esos)
+//   node scripts/actualizar-season-keys.mjs --anime <id> --escribir
 //
 // `seasonKeys` es el campo consultable que usa la ficha para paginar
 // personajes por temporada:
@@ -13,12 +15,31 @@
 // ese campo; no se toca ningún otro.
 
 import { arrayDe, coleccion, escribir, str } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
-const ESCRIBIR = process.argv.includes('--escribir');
+const args = process.argv.slice(2);
+const ESCRIBIR = args.includes('--escribir');
+const animeIds = args
+  .flatMap((arg, i) => (arg === '--anime' ? (args[i + 1] ?? '').split(',') : []))
+  .map((id) => id.trim())
+  .filter(Boolean);
 
-const personajes = await coleccion('characters', {
-  select: ['name', 'seasonId', 'seasonIds', 'seasonKeys'],
-});
+const CAMPOS = ['name', 'seasonId', 'seasonIds', 'seasonKeys'];
+
+const personajes = animeIds.length
+  ? (
+      await Promise.all(
+        animeIds.map((animeId) =>
+          leerPorCampo({
+            coleccion: 'characters',
+            campo: 'animeId',
+            valor: animeId,
+            campos: CAMPOS,
+          }),
+        ),
+      )
+    ).flat()
+  : await coleccion('characters', { select: CAMPOS });
 
 function listaDe(doc, campo) {
   const values = doc?.f?.[campo]?.arrayValue?.values;
