@@ -40,4 +40,16 @@ export const PERSONAJES = [
 
   ['Madre de Taku', TODAS, 'supporting', '杜崎拓の母', 'Ai Satou',
    'La madre de Taku. Aparece en las escenas familiares y conoce bien el carácter de su hijo; su presencia discreta ayuda a mostrar la vida cotidiana de la familia Morisaki.'],
+
+  ['Director', TODAS, 'supporting', '校長', 'Takeshi Watabe',
+   'El director del instituto de Kochi. Su discurso y sus normas marcan el ambiente escolar en el que Taku y Rikako intentan entenderse.'],
+
+  ['Posadera', TODAS, 'supporting', 'おかみさん', 'Reiko Suzuki',
+   'La dueña de una posada de Kochi. Atiende a los profesores y alumnos durante las actividades escolares y aporta el tono cotidiano del pueblo.'],
+
+  ['Kawamura', TODAS, 'supporting', '川村', 'Kan Tokumaru',
+   'Un profesor del instituto. Representa la autoridad adulta que mira con recelo la relación entre Taku y Rikako.'],
+
+  ['Aprendiz', TODAS, 'supporting', '見習い', 'Tomokazu Seki',
+   'Un joven aprendiz que trabaja en la posada. Su presencia añade un rostro más al día a día de los estudiantes en Kochi.'],
 ];

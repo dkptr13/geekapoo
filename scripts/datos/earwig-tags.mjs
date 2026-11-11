@@ -13,4 +13,8 @@ export const TAGS = {
   'Madre de Aya': ['Madre', 'Bruja', 'Música'],
   'Custard': ['Amigo', 'Orfanato', 'Timidez'],
   'Mr. Jenkins': ['Orfanato', 'Adulto', 'Amabilidad'],
+  Enchou: ['Directora', 'Orfanato', 'Normas'],
+  Selma: ['Niña', 'Orfanato', 'Amistad'],
+  Phyllis: ['Niña', 'Orfanato', 'Rutina'],
+  Sally: ['Niña', 'Orfanato', 'Rutina'],
 };

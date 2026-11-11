@@ -33,4 +33,13 @@ export const PERSONAJES = [
 
   ['Haru', TODAS, 'supporting', 'ハル', 'Kirin Kiki',
    'La mujer que limpia la casa. Descubre indicios de los diminutos y quiere atraparlos, sin entender el daño que hace al tratarlos como un trofeo.'],
+
+  ['Niya', TODAS, 'supporting', 'ニーヤ', 'Sin acreditar',
+   'La gata de la casa de Sadako. Se mueve entre los humanos y los diminutos, y su instinto felino pone en alerta a la familia de Arrietty.'],
+
+  ['Natsumi', TODAS, 'supporting', '奈津美', 'Sin acreditar',
+   'La madre de Shou. Está en el extranjero por trabajo mientras su hijo se recupera en la casa de Sadako, y su ausencia pesa en la relación entre ambos.'],
+
+  ['Bisabuelo de la casa', TODAS, 'supporting', '曽祖父', 'Sin acreditar',
+   'El antiguo dueño de la casa y padre de Sadako. Mandó construir el castillo de muñecas para los diminutos y dejó la promesa de que algún día volverían a aparecer.'],
 ];

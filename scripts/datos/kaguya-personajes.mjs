@@ -36,4 +36,19 @@ export const PERSONAJES = [
 
   ['Mikado', TODAS, 'supporting', '御門', 'Nakamura Shichinosuke II',
    'El emperador que se enamora de Kaguya. Su insistencia la acosa y la empuja a pedir un deseo que cambiará el final de la historia.'],
+
+  ['Kuramochi no Miko', TODAS, 'supporting', '車持皇子', 'Isao Hashizume',
+   'Uno de los cinco pretendientes de Kaguya. Le pide la rama de jade del monte Horai y encarga a un artesano que fabrique una falsa; cuando el engaño se descubre, huye avergonzado.'],
+
+  ['Ishitsukuri no Miko', TODAS, 'supporting', '石作皇子', 'Takaya Kamikawa',
+   'El más apuesto de los cinco pretendientes. Kaguya le pide el cuenco de piedra de Buda, pero él le lleva una flor de loto y acaba renunciando a la corte para vivir en la naturaleza.'],
+
+  ['Abe no Udaijin', TODAS, 'supporting', '阿部右大臣', 'Hikaru Ijuin',
+   'Un noble obeso y presumido. Kaguya le pide la túnica de piel de rata de fuego; compra una falsa y, al quemarla, queda en evidencia delante de toda la corte.'],
+
+  ['Otomo no Dainagon', TODAS, 'supporting', '大伴大納言', 'Ryudo Uzaki',
+   'Un noble guerrero. Kaguya le pide la perla del cuello del dragón; navega hasta el mar de Tsukushi, pero una tormenta lo hace renunciar y volver humillado.'],
+
+  ['Isonokami no Chunagon', TODAS, 'supporting', '石上中納言', '古城環',
+   'El más joven de los pretendientes. Kaguya le pide la concha de golondrina; muere al intentar conseguirla, y su muerte deja a Kaguya marcada por la culpa.'],
 ];

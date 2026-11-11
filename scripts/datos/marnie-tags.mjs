@@ -14,4 +14,9 @@ export const TAGS = {
   'Setsu Oiwa': ['Tía', 'Familia', 'Acogida'],
   'Sayaka': ['Amiga', 'Pueblo', 'Escuela'],
   'Nobuko Kadoya': ['Vecina', 'Recuerdos', 'Secreto'],
+  Takeshi: ['Hermano', 'Protector', 'Aldea'],
+  Miyoko: ['Compañera', 'Escuela', 'Amable'],
+  'Doctor Yamashita': ['Médico', 'Asma', 'Confidente'],
+  'Profesor de arte': ['Profesor', 'Arte', 'Escuela'],
+  Toichi: ['Pescador', 'Aldea', 'Misterio'],
 };

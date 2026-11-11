@@ -11,4 +11,6 @@ export const TAGS = {
   'Matsuko Yamada': ['Madre', 'Hogar', 'Humor'],
   'Shige Yamada': ['Abuela', 'Familia', 'Sabiduría'],
   'Noboru Yamada': ['Hijo', 'Adolescencia', 'Familia'],
+  Pochi: ['Perro', 'Familia', 'Hogar'],
+  Tanaka: ['Compañero', 'Instituto', 'Noboru'],
 };

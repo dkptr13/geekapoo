@@ -24,4 +24,10 @@ export const PERSONAJES = [
 
   ['Noboru Yamada', TODAS, 'main', '山田のぼる', 'Hayato Isohata',
    'El hijo adolescente. Se avergüenza de sus padres, quiere tener una vida más interesante y pasa por los altibajos típicos de la edad. Su relación con Nonoko y con la abuela da algunas de las escenas más tiernas.'],
+
+  ['Pochi', TODAS, 'supporting', 'ポチ', 'Sin acreditar',
+   'El perro de la familia Yamada. Acompaña las viñetas cotidianas de la casa y aporta el contrapunto animal a las discusiones de Takashi y Matsuko.'],
+
+  ['Tanaka', TODAS, 'supporting', '田中', 'Sin acreditar',
+   'Un compañero de clase de Noboru. Aparece en una de las viñetas del instituto y ayuda a mostrar la vida social del hijo mayor de los Yamada.'],
 ];

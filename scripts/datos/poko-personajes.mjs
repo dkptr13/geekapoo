@@ -55,4 +55,7 @@ export const PERSONAJES = [
 
   ['Oroku', TODAS, 'supporting', 'おろく婆', 'Nijiko Kiyokawa',
    'La anciana que mantiene la paz entre los tanukis de Tama. Es sensata, firme y muy respetada; todos la llaman abuela y acuden a ella cuando la comunidad se divide.'],
+
+  ['Ryuutarou', TODAS, 'supporting', '竜太郎', 'Akira Fukuzawa',
+   'Un zorro de Tama Hills que sobrevive mezclándose con los humanos. Su ejemplo muestra a los tanuki la tentación de abandonar su naturaleza y vivir como personas.'],
 ];

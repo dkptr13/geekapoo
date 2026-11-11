@@ -40,4 +40,10 @@ export const PERSONAJES = [
 
   ['Kousaka', TODAS, 'supporting', '高坂', 'Minami Takayama',
    'Un compañero de clase que aparece en el grupo de amigos de Shizuku. Su papel es pequeño, pero ayuda a retratar la vida escolar alrededor de la protagonista.'],
+
+  ['Muta', TODAS, 'supporting', 'ムタ', 'Sin acreditar',
+   'El gato callejero que Shizuku sigue hasta la tienda de antigüedades. Es grande, arisco y curioso, y se convierte en la chispa que la lleva a conocer al Barón y a Seiji.'],
+
+  ['Sugimura', TODAS, 'supporting', '杉村', 'Sin acreditar',
+   'Un compañero de clase de Shizuku. Yuko está enamorada de él, y su historia sirve para mostrar los primeros líos sentimentales del instituto.'],
 ];

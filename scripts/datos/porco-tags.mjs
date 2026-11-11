@@ -13,4 +13,5 @@ export const TAGS = {
   'Grandpa Piccolo': ['Ingeniero', 'Taller', 'Abuelo'],
   'Mamma Aiuto Boss': ['Pirata', 'Jefe', 'Niños'],
   'Ferrarin': ['Militar', 'Amigo', 'Aviación'],
+  Bellini: ['Piloto', 'Compañero', 'Pasado'],
 };

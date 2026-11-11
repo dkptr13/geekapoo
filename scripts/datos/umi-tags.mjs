@@ -15,4 +15,8 @@ export const TAGS = {
   'Okada': ['Exnovio', 'Tokio', 'Desengaño'],
   'Padre de Rikako': ['Padre', 'Separación', 'Familia'],
   'Madre de Taku': ['Madre', 'Familia', 'Hogar'],
+  Director: ['Director', 'Instituto', 'Autoridad'],
+  Posadera: ['Posada', 'Kochi', 'Cotidianidad'],
+  Kawamura: ['Profesor', 'Instituto', 'Autoridad'],
+  Aprendiz: ['Aprendiz', 'Posada', 'Kochi'],
 };

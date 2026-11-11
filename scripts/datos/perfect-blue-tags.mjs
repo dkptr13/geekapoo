@@ -17,4 +17,7 @@ export const TAGS = {
   Yukiko: ['Cantante', 'Cham', 'Presión'],
   Rei: ['Cantante', 'Cham', 'Amistad'],
   'Tadashi Doi': ['Fotógrafo', 'Imagen', 'Morbo'],
+  Eri: ['Actriz', 'Televisión', 'Ficción'],
+  Yatazaki: ['Producción', 'Rodaje', 'Presión'],
+  'Director de televisión': ['Director', 'Televisión', 'Industria'],
 };

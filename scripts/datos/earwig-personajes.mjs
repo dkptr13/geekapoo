@@ -38,4 +38,16 @@ export const PERSONAJES = [
 
   ['Mr. Jenkins', TODAS, 'supporting', 'Mr.ジェンキンス', 'Hiroshi Iwasaki',
    'Un trabajador del orfanato de St. Morwald que se ocupa del día a día de los niños. Es uno de los adultos que Aya tiene convencidos con su encanto, y su presencia recuerda la vida sencilla que la niña deja atrás.'],
+
+  ['Enchou', TODAS, 'supporting', '園長', 'Sin acreditar',
+   'La directora del orfanato de St. Morwald. Cambia el nombre de Earwig por el de Erica Wigg y representa la vida ordenada que la niña está a punto de dejar atrás.'],
+
+  ['Selma', TODAS, 'supporting', 'セルマ', 'Sin acreditar',
+   'Una de las niñas del orfanato. Comparte con Earwig y Custard el día a día de St. Morwald antes de que la bruja Bella Yaga se lleve a Earwig.'],
+
+  ['Phyllis', TODAS, 'supporting', 'フィリス', 'Sin acreditar',
+   'Otra de las niñas del orfanato de St. Morwald. Forma parte del grupo que convive con Earwig y Custard y muestra la rutina del centro.'],
+
+  ['Sally', TODAS, 'supporting', 'サリー', 'Sin acreditar',
+   'Una niña del orfanato que aparece en las escenas de St. Morwald. Su presencia completa el retrato de la vida en el centro antes de la adopción de Earwig.'],
 ];

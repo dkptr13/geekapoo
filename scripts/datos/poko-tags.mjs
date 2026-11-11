@@ -20,4 +20,5 @@ export const TAGS = {
   'Tasaburou Hage': ['Maestro', 'Transformación', 'Shikoku'],
   'Kinchou VI': ['Maestro', 'Transformación', 'Familia'],
   'Oroku': ['Abuela', 'Liderazgo', 'Paz'],
+  Ryuutarou: ['Zorro', 'Tama Hills', 'Supervivencia'],
 };

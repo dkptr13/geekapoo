@@ -14,4 +14,9 @@ export const TAGS = {
   'Inbe no Akita': ['Noble', 'Ceremonia', 'Nombre'],
   'Menowarawa': ['Sirvienta', 'Amiga', 'Palacio'],
   'Mikado': ['Emperador', 'Pretendiente', 'Poder'],
+  'Kuramochi no Miko': ['Pretendiente', 'Noble', 'Engaño'],
+  'Ishitsukuri no Miko': ['Pretendiente', 'Noble', 'Sinceridad'],
+  'Abe no Udaijin': ['Pretendiente', 'Noble', 'Avaricia'],
+  'Otomo no Dainagon': ['Pretendiente', 'Guerrero', 'Mar'],
+  'Isonokami no Chunagon': ['Pretendiente', 'Joven', 'Tragedia'],
 };

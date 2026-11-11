@@ -51,4 +51,13 @@ export const PERSONAJES = [
 
   ['Tadashi Doi', TODAS, 'supporting', '土居正', 'Akio Suyama',
    'Un fotógrafo que trabaja en la campaña de imagen de Mima. Capta su transformación con una mezcla de admiración y morbo. Sus imágenes alimentan la obsesión de los seguidores.'],
+
+  ['Eri', TODAS, 'supporting', '恵理', 'Emi Shinohara',
+   'Una actriz de la serie Double Bind. Su papel en la ficción se mezcla con la decadencia de Mima y alimenta la confusión entre realidad y televisión.'],
+
+  ['Yatazaki', TODAS, 'supporting', '矢田', 'Tooru Furusawa',
+   'Un miembro del equipo de producción de Double Bind. Su presencia recuerda la presión del rodaje y los intereses que rodean a Mima.'],
+
+  ['Director de televisión', TODAS, 'supporting', '監督', 'Kiyoyuki Yanada',
+   'El director de la serie que interpreta Mima. Es quien aprueba las escenas más duras y representa la cara pública de la industria que consume a la actriz.'],
 ];

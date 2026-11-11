@@ -36,4 +36,19 @@ export const PERSONAJES = [
 
   ['Nobuko Kadoya', TODAS, 'supporting', '角屋信子', 'Akiko Yoritsune',
    'Una vecina que recuerda a la familia de Marnie. Sus historias completan el puzzle del pasado y muestran que el pueblo lleva años guardando el mismo secreto.'],
+
+  ['Takeshi', TODAS, 'supporting', '武', 'Mark Ishii',
+   'El hermano mayor de Sayaka. Es tranquilo y protector; encuentra a Anna enferma en el silo y la lleva de vuelta a casa de los Oiwa.'],
+
+  ['Miyoko', TODAS, 'supporting', 'みよ子', 'Haruka Shiraishi',
+   'Una compañera de clase de Anna en Sapporo. Es amable y educada, y se ofrece a llevarle la mochila cuando Anna se pone enferma.'],
+
+  ['Doctor Yamashita', TODAS, 'supporting', '山下医師', 'Yo Oizumi',
+   'El médico que trata el asma de Anna. Recomienda a Yoriko que la niña pase el verano en un lugar con aire limpio y se convierte en confidente de la familia.'],
+
+  ['Profesor de arte', TODAS, 'supporting', '美術教師', 'Hiroyuki Morisaki',
+   'El profesor de arte de Anna. La anima a dibujar y presencia el aislamiento de la niña en la escuela.'],
+
+  ['Toichi', TODAS, 'supporting', '十一', 'Ken Yasuda',
+   'Un anciano pescador de pocas palabras. Rescata a Anna cuando la marea la atrapa en la casa del pantano y le habla de Marnie como una chica encerrada tras una ventana azul.'],
 ];

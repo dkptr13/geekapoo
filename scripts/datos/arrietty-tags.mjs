@@ -13,4 +13,7 @@ export const TAGS = {
   'Homily': ['Madre', 'Familia', 'Miedo'],
   'Spiller': ['Solitario', 'Bosque', 'Aliado'],
   'Haru': ['Antagonista', 'Curiosa', 'Casa'],
+  Niya: ['Gata', 'Casa', 'Instinto'],
+  Natsumi: ['Madre', 'Ausencia', 'Familia'],
+  'Bisabuelo de la casa': ['Antepasado', 'Casa', 'Diminutos'],
 };

@@ -49,4 +49,16 @@ export const PERSONAJES = [
 
   ['Riku Matsuzaki', TODAS, 'supporting', '松崎陸', 'Tsubasa Kobayashi',
    'El otro hermano de Umi. Comparte las travesuras de Sora y ayuda a mostrar el lado más doméstico de la protagonista.'],
+
+  ['Yuuichirou Sawamura', TODAS, 'supporting', '澤村雄一郎', 'Junichi Okada',
+   'El padre de Umi, muerto en la guerra de Corea. Aparece en la fotografía que Umi guarda y su recuerdo marca la historia familiar.'],
+
+  ['Hiroshi Tachibana', TODAS, 'supporting', '立花洋', 'Shunsuke Kazama',
+   'El padre biológico de Shun, muerto en un accidente de repatriación. Su historia explica el secreto que une a Shun con la familia de Umi.'],
+
+  ['Yuuko', TODAS, 'supporting', '悠子', 'Aoi Teshima',
+   'Una amiga de Umi en el instituto. Aparece en las escenas escolares y ayuda a mostrar la vida social de Umi fuera de la pensión.'],
+
+  ['Nobuko Yokoyama', TODAS, 'supporting', '信子', 'Toshimi Kanno',
+   'Una compañera de clase de Umi. Forma parte del grupo de alumnas que participa en la vida del instituto y en los preparativos del festival.'],
 ];

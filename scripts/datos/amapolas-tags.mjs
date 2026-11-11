@@ -18,4 +18,8 @@ export const TAGS = {
   'Tokumaru': ['Líder', 'Club', 'Demolición'],
   'Sora Matsuzaki': ['Hermano', 'Niño', 'Familia'],
   'Riku Matsuzaki': ['Hermano', 'Niño', 'Familia'],
+  'Yuuichirou Sawamura': ['Padre', 'Fotografía', 'Pasado'],
+  'Hiroshi Tachibana': ['Padre', 'Secreto', 'Pasado'],
+  Yuuko: ['Amiga', 'Instituto', 'Umi'],
+  'Nobuko Yokoyama': ['Compañera', 'Instituto', 'Festival'],
 };

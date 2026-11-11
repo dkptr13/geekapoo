@@ -35,4 +35,7 @@ export const PERSONAJES = [
 
   ['Ferrarin', TODAS, 'supporting', 'フェラーリン', 'Masayuki Inagaki',
    'Un antiguo compañero de armas de Porco que ahora es mayor de la fuerza aérea italiana. Lo aprecia de verdad y le pide que vuelva al servicio, aunque sabe que Porco no aceptará. También le pasa información a Gina para mantenerlo a salvo.'],
+
+  ['Bellini', TODAS, 'supporting', 'ベルリーニ', 'Sin acreditar',
+   'El primer marido de Gina y compañero de escuadrón de Porco. Murió en combate, y su recuerdo es una de las razones por las que Porco y Gina siguen unidos por la culpa y la nostalgia.'],
 ];

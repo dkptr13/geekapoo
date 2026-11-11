@@ -15,4 +15,6 @@ export const TAGS = {
   'Humbert von Gikkingen Danshaku': ['Gato', 'Estatua', 'Misterio'],
   'Nishi Shiro': ['Anciano', 'Antigüedades', 'Barón'],
   'Kousaka': ['Amigo', 'Escuela', 'Clase'],
+  Muta: ['Gato', 'Calle', 'Barón'],
+  Sugimura: ['Compañero', 'Instituto', 'Romance'],
 };
