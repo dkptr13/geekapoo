@@ -31,6 +31,11 @@ trabajar usa esta guía.
    para resolver una tarea de datos.
 7. **No crees otra caché ni otro índice.** Reutiliza
    `public/busqueda/indice.json.gz` y los helpers existentes.
+8. **No leas `episodes` o `characters` enteros sin `--full`.** Una
+   lectura completa de `episodes` son unos 9.200 documentos y una de
+   `characters` unos 6.300. Para un anime concreto usa `leerPorCampo` o
+   `leerPorIds` con `animeId`. Los scripts globales llevan una guarda
+   `--full` precisamente para que esto no pase por accidente.
 
 ---
 
@@ -255,6 +260,10 @@ node scripts/rellenar-alias.mjs --anime <id>[,<id>] --dry-run
 node scripts/emparejar-miniaturas.mjs --anime <id> [--escribir]
 node scripts/emparejar-miniaturas-fecha.mjs --anime <id> [--escribir]
 node scripts/emparejar-miniaturas-tvdb.mjs --anime <id>[,<id>] [--escribir]
+node scripts/ver-capitulos-base.mjs <animeId>
+node scripts/mirar-miniaturas.mjs <animeId> [cuantas]
+node scripts/ver-miniaturas.mjs <animeId>
+node scripts/ver-miniaturas-repetidas.mjs <animeId>
 node scripts/ver-emparejamiento.mjs <animeId>
 node scripts/ver-imagenes-personajes.mjs --anime <animeId>
 ```
@@ -265,12 +274,65 @@ node scripts/ver-imagenes-personajes.mjs --anime <animeId>
 - `ver-emparejamiento` y `ver-imagenes-personajes` consultan solo ese
   anime.
 
+### B2. Lecturas completas y el coste de `coleccion()`
+
+`coleccion('episodes')` y `coleccion('characters')` **no** leen una
+página: recorren la colección entera con `pageSize=300`. Cada pasada
+cuesta:
+
+| Colección | Documentos | Páginas de 300 | Lecturas |
+|---|---:|---:|---:|
+| `episodes` | ~9.253 | 31 | ~9.253 |
+| `characters` | ~6.338 | 22 | ~6.338 |
+
+Eso significa que un script de auditoría que se ejecuta cinco veces sin
+querer puede gastar más de 45.000 lecturas de episodios. Pasó durante las
+tandas de noviembre de 2026: varias comprobaciones de miniaturas y
+relaciones leyeron la colección completa repetidamente.
+
+Reglas:
+
+- Para un anime concreto, usa `leerPorCampo({ coleccion: 'episodes',
+  campo: 'animeId', valor: id })` o `leerPorIds`. Nunca `coleccion()`
+  para luego filtrar en memoria.
+- Para personajes de un anime, lo mismo con `characters` y `animeId`.
+- Para auditorías globales, usa el índice local
+  (`public/busqueda/indice.json.gz`) y consulta Firestore solo por los
+  IDs que realmente vayas a tocar.
+- Los scripts que sí necesitan la colección entera llevan una guarda
+  `--full` y no arrancan sin ella. No la quites.
+- No ejecutes el mismo script global varias veces seguidas para ver
+  cambios pequeños: usa `--anime` o el índice incremental.
+
+Scripts con guarda `--full` o `--anime` obligatoria:
+
+```powershell
+node scripts/ver-imagenes.mjs --full
+node scripts/ver-miniaturas-vivas.mjs --full
+node scripts/ver-miniaturas.mjs --full
+node scripts/ver-miniaturas.mjs <animeId>
+node scripts/ver-miniaturas-repetidas.mjs --full
+node scripts/ver-miniaturas-repetidas.mjs <animeId>
+node scripts/ver-rechazados-fecha.mjs <animeId> --full
+node scripts/mirar-miniaturas.mjs <animeId>
+node scripts/ver-capitulos-base.mjs <animeId>
+node scripts/enlazar-imagenes.mjs --anime <id>[,<id>] | --full
+node scripts/ver-emparejamiento.mjs <animeId> | --full
+node scripts/ver-imagenes-personajes.mjs --anime <animeId> | --full
+node scripts/corregir-seasonids.mjs --anime <id>[,<id>] | --full
+node scripts/rellenar-alias.mjs --anime <id>[,<id>] | --full
+```
+
 ### C. Reconstrucción o auditoría global
 
 Requieren `--full` explícito:
 
 ```powershell
 node scripts/ver-imagenes.mjs --full
+node scripts/ver-miniaturas-vivas.mjs --full
+node scripts/ver-miniaturas.mjs --full
+node scripts/ver-miniaturas-repetidas.mjs --full
+node scripts/ver-rechazados-fecha.mjs <animeId> --full
 node scripts/ver-emparejamiento.mjs --full
 node scripts/ver-imagenes-personajes.mjs --full
 node scripts/corregir-seasonids.mjs --full
@@ -293,6 +355,12 @@ disponible para revisar la colección completa.
 - No ejecutes `--escribir` o `--podar` sin autorización.
 - No uses el índice local para decidir un borrado: lee el documento
   actual antes.
+- No uses `coleccion('episodes')` ni `coleccion('characters')` para
+  luego filtrar por `animeId` en memoria: usa `leerPorCampo` o
+  `leerPorIds`. La colección completa son ~9.253 episodios o ~6.338
+  personajes por pasada.
+- No repitas una auditoría completa para comprobar un cambio pequeño:
+  usa `--anime` o el índice incremental.
 
 ---
 
@@ -398,6 +466,8 @@ sitemap: reutiliza el indice de busqueda
 - [ ] ¿He hecho primero `--dry-run` o simulación?
 - [ ] ¿El cambio es de una sola colección? → `--only`.
 - [ ] ¿Es de un solo anime? → `--anime`.
+- [ ] ¿Estoy leyendo solo el anime que toca? → `leerPorCampo` o
+  `leerPorIds`, no `coleccion()` para filtrar después.
 - [ ] ¿He evitado `--full` salvo petición expresa?
 - [ ] ¿He commiteado `public/busqueda/indice.json.gz` si cambió el índice?
 - [ ] ¿He hecho push/deploy solo con autorización?
@@ -409,15 +479,18 @@ sitemap: reutiliza el indice de busqueda
 
 | Operación | Documentos leídos |
 |---|---:|
-| `--full` | 23.410 |
-| `--only animes` | 211 |
-| `--only seasons` | 520 |
-| `--only episodes` | 9.035 |
-| `--only characters` | 5.702 |
-| `--only streamingAvailability` | 7.942 |
+| `--full` | ~26.000 |
+| `--only animes` | 247 |
+| `--only seasons` | 561 |
+| `--only episodes` | 9.253 |
+| `--only characters` | 6.338 |
+| `--only streamingAvailability` | 9.604 |
 | `--only episodes --anime 86-eighty-six` | 23 |
 | `--only streamingAvailability --anime one-piece` | 74 |
 | `--only animes --anime 86-eighty-six` | 1 |
+| `coleccion('episodes')` completa | 9.253 |
+| `coleccion('characters')` completa | 6.338 |
+| `leerPorCampo(... animeId ...)` | solo los del anime |
 | `--cache` / build normal | 0 del catálogo |
 
 Las cifras son documentos leídos/páginas REST, no facturación real.

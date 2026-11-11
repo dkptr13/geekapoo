@@ -1,5 +1,5 @@
 // Comprueba que una imagen no esta puesta en dos capitulos.
-//    node scripts/ver-miniaturas-repetidas.mjs [animeId]
+//    node scripts/ver-miniaturas-repetidas.mjs <animeId> | --full
 //
 // ── POR QUE HACE FALTA ─────────────────────────────────────────────
 //
@@ -25,14 +25,20 @@
 // que revisar las que interesen.
 
 import { coleccion, str, num } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
 const animeId = process.argv[2];
+const full = process.argv.includes('--full');
 
-const capitulos = await coleccion('episodes');
+if (!animeId && !full) {
+  console.error('  uso: node scripts/ver-miniaturas-repetidas.mjs <animeId> | --full');
+  console.error('  Sin --full no se lee la colección entera.');
+  process.exit(1);
+}
 
 const mios = animeId
-  ? capitulos.filter((c) => str(c.f, 'animeId') === animeId)
-  : capitulos;
+  ? await leerPorCampo({ coleccion: 'episodes', campo: 'animeId', valor: animeId })
+  : await coleccion('episodes');
 
 // Donde esta cada URL.
 const donde = new Map();

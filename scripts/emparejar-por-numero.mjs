@@ -11,7 +11,8 @@
 //
 // Solo se pone la miniatura de los capitulos SIN imagen: si ya la
 // tienen, no se toca.
-import { uno, coleccion, escribir } from './firestore-rest.mjs';
+import { uno, escribir } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 import { temporadaEnTvdb } from './temporadas-tvdb.mjs';
 
 const clave = process.env.TVDB_KEY;
@@ -70,7 +71,11 @@ for (let pagina = 0; pagina < 20; pagina++) {
 // ── Los capitulos del catalogo ─────────────────────────
 const anime = await uno('animes', animeId);
 const temporadaId = `${animeId}-s${temporada}`;
-const capitulosT1 = (await coleccion('episodes')).filter(
+const capitulosT1 = (await leerPorCampo({
+  coleccion: 'episodes',
+  campo: 'animeId',
+  valor: animeId,
+})).filter(
   (c) => c.f?.seasonId?.stringValue === temporadaId,
 );
 

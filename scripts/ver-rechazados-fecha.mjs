@@ -1,6 +1,6 @@
 // Enseña por que se ha rechazado cada capitulo.
 //    $env:TVDB_KEY='...'
-//    node scripts/ver-rechazados-fecha.mjs <animeId>
+//    node scripts/ver-rechazados-fecha.mjs <animeId> --full
 //
 // El emparejado por fecha tiene tres filtros y cualquiera de los tres
 // puede rechazar un capitulo. Sin ver cual ha sido, un "45 puestas, 3 sin
@@ -26,7 +26,13 @@ if (!clave) {
 const animeId = process.argv[2];
 
 if (!animeId) {
-  console.error('  uso: node scripts/ver-rechazados-fecha.mjs <animeId>');
+  console.error('  uso: node scripts/ver-rechazados-fecha.mjs <animeId> --full');
+  process.exit(1);
+}
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: node scripts/ver-rechazados-fecha.mjs <animeId> --full');
+  console.error('  Lee toda la colección de episodios para detectar imágenes repetidas: requiere --full.');
   process.exit(1);
 }
 

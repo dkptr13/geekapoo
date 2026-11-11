@@ -8,7 +8,8 @@
 // reescribe un fichero de datos y se vuelve a cargar con `--actualizar`,
 // lo unico que demuestra que ha funcionado es leer lo que queda escrito.
 
-import { coleccion, str, num } from './firestore-rest.mjs';
+import { str, num } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
 const animeId = process.argv[2];
 
@@ -18,9 +19,11 @@ if (!animeId) {
   process.exit(1);
 }
 
-const capitulos = await coleccion('episodes');
-
-const mios = capitulos.filter((c) => str(c.f, 'animeId') === animeId);
+const mios = await leerPorCampo({
+  coleccion: 'episodes',
+  campo: 'animeId',
+  valor: animeId,
+});
 
 if (!mios.length) {
   console.log(`no hay capitulos de "${animeId}"`);

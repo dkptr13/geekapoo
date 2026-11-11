@@ -15,9 +15,15 @@
 // con imagenes, que se puede abrir y mirar de un vistazo.
 
 import { writeFile, mkdir } from 'node:fs/promises';
-import { coleccion, str, num } from './firestore-rest.mjs';
+import { str, num } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
-const animeId = process.argv[2] ?? 'toradora';
+const animeId = process.argv[2];
+
+if (!animeId) {
+  console.error('  uso: node scripts/mirar-miniaturas.mjs <animeId> [cuantas]');
+  process.exit(1);
+}
 
 const cuantas = Number(process.argv[3] ?? 40);
 
@@ -28,9 +34,13 @@ const CARPETA = 'C:/Users/Oscar/AppData/Local/Temp/opencode/miniaturas';
 // son para no confundir un fallo con un recorte.
 const PROPIA = 'storage.googleapis.com';
 
-const capitulos = await coleccion('episodes');
+const capitulos = await leerPorCampo({
+  coleccion: 'episodes',
+  campo: 'animeId',
+  valor: animeId,
+});
 
-const mios = capitulos.filter((c) => str(c.f, 'animeId') === animeId && str(c.f, 'thumbnailUrl'));
+const mios = capitulos.filter((c) => str(c.f, 'thumbnailUrl'));
 
 if (!mios.length) {
   console.log(`"${animeId}" no tiene capitulos con miniatura`);

@@ -1,5 +1,5 @@
 // Reparto de las miniaturas de episodio.
-//    node scripts ver-miniaturas.mjs [<animeId>]
+//    node scripts/ver-miniaturas.mjs <animeId> | --full
 //
 // Dice cuantos capitulos tienen miniatura y de donde sale cada una,
 // agrupados por anime y por origen. Sirve para dos cosas:
@@ -18,10 +18,20 @@
 //   · otros dominios  miniaturas de terceros
 
 import { coleccion, str } from './firestore-rest.mjs';
+import { leerPorCampo } from './firestore-consultas.mjs';
 
 const filtro = process.argv[2];
+const full = process.argv.includes('--full');
 
-const capitulos = await coleccion('episodes');
+if (!filtro && !full) {
+  console.error('  uso: node scripts/ver-miniaturas.mjs <animeId> | --full');
+  console.error('  Sin --full no se lee la colección entera.');
+  process.exit(1);
+}
+
+const capitulos = filtro
+  ? await leerPorCampo({ coleccion: 'episodes', campo: 'animeId', valor: filtro })
+  : await coleccion('episodes');
 
 const conImagen = capitulos.filter((e) => str(e.f, 'thumbnailUrl').length > 0);
 

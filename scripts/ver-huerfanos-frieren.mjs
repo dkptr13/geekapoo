@@ -8,9 +8,7 @@
 // episodio real no tenga, que es lo unico que haria que compelling
 // mantenerlos.
 
-import { coleccion, uno, str, num } from './firestore-rest.mjs';
-
-const eps = await coleccion('episodes');
+import { uno } from './firestore-rest.mjs';
 
 // Los ids huerfanos que salio en `ver-huerfanos.mjs`.
 const HUERFANOS = [
@@ -33,7 +31,7 @@ const REAL = {
 const INTERESANTE = ['title', 'romajiTitle', 'airDate', 'rating', 'number', 'description'];
 
 for (const id of HUERFANOS) {
-  const h = eps.find((x) => x.id === id);
+  const h = await uno('episodes', id);
 
   if (!h) {
     console.log(`${id}: ya no existe`);
@@ -41,7 +39,7 @@ for (const id of HUERFANOS) {
   }
 
   const realId = REAL[id];
-  const r = eps.find((x) => x.id === realId) ?? (await uno('episodes', realId));
+  const r = await uno('episodes', realId);
 
   console.log(`\n=== ${id}`);
   console.log(`    -> real: ${realId}`);

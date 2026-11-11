@@ -1,5 +1,5 @@
 // Comprueba que las miniaturas de capitulo siguen respondiendo.
-//    node scripts ver-miniaturas-vivas.mjs
+//    node scripts/ver-miniaturas-vivas.mjs --full
 //
 // Un documento puede seguir teniendo `thumbnailUrl` y que la imagen ya no
 // este: el enlace apunta a un bucket, a un servidor de Crunchyroll o a
@@ -11,6 +11,12 @@
 // una fuente entera o de documentos sueltos.
 
 import { coleccion, str } from './firestore-rest.mjs';
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: node scripts/ver-miniaturas-vivas.mjs --full');
+  console.error('  Es una auditoría global: requiere --full de forma explícita.');
+  process.exit(1);
+}
 
 const CABECERAS = {
   'User-Agent':
