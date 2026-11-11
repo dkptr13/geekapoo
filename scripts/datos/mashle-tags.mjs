@@ -22,4 +22,11 @@ export const TAGS = {
   'Lloyd Cavill': ['Compañero', 'Arrogancia', 'Adler'],
   'Innocent Zero': ['Antagonista', 'Criminal', 'Poder'],
   'Cell War': ['Antagonista', 'Carbono', 'Crueldad'],
+  'Margarette Macaron': ['Visionario', 'Sonido', 'Rival'],
+  'Kaldo Gehenna': ['Visionario', 'Fuego', 'Examinador'],
+  'Sophina Biblia': ['Visionaria', 'Plantas', 'Exigente'],
+  'Orter Mádl': ['Visionario', 'Arena', 'Frío'],
+  'Ryoh Grantz': ['Visionario', 'Luz', 'Poder'],
+  'Renatus Revol': ['Visionario', 'Regeneración', 'Combate'],
+  'Carpaccio Luo-Yang': ['Candidato', 'Sangre', 'Rival'],
 };

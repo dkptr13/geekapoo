@@ -42,10 +42,11 @@ export const RATING_SERIE = 7.5;
  * Capítulos en total.
  *
  *   T1  12  (abril - julio de 2023)
+ *   T2  12  (enero - marzo de 2024)
  *   --
- *        12
+ *        24
  */
-export const EPISODIOS_TOTAL = 12;
+export const EPISODIOS_TOTAL = 24;
 
 /**
  * Donde se emite en España.
@@ -67,5 +68,16 @@ export const TEMPORADAS = [
       'Doce episodios emitidos entre abril y julio de 2023. Mash entra en la Academia Mágica de Easton sin poder usar magia y se enfrenta a las pruebas de admisión, a los duelos entre casas y a los Siete Colmillos. ' +
       'La temporada cierra con la batalla contra Abel Walker y la primera gran amenaza de Innocent Zero.',
     capitulos: 'T1',
+  },
+  {
+    numero: 2,
+    titulo: 'Examen de selección de Visionario Divino',
+    anio: 2024,
+    estado: 'Finalizado',
+    estudio: 'A-1 Pictures',
+    synopsis:
+      'Doce episodios emitidos entre enero y marzo de 2024. Mash y sus amigos se enfrentan al examen para convertirse en Visionarios Divinos mientras Innocent Zero mueve sus piezas. ' +
+      'La temporada presenta a los candidatos de las tres casas y cierra con la batalla contra Macaron, Cell War y el propio Innocent Zero.',
+    capitulos: 'T2',
   },
 ];

@@ -24,4 +24,10 @@ export const TAGS = {
   'Chieko Ayase': ['Madre', 'Familia', 'Preocupación'],
   'Mari Wataya': ['Madre', 'Familia', 'Apoyo'],
   'Hajime Wataya': ['Abuelo', 'Maestro', 'Karuta'],
+  'Sumire Hanano': ['Novata', 'Romance', 'Karuta'],
+  'Akihiro Tsukuba': ['Novato', 'Talento', 'Karuta'],
+  'Rion Yamashiro': ['Rival', 'Fujisaki', 'Karuta'],
+  'Midori Sakurazawa': ['Entrenadora', 'Fujisaki', 'Karuta'],
+  'Midori Tamaru': ['Clase A', 'Mizusawa', 'Talento'],
+  'Haruka Inokuma': ['Exreina', 'Karuta', 'Experiencia'],
 };

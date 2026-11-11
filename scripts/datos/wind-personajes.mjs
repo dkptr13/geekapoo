@@ -57,4 +57,22 @@ export const PERSONAJES = [
 
   ['Masaki Anzai', TODAS, 'supporting', '杏西雅紀', 'Shougo Sakata',
    'Un alumno de primer año de Furin que aparece herido tras enfrentarse a una banda. Su situación obliga a Sakura y a sus compañeros a decidir qué significa proteger a un amigo.'],
+
+  ['Tasuku Tsubakino', '2', 'supporting', '椿野佑', 'Ryouta Oosaka',
+   'Un miembro de los Cuatro Reyes de Furin y responsable del barrio del entretenimiento. Su estilo elegante y su habilidad para leer a la gente lo convierten en una pieza clave en el conflicto con Keel.'],
+
+  ['Shuuhei Suzuri', '2', 'supporting', '硯秀平', 'Natsuki Hanae',
+   'Un miembro de Keel que se enfrenta a Tsubakino. Su pasado y su lealtad a la banda lo colocan en el centro del conflicto del barrio.'],
+
+  ['Yamato Endou', '2', 'antagonist', '棪堂哉真斗', 'Daisuke Ono',
+   'Un antiguo alumno de Furin y líder de una banda rival. Su regreso reabre viejas heridas y obliga a Sakura a enfrentarse a una versión distorsionada de lo que podría haber sido.'],
+
+  ['Seiryuu Sakaki', '2', 'supporting', '榊晴竜', 'Souma Saitou',
+   'Uno de los hermanos Sakaki. Su carácter y su fuerza lo convierten en un rival a tener en cuenta durante el arco de Keel.'],
+
+  ['Uryuu Sakaki', '2', 'supporting', '榊雨竜', 'Kazuki Ura',
+   'El otro hermano Sakaki. Comparte con Seiryuu una forma de pelear y una historia familiar que pesa en el conflicto.'],
+
+  ['Shingo Natori', '2', 'supporting', '名取慎吾', 'Junya Enoki',
+   'Un miembro de Keel que se cruza con Sakura y sus compañeros. Su lealtad a la banda y su deseo de pertenecer complican la pelea.'],
 ];

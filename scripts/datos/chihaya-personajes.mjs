@@ -63,4 +63,22 @@ export const PERSONAJES = [
 
   ['Hajime Wataya', TODAS, 'supporting', '綿谷始', 'Kinryuu Arimoto',
    'El abuelo de Arata y maestro de karuta. Es quien le enseña a jugar y quien deja en el chico la promesa de seguir mejorando.'],
+
+  ['Sumire Hanano', '2', 'supporting', '花野菫', 'Megumi Han',
+   'Una novata que se une al club para estar cerca de Taichi. Al principio solo piensa en el amor, pero el karuta y sus compañeros le enseñan a esforzarse por algo propio.'],
+
+  ['Akihiro Tsukuba', '2', 'supporting', '筑波秋博', 'Miyu Irino',
+   'Un novato experto en karuta de segunda versión. Su talento y su pasado familiar lo convierten en un refuerzo inesperado para el equipo.'],
+
+  ['Rion Yamashiro', '2', 'supporting', '山城理音', 'Ayahi Takagaki',
+   'La nieta de una lectora profesional y rival de Chihaya en la final nacional. Su técnica y su sangre la convierten en una oponente temible.'],
+
+  ['Midori Sakurazawa', '2', 'supporting', '桜沢翠', 'Megumi Hayashibara',
+   'La entrenadora de Fujisaki y una de las personas que mejor entiende el karuta competitivo. Su método exigente forma a algunas de las mejores jugadoras del país.'],
+
+  ['Midori Tamaru', '3', 'supporting', '田丸翠', 'Inori Minase',
+   'Una jugadora de clase A que se incorpora al club de Mizusawa. Su talento y su carácter travieso traen aire nuevo al equipo.'],
+
+  ['Haruka Inokuma', '3', 'supporting', '猪熊遥', 'Maaya Sakamoto',
+   'Una exreina del karuta que vuelve a competir. Su experiencia y su estilo pausado la convierten en una rival difícil para Shinobu.'],
 ];

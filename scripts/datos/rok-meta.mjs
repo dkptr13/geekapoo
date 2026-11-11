@@ -42,10 +42,11 @@ export const RATING_SERIE = 8.4;
  * Capítulos en total.
  *
  *   T1  23  (octubre de 2021 - marzo de 2022)
+ *   T2  10  (abril - junio de 2023)
  *   --
- *        23
+ *        33
  */
-export const EPISODIOS_TOTAL = 23;
+export const EPISODIOS_TOTAL = 33;
 
 /**
  * Donde se emite en España.
@@ -67,5 +68,16 @@ export const TEMPORADAS = [
       'Veintitrés episodios emitidos entre octubre de 2021 y marzo de 2022. Bojji, un príncipe sordo y débil, conoce a Kage y se embarca en un viaje para hacerse fuerte. ' +
       'Mientras tanto, Daida ocupa el trono, Miranjo mueve los hilos desde el espejo y el inframundo envía a sus caballeros. La temporada cierra con la verdad sobre Bosse y la coronación de Bojji.',
     capitulos: 'T1',
+  },
+  {
+    numero: 2,
+    titulo: 'El cofre del valor',
+    anio: 2023,
+    estado: 'Finalizado',
+    estudio: 'WIT STUDIO',
+    synopsis:
+      'Diez episodios emitidos entre abril y junio de 2023. La segunda temporada amplía el mundo de Ranking of Kings con historias del pasado de Kage, Hiling, Desha, Despa y Ouken. ' +
+      'Bojji y Daida siguen creciendo como reyes mientras el inframundo y el espejo de Miranjo revelan nuevas capas de la historia.',
+    capitulos: 'T2',
   },
 ];

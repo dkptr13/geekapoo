@@ -42,10 +42,12 @@ export const RATING_SERIE = 8.1;
  * Capítulos en total.
  *
  *   T1  25  (octubre de 2011 - marzo de 2012)
+ *   T2  25  (enero - junio de 2013)
+ *   T3  24  (octubre de 2019 - marzo de 2020)
  *   --
- *        25
+ *        74
  */
-export const EPISODIOS_TOTAL = 25;
+export const EPISODIOS_TOTAL = 74;
 
 /**
  * Donde se emite en España.
@@ -67,5 +69,27 @@ export const TEMPORADAS = [
       'Veinticinco episodios emitidos entre octubre de 2011 y marzo de 2012. Chihaya, Taichi y Arata se conocen en la escuela y el karuta los separa y los vuelve a unir. ' +
       'En el instituto, Chihaya forma un club con Taichi y otros compañeros para competir en el nacional y volver a ver a Arata.',
     capitulos: 'T1',
+  },
+  {
+    numero: 2,
+    titulo: 'Campeonato nacional',
+    anio: 2013,
+    estado: 'Finalizado',
+    estudio: 'MADHOUSE',
+    synopsis:
+      'Veinticinco episodios emitidos entre enero y junio de 2013. Chihaya, Taichi y el club de Mizusawa afrontan su segundo año con nuevos miembros y llegan a la final del campeonato nacional. ' +
+      'La temporada presenta a Sumire y Akihiro y cierra con el torneo individual y la lesión en la mano de Chihaya.',
+    capitulos: 'T2',
+  },
+  {
+    numero: 3,
+    titulo: 'La reina y el maestro',
+    anio: 2019,
+    estado: 'Finalizado',
+    estudio: 'MADHOUSE',
+    synopsis:
+      'Veinticuatro episodios emitidos entre octubre de 2019 y marzo de 2020. Chihaya entrena en Fujisaki y sigue el duelo entre Harada y el maestro Suou mientras Shinobu defiende su título de reina. ' +
+      'La temporada cierra con la confesión de Taichi y la operación de Chihaya, y deja abierta la siguiente etapa del club.',
+    capitulos: 'T3',
   },
 ];

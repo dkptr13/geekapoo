@@ -22,4 +22,10 @@ export const TAGS = {
   'Yukinari Arima': ['Shishitoren', 'Fuerza', 'Rival'],
   'Minoru Kanuma': ['Shishitoren', 'Impulsivo', 'Rival'],
   'Masaki Anzai': ['Compañero', 'Herido', 'Furin'],
+  'Tasuku Tsubakino': ['Cuatro Reyes', 'Barrio', 'Elegancia'],
+  'Shuuhei Suzuri': ['Keel', 'Rival', 'Pasado'],
+  'Yamato Endou': ['Antagonista', 'Banda', 'Pasado'],
+  'Seiryuu Sakaki': ['Sakaki', 'Fuerza', 'Rival'],
+  'Uryuu Sakaki': ['Sakaki', 'Fuerza', 'Rival'],
+  'Shingo Natori': ['Keel', 'Lealtad', 'Conflicto'],
 };

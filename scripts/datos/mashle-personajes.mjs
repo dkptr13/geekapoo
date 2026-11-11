@@ -57,4 +57,25 @@ export const PERSONAJES = [
 
   ['Cell War', TODAS, 'antagonist', 'セル・ウォー', 'Natsuki Hanae',
    'Un miembro de Innocent Zero con una magia basada en el carbono. Es cruel, inteligente y uno de los primeros enemigos que pone a prueba a Mash.'],
+
+  ['Margarette Macaron', '2', 'antagonist', 'マーガレット・マカロン', 'Takehito Koyasu',
+   'Un Visionario Divino que se opone a que Mash estudie en Easton. Su magia de sonido y su talento lo convierten en el rival principal del examen de selección.'],
+
+  ['Kaldo Gehenna', '2', 'supporting', 'カルド・ゲヘナ', 'Nobunaga Shimazaki',
+   'Un Visionario Divino especializado en magia de fuego. Participa en el examen como examinador y pone a prueba a los candidatos con su carácter impulsivo.'],
+
+  ['Sophina Biblia', '2', 'supporting', 'ソフィナ・ブリビア', 'Saori Hayami',
+   'Una Visionaria Divina que domina la magia de las plantas. Es seria y exigente, y su presencia en el examen obliga a los candidatos a pensar rápido.'],
+
+  ['Orter Mádl', '2', 'supporting', 'オーター・マドル', 'Yuuki Ono',
+   'El hermano mayor de Wirth y uno de los Visionarios Divinos. Su magia de arena y su frialdad lo convierten en uno de los evaluadores más peligrosos.'],
+
+  ['Ryoh Grantz', '2', 'supporting', 'ライオ・グランツ', 'Junichi Suwabe',
+   'El Visionario Divino más fuerte de su generación. Su magia de luz y su confianza absoluta lo convierten en un modelo para Mash y en un rival difícil de alcanzar.'],
+
+  ['Renatus Revol', '2', 'supporting', 'レナトス・リボル', 'Kishou Taniyama',
+   'Un Visionario Divino que controla la magia de la regeneración. Su capacidad para recuperarse de cualquier herida lo hace casi imposible de derrotar.'],
+
+  ['Carpaccio Luo-Yang', '2', 'supporting', 'カルパッチョ・ローヤン', 'Kouki Uchiyama',
+   'Un candidato de la casa Leán que participa en el examen. Su magia de sangre y su actitud arrogante lo convierten en un rival directo de Mash.'],
 ];

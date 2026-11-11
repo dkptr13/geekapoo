@@ -43,10 +43,11 @@ export const RATING_SERIE = 7.4;
  * Capítulos en total.
  *
  *   T1  13  (abril - junio de 2024)
+ *   T2  12  (abril - junio de 2025)
  *   --
- *        13
+ *        25
  */
-export const EPISODIOS_TOTAL = 13;
+export const EPISODIOS_TOTAL = 25;
 
 /**
  * Donde se emite en España.
@@ -68,5 +69,16 @@ export const TEMPORADAS = [
       'Trece episodios emitidos entre abril y junio de 2024. Sakura entra en Furin y descubre que la escuela protege el barrio en lugar de sembrar el caos. ' +
       'La temporada presenta a Bofurin, a los Cuatro Reyes y el conflicto con Shishitoren, y cierra con la clase 1-1 convertida en una familia.',
     capitulos: 'T1',
+  },
+  {
+    numero: 2,
+    titulo: 'Keel',
+    anio: 2025,
+    estado: 'Finalizado',
+    estudio: 'CloverWorks',
+    synopsis:
+      'Doce episodios emitidos entre abril y junio de 2025. Sakura y la clase 1-1 se enfrentan a Keel para recuperar a Nagato y descubren que la violencia de la banda esconde un conflicto más profundo. ' +
+      'La temporada profundiza en Tsubakino, en el pasado de Furin y en lo que significa usar la fuerza para proteger a alguien.',
+    capitulos: 'T2',
   },
 ];
