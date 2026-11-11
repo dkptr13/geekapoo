@@ -287,6 +287,15 @@ const ANIMES = [
   { id: 'tokyo-godfathers', buscar: 'Tokyo Godfathers', anilist: 759 },
   { id: 'ghost-in-the-shell', buscar: 'Koukaku Kidoutai', anilist: 43 },
   { id: 'el-nino-y-la-bestia', buscar: 'Bakemono no Ko', anilist: 20981 },
+  // Series y películas añadidas en la tanda de noviembre de 2026. El id
+  // de AniList va fijado para que el emparejador no confunda unos títulos
+  // con otros del mismo nombre.
+  { id: 'dragon-ball-daima', buscar: 'Dragon Ball Daima', anilist: 170083 },
+  { id: 'ranking-of-kings', buscar: 'Ousama Ranking', anilist: 113717 },
+  { id: 'skip-and-loafer', buscar: 'Skip to Loafer', anilist: 141911 },
+  { id: 'one-piece-film-red', buscar: 'One Piece Film: Red', anilist: 141902 },
+  { id: 'look-back', buscar: 'Look Back', anilist: 174788 },
+  { id: 'spy-x-family-codigo-blanco', buscar: 'SPY×FAMILY CODE: White', anilist: 158928 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))

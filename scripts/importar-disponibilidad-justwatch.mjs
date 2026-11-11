@@ -507,6 +507,14 @@ const FICHAS = {
     titulo: 'The Boy and the Beast',
     anio: 2015,
   },
+  // Series y películas añadidas en la tanda de noviembre de 2026. El
+  // id está comprobado contra el título y el año de JustWatch en España.
+  'dragon-ball-daima': { id: 'ts407747', titulo: 'Dragon Ball Daima', anio: 2024 },
+  'ranking-of-kings': { id: 'ts265144', titulo: 'Ousama Ranking', anio: 2021 },
+  'skip-and-loafer': { id: 'ts326198', titulo: 'Skip to Loafer', anio: 2023 },
+  'one-piece-film-red': { id: 'tm1130284', titulo: 'One Piece Film Red', anio: 2022 },
+  'look-back': { id: 'tm1464109', titulo: 'Look Back: Continúa dibujando', anio: 2024 },
+  'spy-x-family-codigo-blanco': { id: 'tm1322560', titulo: 'Spy x Family Código: Blanco', anio: 2023 },
 };
 
 /**

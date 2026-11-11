@@ -493,6 +493,15 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/dragon-ball-daima</loc>
+    <lastmod>2026-11-11</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx170083-GTwRrhTApcLR.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/dragon-raja</loc>
     <lastmod>2026-11-07</lastmod>
     <image:image>
@@ -1258,6 +1267,15 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/look-back</loc>
+    <lastmod>2026-11-11</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx174788-9LsUnn0oEppv.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/lord-el-melloi-ii-sei-no-jikenbo-rail-zeppelin-grace-note</loc>
     <lastmod>2026-11-07</lastmod>
     <image:image>
@@ -1546,6 +1564,15 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/one-piece-film-red</loc>
+    <lastmod>2026-11-11</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx141902-fTyoTk8F8qOl.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/one-punch-man</loc>
     <lastmod>2026-11-07</lastmod>
     <image:image>
@@ -1681,6 +1708,15 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/ranking-of-kings</loc>
+    <lastmod>2026-11-11</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113717-9sNnN8WRgK15.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/ranma-1-2</loc>
     <lastmod>2026-11-07</lastmod>
     <image:image>
@@ -1807,6 +1843,15 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/skip-and-loafer</loc>
+    <lastmod>2026-11-11</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx141911-o6Jwav7hRPPM.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/smoking-behind-the-supermarket-with-you</loc>
     <lastmod>2026-11-07</lastmod>
     <image:image>
@@ -1829,6 +1874,15 @@
     <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx3588-fSMggQoFSbUI.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/spy-x-family-codigo-blanco</loc>
+    <lastmod>2026-11-11</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx158928-xqE0euKlQMnY.jpg</image:loc>
     </image:image>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
