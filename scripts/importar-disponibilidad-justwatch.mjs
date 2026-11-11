@@ -515,6 +515,14 @@ const FICHAS = {
   'one-piece-film-red': { id: 'tm1130284', titulo: 'One Piece Film Red', anio: 2022 },
   'look-back': { id: 'tm1464109', titulo: 'Look Back: Continúa dibujando', anio: 2024 },
   'spy-x-family-codigo-blanco': { id: 'tm1322560', titulo: 'Spy x Family Código: Blanco', anio: 2023 },
+  // Series y películas añadidas en la tanda de noviembre de 2026. El
+  // id está comprobado contra el título y el año de JustWatch en España.
+  'mashle-magic-and-muscles': { id: 'ts360407', titulo: 'MASHLE: MAGIC AND MUSCLES', anio: 2023 },
+  'wind-breaker': { id: 'ts389317', titulo: 'Wind Breaker', anio: 2024 },
+  chihayafuru: { id: 'ts11257', titulo: 'Chihayafuru', anio: 2011 },
+  'dragon-ball-super-broly': { id: 'tm371140', titulo: 'Dragon Ball Super: Broly', anio: 2018 },
+  'mirai-mi-hermana-pequena': { id: 'tm362881', titulo: 'Mirai, mi hermana pequeña', anio: 2018 },
+  'summer-wars': { id: 'tm147599', titulo: 'Summer Wars', anio: 2009 },
 };
 
 /**

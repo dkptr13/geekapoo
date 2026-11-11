@@ -859,6 +859,12 @@ export const PELICULA_TVDB = {
   'el-cuento-de-la-princesa-kaguya': 4922,
   'el-recuerdo-de-marnie': 2588,
   'susurros-del-corazon': 1218,
+
+  // Peliculas de la tanda de noviembre de 2026. Los ids estan
+  // comprobados contra el titulo y el ano de TVDB.
+  'dragon-ball-super-broly': 87,
+  'mirai-mi-hermana-pequena': 2164,
+  'summer-wars': 3921,
 };
 
 /**

@@ -296,6 +296,15 @@ const ANIMES = [
   { id: 'one-piece-film-red', buscar: 'One Piece Film: Red', anilist: 141902 },
   { id: 'look-back', buscar: 'Look Back', anilist: 174788 },
   { id: 'spy-x-family-codigo-blanco', buscar: 'SPY×FAMILY CODE: White', anilist: 158928 },
+  // Series y películas añadidas en la tanda de noviembre de 2026. El id
+  // de AniList va fijado para que el emparejador no confunda unos títulos
+  // con otros del mismo nombre.
+  { id: 'mashle-magic-and-muscles', buscar: 'MASHLE', anilist: 151801 },
+  { id: 'wind-breaker', buscar: 'WIND BREAKER', anilist: 163270 },
+  { id: 'chihayafuru', buscar: 'Chihayafuru', anilist: 10800 },
+  { id: 'dragon-ball-super-broly', buscar: 'Dragon Ball Super: Broly', anilist: 101302 },
+  { id: 'mirai-mi-hermana-pequena', buscar: 'Mirai no Mirai', anilist: 100749 },
+  { id: 'summer-wars', buscar: 'Summer Wars', anilist: 5681 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
