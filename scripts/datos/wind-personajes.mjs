@@ -75,4 +75,12 @@ export const PERSONAJES = [
 
   ['Shingo Natori', '2', 'supporting', '名取慎吾', 'Junya Enoki',
    'Un miembro de Keel que se cruza con Sakura y sus compañeros. Su lealtad a la banda y su deseo de pertenecer complican la pelea.'],
+  ['Youdai Matsumoto', '1,2', 'supporting', '松本陽大', 'Youhei Matsuoka',
+   'Un alumno de Furin que aparece en las patrullas del barrio. Su carácter tranquilo y su fuerza lo convierten en un apoyo fiable.'],
+  ['Jien Yanagita', '1,2', 'supporting', '柳田慈円', 'Yukiya Matsui',
+   'Un alumno de Furin que participa en la defensa del barrio. Su experiencia y su calma ayudan a mantener al grupo unido.'],
+  ['Takeshi Enomoto', '1,2', 'supporting', '榎本健史', 'Taishi Murata',
+   'Un alumno de segundo año y miembro de los Cuatro Reyes. Su fuerza y su lealtad a Umemiya lo convierten en una pieza clave.'],
+  ['Hansuke Tone', '2', 'supporting', '利根帆介', 'Atsushi Tamaru',
+   'Un miembro de la banda rival que se enfrenta a Furin. Su estilo de pelea y su lealtad a sus compañeros lo hacen peligroso.'],
 ];

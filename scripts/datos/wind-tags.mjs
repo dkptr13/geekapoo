@@ -28,4 +28,8 @@ export const TAGS = {
   'Seiryuu Sakaki': ['Sakaki', 'Fuerza', 'Rival'],
   'Uryuu Sakaki': ['Sakaki', 'Fuerza', 'Rival'],
   'Shingo Natori': ['Keel', 'Lealtad', 'Conflicto'],
+  'Youdai Matsumoto': ['Furin', 'Patrulla', 'Apoyo'],
+  'Jien Yanagita': ['Furin', 'Barrio', 'Calma'],
+  'Takeshi Enomoto': ['Cuatro Reyes', 'Furin', 'Lealtad'],
+  'Hansuke Tone': ['Rival', 'Banda', 'Pelea'],
 };
