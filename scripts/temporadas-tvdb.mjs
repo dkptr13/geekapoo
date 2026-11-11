@@ -834,6 +834,31 @@ export const PELICULA_TVDB = {
   // Las dos de Prisma Illya.
   'fate-kaleid-liner-prisma-illya-sekka-no-chikai': 32293,
   'fate-kaleid-liner-prisma-illya-licht-namae-no-nai-shoujo': 199664,
+
+  // Peliculas anadidas en noviembre de 2026. Los ids estan comprobados
+  // contra el titulo y el ano de TVDB; las que tienen titulo japones se
+  // buscaron por el para no confundirlas con remakes o documentales.
+  'one-piece-film-red': 318462,
+  'look-back': 353943,
+  'spy-x-family-codigo-blanco': 345271,
+  'ghost-in-the-shell': 4549,
+  'el-nino-y-la-bestia': 5845,
+  paprika: 5557,
+  'perfect-blue': 3807,
+  'cuentos-de-terramar': 2822,
+  'tokyo-godfathers': 6394,
+  'earwig-y-la-bruja': 136106,
+  'recuerdos-del-ayer': 6540,
+  pompoko: 2922,
+  'porco-rosso': 2298,
+  'puedo-escuchar-el-mar': 4600,
+  'mis-vecinos-los-yamada': 5046,
+  'la-colina-de-las-amapolas': 4788,
+  'arrietty-y-el-mundo-de-los-diminutos': 1270,
+  'haru-en-el-reino-de-los-gatos': 2413,
+  'el-cuento-de-la-princesa-kaguya': 4922,
+  'el-recuerdo-de-marnie': 2588,
+  'susurros-del-corazon': 1218,
 };
 
 /**
