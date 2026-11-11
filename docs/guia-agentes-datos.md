@@ -20,8 +20,11 @@ trabajar usa esta guía.
 2. **No hagas `git push` ni deploy sin autorización.** Un índice
    actualizado en local no cambia Vercel hasta que se commitea el `.gz`
    y se despliega.
-3. **No uses `--full` para una operación pequeña.** La reconstrucción
-   completa lee unas 23.410 filas del catálogo.
+3. **No uses `--full` sin permiso explícito del usuario.** La
+   reconstrucción completa lee unas 26.000 filas del catálogo. Que el
+   script acepte `--full` no es autorización: el permiso lo tiene que dar
+   el usuario con sus palabras. Tampoco vale usar `--full` para una
+   operación pequeña.
 4. **Primero simula.** Los scripts de mantenimiento tienen `--dry-run` o
    funcionan sin `--escribir`. El índice tiene `--dry-run`.
 5. **No uses el índice local como única verdad para borrar o pisar.**
@@ -76,10 +79,11 @@ que regenerar la parte afectada del índice y desplegar.
 | Varias secciones de un anime | `--only animes,seasons,episodes,characters,streamingAvailability --anime <id>` |
 | Cambio global de una colección | `index:buscar -- --only <colección>` |
 | Quieres comprobar sin escribir el índice | añade `--dry-run` |
-| Reconstrucción completa de todo | `index:buscar -- --full` (solo si se pide) |
+| Reconstrucción completa de todo | `index:buscar -- --full` (solo con permiso explícito) |
 
-Si el usuario no ha pedido explícitamente una reconstrucción completa,
-**no uses `--full`**.
+Si el usuario no ha dado **permiso explícito** para una reconstrucción
+completa, **no uses `--full`**. No basta con que la operación sea grande
+o con que el script lo permita: tiene que pedirlo el usuario.
 
 ---
 
@@ -352,7 +356,8 @@ necesita.
 
 ### C. Reconstrucción o auditoría global
 
-Requieren `--full` explícito:
+Requieren `--full` **y permiso explícito del usuario**. Que el comando
+lleve `--full` no autoriza nada por sí solo: el permiso lo da el usuario.
 
 ```powershell
 node scripts/ver-imagenes.mjs --full
@@ -379,6 +384,8 @@ disponible para revisar la colección completa.
 - No ejecutes un script global sin `--full`: los scripts ahora lo piden
   para que una auditoría no descargue miles de documentos por accidente.
 - No uses `--full` para corregir un solo anime.
+- No ejecutes `--full` sin permiso explícito del usuario, aunque el
+  script lo acepte.
 - No ejecutes `--escribir` o `--podar` sin autorización.
 - No uses el índice local para decidir un borrado: lee el documento
   actual antes.
@@ -447,7 +454,7 @@ npm run index:buscar -- --only episodes
 
 ```powershell
 npm run index:buscar             # full: 23.410 lecturas
-npm run index:buscar -- --full   # full explícito: 23.410 lecturas
+npm run index:buscar -- --full   # solo con permiso: ~26.000 lecturas
 ```
 
 Solo si el usuario pide una reconstrucción completa o hay una razón
@@ -495,7 +502,7 @@ sitemap: reutiliza el indice de busqueda
 - [ ] ¿Es de un solo anime? → `--anime`.
 - [ ] ¿Estoy leyendo solo el anime que toca? → `leerPorCampo` o
   `leerPorIds`, no `coleccion()` para filtrar después.
-- [ ] ¿He evitado `--full` salvo petición expresa?
+- [ ] ¿Tengo permiso explícito del usuario para `--full`?
 - [ ] ¿He commiteado `public/busqueda/indice.json.gz` si cambió el índice?
 - [ ] ¿He hecho push/deploy solo con autorización?
 - [ ] ¿He conservado reglas, diseño, SEO y datos manuales?
