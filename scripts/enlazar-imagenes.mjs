@@ -305,6 +305,9 @@ const ANIMES = [
   { id: 'dragon-ball-super-broly', buscar: 'Dragon Ball Super: Broly', anilist: 101302 },
   { id: 'mirai-mi-hermana-pequena', buscar: 'Mirai no Mirai', anilist: 100749 },
   { id: 'summer-wars', buscar: 'Summer Wars', anilist: 5681 },
+  // Fairy Tail se subió desde el panel y se quedó sin póster; el banner
+  // sí estaba. Se enlaza la portada de AniList para que no salga rota.
+  { id: 'fairy-tail', buscar: 'FAIRY TAIL', anilist: 6702 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
