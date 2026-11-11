@@ -142,13 +142,13 @@ Notas:
 
 | Sección actualizada | Lee de Firestore | Reutiliza del índice |
 |---|---:|---:|
-| `animes` | 211 | todo lo demás |
-| `seasons` | 520 | todo lo demás |
-| `episodes` | 9.035 | todo lo demás |
-| `characters` | 5.702 | todo lo demás |
-| `streamingAvailability` | 7.942 | todo lo demás |
+| `animes` | 247 | todo lo demás |
+| `seasons` | 561 | todo lo demás |
+| `episodes` | 9.253 | todo lo demás |
+| `characters` | 6.338 | todo lo demás |
+| `streamingAvailability` | 9.604 | todo lo demás |
 | `--anime <id>` en una sección | solo los documentos de ese anime | todo lo demás |
-| `--full` | 23.410 | nada |
+| `--full` | ~26.000 | nada |
 
 Las cifras son documentos leídos, no facturación.
 
@@ -322,6 +322,33 @@ node scripts/ver-imagenes-personajes.mjs --anime <animeId> | --full
 node scripts/corregir-seasonids.mjs --anime <id>[,<id>] | --full
 node scripts/rellenar-alias.mjs --anime <id>[,<id>] | --full
 ```
+
+### B3. Cuántas lecturas cuesta un anime
+
+Con las consultas selectivas, el coste depende del tamaño del anime, no
+del catálogo entero. Fórmulas:
+
+- `verificar-anime` y `cargar-anime --actualizar`: **1 + temporadas +
+  episodios + personajes**.
+- `enlazar-imagenes --anime`: **1 + temporadas + personajes**.
+- `importar-disponibilidad-justwatch --anime`: **1 + filas de
+  `streamingAvailability` del anime**.
+- `index:buscar --only ... --anime`: **1 + temporadas + episodios +
+  personajes + filas de streaming**.
+
+Ejemplos reales del catálogo:
+
+| Anime | Temporadas | Episodios | Personajes | Verificar / cargar | Enlazar imágenes | Índice completo |
+|---|---:|---:|---:|---:|---:|---:|
+| Look Back | 1 | 1 | 5 | 8 | 7 | 59 |
+| Mashle | 2 | 24 | 48 | 75 | 51 | 138 |
+| Chihayafuru | 3 | 74 | 96 | 174 | 100 | 226 |
+| Dragon Ball Super: Broly | 1 | 1 | 25 | 28 | 27 | 97 |
+
+Antes, `verificar-anime` leía todas las temporadas, episodios y
+personajes del catálogo (~15.500 documentos) para comprobar un solo
+anime. Ahora usa `porAnime` con `where animeId ==` y lee solo lo que
+necesita.
 
 ### C. Reconstrucción o auditoría global
 

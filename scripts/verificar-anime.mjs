@@ -57,20 +57,50 @@ const idTemporada = (n) => `${ANIME_ID}-s${n}`;
 const token = await tokenDeAcceso();
 const headers = { Authorization: `Bearer ${token}` };
 
-/** Todos los documentos de una coleccion, paginados. */
-async function todos(col) {
+/**
+ * Solo los documentos de un anime, con una consulta por `animeId`.
+ *
+ * Antes esto leia la coleccion entera y filtraba en memoria: para
+ * verificar un anime de 12 capitulos se recorrian los ~9.200 episodios
+ * y los ~6.300 personajes del catalogo. Ahora la consulta devuelve
+ * unicamente las temporadas, episodios o personajes de ese anime.
+ */
+async function porAnime(col, animeId) {
   const fuera = [];
-  let pagina = '';
+  let startAfter = null;
 
-  do {
-    const r = await fetch(`${BASE}/${col}?pageSize=300${pagina}`, { headers });
+  for (;;) {
+    const structuredQuery = {
+      from: [{ collectionId: col }],
+      where: {
+        fieldFilter: {
+          field: { fieldPath: 'animeId' },
+          op: 'EQUAL',
+          value: { stringValue: animeId },
+        },
+      },
+      orderBy: [{ field: { fieldPath: '__name__' }, direction: 'ASCENDING' }],
+      limit: 300,
+      ...(startAfter
+        ? { startAt: { before: false, values: [{ referenceValue: startAfter }] } }
+        : {}),
+    };
+
+    const r = await fetch(`${BASE}:runQuery`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ structuredQuery }),
+    });
     const j = await r.json();
 
     if (j.error) throw new Error(`${col}: ${JSON.stringify(j.error)}`);
 
-    fuera.push(...(j.documents ?? []));
-    pagina = j.nextPageToken ? `&pageToken=${encodeURIComponent(j.nextPageToken)}` : '';
-  } while (pagina);
+    const docs = j.filter((x) => x.document).map((x) => x.document);
+    fuera.push(...docs);
+
+    if (docs.length < 300) break;
+    startAfter = docs[docs.length - 1].name;
+  }
 
   return fuera;
 }
@@ -110,9 +140,15 @@ const slugify = (text) =>
 // ──────────────────────────────────────────────────────────
 
 const anime = await doc('animes', ANIME_ID);
-const temporadas = (await todos('seasons')).filter((d) => d.fields.animeId?.stringValue === ANIME_ID);
-const capitulos = (await todos('episodes')).filter((d) => d.fields.animeId?.stringValue === ANIME_ID);
-const personajes = (await todos('characters')).filter((d) => d.fields.animeId?.stringValue === ANIME_ID);
+const temporadas = await porAnime('seasons', ANIME_ID);
+const capitulos = await porAnime('episodes', ANIME_ID);
+const personajes = await porAnime('characters', ANIME_ID);
+
+// Las consultas ya traen los documentos: no hace falta volver a pedir
+// cada temporada y cada personaje por ID.
+const porId = (docs) => new Map(docs.map((d) => [d.name.split('/').pop(), d]));
+const temporadasPorId = porId(temporadas);
+const personajesPorId = porId(personajes);
 
 const fallos = [];
 const anota = (ok, mensaje) => {
@@ -151,7 +187,7 @@ if (anime) {
 // ── Temporadas ────────────────────────────────────────────
 
 for (const t of TEMPORADAS) {
-  const d = await doc('seasons', idTemporada(t.numero));
+  const d = temporadasPorId.get(idTemporada(t.numero)) ?? null;
   anota(!!d, `falta la temporada ${t.numero}`);
 
   if (!d) continue;
@@ -305,7 +341,7 @@ for (const [nombre, temporada] of PERSONAJES) {
   const esperados = temporada === '' ? [] : temporada.split(',').map(Number);
   const idEsperados = esperados.map(idTemporada).sort();
 
-  const d = await doc('characters', `${ANIME_ID}-${slugify(nombre)}`);
+  const d = personajesPorId.get(`${ANIME_ID}-${slugify(nombre)}`) ?? null;
 
   if (!d) {
     malPuestos++;
