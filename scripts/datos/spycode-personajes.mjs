@@ -39,4 +39,31 @@ export const PERSONAJES = [
 
   ['Franky Franklin', TODAS, 'supporting', 'フランキー・フランクリン', 'Hiroyuki Yoshino',
    'Un informante y amigo de Loid. Aparece al final del viaje con el licor de cereza que faltaba, sin saber que los Forger ya han resuelto el problema.'],
+
+  ['Becky Blackbell', TODAS, 'supporting', 'ベッキー・ブラックベル', 'Emiri Katou',
+   'La mejor amiga de Anya en Eden y heredera de una gran empresa militar. Es presumida y protectora, y su amistad con Anya es una de las piezas que sostiene la vida escolar de la niña.'],
+
+  ['Damian Desmond', TODAS, 'supporting', 'ダミアン・デズモンド', 'Natsumi Fujiwara',
+   'El hijo pequeño de Donovan Desmond y compañero de Anya en Eden. Es orgulloso y competitivo, pero debajo de su carácter hay un niño que solo quiere que su padre lo mire.'],
+
+  ['Yuri Briar', TODAS, 'supporting', 'ユーリ・ブライア', 'Kenshou Ono',
+   'El hermano pequeño de Yor y agente de la Seguridad del Estado de Ostania. Adora a su hermana hasta el punto de la obsesión y desconfía de Loid desde el primer día.'],
+
+  ['Henry Henderson', TODAS, 'supporting', 'ヘンリー・ヘンダーソン', 'Kazuhiro Yamaji',
+   'El profesor de historia y tutor de la casa Cecile en Eden. Defiende la elegancia por encima de todo y es uno de los adultos que mejor entiende a los alumnos.'],
+
+  ['Camilla', TODAS, 'supporting', 'カミラ', 'Umeka Shouji',
+   'Una de las compañeras de Yor en el ayuntamiento de Berlint. Es directa y un poco cotilla, y su amistad con Yor le da a la asesina un rato de vida normal.'],
+
+  ['Ewen Egeburg', TODAS, 'supporting', 'ユーイン・エッジバーグ', 'Haruka Okamura',
+   'Uno de los dos amigos inseparables de Damian en Eden. Es leal, algo ingenuo y siempre está dispuesto a seguir a Damian en sus planes.'],
+
+  ['Emile Elman', TODAS, 'supporting', 'エミールぅ・エルマン', 'Hana Satou',
+   'El otro amigo de Damian. Es impulsivo y hablador, y su forma de meter la pata contrasta con la seriedad de Ewen.'],
+
+  ['Millie', TODAS, 'supporting', 'ミリー', 'Manaka Iwami',
+   'Una compañera de clase de Anya en Eden. Es alegre y curiosa, y forma parte del grupo de niñas que observan con atención todo lo que hace la familia Forger.'],
+
+  ['Chadwick Curtis', TODAS, 'supporting', 'チャドウィック・カーティス', 'Yasuyuki Kase',
+   'Un teniente de la Seguridad del Estado de Ostania, superior de Yuri. Conoce de cerca la obsesión de su subordinado por su hermana y le aconseja centrarse en el trabajo.'],
 ];

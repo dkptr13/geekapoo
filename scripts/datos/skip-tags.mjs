@@ -13,4 +13,12 @@ export const TAGS = {
   'Makoto Kurume': ['Delegada', 'Compañera', 'Instituto'],
   'Narumi Kanechika': ['Teatro', 'Mayor', 'Dramaturgo'],
   'Kento Yamada': ['Compañero', 'Amigo', 'Instituto'],
+  'Fumino Toyama': ['Amiga', 'Ishikawa', 'Infancia'],
+  Nao: ['Tía', 'Tutora', 'Tokio'],
+  'Tsukasa Mukai': ['Compañero', 'Amigo', 'Instituto'],
+  'Tokiko Takamine': ['Consejo', 'Perfeccionista', 'Instituto'],
+  'Hiroto Kazakami': ['Compañero', 'Grupo', 'Instituto'],
+  'Ririka Saijou': ['Compañera', 'Estilo', 'Instituto'],
+  'Sakura Hanazono': ['Compañera', 'Amiga', 'Instituto'],
+  'Chris Fukunaga': ['Compañero', 'Amigo', 'Instituto'],
 };

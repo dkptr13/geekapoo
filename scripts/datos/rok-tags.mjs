@@ -16,4 +16,13 @@ export const TAGS = {
   Domas: ['Espadachín', 'Maestro', 'Lealtad'],
   Hokuro: ['Soldado', 'Amigo', 'Viaje'],
   Ouken: ['Antagonista', 'Inmortal', 'Caballero'],
+  Apeas: ['Caballero', 'Escudo', 'Lealtad'],
+  Dorshe: ['Caballero', 'Guardaespaldas', 'Hiling'],
+  Bebin: ['Caballero', 'Estratega', 'Daida'],
+  Sheena: ['Reina', 'Madre', 'Pasado'],
+  Desha: ['Rey', 'Inframundo', 'Hermano'],
+  Sorii: ['Tutor', 'Biblioteca', 'Pasado'],
+  Gigan: ['Gigante', 'Inframundo', 'Amistad'],
+  'Madre de Miranjo': ['Madre', 'Pasado', 'Miranjo'],
+  'Madre de Kage': ['Madre', 'Pasado', 'Kage'],
 };

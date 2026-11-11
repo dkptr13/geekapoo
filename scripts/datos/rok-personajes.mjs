@@ -44,4 +44,31 @@ export const PERSONAJES = [
 
   ['Ouken', TODAS, 'antagonist', 'オウケン', 'Kouji Yusa',
    'Un caballero del inframundo condenado por una maldición que lo hace inmortal. Su cuerpo se regenera una y otra vez, y su espada no distingue entre amigos y enemigos.'],
+
+  ['Apeas', TODAS, 'supporting', 'アピス', 'Hiroki Yasumoto',
+   'Uno de los cuatro grandes caballeros del reino de Bosse. Es leal al rey y a Daida, y su fuerza con el escudo lo convierte en una muralla cuando el castillo se ve acosado.'],
+
+  ['Dorshe', TODAS, 'supporting', 'ドルーシ', 'Hinata Tadokoro',
+   'El guardaespaldas personal de la reina Hiling. Es grande, silencioso y totalmente leal; su fuerza protege a la reina y a Daida incluso cuando el reino se divide.'],
+
+  ['Bebin', TODAS, 'supporting', 'ベビン', 'Youji Ueda',
+   'Uno de los cuatro grandes caballeros y el más cerebral del grupo. Entrena a Daida y conoce los secretos de Bosse, lo que lo convierte en una pieza clave en la sucesión.'],
+
+  ['Sheena', TODAS, 'supporting', 'シーナ', 'Takako Honda',
+   'La primera esposa de Bosse y madre biológica de Bojji. Su muerte marca la infancia del príncipe y su recuerdo aparece en los momentos más duros de la historia.'],
+
+  ['Desha', TODAS, 'supporting', 'デスハー', 'Yoshimitsu Shimoyama',
+   'El rey del inframundo y hermano mayor de Despa. Ocupa el segundo puesto del ranking de reyes y busca a Miranjo para ajustar cuentas con el pasado de su familia.'],
+
+  ['Sorii', TODAS, 'supporting', 'ソリー', 'Tsuguo Mogami',
+   'El anciano tutor de Daida y guardián de la biblioteca del castillo. Conoce la historia de Bosse y ayuda al joven príncipe a entender el peso de la corona.'],
+
+  ['Gigan', TODAS, 'supporting', 'ギガン', 'Hayato Kaneko',
+   'Un gigante del inframundo que se hace amigo de Bojji durante su viaje. Su tamaño impone, pero su bondad y su historia con Desha lo acercan al príncipe.'],
+
+  ['Madre de Miranjo', TODAS, 'supporting', 'ミランジョの母', 'Ayumi Tsunematsu',
+   'La madre de Miranjo. Su relación con su hija y con Bosse explica parte del rencor que empuja a Miranjo a manipular el reino desde el espejo.'],
+
+  ['Madre de Kage', TODAS, 'supporting', 'カゲ母', 'Megumi Toyoguchi',
+   'La madre de Kage. Murió protegiendo a su hijo del clan de la luz, y su recuerdo es la razón por la que Kage desconfía de los humanos y busca un lugar al que pertenecer.'],
 ];

@@ -8,4 +8,7 @@
 export const TAGS = {
   Fujino: ['Protagonista', 'Dibujante', 'Manga'],
   Kyomoto: ['Protagonista', 'Dibujante', 'Manga'],
+  'Hermana de Fujino': ['Hermana', 'Familia', 'Dibujo'],
+  Profesor: ['Profesor', 'Escuela', 'Manga'],
+  Editor: ['Editor', 'Manga', 'Profesional'],
 };

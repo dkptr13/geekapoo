@@ -16,4 +16,13 @@ export const TAGS = {
   'Fiona Frost': ['Espía', 'Aliada', 'Celos'],
   'Sylvia Sherwood': ['Espía', 'Jefa', 'WISE'],
   'Franky Franklin': ['Informante', 'Aliado', 'Amigo'],
+  'Becky Blackbell': ['Amiga', 'Eden', 'Heredera'],
+  'Damian Desmond': ['Compañero', 'Eden', 'Rival'],
+  'Yuri Briar': ['Hermano', 'Seguridad', 'Ostania'],
+  'Henry Henderson': ['Profesor', 'Eden', 'Elegancia'],
+  Camilla: ['Compañera', 'Ayuntamiento', 'Amiga'],
+  'Ewen Egeburg': ['Amigo', 'Eden', 'Damian'],
+  'Emile Elman': ['Amigo', 'Eden', 'Damian'],
+  Millie: ['Compañera', 'Eden', 'Amiga'],
+  'Chadwick Curtis': ['Teniente', 'Seguridad', 'Ostania'],
 };
