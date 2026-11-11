@@ -1,6 +1,13 @@
 // Mira si hay avisos de chat creados y cuando.
 // Solo lee.
+//    node scripts/ver-avisos-chat.mjs --full
 import { coleccion } from './firestore-rest.mjs';
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: ver-avisos-chat.mjs --full');
+  console.error('  Recorre todos los usuarios y sus notificaciones: requiere --full.');
+  process.exit(1);
+}
 
 const usuarios = await coleccion('users');
 

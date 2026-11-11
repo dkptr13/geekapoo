@@ -1,7 +1,7 @@
 // Repara los contadores de `stats` de TODOS los usuarios.
 //
-//   node scripts/reparar-contadores.mjs             # solo enseña lo que haria
-//   node scripts/reparar-contadores.mjs --aplicar   # lo escribe
+//   node scripts/reparar-contadores.mjs --full             # solo enseña lo que haria
+//   node scripts/reparar-contadores.mjs --full --aplicar   # lo escribe
 //
 // ── POR QUE HACE FALTA ─────────────────────────────────────────────
 //
@@ -53,6 +53,12 @@
 // transaccion que escribia el contador, y esa parte no se tocaba.
 
 import { cliente } from './firestore-rest.mjs';
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: reparar-contadores.mjs --full [--aplicar]');
+  console.error('  Recorre usuarios, hilos y comentarios: requiere --full.');
+  process.exit(1);
+}
 
 // Los cinco motivos del libro mayor que cuentan como "Me gusta recibido".
 // COPIA de `MOTIVOS_DE_LIKE`, que esta en `functions/src/index.ts` junto

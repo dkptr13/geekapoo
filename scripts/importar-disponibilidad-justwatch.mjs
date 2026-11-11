@@ -1,5 +1,6 @@
 // Rellena la disponibilidad regional de streaming desde JustWatch.
-//    node scripts/importar-disponibilidad-justwatch.mjs [--anime <id>[,<id>...]] [--escribir] [--podar]
+//    node scripts/importar-disponibilidad-justwatch.mjs --anime <id>[,<id>...] [--escribir] [--podar]
+//    node scripts/importar-disponibilidad-justwatch.mjs --full [--escribir] [--podar]
 //
 // Con `--anime` solo se consultan y se tocan las filas de esos animes.
 // Con varios animes se leen en bloques de hasta 30 `animeId`; una
@@ -64,6 +65,7 @@ import {
 const args = process.argv.slice(2);
 const escribirEnBase = args.includes('--escribir');
 const podar = args.includes('--podar');
+const full = args.includes('--full');
 const soloAnime = new Set(
   args
     .flatMap((a, i) => (a === '--anime' ? (args[i + 1] ?? '').split(',') : []))
@@ -71,6 +73,16 @@ const soloAnime = new Set(
     .filter(Boolean),
 );
 const filtrarAnime = soloAnime.size > 0;
+
+if (!filtrarAnime && !full) {
+  console.error('  uso: importar-disponibilidad-justwatch.mjs --anime <id>[,<id>] | --full [--escribir] [--podar]');
+  console.error('  Sin --anime ni --full no se lee la colección completa de streamingAvailability.');
+  process.exit(1);
+}
+if (filtrarAnime && full) {
+  console.error('  --anime y --full no se pueden combinar.');
+  process.exit(1);
+}
 
 const metricas = {
   animesProcesados: 0,

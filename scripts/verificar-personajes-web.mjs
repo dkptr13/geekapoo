@@ -48,22 +48,51 @@ const ruta = join(
 const token = await tokenDeAcceso();
 const headers = { Authorization: `Bearer ${token}` };
 
-async function todos(col) {
+/**
+ * Solo los personajes de un anime. Antes se recorría toda la colección
+ * y se filtraba en memoria; ahora la consulta lleva `animeId`.
+ */
+async function personajesDeAnime(animeId) {
   const fuera = [];
-  let pagina = '';
-  do {
-    const r = await fetch(`${BASE}/${col}?pageSize=300${pagina}`, { headers });
+  let startAfter = null;
+
+  for (;;) {
+    const structuredQuery = {
+      from: [{ collectionId: 'characters' }],
+      where: {
+        fieldFilter: {
+          field: { fieldPath: 'animeId' },
+          op: 'EQUAL',
+          value: { stringValue: animeId },
+        },
+      },
+      orderBy: [{ field: { fieldPath: '__name__' }, direction: 'ASCENDING' }],
+      limit: 300,
+      ...(startAfter
+        ? { startAt: { before: false, values: [{ referenceValue: startAfter }] } }
+        : {}),
+    };
+
+    const r = await fetch(`${BASE}:runQuery`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ structuredQuery }),
+    });
     const j = await r.json();
-    if (j.error) throw new Error(`${col}: ${JSON.stringify(j.error)}`);
-    fuera.push(...(j.documents ?? []));
-    pagina = j.nextPageToken ? `&pageToken=${encodeURIComponent(j.nextPageToken)}` : '';
-  } while (pagina);
+
+    if (j.error) throw new Error(`characters: ${JSON.stringify(j.error)}`);
+
+    const docs = j.filter((x) => x.document).map((x) => x.document);
+    fuera.push(...docs);
+
+    if (docs.length < 300) break;
+    startAfter = docs[docs.length - 1].name;
+  }
+
   return fuera;
 }
 
-const personajes = (await todos('characters')).filter(
-  (d) => d.fields.animeId?.stringValue === ANIME_ID,
-);
+const personajes = await personajesDeAnime(ANIME_ID);
 
 const TEMPORADAS = TEMPORADAS_META.map((t) => t.numero);
 const idT = (n) => `${ANIME_ID}-s${n}`;

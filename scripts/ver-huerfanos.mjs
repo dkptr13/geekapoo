@@ -1,6 +1,6 @@
 // Busca documentos huerfanos en el catalogo: los que no tienen `name`.
 //
-//    node scripts/ver-huerfanos.mjs
+//    node scripts/ver-huerfanos.mjs --full [--borrar]
 //
 // ── QUE SON Y POR QUE HAN APARECIDO ───────────────────────────────
 //
@@ -14,6 +14,12 @@
 // siempre lo tiene.
 
 import { coleccion, borrar } from './firestore-rest.mjs';
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: ver-huerfanos.mjs --full [--borrar]');
+  console.error('  Recorre animes, temporadas, personajes y episodios: requiere --full.');
+  process.exit(1);
+}
 
 const COLECCIONES = ['animes', 'seasons', 'characters', 'episodes'];
 

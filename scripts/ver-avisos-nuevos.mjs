@@ -1,6 +1,13 @@
 // Las notificaciones más nuevas de cada usuario, con tipo y destino.
 // Solo lee.
+//    node scripts/ver-avisos-nuevos.mjs --full
 import { coleccion } from './firestore-rest.mjs';
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: ver-avisos-nuevos.mjs --full');
+  console.error('  Recorre todos los usuarios y sus notificaciones: requiere --full.');
+  process.exit(1);
+}
 
 const usuarios = await coleccion('users');
 

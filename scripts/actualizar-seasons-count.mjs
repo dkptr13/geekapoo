@@ -1,7 +1,7 @@
 // Rellena `seasonsCount` en los animes existentes.
 //
-//   node scripts/actualizar-seasons-count.mjs            (simulación)
-//   node scripts/actualizar-seasons-count.mjs --escribir (escribe)
+//   node scripts/actualizar-seasons-count.mjs --full            (simulación)
+//   node scripts/actualizar-seasons-count.mjs --full --escribir (escribe)
 //
 // El panel usa este contador para el filtro "Con temporadas" sin
 // descargar la colección completa de temporadas. Las temporadas que
@@ -13,6 +13,12 @@
 import { coleccion, escribir, i, str } from './firestore-rest.mjs';
 
 const ESCRIBIR = process.argv.includes('--escribir');
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: actualizar-seasons-count.mjs --full [--escribir]');
+  console.error('  Es una migración de todo el catálogo: requiere --full.');
+  process.exit(1);
+}
 
 const [animes, temporadas] = await Promise.all([
   coleccion('animes', { select: ['title'] }),

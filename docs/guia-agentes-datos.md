@@ -264,6 +264,8 @@ node scripts/rellenar-alias.mjs --anime <id>[,<id>] --dry-run
 node scripts/emparejar-miniaturas.mjs --anime <id> [--escribir]
 node scripts/emparejar-miniaturas-fecha.mjs --anime <id> [--escribir]
 node scripts/emparejar-miniaturas-tvdb.mjs --anime <id>[,<id>] [--escribir]
+node scripts/verificar-anime.mjs <prefijo>
+node scripts/verificar-personajes-web.mjs <prefijo>
 node scripts/ver-capitulos-base.mjs <animeId>
 node scripts/mirar-miniaturas.mjs <animeId> [cuantas]
 node scripts/ver-miniaturas.mjs <animeId>
@@ -373,6 +375,16 @@ node scripts/enlazar-imagenes.mjs --full
 node scripts/emparejar-miniaturas.mjs --full
 node scripts/emparejar-miniaturas-fecha.mjs --full
 node scripts/emparejar-miniaturas-tvdb.mjs --full
+node scripts/actualizar-season-keys.mjs --full
+node scripts/actualizar-seasons-count.mjs --full
+node scripts/ver-huerfanos.mjs --full
+node scripts/importar-disponibilidad-justwatch.mjs --full
+node scripts/migrar-usernames.mjs --full
+node scripts/reparar-contadores.mjs --full
+node scripts/ver-avisos-nuevos.mjs --full
+node scripts/ver-avisos-chat.mjs --full
+node scripts/ver-lectura-chat.mjs --full
+node scripts/limpiar-notificaciones-huerfanas.mjs --full
 ```
 
 `corregir-personajes-conocidos.mjs` usa el índice local para localizar
@@ -395,6 +407,9 @@ disponible para revisar la colección completa.
   personajes por pasada.
 - No repitas una auditoría completa para comprobar un cambio pequeño:
   usa `--anime` o el índice incremental.
+- No ejecutes migraciones de usuarios, notificaciones o chats sin
+  `--full`: recorren colecciones sociales enteras y también cuestan
+  miles de lecturas.
 
 ---
 
@@ -413,8 +428,8 @@ node scripts/importar-disponibilidad-justwatch.mjs --anime one-piece --escribir
 # Varios animes
 node scripts/importar-disponibilidad-justwatch.mjs --anime one-piece,naruto --escribir
 
-# Reconstrucción completa explícita
-node scripts/importar-disponibilidad-justwatch.mjs --escribir
+# Reconstrucción completa explícita: solo con permiso
+node scripts/importar-disponibilidad-justwatch.mjs --full --escribir
 
 # Poda de obsoletas: solo con autorización
 node scripts/importar-disponibilidad-justwatch.mjs --anime one-piece --escribir --podar
@@ -422,6 +437,9 @@ node scripts/importar-disponibilidad-justwatch.mjs --anime one-piece --escribir 
 
 - Sin `--escribir` no escribe.
 - Sin `--podar` no borra.
+- Sin `--anime` ni `--full` no arranca: la reconstrucción completa lee
+  toda `streamingAvailability` (~9.600 filas) y requiere `--full` y
+  permiso explícito.
 - `--podar` solo afecta a los animes seleccionados y protege filas
   manuales/sin verificar.
 - `FICHAS` es la lista de animes que el importador conoce. Si un anime

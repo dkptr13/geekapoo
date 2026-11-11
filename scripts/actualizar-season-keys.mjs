@@ -1,9 +1,7 @@
 // Rellena `seasonKeys` en los personajes existentes.
 //
-//   node scripts/actualizar-season-keys.mjs                     (simulación)
-//   node scripts/actualizar-season-keys.mjs --escribir           (escribe)
-//   node scripts/actualizar-season-keys.mjs --anime <id>[,<id>]  (solo esos)
-//   node scripts/actualizar-season-keys.mjs --anime <id> --escribir
+//   node scripts/actualizar-season-keys.mjs --anime <id>[,<id>] [--escribir]
+//   node scripts/actualizar-season-keys.mjs --full [--escribir]
 //
 // `seasonKeys` es el campo consultable que usa la ficha para paginar
 // personajes por temporada:
@@ -19,10 +17,21 @@ import { leerPorCampo } from './firestore-consultas.mjs';
 
 const args = process.argv.slice(2);
 const ESCRIBIR = args.includes('--escribir');
+const FULL = args.includes('--full');
 const animeIds = args
   .flatMap((arg, i) => (arg === '--anime' ? (args[i + 1] ?? '').split(',') : []))
   .map((id) => id.trim())
   .filter(Boolean);
+
+if (!animeIds.length && !FULL) {
+  console.error('  uso: actualizar-season-keys.mjs --anime <id>[,<id>] | --full [--escribir]');
+  console.error('  Sin --anime ni --full no se lee toda la colección de personajes.');
+  process.exit(1);
+}
+if (animeIds.length && FULL) {
+  console.error('  --anime y --full no se pueden combinar.');
+  process.exit(1);
+}
 
 const CAMPOS = ['name', 'seasonId', 'seasonIds', 'seasonKeys'];
 

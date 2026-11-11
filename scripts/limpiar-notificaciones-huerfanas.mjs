@@ -1,7 +1,7 @@
 // Busca avisos que apuntan a comentarios que ya no existen.
 //
-//   node scripts/limpiar-notificaciones-huerfanas.mjs            (simulación)
-//   node scripts/limpiar-notificaciones-huerfanas.mjs --escribir (borra)
+//   node scripts/limpiar-notificaciones-huerfanas.mjs --full            (simulación)
+//   node scripts/limpiar-notificaciones-huerfanas.mjs --full --escribir (borra)
 //
 // Las notificaciones nuevas se limpian solas desde `onCommentDeleted`.
 // Este script es para las que ya existían antes de desplegar esa
@@ -14,6 +14,12 @@ import { tokenDeAcceso } from './token-firebase.mjs';
 const PROYECTO = process.env.FIREBASE_PROJECT_ID || 'geekapoo-7624d';
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/(default)/documents`;
 const ESCRIBIR = process.argv.includes('--escribir');
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: limpiar-notificaciones-huerfanas.mjs --full [--escribir]');
+  console.error('  Recorre todas las notificaciones: requiere --full.');
+  process.exit(1);
+}
 
 const TIPOS_DE_COMENTARIO = new Set([
   'comment_thread',

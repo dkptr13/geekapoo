@@ -14,8 +14,8 @@
  *     sigan llegando a la misma persona.
  *
  * Uso:
- *   node scripts/migrar-usernames.mjs                 # simulación
- *   node scripts/migrar-usernames.mjs --escribir      # aplica
+ *   node scripts/migrar-usernames.mjs --full              # simulación
+ *   node scripts/migrar-usernames.mjs --full --escribir   # aplica
  */
 
 import {
@@ -28,6 +28,12 @@ import {
   str,
   uno,
 } from './firestore-rest.mjs';
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: migrar-usernames.mjs --full [--escribir]');
+  console.error('  Recorre toda la colección de usuarios: requiere --full.');
+  process.exit(1);
+}
 
 const ESCRIBIR = process.argv.includes('--escribir');
 

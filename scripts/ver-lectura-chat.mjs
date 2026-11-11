@@ -1,6 +1,6 @@
 // Estado REAL de los recibos de lectura del chat.
 //
-//   node scripts/ver-lectura-chat.mjs
+//   node scripts/ver-lectura-chat.mjs --full
 //
 // El usuario dice que el punto de "sin leer" no se quita hasta que
 // responde. Antes de cambiar código hay que ver si la marca se está
@@ -13,6 +13,12 @@
 // No escribe nada. Solo lee.
 
 import { coleccion } from './firestore-rest.mjs';
+
+if (!process.argv.includes('--full')) {
+  console.error('  uso: ver-lectura-chat.mjs --full');
+  console.error('  Recorre toda la colección de chats: requiere --full.');
+  process.exit(1);
+}
 
 const docs = await coleccion('chats');
 
