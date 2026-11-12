@@ -7,7 +7,7 @@
 // personajes por temporada:
 //
 //   ['*']              → compartido, sale en todas
-//   ['s1', 's3']       → solo en esas temporadas
+//   ['serie-s1', 'serie-s3'] → solo en esas temporadas
 //
 // Es una desnormalización de `seasonIds`/`seasonId`. Solo se escribe
 // ese campo; no se toca ningún otro.

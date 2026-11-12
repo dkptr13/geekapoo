@@ -447,6 +447,72 @@ node scripts/importar-disponibilidad-justwatch.mjs --anime one-piece --escribir 
 
 ---
 
+## 6.1. Películas que estaban dentro de una serie
+
+Algunas películas se cargaron como una temporada de un solo episodio.
+La ficha limpia es sacarlas a un anime propio y renumerar la serie.
+El listado de trabajo está en `scripts/datos/peliculas-embebidas.json`.
+
+```powershell
+# Simulación
+node scripts/migrar-pelicula-embebida.mjs `
+  --anime overlord --temporada 3 `
+  --peli overlord-el-rey-muerto `
+  --titulo "Overlord: El rey muerto" `
+  --japones "オーバーロード 不死者の王"
+
+# Aplicar
+node scripts/migrar-pelicula-embebida.mjs ... --escribir
+
+# Si la película ya tenía ficha propia (Kimetsu: Tren Infinito)
+node scripts/migrar-pelicula-embebida.mjs `
+  --anime kimetsu-no-yaiba --temporada 2 `
+  --peli guardianes-de-la-noche-tren-infinito `
+  --ficha-existente guardianes-de-la-noche-tren-infinito --escribir
+```
+
+Reglas:
+
+- Procesa las películas de un mismo anime **de mayor a menor**
+  temporada. Así las que quedan por sacar no se renumeran antes de
+  tiempo.
+- El script solo lee ese anime (`leerPorCampo`). No usa `--full`.
+- No copies la disponibilidad de la serie: suele ser distinta. Añade
+  el id nuevo a `FICHAS` y ejecuta el importador de JustWatch.
+- Los personajes de la película se copian a la ficha nueva; los que
+  solo salían en la temporada extraída se borran de la serie.
+- `seasonKeys` guarda **ids completos** (`overlord-s3`) o `['*']`,
+  nunca `s3`/`s4`. La consulta de la ficha filtra por ese campo.
+- Después de extraer, actualiza el índice del anime y de la ficha
+  nueva:
+
+```powershell
+npm run index:buscar -- --only animes,seasons,episodes,characters,streamingAvailability --anime overlord,overlord-el-rey-muerto
+```
+
+- Los ficheros `scripts/datos/<prefijo>-*` conservan la numeración
+  **original** (con las películas dentro). No recargues esa serie con
+  `cargar-anime.mjs` sin actualizar antes sus `TEMPORADAS`, o volverás
+  a meter las películas como temporadas.
+
+### Reparar los personajes de la serie
+
+La migración inicial solo tocaba los personajes que salían en la
+película. Los demás podían quedarse con `seasonIds` de temporadas que
+ya no existen. Se reparan con:
+
+```powershell
+node scripts/reparar-seasonids-peliculas.mjs
+node scripts/reparar-seasonids-peliculas.mjs --escribir
+```
+
+Usa `scripts/datos/<prefijo>-personajes.mjs` (la temporada original de
+cada personaje) y aplica el mismo mapa: las temporadas de película se
+tiran y las posteriores bajan. Para series sin fichero de personajes
+(DanMachi) se mapea la numeración entera.
+
+---
+
 ## 7. Después de cambiar datos
 
 ### Solo disponibilidad

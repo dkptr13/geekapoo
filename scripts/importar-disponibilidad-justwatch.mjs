@@ -170,6 +170,11 @@ const FICHAS = {
   'made-in-abyss': { id: 'ts58178', titulo: 'Made in Abyss', anio: 2017 },
   'mirai-nikki': { id: 'ts22232', titulo: 'Mirai Nikki', anio: 2011 },
   overlord: { id: 'ts37899', titulo: 'Overlord', anio: 2015 },
+  'overlord-el-reino-sagrado': {
+    id: 'tm1470968',
+    titulo: 'Overlord: The Sacred Kingdom',
+    anio: 2024,
+  },
   'puella-magi-madoka-magica': {
     id: 'ts34087',
     titulo: 'Puella Magi Madoka Magica',
@@ -535,6 +540,174 @@ const FICHAS = {
   'dragon-ball-super-broly': { id: 'tm371140', titulo: 'Dragon Ball Super: Broly', anio: 2018 },
   'mirai-mi-hermana-pequena': { id: 'tm362881', titulo: 'Mirai, mi hermana pequeña', anio: 2018 },
   'summer-wars': { id: 'tm147599', titulo: 'Summer Wars', anio: 2009 },
+  // Películas que estaban dentro de una serie y se han extraído como
+  // ficha propia en la tanda de noviembre de 2026. El id está
+  // comprobado contra el título y el año de JustWatch en España.
+  'blue-lock-episode-nagi': {
+    id: 'tm1430465',
+    titulo: 'Blue Lock. La película: Episodio Nagi',
+    anio: 2024,
+  },
+  'chainsaw-man-reze-hen': {
+    id: 'tm1613927',
+    titulo: 'Chainsaw Man - La película: El arco de Reze',
+    anio: 2025,
+  },
+  'danmachi-arrow-of-the-orion': {
+    id: 'tm437406',
+    titulo: 'DanMachi: La flecha de Orión',
+    anio: 2019,
+  },
+  'date-a-bullet-nightmare-or-queen': {
+    id: 'tm917062',
+    titulo: 'Date A Bullet: Nightmare or Queen',
+    anio: 2020,
+  },
+  'date-a-bullet-dead-or-bullet': {
+    id: 'tm917059',
+    titulo: 'Date A Bullet: Dead or Bullet',
+    anio: 2020,
+  },
+  'date-a-live-mayuri-judgement': {
+    id: 'tm234361',
+    titulo: 'Date A Live Movie: Mayuri Judgment',
+    anio: 2015,
+  },
+  'goblin-slayer-goblins-crown': {
+    id: 'tm850461',
+    titulo: 'Goblin Slayer, la corona del Goblin',
+    anio: 2020,
+  },
+  'hunter-x-hunter-the-last-mission': {
+    id: 'tm165537',
+    titulo: 'Hunter × Hunter: The Last Mission',
+    anio: 2013,
+  },
+  'hunter-x-hunter-phantom-rouge': {
+    id: 'tm165983',
+    titulo: 'Hunter × Hunter: Phantom Rouge',
+    anio: 2013,
+  },
+  'guardianes-de-la-noche-castillo-infinito': {
+    id: 'tm1572695',
+    titulo: 'Guardianes de la noche: Kimetsu no Yaiba La fortaleza infinita',
+    anio: 2025,
+  },
+  'konosuba-leyenda-carmesi': {
+    id: 'tm455230',
+    titulo: 'KonoSuba. La Película. La Leyenda del Carmesí',
+    anio: 2019,
+  },
+  'las-quintillizas-la-pelicula': {
+    id: 'tm1146611',
+    titulo: 'Las Quintillizas: La Película',
+    anio: 2022,
+  },
+  'made-in-abyss-dawn-of-the-deep-soul': {
+    id: 'tm464937',
+    titulo: 'Made in Abyss 3: Amanecer del alma profunda',
+    anio: 2020,
+  },
+  'evangelion-3-0-1-0-thrice-upon-a-time': {
+    id: 'tm323222',
+    titulo: 'Evangelion: 3.0+1.01 Thrice Upon a Time',
+    anio: 2021,
+  },
+  'evangelion-3-0-you-can-not-redo': {
+    id: 'tm44524',
+    titulo: 'Evangelion: 3.0 You Can (Not) Redo',
+    anio: 2012,
+  },
+  'evangelion-2-0-you-can-not-advance': {
+    id: 'tm147221',
+    titulo: 'Evangelion: 2.0 You Can (Not) Advance',
+    anio: 2009,
+  },
+  'evangelion-1-0-you-are-not-alone': {
+    id: 'tm69719',
+    titulo: 'Evangelion: 1.0 You Are (Not) Alone',
+    anio: 2007,
+  },
+  'no-game-no-life-zero': {
+    id: 'tm324258',
+    titulo: 'No Game No Life: Zero',
+    anio: 2017,
+  },
+  'psycho-pass-providence': {
+    id: 'tm1298094',
+    titulo: 'Psycho-Pass Providencia',
+    anio: 2023,
+  },
+  'psycho-pass-the-movie': {
+    id: 'tm134487',
+    titulo: 'Psycho-Pass: La película',
+    anio: 2015,
+  },
+  'madoka-magica-walpurgisnacht-rising': {
+    id: 'tm1378115',
+    titulo: 'Puella Magi Madoka Magica: Walpurgisnacht Rising',
+    anio: 2026,
+  },
+  'madoka-magica-rebellion': {
+    id: 'tm183772',
+    titulo: 'Mahou Shoujo Madoka Magica Movie 3: Hangyaku no Monogatari',
+    anio: 2013,
+  },
+  'saekano-fine': {
+    id: 'tm826588',
+    titulo: 'Saenai Heroine No Sodatekata Fine',
+    anio: 2019,
+  },
+  'bunny-girl-senpai-randoseru-girl': {
+    id: 'tm1362596',
+    titulo: 'Seishun Buta Yarou wa Ransel Girl no Yume o Minai',
+    anio: 2023,
+  },
+  'bunny-girl-senpai-odekake-sister': {
+    id: 'tm1322005',
+    titulo: 'Rascal Does Not Dream of a Sister Venturing Out',
+    anio: 2023,
+  },
+  'bunny-girl-senpai-yumemiru-shoujo': {
+    id: 'tm458025',
+    titulo: 'Seishun Buta Yarou wa Yumemiru Shoujo no Yume wo Minai',
+    anio: 2019,
+  },
+  'steins-gate-load-region-of-deja-vu': {
+    id: 'tm182601',
+    titulo: 'Steins Gate the Movie: Load Region of Déjà vu',
+    anio: 2013,
+  },
+  'sword-art-online-progressive-scherzo': {
+    id: 'tm1143933',
+    titulo: 'Sword Art Online Progressive Movie II - Kuraki Yuuyami no Scherzo',
+    anio: 2022,
+  },
+  'sword-art-online-progressive-aria': {
+    id: 'tm1005440',
+    titulo: 'Sword Art Online Progressive: Aria de una Noche sin estrellas',
+    anio: 2021,
+  },
+  'sword-art-online-ordinal-scale': {
+    id: 'tm266710',
+    titulo: 'Sword Art Online La película: Ordinal Scale',
+    anio: 2017,
+  },
+  'takagi-san-la-pelicula': {
+    id: 'tm1184098',
+    titulo: 'Takagi-san: Experta en bromas pesadas; ~La Película~',
+    anio: 2022,
+  },
+  'tensei-shitara-slime-lagrimas-del-mar-azul': {
+    id: 'tm1661497',
+    titulo: 'That Time I Got Reincarnated as a Slime La Película: Lágrimas del Mar Celeste',
+    anio: 2026,
+  },
+  'tensei-shitara-slime-scarlet-bond': {
+    id: 'tm1218957',
+    titulo: 'Tensei shitara Slime Datta Ken Movie: Guren no Kizuna-hen',
+    anio: 2022,
+  },
 };
 
 /**
