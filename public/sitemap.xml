@@ -1438,6 +1438,24 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/kuroko-no-basket</loc>
+    <lastmod>2026-11-12</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx11771-uvr44RAwRxPw.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/kuroko-no-basket-partido-final</loc>
+    <lastmod>2026-11-12</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21377-oRcPPiQ1btPZ.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/la-chica-que-saltaba-a-traves-del-tiempo</loc>
     <lastmod>2026-11-09</lastmod>
     <image:image>
@@ -1712,6 +1730,24 @@
     <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21459-nYh85uj2Fuwr.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/my-next-life-as-a-villainess</loc>
+    <lastmod>2026-11-12</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx104647-dMGZSavRxHcM.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/my-next-life-as-a-villainess-the-movie</loc>
+    <lastmod>2026-11-12</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx139359-JiHbeMddI3mx.jpg</image:loc>
     </image:image>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -2594,6 +2630,24 @@
     <lastmod>2026-11-07</lastmod>
     <image:image>
       <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx159831-cJUNqCqzuApc.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/zombie-land-saga</loc>
+    <lastmod>2026-11-12</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx103871-KEWbn3fkz499.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/zombie-land-saga-yumeginga-paradise</loc>
+    <lastmod>2026-11-12</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx140337-8EtbiPurofcC.jpg</image:loc>
     </image:image>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

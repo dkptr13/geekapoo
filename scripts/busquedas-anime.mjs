@@ -210,6 +210,13 @@ export const BUSQUEDAS = {
   'violet-evergarden': 'Violet Evergarden',
   'dr-stone': 'Dr. Stone',
   'el-diario-de-la-boticaria': 'The Apothecary Diaries',
+  // Series y películas añadidas en la tanda de noviembre de 2026.
+  'kuroko-no-basket': 'Kuroko no Basket',
+  'kuroko-no-basket-partido-final': 'Kuroko no Basket: Last Game',
+  'zombie-land-saga': 'Zombie Land Saga',
+  'zombie-land-saga-yumeginga-paradise': 'Zombie Land Saga: Yumeginga Paradise',
+  'my-next-life-as-a-villainess': 'My Next Life as a Villainess',
+  'my-next-life-as-a-villainess-the-movie': 'My Next Life as a Villainess: The Movie',
 };
 
 /**
@@ -293,6 +300,12 @@ export const BUSQUEDAS_TVDB = {
   'code-geass-lelouch-of-the-rebellion-iii-glorification': 'コードギアス 反逆のルルーシュⅢ 皇道',
   'code-geass-lelouch-of-the-re-surrection': 'コードギアス 復活のルルーシュ',
   'arifureta-from-commonplace-to-world-s-strongest': 'ありふれた職業で世界最強',
+  // Series añadidas en la tanda de noviembre de 2026. TVDB las guarda
+  // con el título japonés; las películas van por id en PELICULA_TVDB.
+  'kuroko-no-basket': '黒子のバスケ',
+  'zombie-land-saga': 'ゾンビランドサガ',
+  'my-next-life-as-a-villainess':
+    '乙女ゲームの破滅フラグしかない悪役令嬢に転生してしまった…',
   'gintama': '銀魂',
 };
 

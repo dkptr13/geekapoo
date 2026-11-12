@@ -865,6 +865,12 @@ export const PELICULA_TVDB = {
   'dragon-ball-super-broly': 87,
   'mirai-mi-hermana-pequena': 2164,
   'summer-wars': 3921,
+
+  // Películas de la tanda de noviembre de 2026. Los ids están
+  // comprobados contra el título y el año de TVDB.
+  'kuroko-no-basket-partido-final': 25413,
+  'zombie-land-saga-yumeginga-paradise': 373370,
+  'my-next-life-as-a-villainess-the-movie': 347442,
 };
 
 /**

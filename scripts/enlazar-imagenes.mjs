@@ -305,6 +305,23 @@ const ANIMES = [
   { id: 'dragon-ball-super-broly', buscar: 'Dragon Ball Super: Broly', anilist: 101302 },
   { id: 'mirai-mi-hermana-pequena', buscar: 'Mirai no Mirai', anilist: 100749 },
   { id: 'summer-wars', buscar: 'Summer Wars', anilist: 5681 },
+  // Series y películas añadidas en la tanda de noviembre de 2026. El id
+  // de AniList va fijado para que el emparejador no confunda las series
+  // con sus películas ni con los recopilatorios.
+  { id: 'kuroko-no-basket', buscar: 'Kuroko no Basket', anilist: 11771 },
+  { id: 'kuroko-no-basket-partido-final', buscar: 'Kuroko no Basket: Last Game', anilist: 21377 },
+  { id: 'zombie-land-saga', buscar: 'Zombie Land Saga', anilist: 103871 },
+  {
+    id: 'zombie-land-saga-yumeginga-paradise',
+    buscar: 'Zombie Land Saga: Yumeginga Paradise',
+    anilist: 140337,
+  },
+  { id: 'my-next-life-as-a-villainess', buscar: 'My Next Life as a Villainess', anilist: 104647 },
+  {
+    id: 'my-next-life-as-a-villainess-the-movie',
+    buscar: 'My Next Life as a Villainess: The Movie',
+    anilist: 139359,
+  },
   // Fairy Tail se subió desde el panel y se quedó sin póster; el banner
   // sí estaba. Se enlaza la portada de AniList para que no salga rota.
   { id: 'fairy-tail', buscar: 'FAIRY TAIL', anilist: 6702 },
@@ -354,6 +371,14 @@ const TITULOS_EN_ANILIST = {
   // Illustrias es un media que AniList no separa: sus tres episodios van
   // dentro de la ficha de Last Encore. Se le da la portada de la serie.
   'fate-extra-last-encore': { 2: 'Fate/EXTRA Last Encore' },
+  // La segunda temporada de Zombie Land Saga se titula "Revenge" y la de
+  // Villainess es el media "... X". Sin el título de AniList, el
+  // emparejador solo tiene el año y puede confundirlas con un OVA o un
+  // especial de la misma franquicia.
+  'zombie-land-saga': { 2: 'Zombie Land Saga: Revenge' },
+  'my-next-life-as-a-villainess': {
+    2: 'Otome Game no Hametsu Flag shika Nai Akuyaku Reijou ni Tensei shiteshimatta… X',
+  },
 };
 
 /**

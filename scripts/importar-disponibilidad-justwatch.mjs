@@ -708,6 +708,38 @@ const FICHAS = {
     titulo: 'Tensei shitara Slime Datta Ken Movie: Guren no Kizuna-hen',
     anio: 2022,
   },
+  // Series y películas añadidas en la tanda de noviembre de 2026. Los ids
+  // están comprobados contra el título y el año de JustWatch en España.
+  'kuroko-no-basket': {
+    id: 'ts22249',
+    titulo: 'Kuroko no Basket',
+    anio: 2012,
+  },
+  'kuroko-no-basket-partido-final': {
+    id: 'tm273600',
+    titulo: 'Kuroko no Basket: Last Game',
+    anio: 2017,
+  },
+  'zombie-land-saga': {
+    id: 'ts84364',
+    titulo: 'Zombie Land Saga',
+    anio: 2018,
+  },
+  'zombie-land-saga-yumeginga-paradise': {
+    id: 'tm1628275',
+    titulo: 'Zombie Land Saga: Yumeginga Paradise',
+    anio: 2025,
+  },
+  'my-next-life-as-a-villainess': {
+    id: 'ts222505',
+    titulo: 'My Next Life as a Villainess: All Routes Lead to Doom!',
+    anio: 2020,
+  },
+  'my-next-life-as-a-villainess-the-movie': {
+    id: 'tm1232694',
+    titulo: 'My Next Life as a Villainess: All Routes Lead to Doom! The Movie',
+    anio: 2023,
+  },
 };
 
 /**
