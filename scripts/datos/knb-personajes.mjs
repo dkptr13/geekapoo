@@ -115,4 +115,114 @@ export const PERSONAJES = [
 
   ['Kenichi Okamura', '2,3', 'supporting', '岡村建一', 'Kouji Takeda',
    'Ala-pívot de Yousen. Aporta fuerza y rebote y forma junto a Murasakibara una pareja interior difícil de mover.'],
+
+  // Seirin
+  ['Tetsuya #2', '1,2', 'supporting', 'テツヤ二号', 'Hirofumi Nojima',
+   'El perro de Kuroko, un cachorro que el equipo de Seirin adopta como mascota. Se llama igual que su dueño y se pasa los partidos ladrando desde la grada o correteando por el gimnasio.'],
+
+  ['Rinnosuke Mitobe', '1,2,3', 'supporting', '水戸部凛之助', 'Go Inoue',
+   'Titular de Seirin que no dice una palabra en la cancha. Su lenguaje es el de los rebotes y los bloqueos, y Koganei es el único que parece entenderlo. Es el mayor de una familia numerosa y el jugador más callado del equipo.'],
+
+  ['Kenji Takeda', '1,3', 'supporting', '武田健司', 'Sin acreditar',
+   'Profesor asesor del club de baloncesto de Seirin. No entra en la cancha, pero su apoyo discreto mantiene el club en pie y ayuda a Riko a gestionar los torneos.'],
+
+  ['Akane Koganei', '3', 'supporting', '小金井茜', 'Rei Shimoda',
+   'Hermana mayor de Shinji, con un carácter mucho más fuerte que el de su hermano. Le reprocha su falta de compromiso, pero junto a Mitobe le empuja a seguir jugando al baloncesto.'],
+
+  // Kaijou
+  ['Mitsuhiro Hayakawa', '1,2,3', 'supporting', '早川充洋', 'Kazunori Nomata',
+   'Ala-pívot de Kaijou, pura energía. Su rebote ofensivo y su voz estruendosa animan al equipo, aunque cuando habla se come sílabas y nadie sabe muy bien qué dice.'],
+
+  ['Hiroshi Kobori', '1,2,3', 'supporting', '小堀浩志', 'Yoshihito Sasaki',
+   'Pívot y vicecapitán de Kaijou. Prefiere quedarse en un segundo plano, pero su defensa y su juego en la pintura dan a Kise y Kasamatsu la tranquilidad que necesitan.'],
+
+  ['Shinya Nakamura', '3', 'supporting', '中村真也', 'Ryuuzo Hasuike',
+   'Escolta de Kaijou que aporta defensa y energía desde el banquillo. Su entusiasmo no baja aunque no juegue, y cuando sale se encarga de los rivales más incómodos.'],
+
+  // Shuutoku
+  ['Taisuke Ootsubo', '1,2,3', 'supporting', '大坪泰介', 'Kensuke Satou',
+   'Capitán y pívot de Shuutoku. Su físico impone bajo el aro y su rebote es capaz de competir con el de Kiyoshi; además mantiene a Midorima a raya cuando sus manías se pasan de la raya.'],
+
+  ['Shinsuke Kimura', '1,2,3', 'supporting', '木村信介', 'Biichi Sato',
+   'Titular de Shuutoku. Comparte con Miyaji la paciencia cero hacia Midorima y secunda sus amenazas con una seriedad que asusta, aunque en la cancha cumple como ala-pívot.'],
+
+  ['Masaaki Nakatani', '1,2,3', 'supporting', '中谷仁亮', 'Kiyohito Yoshikai',
+   'Entrenador de Shuutoku. Conoce a Kagetora Aida desde hace años y comparte con él una rivalidad amistosa; deja que Midorima tenga sus tres caprichos diarios, pero no permite que el equipo se relaje.'],
+
+  ['Yuuya Miyaji', '3', 'supporting', '宮地裕也', 'Sin acreditar',
+   'Ala-pívot de Shuutoku y hermano pequeño de Kiyoshi Miyaji. Tras la retirada de Ootsubo hereda el brazalete de capitán y mantiene el carácter competitivo del equipo.'],
+
+  // Touou
+  ['Yoshinori Susa', '1,2,3', 'supporting', '諏佐佳典', 'Yuuya Murakami',
+   'Alero titular de Touou. Su capacidad defensiva le permite cubrir a Kagami durante tramos del partido, y su experiencia aporta equilibrio a un equipo lleno de individualidades.'],
+
+  ['Katsunori Harasawa', '1,2', 'supporting', '原澤克徳', 'Takanori Hoshino',
+   'Entrenador de Touou. Deja que Aomine juegue a su aire porque sabe que su talento no necesita instrucciones, y prepara al equipo para medirse a Seirin en el Interhigh.'],
+
+  // Yousen
+  ['Wei Liu', '2,3', 'supporting', '劉偉 (リュウウェイ)', 'Shigeyuki Susaki',
+   'Alero de Yousen de más de dos metros. Su altura le permite defender y anotar por encima de los rivales, y forma con Murasakibara y Okamura una de las pinturas más grandes del torneo.'],
+
+  ['Masako Araki', '2', 'supporting', '荒木雅子', 'Yuu Shimamura',
+   'Entrenadora de Yousen. Mantiene a raya a un equipo de talentos difíciles con una shinai y una táctica fría; sabe sacar partido de Murasakibara sin dejar que se acomode.'],
+
+  // Rakuzan
+  ['Eiji Shirogane', '3', 'supporting', '白金永治', 'Gou Inoue',
+   'Entrenador de Rakuzan. Frío y calculador, confía la dirección del equipo a Akashi y deja que su capitán tome las decisiones en la cancha; su experiencia ha convertido a Rakuzan en una máquina de ganar.'],
+
+  // Teikou
+  ['Naoto Sanada', '3', 'supporting', '真田直人', 'Takehito Koyasu',
+   'Entrenador del primer equipo de Teikou durante los primeros años de la Generación de los Milagros. Sustituyó a Kouzou Shirogane cuando este enfermó y tuvo que gestionar un vestuario de genios imposibles.'],
+
+  ['Kouzou Shirogane', '3', 'supporting', '白金耕造', 'Takahiro Fujiwara',
+   'Antiguo entrenador de Teikou y maestro de la Generación de los Milagros. Su enfermedad le apartó del equipo y dejó a Sanada al mando de un grupo que ya empezaba a desmoronarse.'],
+
+  // Kirisaki Daichi
+  ['Kazuya Hara', '2,3', 'supporting', '原一哉', 'Kazuhiro Fusegawa',
+   'Ala-pívot de Kirisaki Daichi. Su melena le tapa los ojos y su rebote es su mejor arma; forma parte del equipo de Hanamiya y no tiene problemas en ensuciar el juego si hace falta.'],
+
+  ['Koujirou Furuhashi', '2,3', 'supporting', '古橋康次郎', 'Yuusuke Kuwahata',
+   'Alero de Kirisaki Daichi. Forma parte del equipo de Hanamiya y se suma a su estilo físico, aunque su papel pasa más por el trabajo sucio y la defensa que por el protagonismo.'],
+
+  ['Kentarou Seto', '2,3', 'supporting', '瀬戸健太郎', 'Gou Shinomiya',
+   'Pívot de Kirisaki Daichi. Su tamaño le sirve para cerrar la zona y para participar en el juego agresivo que Hanamiya impone a sus rivales.'],
+
+  ['Kazuhiro Mochizuki', '3', 'supporting', '望月和宏', 'Kenta Ookuma',
+   'Jugador de Kirisaki Daichi. Su físico y su defensa encajan en el plan de Hanamiya, que usa a cada pieza del equipo para desgastar al rival.'],
+
+  // Seiho
+  ['Tomoki Tsugawa', '1,2', 'supporting', '津川智紀', 'Kiyotaka Furushima',
+   'Alero de Seiho conocido por su defensa de presión. Su rapado y su sonrisa permanente no ocultan que es un jugador incómodo que no deja respirar al rival.'],
+
+  ['Tsutomu Iwamura', '1,2', 'supporting', '岩村努', 'Kiyohito Yoshikai',
+   'Pívot de Seiho, ancho y fuerte como un muro. Domina la pintura con su cuerpo y, junto a Kasuga, forma la columna vertebral de un equipo que se despide del Interhigh tras caer ante Seirin.'],
+
+  ['Ryuuhei Kasuga', '1,2', 'supporting', '春日隆平', 'Yuuki Hayashi',
+   'Base de Seiho, frío y correcto incluso cuando pierde. Su tiro de cuchara y su capacidad para mantener la calma sostienen a un equipo que se queda sin fuerzas ante Seirin.'],
+
+  ['Yukinori Matsumoto', '1,2', 'supporting', '松本郁憲', 'Kensuke Satou',
+   'Entrenador de Seiho. Prepara a un equipo veterano y físico, y confía en la defensa de presión para frenar a Seirin en el Interhigh.'],
+
+  // Shinkyo
+  ['Papa Mbai Siki', '1,2,3', 'supporting', 'パパ・ンバイ・シキ', 'Subaru Kimura',
+   'Pívot senegalés de Shinkyo, un jugador de más de dos metros que tapa la pintura con su envergadura. Su japonés todavía es limitado, pero su presencia cambia por completo el ritmo del partido.'],
+
+  ['Yuusuke Tanimura', '1,2', 'supporting', '谷村祐介', 'Hiro Shimono',
+   'Capitán y base de Shinkyo. Menosprecia a Seirin porque cree que la Generación de los Milagros no es tan impresionante, y su confianza se rompe cuando Kuroko y Kagami le demuestran lo contrario.'],
+
+  // Otros equipos
+  ['Daisuke Narumi', '2', 'supporting', '鳴海大介', 'Nobuyuki Hiyama',
+   'Pívot novato de Josei, alto y convencido de su superioridad. Su actitud chulesca se queda en nada cuando Seirin le demuestra que el tamaño no basta para ganar.'],
+
+  ['Hideki Ishida', '3', 'supporting', '石田英輝', 'Atsushi Imaruoka',
+   'Capitán y base de Fukuda Sogo. Dirige al equipo que se enfrenta a Seirin en la Copa de Invierno y trata de frenar el ritmo de Kuroko con una defensa ordenada.'],
+
+  ['Ogiwara Shigehiro', '3', 'supporting', '荻原シゲヒロ', 'Yuu Hayashi',
+   'El chico que enseñó a Kuroko lo básico del baloncesto en Kamizaki. Dejó el deporte tras una paliza contra Teikou, pero sus muñequeras y su consejo siguen acompañando a Kuroko hasta la final de la Copa de Invierno.'],
+
+  ['Tomoya Inoue', '3', 'supporting', '井上智也', 'Daigo Fujimaki',
+   'Antiguo rival de Aomine en Kamizaki y uno de los jugadores que le vio despegar antes de Teikou. Su recuerdo sirve para explicar por qué Aomine dejó de disfrutar del baloncesto.'],
+
+  ['Reiji Mochida', '3', 'supporting', '持田礼二', 'Tasuku Hatanaka',
+   'Capitán de Meikou en la época de Ogiwara. Su recuerdo ayuda a reconstruir el pasado de Kuroko y la sombra que Teikou proyectaba sobre sus rivales.'],
 ];

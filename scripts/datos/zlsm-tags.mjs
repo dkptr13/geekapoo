@@ -21,4 +21,5 @@ export const TAGS = {
   'Arata Ookoba': ['Periodista', 'Saga', 'Investigación'],
   'Inubashiri': ['Fotógrafo', 'Periodista', 'Saga'],
   'Naomasa Amabuki': ['Padre', 'Familia', 'Dorami'],
+  'Suenaga': ['Policía', 'Saga', 'Cómico'],
 };

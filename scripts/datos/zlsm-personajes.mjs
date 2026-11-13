@@ -51,4 +51,7 @@ export const PERSONAJES = [
 
   ['Naomasa Amabuki', TODAS, 'supporting', '天吹直正', 'Daisuke Ono',
    'Marido de Reiko y padre de Maria. Aparece en la película para apoyar a su familia y a la banda Dorami.'],
+
+  ['Suenaga', TODAS, 'supporting', '警察官A', 'Hiroyuki Yoshino',
+   'Policía de Saga que se topa con Franchouchou una y otra vez. Es un hombre normal y asustadizo que no entiende por qué las zombis no se están quietas.'],
 ];
