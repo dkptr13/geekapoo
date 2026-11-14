@@ -740,6 +740,40 @@ const FICHAS = {
     titulo: 'My Next Life as a Villainess: All Routes Lead to Doom! The Movie',
     anio: 2023,
   },
+  // Haruhi, Trigun y Dororo, comprobados en JustWatch Espana (noviembre de
+  // 2026). Trigun (1998) y su pelicula no tienen oferta en Espana; se
+  // anaden igualmente para que el importador las conozca y no escriba
+  // filas inventadas.
+  'la-melancolia-de-suzumiya-haruhi': {
+    id: 'ts287606',
+    titulo: 'La melancolía de Suzumiya Haruhi',
+    anio: 2006,
+  },
+  'la-desaparicion-de-haruhi-suzumiya': {
+    id: 'tm102445',
+    titulo: 'La desaparición de Haruhi Suzumiya',
+    anio: 2010,
+  },
+  trigun: {
+    id: 'ts22056',
+    titulo: 'Trigun',
+    anio: 1998,
+  },
+  'trigun-badlands-rumble': {
+    id: 'tm102396',
+    titulo: 'Trigun: Badlands Rumble',
+    anio: 2010,
+  },
+  'trigun-stampede': {
+    id: 'ts357039',
+    titulo: 'Trigun Stampede',
+    anio: 2023,
+  },
+  dororo: {
+    id: 'ts84637',
+    titulo: 'Dororo',
+    anio: 2019,
+  },
 };
 
 /**

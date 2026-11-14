@@ -501,6 +501,18 @@ export const CAPITULO_TVDB = {
  * @type {Record<string, Record<number, Array<{temporada: number, desde: number, hasta: number}>>>}
  */
 export const TRAMO_TVDB = {
+  // Trigun Stampede: TVDB (421378) guarda los doce episodios en la
+  // temporada 1, pero el final, "HIGH NOON AT JULY", lo tiene como S0E1.
+  // En el catalogo es el episodio 12 de la T1.
+  //
+  //   catalogo T1E1..11  TVDB S1E1..11
+  //   catalogo T1E12     TVDB S0E1
+  'trigun-stampede': {
+    1: [
+      { temporada: 1, desde: 1, hasta: 11 },
+      { temporada: 0, desde: 1, hasta: 1 },
+    ],
+  },
   gintama: {
     1: [
       { temporada: 1, desde: 1, hasta: 49 },
@@ -871,6 +883,10 @@ export const PELICULA_TVDB = {
   'kuroko-no-basket-partido-final': 25413,
   'zombie-land-saga-yumeginga-paradise': 373370,
   'my-next-life-as-a-villainess-the-movie': 347442,
+
+  // Peliculas de Haruhi y Trigun, de la tanda de noviembre de 2026.
+  'la-desaparicion-de-haruhi-suzumiya': 13290,
+  'trigun-badlands-rumble': 15601,
 };
 
 /**

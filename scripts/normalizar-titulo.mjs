@@ -45,7 +45,14 @@ const ROMANOS = {
 export function limpiar(s) {
   if (!s) return '';
 
-  return s
+  return (
+    s
+    // TVDB escribe algunos kana con el dakuten como signo combinado
+    // (テ + U+3099) y el fichero de datos con el caracter precompuesto
+    // (デ). Sin normalizar, el titulo parece distinto y el capitulo se
+    // queda sin miniatura aunque este en TVDB. Se pasa a NFC, que es la
+    // forma que usan los ficheros de datos.
+    .normalize('NFC')
     // Parentesis y demas signos de ancho completo a la mitad.
     .replace(/[（）［］｛｝]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
     // Los signos de puntuacion de ancho completo. TVDB escribe "誕生!
@@ -104,7 +111,8 @@ export function limpiar(s) {
     .replace(/[\s　]*-[ァ-ヺ][ァ-ヺ-]*-$/,'')
     // Los espacios, incluidos los de ancho completo, no cuentan.
     .replace(/[\s　]+/g, '')
-    .trim();
+    .trim()
+  );
 }
 
 /**

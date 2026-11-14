@@ -325,6 +325,18 @@ const ANIMES = [
   // Fairy Tail se subió desde el panel y se quedó sin póster; el banner
   // sí estaba. Se enlaza la portada de AniList para que no salga rota.
   { id: 'fairy-tail', buscar: 'FAIRY TAIL', anilist: 6702 },
+  // Haruhi, Trigun y Dororo, de la tanda de noviembre de 2026. Los ids
+  // están fijados para no confundir las series con sus películas.
+  { id: 'la-melancolia-de-suzumiya-haruhi', buscar: 'Suzumiya Haruhi no Yuuutsu', anilist: 849 },
+  {
+    id: 'la-desaparicion-de-haruhi-suzumiya',
+    buscar: 'Suzumiya Haruhi no Shoushitsu',
+    anilist: 7311,
+  },
+  { id: 'trigun', buscar: 'TRIGUN', anilist: 6 },
+  { id: 'trigun-badlands-rumble', buscar: 'TRIGUN: Badlands Rumble', anilist: 4106 },
+  { id: 'trigun-stampede', buscar: 'TRIGUN STAMPEDE', anilist: 151040 },
+  { id: 'dororo', buscar: 'Dororo', anilist: 101347 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
@@ -378,6 +390,13 @@ const TITULOS_EN_ANILIST = {
   'zombie-land-saga': { 2: 'Zombie Land Saga: Revenge' },
   'my-next-life-as-a-villainess': {
     2: 'Otome Game no Hametsu Flag shika Nai Akuyaku Reijou ni Tensei shiteshimatta… X',
+  },
+  // La segunda temporada de Haruhi se emitió en 2009 y AniList la
+  // guarda como un media aparte con el año en el título. Sin el título
+  // de AniList, el año no basta para distinguirla de los cortos de
+  // Haruhi-chan, que son también de 2009.
+  'la-melancolia-de-suzumiya-haruhi': {
+    2: 'Suzumiya Haruhi no Yuuutsu (2009)',
   },
 };
 

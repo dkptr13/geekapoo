@@ -307,6 +307,13 @@ export const BUSQUEDAS_TVDB = {
   'my-next-life-as-a-villainess':
     '乙女ゲームの破滅フラグしかない悪役令嬢に転生してしまった…',
   'gintama': '銀魂',
+  // Haruhi, Trigun y Dororo, de la tanda de noviembre de 2026. En TVDB
+  // Dororo solo aparece con el titulo japones y el año entre parentesis
+  // de ancho completo; con "Dororo" no sale la serie de 2019.
+  'la-melancolia-de-suzumiya-haruhi': '涼宮ハルヒの憂鬱',
+  'trigun': 'TRIGUN',
+  'trigun-stampede': 'TRIGUN STAMPEDE',
+  'dororo': 'どろろ（2019）',
 };
 
 /**
