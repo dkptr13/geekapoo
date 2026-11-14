@@ -55,4 +55,22 @@ export const PERSONAJES = [
 
   ['Lina', TODAS, 'supporting', 'リィナ', 'Tomoko Ishimura',
     'Una niña que vive en uno de los pueblos que Vash visita. Su mirada inocente y su confianza en el pistolero contrastan con el miedo de los adultos.'],
+
+  ['Chapel the Evergreen', TODAS, 'supporting', 'チャペル・ザ・エバーグリーン', 'Hirotaka Suzuoki',
+    'Un veterano de los Gung-Ho Guns que maneja una enorme cruz convertida en arma. Fue el maestro de Wolfwood y su encuentro en el desierto obliga al sacerdote a enfrentarse al pasado que intentaba dejar atrás.'],
+
+  ['Midvalley the Hornfreak', TODAS, 'supporting', 'ミッドバレイ・ザ・ホーンフリーク', 'Tomohiro Nishimura',
+    'Un músico violento que utiliza su saxofón para convertir las ondas sonoras en un arma. Su habilidad para desestabilizar a sus rivales lo convierte en uno de los sicarios más peligrosos al servicio de Knives.'],
+
+  ['E.G. Mine', TODAS, 'supporting', 'マイン・ザ・EGマイン', 'Ryou Horikawa',
+    'Un asesino que se oculta dentro de una esfera metálica llena de pinchos y cables. Su estilo de combate, tan extraño como letal, lo enfrenta a Vash en uno de los duelos más desconcertantes de la serie.'],
+
+  ['Leonof the Puppet-Master', TODAS, 'supporting', 'レオノフ・ザ・パペットマスター', 'Kaneta Kimotsuki',
+    'Un anciano que controla cientos de marionetas con hilos y esferas metálicas. Su talento para imitar personas convierte cada encuentro en una trampa, y su pasado lo vincula a Vash de una forma inesperada.'],
+
+  ['Hoppered the Gauntlet', TODAS, 'supporting', 'ホッパード・ザ・ガントレット', 'Keiichi Nanba',
+    'Un hombre cubierto por una armadura que se desplaza sobre un gran escudo y que culpa a Vash de la destrucción de la ciudad de July. Su fuerza y su odio lo convierten en uno de los rivales más implacables del pistolero.'],
+
+  ['Brilliant Dynamites Neon', TODAS, 'supporting', 'ブリリアント・ダイナマイツ・ネオン', 'Unshou Ishizuka',
+    'El líder de la banda Bad Lad, un ladrón que lleva un generador enorme en la espalda para iluminar su ropa. Su gusto por el espectáculo y su violencia imprevisible lo enfrentan a Vash en un asalto al tren.'],
 ];

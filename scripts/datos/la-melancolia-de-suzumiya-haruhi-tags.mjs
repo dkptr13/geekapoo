@@ -18,4 +18,8 @@ export const TAGS = {
   'Kyon no Imouto': ['Hermana', 'Curiosa', 'Familia'],
   'Emiri Kimidori': ['Alienígena', 'Bibliotecaria', 'Secundaria'],
   'Shamisen': ['Gato', 'Hablador', 'Mascota'],
+  'Arakawa': ['Mayordomo', 'Agencia', 'Discreto'],
+  'Sonou Mori': ['Doncella', 'Agencia', 'Negociadora'],
+  'Yutaka Tamaru': ['Invitado', 'Hermano', 'Misterio'],
+  'Keiichi Tamaru': ['Anfitrión', 'Mansión', 'Misterio'],
 };

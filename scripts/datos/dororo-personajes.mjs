@@ -76,4 +76,28 @@ export const PERSONAJES = [
 
   ['Denkichi', TODAS, 'supporting', 'でん吉', 'Takamaru Seko',
     'Un habitante de la región que aparece en el viaje de Hyakkimaru y Dororo. Su vida sencilla se ve alterada por la guerra y por los pactos con los demonios.'],
+
+  ['Sabame', TODAS, 'supporting', '鯖目', 'Kouji Yusa',
+    'El señor de un pueblo de montaña que vive hechizado por una mujer misteriosa. Su hospitalidad esconde una manipulación demoníaca que pone en peligro a Hyakkimaru y Dororo.'],
+
+  ['Maimai-onba', TODAS, 'supporting', 'ミマイオンブ', 'Ayano Hamaguchi',
+    'Un demonio con forma de mujer que se infiltra en la vida de Sabame para proteger a sus crías. Su plan consiste en atraer a Hyakkimaru y Dororo hasta un lugar donde sus hijos puedan devorarlos.'],
+
+  ['Shiranui', TODAS, 'supporting', '不知火', 'Ryuuichi Kijima',
+    'Un pescador solitario que parece controlar a dos tiburones gigantes, Jiromaru y Saburomaru. En realidad es prisionero de las criaturas, y su historia muestra hasta dónde puede llegar el miedo para someter a una persona.'],
+
+  ['Oume', TODAS, 'supporting', '青梅', 'Sanae Kobayashi',
+    'Una mujer bondadosa que cuida de Saru, el niño huérfano que encuentra en las montañas. Su cariño ofrece un refugio breve en un mundo donde los demonios y la guerra no dejan descanso.'],
+
+  ['Sukeroku', TODAS, 'supporting', '助六', 'Junko Takeuchi',
+    'Un niño que queda separado de su madre cuando la frontera del Banmon divide su pueblo. Su historia acompaña a Dororo y muestra el coste humano de la guerra y de los pactos del señor Daigo.'],
+
+  ['Okaka', TODAS, 'supporting', 'おかか', 'Ayumi Fujimura',
+    'Una joven que recibe a Hyakkimaru y Dororo en su cabaña y que parece dispuesta a ayudarles. Su verdadera naturaleza, ligada al espíritu de un anciano artesano que esculpía estatuas de Buda, convierte el encuentro en una prueba sobre la codicia.'],
+
+  ['Munetsuna', TODAS, 'supporting', 'ムネツナ', 'Kazuhiro Yamaji',
+    'El mejor forjador de espadas de la región y padre de Okowa. Aunque vive de fabricar armas, sueña con crear una hoja para la paz, y su taller devuelve a Hyakkimaru parte de su capacidad de lucha.'],
+
+  ['Okowa', TODAS, 'supporting', 'オコワ', 'Yume Miyamoto',
+    'La hija de Munetsuna y una de las pocas personas que trata a Hyakkimaru con alegría. Su carácter infantil y su cariño sincero le dan al guerrero un atisbo de vida normal antes de que la violencia vuelva a separarlos.'],
 ];

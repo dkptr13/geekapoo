@@ -36,4 +36,7 @@ export const PERSONAJES = [
 
   ['Kyon no Imouto', TODAS, 'supporting', 'キョンの妹', 'Sayaka Aoki',
     'La hermana pequeña de Kyon. En el mundo alternativo sigue siendo cariñosa y curiosa, y su presencia recuerda a Kyon que hay cosas que no quiere perder.'],
+
+  ['Shamisen', TODAS, 'supporting', 'シャミセン', 'Kenichi Ogata',
+    'El gato que la Brigada adoptó tras el rodaje y que en la película acompaña a Kyon en un mundo donde Haruhi no existe. Su presencia silenciosa recuerda al protagonista que hay lazos que sobreviven incluso a una realidad reescrita.'],
 ];

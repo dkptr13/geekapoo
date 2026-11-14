@@ -26,4 +26,12 @@ export const TAGS = {
   'Saru': ['Niño', 'Miedo', 'Pueblo'],
   'Souryo': ['Monje', 'Fe', 'Espiritualidad'],
   'Denkichi': ['Pueblo', 'Sencillez', 'Guerra'],
+  'Sabame': ['Señor', 'Manipulación', 'Pueblo'],
+  'Maimai-onba': ['Demonio', 'Seducción', 'Peligro'],
+  'Shiranui': ['Pescador', 'Demonios', 'Miedo'],
+  'Oume': ['Cuidadora', 'Niño', 'Refugio'],
+  'Sukeroku': ['Huérfano', 'Madre', 'Guerra'],
+  'Okaka': ['Espíritu', 'Cabaña', 'Codicia'],
+  'Munetsuna': ['Forjador', 'Espadas', 'Padre'],
+  'Okowa': ['Joven', 'Alegría', 'Cariño'],
 };

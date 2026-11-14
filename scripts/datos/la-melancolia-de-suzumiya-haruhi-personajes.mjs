@@ -41,4 +41,16 @@ export const PERSONAJES = [
 
   ['Shamisen', '1,2', 'supporting', 'シャミセン', 'Kenichi Ogata',
     'El gato que adopta la Brigada. Habla con una voz grave y responde a las preguntas de Kyon con una calma impropia de un animal, lo que añade otra capa de rareza al club.'],
+
+  ['Arakawa', '1,2', 'supporting', '新川', 'Akio Ootsuka',
+    'El mayordomo que atiende la mansión de la isla durante el caso del síndrome de la isla solitaria. Pertenece a la Agencia de Koizumi y actúa como enlace discreto en las operaciones que rodean a Haruhi.'],
+
+  ['Sonou Mori', '1,2', 'supporting', '森園生', 'Akane Omae',
+    'La doncella que sirve en la misma mansión que Arakawa y que también forma parte de la Agencia. Su calma y su capacidad de negociación la convierten en una de las agentes de mayor confianza de Koizumi.'],
+
+  ['Yutaka Tamaru', '1,2', 'supporting', '多丸裕', 'Toshiyuki Morikawa',
+    'El hermano menor de Keiichi Tamaru y uno de los invitados a la mansión de la isla. Su presencia en el fin de semana ayuda a completar el juego de misterio que organiza la Brigada, aunque no todo es lo que parece.'],
+
+  ['Keiichi Tamaru', '1,2', 'supporting', '多丸圭一', 'Kazuhiko Inoue',
+    'El dueño de la mansión de la isla donde la Brigada pasa su fin de semana de misterio. Su hospitalidad y su sangre fría durante el encierro lo convierten en una pieza clave del caso.'],
 ];

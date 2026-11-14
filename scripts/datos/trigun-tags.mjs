@@ -19,4 +19,10 @@ export const TAGS = {
   'Marilyn Nebraska': ['Superviviente', 'Pueblo', 'Desierto'],
   'Mary': ['Superviviente', 'Familia', 'Esperanza'],
   'Lina': ['Niña', 'Pueblo', 'Inocencia'],
+  'Chapel the Evergreen': ['Gung-Ho', 'Mentor', 'Rival'],
+  'Midvalley the Hornfreak': ['Músico', 'Sonido', 'Rival'],
+  'E.G. Mine': ['Gung-Ho', 'Armadura', 'Rival'],
+  'Leonof the Puppet-Master': ['Titiritero', 'Ilusión', 'Rival'],
+  'Hoppered the Gauntlet': ['Venganza', 'Armadura', 'Rival'],
+  'Brilliant Dynamites Neon': ['Ladrón', 'Espectáculo', 'Rival'],
 };

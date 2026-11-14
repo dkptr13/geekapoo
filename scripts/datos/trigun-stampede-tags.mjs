@@ -21,4 +21,8 @@ export const TAGS = {
   'Gofsef': ['Fuerza', 'Guardaespaldas', 'Rival'],
   'Rollo': ['Niño', 'Futuro', 'Confianza'],
   'Rollo no Haha': ['Madre', 'Familia', 'Protección'],
+  'E.G. Mine': ['Gung-Ho', 'Armadura', 'Rival'],
+  'Monev the Gale': ['Gung-Ho', 'Fuerza', 'Rival'],
+  'Livio': ['Gung-Ho', 'Wolfwood', 'Lealtad'],
+  'Gray the Nine Lives': ['Gung-Ho', 'Gigante', 'Misterio'],
 };

@@ -13,4 +13,5 @@ export const TAGS = {
   'Taniguchi': ['Compañero', 'Comedia', 'Escuela'],
   'Kunikida': ['Compañero', 'Tranquilo', 'Escuela'],
   'Kyon no Imouto': ['Hermana', 'Familia', 'Curiosa'],
+  'Shamisen': ['Gato', 'Mascota', 'Recuerdo'],
 };

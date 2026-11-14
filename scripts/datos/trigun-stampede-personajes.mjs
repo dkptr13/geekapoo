@@ -61,4 +61,16 @@ export const PERSONAJES = [
 
   ['Rollo no Haha', TODAS, 'supporting', 'ロロの母', 'Yuko Mikutsu',
     'La madre de Rollo, que intenta proteger a su hijo en un mundo donde las plantas y los hombres de Knives lo controlan todo. Su historia muestra el coste de la violencia sobre las familias.'],
+
+  ['E.G. Mine', TODAS, 'supporting', 'マイン・ザ・EGマイン', 'Wataru Takagi',
+    'La versión de Stampede de uno de los sicarios de Knives. Su armadura esférica y sus pinchos lo convierten en una trampa andante, y su combate con Vash muestra hasta dónde llega la lealtad de los Gung-Ho Guns.'],
+
+  ['Monev the Gale', TODAS, 'supporting', 'モネヴ・ザ・ゲイル', 'Chikahiro Kobayashi',
+    'El primer asesino que Knives envía contra Vash. Tras veinte años de entrenamiento encerrado, su fuerza y su armamento pesado lo convierten en una prueba brutal para el pistolero.'],
+
+  ['Livio', TODAS, 'supporting', 'リヴィオ・ザ・ダブルファング', 'Genki Muro',
+    'Un antiguo compañero de Wolfwood en el orfanato que empuña dos metralletas en forma de cruz. Su lealtad a la organización que lo entrenó choca con el cariño que todavía siente por su viejo amigo.'],
+
+  ['Gray the Nine Lives', TODAS, 'supporting', 'グレイ・ザ・ナインライヴズ', 'Kento Fujinuma',
+    'Un gigante que parece imposible de derribar y que se enfrenta a Vash con una fuerza descomunal. Su cuerpo esconde un secreto que explica por qué sigue en pie incluso después de recibir daños devastadores.'],
 ];
