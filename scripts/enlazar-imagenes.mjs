@@ -337,6 +337,12 @@ const ANIMES = [
   { id: 'trigun-badlands-rumble', buscar: 'TRIGUN: Badlands Rumble', anilist: 4106 },
   { id: 'trigun-stampede', buscar: 'TRIGUN STAMPEDE', anilist: 151040 },
   { id: 'dororo', buscar: 'Dororo', anilist: 101347 },
+  { id: 'orange', buscar: 'Orange', anilist: 21647 },
+  { id: 'orange-mirai', buscar: 'Orange: Mirai', anilist: 97669 },
+  { id: 'ping-pong-the-animation', buscar: 'Ping Pong the Animation', anilist: 20607 },
+  { id: 'welcome-to-the-n-h-k', buscar: 'Welcome to the N.H.K.', anilist: 1210 },
+  { id: 'promare', buscar: 'Promare', anilist: 99425 },
+  { id: 'josee-el-tigre-y-los-peces', buscar: 'Josee to Tora to Sakana-tachi', anilist: 113596 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))

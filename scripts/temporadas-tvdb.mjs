@@ -887,6 +887,12 @@ export const PELICULA_TVDB = {
   // Peliculas de Haruhi y Trigun, de la tanda de noviembre de 2026.
   'la-desaparicion-de-haruhi-suzumiya': 13290,
   'trigun-badlands-rumble': 15601,
+
+  // Películas del lote de noviembre de 2026. Los ids están comprobados
+  // contra el título y el año de TVDB.
+  'orange-mirai': 58754,
+  promare: 101817,
+  'josee-el-tigre-y-los-peces': 138912,
 };
 
 /**

@@ -774,6 +774,36 @@ const FICHAS = {
     titulo: 'Dororo',
     anio: 2019,
   },
+  orange: {
+    id: 'ts41846',
+    titulo: 'Orange',
+    anio: 2016,
+  },
+  'orange-mirai': {
+    id: 'tm270976',
+    titulo: 'Orange: Future',
+    anio: 2016,
+  },
+  'ping-pong-the-animation': {
+    id: 'ts23060',
+    titulo: 'Ping Pong the Animation',
+    anio: 2014,
+  },
+  'welcome-to-the-n-h-k': {
+    id: 'ts29428',
+    titulo: 'Welcome to the N-H-K',
+    anio: 2006,
+  },
+  promare: {
+    id: 'tm437215',
+    titulo: 'Promare',
+    anio: 2019,
+  },
+  'josee-el-tigre-y-los-peces': {
+    id: 'tm1120020',
+    titulo: 'Josee, the Tiger and the Fish',
+    anio: 2020,
+  },
 };
 
 /**
