@@ -804,14 +804,49 @@ const FICHAS = {
     titulo: 'Josee, the Tiger and the Fish',
     anio: 2020,
   },
+  // Series y películas añadidas en la tanda de noviembre de 2026. El id
+  // está comprobado contra el título y el año de JustWatch en España.
+  // La película de The Dangers in My Heart no tiene ficha en JustWatch.
+  'komi-can-t-communicate': {
+    id: 'ts286731',
+    titulo: "Komi Can't Communicate",
+    anio: 2021,
+  },
+  'the-dangers-in-my-heart': {
+    id: 'ts360995',
+    titulo: 'The Dangers in My Heart',
+    anio: 2023,
+  },
+  'the-dangers-in-my-heart-the-movie': {
+    id: null,
+    titulo: 'The Dangers in My Heart: The Movie',
+    anio: 2026,
+  },
+  'uzaki-chan-wants-to-hang-out': {
+    id: 'ts225079',
+    titulo: 'Uzaki-chan Wants to Hang Out!',
+    anio: 2020,
+  },
+  'tower-of-god': { id: 'ts224165', titulo: 'Tower of God', anio: 2020 },
+  'revolutionary-girl-utena': {
+    id: 'ts21278',
+    titulo: 'Revolutionary Girl Utena',
+    anio: 1997,
+  },
+  'revolutionary-girl-utena-the-movie': {
+    id: 'tm49446',
+    titulo: 'Revolutionary Girl Utena: The Movie',
+    anio: 1999,
+  },
+  'paranoia-agent': { id: 'ts27309', titulo: 'Paranoia Agent', anio: 2004 },
 };
 
 /**
  * De que paquete de JustWatch sale cada plataforma del catalogo.
  *
  * Los canales de Amazon de un servicio (Crunchyroll, HIDIVE, dAnime,
- * AnimeBox) se quedan con el servicio: el contenido y la suscripcion son
- * los mismos.
+ * AnimeBox, Jonu Play) se quedan con el servicio: el contenido y la
+ * suscripcion son los mismos.
  * Las tiendas de compra y alquiler que no interesan aqui (Fandango, DVDs)
  * no estan en la lista. Amazon Video y Rakuten TV si estan, pero solo se
  * escriben sus filas de España.
@@ -840,6 +875,7 @@ const EXTRA = {
   itunes: 'apple-tv',
   animebox: 'animebox',
   amazonanimeboxchannel: 'animebox',
+  amazonjonuplay: 'jonu-play',
   movistar: 'movistar-plus',
   movistarott: 'movistar-plus',
   filmin: 'filmin',
@@ -858,6 +894,7 @@ const PAISES_EXTRA = {
   'animation-digital-network': ['FR', 'DE'],
   'apple-tv': REGIONES,
   animebox: ['ES'],
+  'jonu-play': ['ES'],
   'movistar-plus': ['ES'],
   filmin: ['ES'],
   atresplayer: ['ES'],
@@ -892,6 +929,7 @@ const PLATAFORMAS_NUEVAS = [
   { id: 'pluto-tv', name: 'Pluto TV', badgeColor: '#facc15', order: 260 },
   { id: 'amazon-video', name: 'Amazon (alquiler y compra)', badgeColor: '#ff9900', order: 270 },
   { id: 'rakuten-tv', name: 'Rakuten TV (alquiler y compra)', badgeColor: '#bf0000', order: 280 },
+  { id: 'jonu-play', name: 'Jonu Play', badgeColor: '#7c3aed', order: 290 },
 ];
 
 const ACCESO = {

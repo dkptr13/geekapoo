@@ -470,6 +470,12 @@ export const CAPITULO_TVDB = {
   'to-love-ru': {
     7: { temporada: 4, desde: 13 },
   },
+  // Komi: TVDB (402412) guarda las dos temporadas en la S1, 24
+  // episodios seguidos. La T2 del catalogo empieza en el 13 de TVDB.
+  'komi-can-t-communicate': {
+    1: { temporada: 1, desde: 1 },
+    2: { temporada: 1, desde: 13 },
+  },
 };
 
 /**
@@ -665,6 +671,21 @@ export const TRAMO_TVDB = {
     //
     //   catalogo T22  (1156-1180)  TVDB S23E1..S23E25
     22: [{ temporada: 23, desde: 1, hasta: 25 }],
+  },
+  // Utena: TVDB (79449) reparte los 39 episodios en cuatro temporadas
+  // (13 + 11 + 9 + 6) y el catalogo los tiene aplanados en una sola.
+  //
+  //   catalogo T1E1..13   TVDB S1E1..13
+  //   catalogo T1E14..24  TVDB S2E1..11
+  //   catalogo T1E25..33  TVDB S3E1..9
+  //   catalogo T1E34..39  TVDB S4E1..6
+  'revolutionary-girl-utena': {
+    1: [
+      { temporada: 1, desde: 1, hasta: 13 },
+      { temporada: 2, desde: 1, hasta: 11 },
+      { temporada: 3, desde: 1, hasta: 9 },
+      { temporada: 4, desde: 1, hasta: 6 },
+    ],
   },
 };
 
@@ -893,6 +914,12 @@ export const PELICULA_TVDB = {
   'orange-mirai': 58754,
   promare: 101817,
   'josee-el-tigre-y-los-peces': 138912,
+
+  // Películas de Dangers y Utena, de la tanda de noviembre de 2026.
+  // Las series van por temporadas; estas dos fichas son películas
+  // sueltas en TVDB.
+  'the-dangers-in-my-heart-the-movie': 374098,
+  'revolutionary-girl-utena-the-movie': 14170,
 };
 
 /**

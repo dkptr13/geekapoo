@@ -343,6 +343,25 @@ const ANIMES = [
   { id: 'welcome-to-the-n-h-k', buscar: 'Welcome to the N.H.K.', anilist: 1210 },
   { id: 'promare', buscar: 'Promare', anilist: 99425 },
   { id: 'josee-el-tigre-y-los-peces', buscar: 'Josee to Tora to Sakana-tachi', anilist: 113596 },
+  // Komi, Dangers, Uzaki, Tower of God, Utena y Paranoia Agent, de la
+  // tanda de noviembre de 2026. Los ids de AniList van fijados para no
+  // confundir cada serie con su película recopilatoria.
+  { id: 'komi-can-t-communicate', buscar: 'Komi Can\'t Communicate', anilist: 133965 },
+  { id: 'the-dangers-in-my-heart', buscar: 'The Dangers in My Heart', anilist: 153152 },
+  {
+    id: 'the-dangers-in-my-heart-the-movie',
+    buscar: 'The Dangers in My Heart: The Movie',
+    anilist: 182317,
+  },
+  { id: 'uzaki-chan-wants-to-hang-out', buscar: 'Uzaki-chan wa Asobitai!', anilist: 115113 },
+  { id: 'tower-of-god', buscar: 'Tower of God', anilist: 115230 },
+  { id: 'revolutionary-girl-utena', buscar: 'Shoujo Kakumei Utena', anilist: 440 },
+  {
+    id: 'revolutionary-girl-utena-the-movie',
+    buscar: 'Shoujo Kakumei Utena: Adolescence Mokushiroku',
+    anilist: 441,
+  },
+  { id: 'paranoia-agent', buscar: 'Paranoia Agent', anilist: 323 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
