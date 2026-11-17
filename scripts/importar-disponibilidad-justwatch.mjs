@@ -839,6 +839,34 @@ const FICHAS = {
     anio: 1999,
   },
   'paranoia-agent': { id: 'ts27309', titulo: 'Paranoia Agent', anio: 2004 },
+
+  // Lote de noviembre de 2026. JustWatch da una sola ficha a las dos
+  // temporadas de Magi, así que Labyrinth y Kingdom comparten ts27586.
+  // Sinbad y Hellsing Ultimate no tienen oferta en España: sus fichas
+  // quedan sin filas y con id nulo, para no consultar de más.
+  'magi-the-labyrinth-of-magic': { id: 'ts27586', titulo: 'Magi', anio: 2012 },
+  'magi-the-kingdom-of-magic': { id: 'ts27586', titulo: 'Magi', anio: 2012 },
+  'magi-adventure-of-sinbad': { id: null, titulo: 'Magi: Adventure of Sinbad', anio: 2016 },
+  given: { id: 'ts89560', titulo: 'given', anio: 2019 },
+  'given-the-movie': { id: 'tm878088', titulo: 'Eiga Given', anio: 2020 },
+  'given-on-the-other-hand': {
+    id: 'tm1372508',
+    titulo: 'Given: On The Other Hand',
+    anio: 2021,
+  },
+  'given-hiiragi-mix': {
+    id: 'tm1436678',
+    titulo: 'given the Movie: Hiiragi Mix',
+    anio: 2024,
+  },
+  'given-to-the-sea': {
+    id: 'tm1511519',
+    titulo: 'given the Movie: To the Sea',
+    anio: 2024,
+  },
+  hellsing: { id: 'ts21676', titulo: 'Hellsing', anio: 2001 },
+  'hellsing-ultimate': { id: null, titulo: 'Hellsing Ultimate', anio: 2006 },
+  'yuri-on-ice': { id: 'ts47734', titulo: 'Yuri!!! on Ice', anio: 2016 },
 };
 
 /**

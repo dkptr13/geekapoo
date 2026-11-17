@@ -66,6 +66,7 @@ import {
   capituloEnTvdb,
   PELICULA_TVDB,
   SIN_TITULO_JAPONES,
+  SERIE_TVDB,
 } from './temporadas-tvdb.mjs';
 
 
@@ -424,50 +425,72 @@ for (const anime of animes) {
     continue;
   }
 
-  const termino = comoBuscarTvdb(id, str(anime.f, 'title'));
+  // Series con el id de TVDB fijado a mano (ver `SERIE_TVDB`): no se
+  // busca por titulo, se lee la serie y se comprueba que tenga los
+  // episodios que tocan.
+  const idFijado = SERIE_TVDB[id];
 
-  let candidatas;
-
-  try {
-    candidatas = await buscar(termino);
-  } catch (e) {
-    console.log(`${id}: la busqueda fallo (${e.message.slice(0, 70)})`);
-    continue;
-  }
-
-  // Que serie de las candidatas encaja con nuestros capitulos.
   let elegida = null;
   let mejor = 0;
 
-  for (const s of candidatas) {
-    let eps;
+  if (idFijado) {
+    try {
+      const ficha = (await pedir(`/series/${idFijado}/extended`))?.data;
+      const eps = await capitulosDe({ tvdb_id: idFijado });
+
+      elegida = {
+        serie: { tvdb_id: idFijado, name: ficha?.name ?? '' },
+        capitulos: eps,
+      };
+      mejor = eps.length;
+    } catch (e) {
+      console.log(`${id}: no se pudo leer la serie ${idFijado} (${e.message.slice(0, 70)})`);
+      totalSinFuente++;
+      continue;
+    }
+  } else {
+    const termino = comoBuscarTvdb(id, str(anime.f, 'title'));
+
+    let candidatas;
 
     try {
-      eps = await capitulosDe(s);
-    } catch {
+      candidatas = await buscar(termino);
+    } catch (e) {
+      console.log(`${id}: la busqueda fallo (${e.message.slice(0, 70)})`);
       continue;
     }
 
-    let comunes;
+    // Que serie de las candidatas encaja con nuestros capitulos.
+    for (const s of candidatas) {
+      let eps;
 
-    if (sinTitulos) {
-      // La serie se comprueba con las fechas: cuantos de nuestros
-      // episodios caen en un dia en que TVDB emitio uno de la serie.
-      // Se dejan fuera los especiales (S0), que repiten fechas.
-      const fechas = new Set(
-        eps.filter((e) => Number(e.seasonNumber) >= 1).map((e) => e.aired),
-      );
+      try {
+        eps = await capitulosDe(s);
+      } catch {
+        continue;
+      }
 
-      comunes = delCatalogo.filter((f) => f.fecha && fechas.has(f.fecha)).length;
-    } else {
-      const deTvdb = new Set(eps.map((e) => limpiar(e.name)));
+      let comunes;
 
-      comunes = [...nuestrosPorTitulo.keys()].filter((t) => deTvdb.has(t)).length;
-    }
+      if (sinTitulos) {
+        // La serie se comprueba con las fechas: cuantos de nuestros
+        // episodios caen en un dia en que TVDB emitio uno de la serie.
+        // Se dejan fuera los especiales (S0), que repiten fechas.
+        const fechas = new Set(
+          eps.filter((e) => Number(e.seasonNumber) >= 1).map((e) => e.aired),
+        );
 
-    if (comunes > mejor) {
-      mejor = comunes;
-      elegida = { serie: s, capitulos: eps };
+        comunes = delCatalogo.filter((f) => f.fecha && fechas.has(f.fecha)).length;
+      } else {
+        const deTvdb = new Set(eps.map((e) => limpiar(e.name)));
+
+        comunes = [...nuestrosPorTitulo.keys()].filter((t) => deTvdb.has(t)).length;
+      }
+
+      if (comunes > mejor) {
+        mejor = comunes;
+        elegida = { serie: s, capitulos: eps };
+      }
     }
   }
 
@@ -475,7 +498,7 @@ for (const anime of animes) {
 
   const exigido = Math.ceil(total * MINIMO);
 
-  if (!elegida || mejor < exigido) {
+  if (!elegida || (!idFijado && mejor < exigido)) {
     console.log(
       `${id}: ninguna serie de TVDB encaja (mejor ${mejor} de ${total} ` +
         `${sinTitulos ? 'fechas' : 'titulos'}, hacen falta ${exigido})`,
@@ -486,7 +509,9 @@ for (const anime of animes) {
 
 console.log(
     `\n=== ${id}   TVDB ${elegida.serie.tvdb_id} "${elegida.serie.name}" ` +
-      `(${mejor}/${total} ${sinTitulos ? 'fechas' : 'titulos'})  ${elegida.capitulos.length} capitulos`,
+      (idFijado
+        ? `(id fijado a mano)  ${elegida.capitulos.length} capitulos`
+        : `(${mejor}/${total} ${sinTitulos ? 'fechas' : 'titulos'})  ${elegida.capitulos.length} capitulos`),
   );
 
   // El emparejado de un capitulo va en `emparejar-capitulo.mjs`, que es

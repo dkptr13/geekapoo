@@ -44,7 +44,7 @@
 // y duplicar la normalizacion en dos sitios es como se desincronizan.
 
 import { limpiar, mismoTitulo } from './normalizar-titulo.mjs';
-import { capituloEnTvdb, SIN_COMPROBAR_NUMERO, SIN_TITULO_JAPONES, tituloEnTvdb } from './temporadas-tvdb.mjs';
+import { capituloEnTvdb, SIN_COMPROBAR_NUMERO, SIN_TITULO_JAPONES, POR_NUMERO_TVDB, tituloEnTvdb } from './temporadas-tvdb.mjs';
 
 /**
  * El capitulo de TVDB que corresponde a un capitulo del catalogo.
@@ -83,7 +83,11 @@ export function capituloDe({ animeId, nuestro, capitulos, usadas }) {
   // estan mapeados a mano en `TEMPORADA_TVDB` y `TRAMO_TVDB` (ver
   // `SIN_TITULO_JAPONES`). La fecha no se exige, pero si no coincide se
   // devuelve el aviso: TVDB e IMDb no siempre escriben el mismo dia.
-  if (SIN_TITULO_JAPONES.has(animeId)) {
+  //
+  // Given y HELLSING (ver `SERIE_TVDB`) si tienen texto en esa columna,
+  // pero TVDB no trae un titulo util para comparar: Given lo prefija con
+  // "#01" y HELLSING lo deja en null. Se emparejan igual por numero.
+  if (SIN_TITULO_JAPONES.has(animeId) || POR_NUMERO_TVDB.has(animeId)) {
     const destino = capituloEnTvdb(animeId, Number(nuestro.temporada), numero);
 
     const ep = capitulos.find(

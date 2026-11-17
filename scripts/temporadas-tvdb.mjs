@@ -476,6 +476,11 @@ export const CAPITULO_TVDB = {
     1: { temporada: 1, desde: 1 },
     2: { temporada: 1, desde: 13 },
   },
+  // Magi: The Kingdom of Magic es la S2 de TVDB (262094), que guarda
+  // las dos temporadas seguidas. La T1 del catalogo es la S1 de TVDB.
+  'magi-the-kingdom-of-magic': {
+    1: { temporada: 2, desde: 1 },
+  },
 };
 
 /**
@@ -829,6 +834,33 @@ export const SIN_COMPROBAR_NUMERO = new Set([
 export const SIN_TITULO_JAPONES = new Set(['gintama']);
 
 /**
+ * Series de TVDB con el id fijado a mano.
+ *
+ * La busqueda por el titulo del catalogo no siempre encuentra la serie:
+ * TVDB puede tenerla solo con el titulo japones (Given) o devolver los
+ * episodios sin titulo (HELLSING, 2001). En esos casos el id se comprueba
+ * a mano y se apunta aqui.
+ *
+ * @type {Record<string, number>}
+ */
+export const SERIE_TVDB = {
+  given: 361218,
+  hellsing: 71278,
+};
+
+/**
+ * Fichas que se emparejan por temporada y numero, no por titulo.
+ *
+ * Son las series de `SERIE_TVDB` cuyos episodios en TVDB no tienen un
+ * titulo que comparar: Given los numera con un prefijo ("#01 Boys in
+ * the Band") y HELLSING los deja en null. La temporada y el numero si
+ * coinciden, y las fechas sirven de comprobacion.
+ *
+ * @type {Set<string>}
+ */
+export const POR_NUMERO_TVDB = new Set(['given', 'hellsing']);
+
+/**
  * Las fichas del catalogo que son una pelicula suelta y su id en TVDB.
  *
  * ── POR QUE NO LAS ENCUENTRA LA BUSQUEDA NORMAL ────────────────────
@@ -920,6 +952,13 @@ export const PELICULA_TVDB = {
   // sueltas en TVDB.
   'the-dangers-in-my-heart-the-movie': 374098,
   'revolutionary-girl-utena-the-movie': 14170,
+
+  // Las cuatro películas de Given, de la tanda de noviembre de 2026.
+  // TVDB no les da fecha de estreno, así que la fecha sale de IMDb.
+  'given-the-movie': 134344,
+  'given-on-the-other-hand': 176030,
+  'given-hiiragi-mix': 350999,
+  'given-to-the-sea': 354306,
 };
 
 /**

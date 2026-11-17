@@ -362,6 +362,19 @@ const ANIMES = [
     anilist: 441,
   },
   { id: 'paranoia-agent', buscar: 'Paranoia Agent', anilist: 323 },
+
+  // Lote de noviembre de 2026: Magi, Given, Hellsing y Yuri!!! on Ice.
+  { id: 'magi-the-labyrinth-of-magic', buscar: 'Magi: The Labyrinth of Magic', anilist: 14513 },
+  { id: 'magi-the-kingdom-of-magic', buscar: 'Magi: The Kingdom of Magic', anilist: 18115 },
+  { id: 'magi-adventure-of-sinbad', buscar: 'Magi: Adventure of Sinbad', anilist: 21394 },
+  { id: 'given', buscar: 'Given', anilist: 108430 },
+  { id: 'given-the-movie', buscar: 'Given Movie', anilist: 111734 },
+  { id: 'given-on-the-other-hand', buscar: 'Given: Uragawa no Sonzai', anilist: 134710 },
+  { id: 'given-hiiragi-mix', buscar: 'Given: Hiiragi Mix', anilist: 162987 },
+  { id: 'given-to-the-sea', buscar: 'Given: Umi e', anilist: 175199 },
+  { id: 'hellsing', buscar: 'Hellsing', anilist: 270 },
+  { id: 'hellsing-ultimate', buscar: 'Hellsing Ultimate', anilist: 777 },
+  { id: 'yuri-on-ice', buscar: 'Yuri!!! on Ice', anilist: 21709 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
