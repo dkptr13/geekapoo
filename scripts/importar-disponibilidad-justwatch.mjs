@@ -867,6 +867,31 @@ const FICHAS = {
   hellsing: { id: 'ts21676', titulo: 'Hellsing', anio: 2001 },
   'hellsing-ultimate': { id: null, titulo: 'Hellsing Ultimate', anio: 2006 },
   'yuri-on-ice': { id: 'ts47734', titulo: 'Yuri!!! on Ice', anio: 2016 },
+
+  // Lote de noviembre de 2026. Yu Yu Hakusho y GTO tienen oferta en
+  // España; las dos películas y la OVA no tienen ficha en JustWatch, así
+  // que se quedan con id nulo y sin filas.
+  'yu-yu-hakusho': { id: 'ts28078', titulo: 'Yu Yu Hakusho', anio: 1992 },
+  'great-teacher-onizuka': {
+    id: 'ts31733',
+    titulo: 'Great Teacher Onizuka',
+    anio: 1999,
+  },
+  'yu-yu-hakusho-el-secuestro-de-koenma': {
+    id: null,
+    titulo: 'Yu Yu Hakusho: El secuestro de Koenma',
+    anio: 1993,
+  },
+  'yu-yu-hakusho-la-pelicula-los-invasores-del-infierno': {
+    id: null,
+    titulo: 'Yu Yu Hakusho: La película - Los invasores del infierno',
+    anio: 1994,
+  },
+  'yu-yu-hakusho-dos-disparos': {
+    id: null,
+    titulo: 'Yu Yu Hakusho: Dos disparos',
+    anio: 2018,
+  },
 };
 
 /**

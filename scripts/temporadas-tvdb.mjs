@@ -481,6 +481,20 @@ export const CAPITULO_TVDB = {
   'magi-the-kingdom-of-magic': {
     1: { temporada: 2, desde: 1 },
   },
+  // Yu Yu Hakusho: TVDB (76665) reparte la serie en las mismas cuatro
+  // temporadas que el catalogo (25 + 41 + 28 + 18). Los dos sitios
+  // reinician la numeracion en cada temporada, asi que el mapa es la
+  // identidad; se deja escrito para que no parezca que falta.
+  'yu-yu-hakusho': {
+    1: { temporada: 1, desde: 1 },
+    2: { temporada: 2, desde: 1 },
+    3: { temporada: 3, desde: 1 },
+    4: { temporada: 4, desde: 1 },
+  },
+  // La OVA va en los especiales de la misma serie: S0E17 y S0E18.
+  'yu-yu-hakusho-dos-disparos': {
+    1: { temporada: 0, desde: 17 },
+  },
 };
 
 /**
@@ -846,6 +860,11 @@ export const SIN_TITULO_JAPONES = new Set(['gintama']);
 export const SERIE_TVDB = {
   given: 361218,
   hellsing: 71278,
+  // Yu Yu Hakusho y GTO se fijan para no depender de la busqueda por
+  // titulo: la OVA comparte la serie 76665 con la serie de television.
+  'yu-yu-hakusho': 76665,
+  'yu-yu-hakusho-dos-disparos': 76665,
+  'great-teacher-onizuka': 79071,
 };
 
 /**
@@ -858,7 +877,13 @@ export const SERIE_TVDB = {
  *
  * @type {Set<string>}
  */
-export const POR_NUMERO_TVDB = new Set(['given', 'hellsing']);
+export const POR_NUMERO_TVDB = new Set([
+  'given',
+  'hellsing',
+  // Los dos episodios de la OVA de Yu Yu Hakusho (S0E17 y S0E18) no
+  // tienen titulo en TVDB: se emparejan por temporada y numero.
+  'yu-yu-hakusho-dos-disparos',
+]);
 
 /**
  * Las fichas del catalogo que son una pelicula suelta y su id en TVDB.
@@ -959,6 +984,11 @@ export const PELICULA_TVDB = {
   'given-on-the-other-hand': 176030,
   'given-hiiragi-mix': 350999,
   'given-to-the-sea': 354306,
+
+  // Las dos películas de Yu Yu Hakusho, de la tanda de noviembre de
+  // 2026. Los ids están comprobados contra el título y el año de TVDB.
+  'yu-yu-hakusho-el-secuestro-de-koenma': 117288,
+  'yu-yu-hakusho-la-pelicula-los-invasores-del-infierno': 102263,
 };
 
 /**

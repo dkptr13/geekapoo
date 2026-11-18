@@ -375,6 +375,27 @@ const ANIMES = [
   { id: 'hellsing', buscar: 'Hellsing', anilist: 270 },
   { id: 'hellsing-ultimate', buscar: 'Hellsing Ultimate', anilist: 777 },
   { id: 'yuri-on-ice', buscar: 'Yuri!!! on Ice', anilist: 21709 },
+
+  // Lote de noviembre de 2026: Yu Yu Hakusho (serie, dos películas y OVA)
+  // y Great Teacher Onizuka. Los ids van fijados para no confundir la
+  // serie con las películas ni la OVA con los especiales.
+  { id: 'yu-yu-hakusho', buscar: 'Yuu☆Yuu☆Hakusho', anilist: 392 },
+  {
+    id: 'yu-yu-hakusho-el-secuestro-de-koenma',
+    buscar: 'Yuu☆Yuu☆Hakusho (Movie)',
+    anilist: 882,
+  },
+  {
+    id: 'yu-yu-hakusho-la-pelicula-los-invasores-del-infierno',
+    buscar: 'Yuu☆Yuu☆Hakusho: Meikai Shitou-hen - Honoo no Kizuna',
+    anilist: 883,
+  },
+  {
+    id: 'yu-yu-hakusho-dos-disparos',
+    buscar: 'Yuu☆Yuu☆Hakusho: Two Shots/Noru ka Soru ka',
+    anilist: 102631,
+  },
+  { id: 'great-teacher-onizuka', buscar: 'GTO', anilist: 245 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
