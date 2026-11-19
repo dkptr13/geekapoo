@@ -892,6 +892,41 @@ const FICHAS = {
     titulo: 'Yu Yu Hakusho: Dos disparos',
     anio: 2018,
   },
+
+  // Lote de noviembre de 2026. Inuyasha está en Netflix y AnimeBox, y
+  // El acto final y las cuatro películas en AnimeBox; la OVA no tiene
+  // ficha en JustWatch, así que se queda con id nulo y sin filas.
+  inuyasha: { id: 'ts21034', titulo: 'Inuyasha', anio: 2000 },
+  'inuyasha-el-acto-final': {
+    id: 'ts286395',
+    titulo: 'Inuyasha: El acto final',
+    anio: 2009,
+  },
+  'inuyasha-la-pelicula-la-batalla-a-traves-del-tiempo': {
+    id: 'tm49405',
+    titulo: 'Inuyasha, la película: La batalla a través del tiempo',
+    anio: 2001,
+  },
+  'inuyasha-la-pelicula-2-el-castillo-de-los-suenos': {
+    id: 'tm105278',
+    titulo: 'Inuyasha, la película 2: El castillo de los sueños',
+    anio: 2002,
+  },
+  'inuyasha-la-pelicula-3-la-espada-conquistadora': {
+    id: 'tm138902',
+    titulo: 'Inuyasha, la película 3: La espada conquistadora',
+    anio: 2003,
+  },
+  'inuyasha-la-pelicula-4-fuego-en-la-isla-mistica': {
+    id: 'tm89764',
+    titulo: 'Inuyasha, la película 4: Fuego en la isla mística',
+    anio: 2004,
+  },
+  'inuyasha-la-tessaiga-negra': {
+    id: null,
+    titulo: 'Inuyasha: La Tessaiga negra',
+    anio: 2008,
+  },
 };
 
 /**

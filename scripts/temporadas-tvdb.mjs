@@ -391,6 +391,11 @@ export const TEMPORADA_TVDB = {
   //   catalogo T4  el segundo OVA (2016)       TVDB S0
   //   catalogo T5  Departures (2018)           TVDB S0
   'shinmai-maou-no-testament': { 2: 0, 3: 2, 4: 0, 5: 0 },
+
+  // Inuyasha comparte la serie 71361 entre la serie original y El acto
+  // final: TVDB reparte la primera en las temporadas 1 a 6, igual que el
+  // catalogo, y guarda la segunda como temporada 7.
+  'inuyasha-el-acto-final': { 1: 7 },
 };
 /**
  * Que capitulo de TVDB es el capitulo N de una temporada del catalogo.
@@ -865,6 +870,10 @@ export const SERIE_TVDB = {
   'yu-yu-hakusho': 76665,
   'yu-yu-hakusho-dos-disparos': 76665,
   'great-teacher-onizuka': 79071,
+  // Inuyasha y El acto final comparten la serie 71361: TVDB guarda la
+  // segunda como temporada 7 de la primera.
+  inuyasha: 71361,
+  'inuyasha-el-acto-final': 71361,
 };
 
 /**
@@ -989,6 +998,15 @@ export const PELICULA_TVDB = {
   // 2026. Los ids están comprobados contra el título y el año de TVDB.
   'yu-yu-hakusho-el-secuestro-de-koenma': 117288,
   'yu-yu-hakusho-la-pelicula-los-invasores-del-infierno': 102263,
+
+  // Las cuatro películas de Inuyasha y su OVA, del lote de noviembre de
+  // 2026. TVDB guarda el especial La Tessaiga negra también como S0E5
+  // de la serie, pero aquí se usa su ficha de película (140780).
+  'inuyasha-la-pelicula-la-batalla-a-traves-del-tiempo': 15740,
+  'inuyasha-la-pelicula-2-el-castillo-de-los-suenos': 18530,
+  'inuyasha-la-pelicula-3-la-espada-conquistadora': 12898,
+  'inuyasha-la-pelicula-4-fuego-en-la-isla-mistica': 21904,
+  'inuyasha-la-tessaiga-negra': 140780,
 };
 
 /**

@@ -396,6 +396,33 @@ const ANIMES = [
     anilist: 102631,
   },
   { id: 'great-teacher-onizuka', buscar: 'GTO', anilist: 245 },
+
+  // Lote de noviembre de 2026: Inuyasha completo (serie, El acto final,
+  // cuatro películas y la OVA). Los ids van fijados para no confundir
+  // las películas entre sí ni la OVA con los especiales de la serie.
+  { id: 'inuyasha', buscar: 'Inuyasha', anilist: 249 },
+  { id: 'inuyasha-el-acto-final', buscar: 'Inuyasha: Kanketsu-hen', anilist: 6811 },
+  {
+    id: 'inuyasha-la-pelicula-la-batalla-a-traves-del-tiempo',
+    buscar: 'Inuyasha: Toki wo Koeru Omoi',
+    anilist: 452,
+  },
+  {
+    id: 'inuyasha-la-pelicula-2-el-castillo-de-los-suenos',
+    buscar: 'Inuyasha: Kagami no Naka no Mugenjo',
+    anilist: 450,
+  },
+  {
+    id: 'inuyasha-la-pelicula-3-la-espada-conquistadora',
+    buscar: 'Inuyasha: Tenka Hadou no Ken',
+    anilist: 451,
+  },
+  {
+    id: 'inuyasha-la-pelicula-4-fuego-en-la-isla-mistica',
+    buscar: 'Inuyasha: Guren no Houraijima',
+    anilist: 449,
+  },
+  { id: 'inuyasha-la-tessaiga-negra', buscar: 'Inuyasha: Kuroi Tessaiga', anilist: 4886 },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
@@ -457,6 +484,25 @@ const TITULOS_EN_ANILIST = {
   'la-melancolia-de-suzumiya-haruhi': {
     2: 'Suzumiya Haruhi no Yuuutsu (2009)',
   },
+};
+
+/**
+ * Temporadas que no tienen portada propia en AniList.
+ *
+ * En Inuyasha los titulos de temporada son sagas ("El colmillo de
+ * acero", "La barrera de Naraku"...) y AniList no separa la serie por
+ * sagas: la unica media de cada año es una de las peliculas. El
+ * emparejador la aceptaba por el año, aunque el titulo no coincidiera,
+ * y ponia la portada de una pelicula a una temporada de television.
+ *
+ * Estas temporadas se dejan sin portada a proposito: la wiki hereda la
+ * de la serie cuando la temporada no tiene la suya (ver `fichaDe` en
+ * `utils/seasonData.ts`).
+ *
+ *   anime -> [numeros de temporada]
+ */
+const TEMPORADAS_SIN_PORTADA_PROPIA = {
+  inuyasha: [2, 3, 4, 5, 6],
 };
 
 /**
@@ -650,6 +696,11 @@ if (pide('temporadas')) {
       const { elegido, explicacion, empateCon } = decisiones[i];
       const n = num(s, 'number') ?? 0;
       const etiqueta = `${anime.id} T${n}`;
+      const sinPortadaPropia = TEMPORADAS_SIN_PORTADA_PROPIA[anime.id] ?? [];
+      if (sinPortadaPropia.includes(n)) {
+        console.log(`  T${n}: sin portada propia, hereda la de la serie`);
+        continue;
+      }
       if (!elegido) {
         console.log(`  T${n}: ${explicacion} (se deja como estaba)`);
         omitidos.push(`${etiqueta}: ${explicacion}`);
