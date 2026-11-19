@@ -914,6 +914,42 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
   const cargandoEpisodios = episodiosPagina.loading;
   const cargandoPersonajes = personajesPagina.loading;
 
+  // El corazón de episodios y personajes pinta la copia paginada de
+  // la ficha, que no es la misma que guarda el contexto. Se parchea
+  // a mano con el resultado de la transacción; si no, el "me gusta"
+  // se escribía en Firestore pero el corazón no cambiaba.
+  const alternarLikeDelEpisodio = async (ep: Episode) => {
+    const uid = currentUser?.uid;
+    const likedAntes = uid ? ep.likedBy?.includes(uid) ?? false : false;
+    const ok = await toggleEpisodeLike(ep.id, likedAntes);
+    if (!ok || !uid) return;
+
+    const likedBy = likedAntes
+      ? (ep.likedBy ?? []).filter((id) => id !== uid)
+      : [...(ep.likedBy ?? []), uid];
+
+    episodiosPagina.patchItem(ep.id, {
+      likedBy,
+      likesCount: Math.max(0, (ep.likesCount ?? 0) + (likedAntes ? -1 : 1)),
+    });
+  };
+
+  const alternarLikeDelPersonaje = async (char: Character) => {
+    const uid = currentUser?.uid;
+    const likedAntes = uid ? char.likedBy?.includes(uid) ?? false : false;
+    const ok = await toggleCharacterLike(char.id, likedAntes);
+    if (!ok || !uid) return;
+
+    const likedBy = likedAntes
+      ? (char.likedBy ?? []).filter((id) => id !== uid)
+      : [...(char.likedBy ?? []), uid];
+
+    personajesPagina.patchItem(char.id, {
+      likedBy,
+      likesCount: Math.max(0, (char.likesCount ?? 0) + (likedAntes ? -1 : 1)),
+    });
+  };
+
   const ficha = fichaDe(currentAnime, seasonOfView);
 
   // Si la imagen que se ve es la de la temporada, el editor rápido
@@ -1735,7 +1771,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
                     <div className="mt-4 flex items-center gap-3">
                       <button
-                        onClick={() => toggleEpisodeLike(ep.id)}
+                        onClick={() => void alternarLikeDelEpisodio(ep)}
                         className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
                           isLiked
                             ? 'border-pink-500/40 bg-pink-500/10 text-pink-400'
@@ -2037,7 +2073,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                       <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
                       <div className="absolute top-3 right-3">
                         <button
-                          onClick={() => toggleCharacterLike(char.id)}
+                          onClick={() => void alternarLikeDelPersonaje(char)}
                           className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold backdrop-blur-md transition-all ${
                             isLiked
                               ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/30'

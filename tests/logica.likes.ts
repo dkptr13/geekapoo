@@ -22,7 +22,7 @@ import {
   debeProcesarLike,
   idsDeLikes,
 } from '../functions/src/likesLogic';
-import { actualizarLikeEnLista, ponerLikeLocal } from '../src/utils/likes';
+import { actualizarLikeEnLista, actualizarLikeEnPagina, ponerLikeLocal } from '../src/utils/likes';
 
 // ──────────────────────────────────────────────────────────
 // 1. Qué ha pasado con el documento
@@ -169,6 +169,22 @@ assert.equal(
   actualizarLikeEnLista(otraLista, 'hilo-1', 'alice', true),
   otraLista,
   'sin el hilo no se crea una copia nueva',
+);
+
+// Las páginas de la ficha guardan { items, hasMore... }, no un array.
+// Antes el parche de "me gusta" las trataba como lista y lanzaba, así
+// que el clic en el corazón de un episodio o personaje no llegaba a
+// escribir en Firestore.
+const pagina = { items: [{ ...hilo }], hasMore: true, lastId: 'hilo-1' };
+const paginaConLike = actualizarLikeEnPagina(pagina, 'hilo-1', 'alice', true);
+assert.equal(paginaConLike.items[0].likesCount, 2);
+assert.deepEqual(paginaConLike.items[0].likedBy, ['bob', 'alice']);
+assert.equal(paginaConLike.hasMore, true, 'se conserva el resto de la página');
+assert.deepEqual(pagina.items[0].likedBy, ['bob'], 'no se muta la página anterior');
+assert.equal(
+  actualizarLikeEnPagina(pagina, 'hilo-2', 'alice', true),
+  pagina,
+  'si el elemento no está, se devuelve la misma página',
 );
 
 console.log('OK · lógica de "me gusta" por usuario');

@@ -57,3 +57,24 @@ export function actualizarLikeEnLista<T extends { id: string } & ContadorLike>(
     item.id === id ? ponerLikeLocal(item, uid, liked) : item,
   );
 }
+
+/**
+ * Aplica el cambio a una página paginada de la ficha.
+ *
+ * Las páginas de episodios y personajes no guardan un array: guardan
+ * un objeto `{ items, hasMore... }` en la caché. Tratarlas como una
+ * lista hacía que el parche del "me gusta" lanzara y el clic no
+ * llegara ni a escribir en Firestore. Devuelve la MISMA página si el
+ * elemento no está, para no invalidar caché ni provocar renders.
+ */
+export interface PaginaConItems<T> {
+  items: T[];
+}
+
+export function actualizarLikeEnPagina<
+  T extends { id: string } & ContadorLike,
+  P extends PaginaConItems<T>,
+>(pagina: P, id: string, uid: string, liked: boolean): P {
+  const items = actualizarLikeEnLista(pagina.items, id, uid, liked);
+  return (items === pagina.items ? pagina : { ...pagina, items }) as P;
+}

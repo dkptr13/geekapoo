@@ -51,6 +51,12 @@ export interface AnimeCollectionPage<T> {
   hasMore: boolean;
   error: string | null;
   loadMore: () => Promise<void>;
+  /**
+   * Aplica un cambio local a un elemento ya cargado. Se usa para los
+   * "me gusta": el documento cambia en Firestore y la caché se
+   * parchea, pero la copia de React que pinta la ficha es esta.
+   */
+  patchItem: (id: string, changes: Partial<T>) => void;
 }
 
 interface PageCache<T> {
@@ -308,7 +314,28 @@ export function useAnimeCollectionPage<T extends { id: string }>(
     }
   }, [animeId, coleccion, enabled, hasMore, leerPagina, loading, loadingMore]);
 
-  return { items, loading, loaded, loadingMore, hasMore, error, loadMore };
+  const patchItem = useCallback((id: string, changes: Partial<T>) => {
+    setItems((prev) => {
+      let tocado = false;
+      const siguiente = prev.map((item) => {
+        if (item.id !== id) return item;
+        tocado = true;
+        return { ...item, ...changes };
+      });
+      return tocado ? siguiente : prev;
+    });
+  }, []);
+
+  return {
+    items,
+    loading,
+    loaded,
+    loadingMore,
+    hasMore,
+    error,
+    loadMore,
+    patchItem,
+  };
 }
 
 /**

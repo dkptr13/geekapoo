@@ -51,7 +51,7 @@ import {
   FANART_MAX_TAGS,
   etiquetasDeFanart,
 } from '../data/fanarts';
-import { actualizarLikeEnLista } from '../utils/likes';
+import { actualizarLikeEnLista, actualizarLikeEnPagina } from '../utils/likes';
 
 import type { ImageDims } from '../utils/imagenes';
 import {
@@ -151,8 +151,8 @@ export interface CommunityContextType {
   /** `false` si Firestore rechazó la escritura. */
   toggleCommentLike: (commentId: string) => Promise<boolean>;
   toggleAnimeLike: (animeId: string, likedActual?: boolean) => Promise<boolean>;
-  toggleEpisodeLike: (episodeId: string) => Promise<boolean>;
-  toggleCharacterLike: (characterId: string) => Promise<boolean>;
+  toggleEpisodeLike: (episodeId: string, likedActual?: boolean) => Promise<boolean>;
+  toggleCharacterLike: (characterId: string, likedActual?: boolean) => Promise<boolean>;
   toggleTriviaLike: (triviaId: string) => Promise<boolean>;
 
   /**
@@ -1228,14 +1228,30 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         break;
       case 'episode':
         setEpisodes((prev) => actualizarLikeEnGrupos(prev, id, uid, liked));
+        // Cachés antiguas: listas completas por anime. Se comprueba
+        // que sea un array antes de tocarlo porque bajo este mismo
+        // prefijo también viven las páginas paginadas de la ficha.
         patchCached<Episode[]>('community:episodes', (lista) =>
-          actualizarLikeEnLista(lista, id, uid, liked),
+          Array.isArray(lista) ? actualizarLikeEnLista(lista, id, uid, liked) : lista,
+        );
+        // Páginas de la ficha (`useAnimeCollectionPage`). Guardan un
+        // objeto { items, hasMore... }, no un array: si se trataran
+        // como lista, el patch lanzaba y el clic no llegaba ni a
+        // escribir en Firestore.
+        patchCached<{ items: Episode[] }>('community:episodes:ficha', (pagina) =>
+          actualizarLikeEnPagina(pagina, id, uid, liked),
         );
         break;
       case 'character':
         setCharacters((prev) => actualizarLikeEnGrupos(prev, id, uid, liked));
         patchCached<Character[]>('community:characters', (lista) =>
-          actualizarLikeEnLista(lista, id, uid, liked),
+          Array.isArray(lista)
+            ? actualizarLikeEnLista(lista, id, uid, liked)
+            : lista,
+        );
+        patchCached<{ items: Character[] }>(
+          'community:characters:ficha',
+          (pagina) => actualizarLikeEnPagina(pagina, id, uid, liked),
         );
         break;
       case 'trivia':
@@ -1307,12 +1323,14 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 
   const toggleEpisodeLike = useCallback(
-    (episodeId: string) => runLike('episode', episodeId),
+    (episodeId: string, likedActual?: boolean) =>
+      runLike('episode', episodeId, likedActual),
     [runLike],
   );
 
   const toggleCharacterLike = useCallback(
-    (characterId: string) => runLike('character', characterId),
+    (characterId: string, likedActual?: boolean) =>
+      runLike('character', characterId, likedActual),
     [runLike],
   );
 
