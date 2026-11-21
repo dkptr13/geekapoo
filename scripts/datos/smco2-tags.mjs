@@ -1,0 +1,42 @@
+// ETIQUETAS - smco2
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+// Maximo 40 caracteres por etiqueta.
+
+export const TAGS = {
+  'Usagi Tsukino': ['Protagonista', 'Sailor Moon', 'Princesa Serenity'],
+  'Ami Mizuno': ['Sailor Mercury', 'Inteligencia', 'Agua'],
+  'Rei Hino': ['Sailor Mars', 'Fuego', 'Sacerdotisa'],
+  'Makoto Kino': ['Sailor Jupiter', 'Rayo', 'Cocina'],
+  'Minako Aino': ['Sailor Venus', 'Sailor V', 'Idol'],
+  'Chibiusa': ['Sailor Chibi Moon', 'Futuro', 'Princesa'],
+  'Setsuna Meiou': ['Sailor Pluto', 'Tiempo', 'Guardiana'],
+  'Michiru Kaiou': ['Sailor Neptune', 'Violinista', 'Haruka'],
+  'Haruka Tenou': ['Sailor Uranus', 'Piloto', 'Michiru'],
+  'Hotaru Tomoe': ['Sailor Saturn', 'Destrucción', 'Tomoe'],
+  'Mamoru Chiba': ['Tuxedo Mask', 'Endymion', 'Romance'],
+  'Seiya Kou': ['Sailor Star Fighter', 'Three Lights', 'Kakyuu'],
+  'Taiki Kou': ['Sailor Star Maker', 'Three Lights', 'Música'],
+  'Yaten Kou': ['Sailor Star Healer', 'Three Lights', 'Orgullo'],
+  'Chibi Chibi': ['Niña', 'Misterio', 'Sailor Stars'],
+  'Sailor Galaxia': ['Shadow Galactica', 'Semillas estelares', 'Vía Láctea'],
+  'Chaos': ['Caos', 'Galaxia', 'Universo'],
+  'Sailor Heavy Metal Papillon': ['Sailor Animamate', 'Mariposa', 'Shadow Galactica'],
+  'Sailor Phi': ['Sailor Animamate', 'Castigo', 'Shadow Galactica'],
+  'Sailor Chi': ['Sailor Animamate', 'Fría', 'Shadow Galactica'],
+  'Sailor Lethe': ['Río Lete', 'Recuerdos', 'Shadow Galactica'],
+  'Sailor Mnemosyne': ['Río Mnemósine', 'Recuerdos', 'Shadow Galactica'],
+  'Sailor Cosmos': ['Futuro', 'Sailor Moon', 'Galaxia'],
+  'Luna': ['Gata', 'Guía', 'Reino de la Luna'],
+  'Artemis': ['Gato', 'Asesor', 'Sailor Venus'],
+  'Diana': ['Gatita', 'Futuro', 'Chibiusa'],
+  'Kakyuu Koujo': ['Princesa', 'Kinmoku', 'Starlights'],
+  'CereCere': ['Amazoness Quartet', 'Flores', 'Líder'],
+  'PallaPalla': ['Amazoness Quartet', 'Pelotas', 'Chibiusa'],
+  'JunJun': ['Amazoness Quartet', 'Cuerdas', 'Trampas'],
+  'VesVes': ['Amazoness Quartet', 'Animales', 'Látigo'],
+  'Queen Serenity': ['Reina', 'Reino de la Luna', 'Serenity'],
+  'Ikuko Tsukino': ['Madre', 'Familia Tsukino', 'Hogar'],
+  'Kenji Tsukino': ['Padre', 'Periodista', 'Familia Tsukino'],
+  'Shingo Tsukino': ['Hermano', 'Familia Tsukino', 'Travieso'],
+};

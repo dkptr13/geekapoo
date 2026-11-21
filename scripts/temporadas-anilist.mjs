@@ -182,6 +182,18 @@ function puntuar(m, temporada, laBase) {
       puntos += 1;
       porQue.push(`título "${titulo}" (a medias)`);
     }
+
+    // Coincidencia exacta: el titulo declarado es el de la media, no
+    // solo un prefijo. Hace falta en Sailor Moon, donde la pelicula
+    // "Bishoujo Senshi Sailor Moon R: THE MOVIE" contiene todas las
+    // palabras de la serie "Bishoujo Senshi Sailor Moon R" y empataba
+    // con ella; el desempate por id elegia la pelicula.
+    if (
+      normalizar(titulo).join(' ') === normalizar(m.titulo).join(' ')
+    ) {
+      puntos += 1;
+      porQue.push('título exacto');
+    }
   }
 
   // Un SPECIAL de AniList es un recap o una compilación, no una

@@ -423,6 +423,48 @@ const ANIMES = [
     anilist: 449,
   },
   { id: 'inuyasha-la-tessaiga-negra', buscar: 'Inuyasha: Kuroi Tessaiga', anilist: 4886 },
+
+  // Lote de noviembre de 2026: Sailor Moon completo (serie clásica,
+  // Crystal y las siete películas). Los ids van fijados porque la
+  // franquicia tiene muchas entregas del mismo año y la búsqueda por
+  // título puede devolver la película en lugar de la temporada.
+  { id: 'sailor-moon', buscar: 'Sailor Moon', anilist: 530 },
+  { id: 'sailor-moon-crystal', buscar: 'Sailor Moon Crystal', anilist: 14751 },
+  {
+    id: 'sailor-moon-r-la-pelicula',
+    buscar: 'Bishoujo Senshi Sailor Moon R: THE MOVIE',
+    anilist: 531,
+  },
+  {
+    id: 'sailor-moon-s-la-pelicula',
+    buscar: 'Bishoujo Senshi Sailor Moon S: Kaguya Hime no Koibito',
+    anilist: 997,
+  },
+  {
+    id: 'sailor-moon-supers-la-pelicula',
+    buscar: 'Bishoujo Senshi Sailor Moon SuperS: Sailor 9 Senshi Shuuketsu! Black Dream Hole no Kiseki',
+    anilist: 1240,
+  },
+  {
+    id: 'sailor-moon-eternal-la-pelicula',
+    buscar: 'Bishoujo Senshi Sailor Moon: Eternal - Zenpen',
+    anilist: 103713,
+  },
+  {
+    id: 'sailor-moon-eternal-la-pelicula-parte-2',
+    buscar: 'Bishoujo Senshi Sailor Moon: Eternal - Kouhen',
+    anilist: 103712,
+  },
+  {
+    id: 'sailor-moon-cosmos-la-pelicula',
+    buscar: 'Bishoujo Senshi Sailor Moon: Cosmos - Zenpen',
+    anilist: 148149,
+  },
+  {
+    id: 'sailor-moon-cosmos-la-pelicula-parte-2',
+    buscar: 'Bishoujo Senshi Sailor Moon: Cosmos - Kouhen',
+    anilist: 160850,
+  },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
@@ -483,6 +525,20 @@ const TITULOS_EN_ANILIST = {
   // Haruhi-chan, que son también de 2009.
   'la-melancolia-de-suzumiya-haruhi': {
     2: 'Suzumiya Haruhi no Yuuutsu (2009)',
+  },
+  // Sailor Moon: las temporadas del catalogo son sagas y no llevan el
+  // nombre de la entrega en AniList. Sin este mapa, el emparejador solo
+  // tendria el año y podria coger cualquier media de la franquicia.
+  'sailor-moon': {
+    1: 'Bishoujo Senshi Sailor Moon',
+    2: 'Bishoujo Senshi Sailor Moon R',
+    3: 'Bishoujo Senshi Sailor Moon S',
+    4: 'Bishoujo Senshi Sailor Moon SuperS',
+    5: 'Bishoujo Senshi Sailor Moon: Sailor Stars',
+  },
+  'sailor-moon-crystal': {
+    1: 'Bishoujo Senshi Sailor Moon: Crystal',
+    2: 'Bishoujo Senshi Sailor Moon: Crystal - Death Busters-hen',
   },
 };
 

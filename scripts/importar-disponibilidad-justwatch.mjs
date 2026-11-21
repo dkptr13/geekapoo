@@ -927,6 +927,52 @@ const FICHAS = {
     titulo: 'Inuyasha: La Tessaiga negra',
     anio: 2008,
   },
+
+  // Lote de noviembre de 2026. Sailor Moon está en AnimeBox; Crystal no
+  // tiene ofertas en España. Eternal y Cosmos están en Netflix y
+  // JustWatch las agrupa en una sola ficha por película, así que las dos
+  // partes de cada una comparten id.
+  'sailor-moon': { id: 'ts21343', titulo: 'Sailor Moon', anio: 1992 },
+  'sailor-moon-crystal': {
+    id: 'ts424553',
+    titulo: 'Sailor Moon Crystal',
+    anio: 2014,
+  },
+  'sailor-moon-r-la-pelicula': {
+    id: 'tm185557',
+    titulo: 'Sailor Moon R: La película',
+    anio: 1993,
+  },
+  'sailor-moon-s-la-pelicula': {
+    id: 'tm117331',
+    titulo: 'Sailor Moon S: La película',
+    anio: 1994,
+  },
+  'sailor-moon-supers-la-pelicula': {
+    id: 'tm9677',
+    titulo: 'Sailor Moon SuperS: La película',
+    anio: 1995,
+  },
+  'sailor-moon-eternal-la-pelicula': {
+    id: 'ts288489',
+    titulo: 'Sailor Moon Eternal: La película',
+    anio: 2021,
+  },
+  'sailor-moon-eternal-la-pelicula-parte-2': {
+    id: 'ts288489',
+    titulo: 'Sailor Moon Eternal: La película - Parte 2',
+    anio: 2021,
+  },
+  'sailor-moon-cosmos-la-pelicula': {
+    id: 'ts469601',
+    titulo: 'Sailor Moon Cosmos: La película',
+    anio: 2023,
+  },
+  'sailor-moon-cosmos-la-pelicula-parte-2': {
+    id: 'ts469601',
+    titulo: 'Sailor Moon Cosmos: La película - Parte 2',
+    anio: 2023,
+  },
 };
 
 /**

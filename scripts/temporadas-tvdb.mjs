@@ -396,6 +396,11 @@ export const TEMPORADA_TVDB = {
   // final: TVDB reparte la primera en las temporadas 1 a 6, igual que el
   // catalogo, y guarda la segunda como temporada 7.
   'inuyasha-el-acto-final': { 1: 7 },
+
+  // Sailor Moon Crystal: la T1 del catalogo son las dos primeras
+  // temporadas de TVDB (Dark Kingdom y Black Moon), que van seguidas y
+  // suman 26 episodios. La T2 es la S3 de TVDB (Death Busters).
+  'sailor-moon-crystal': { 2: 3 },
 };
 /**
  * Que capitulo de TVDB es el capitulo N de una temporada del catalogo.
@@ -499,6 +504,15 @@ export const CAPITULO_TVDB = {
   // La OVA va en los especiales de la misma serie: S0E17 y S0E18.
   'yu-yu-hakusho-dos-disparos': {
     1: { temporada: 0, desde: 17 },
+  },
+  // Sailor Moon Crystal: la T1 del catalogo son los 26 episodios de las
+  // temporadas 1 y 2 de TVDB (14 + 12), renumerados del 1 al 26. La T2
+  // es la S3 entera (13 episodios).
+  'sailor-moon-crystal': {
+    1: [
+      { temporada: 1, desde: 1, hasta: 14 },
+      { temporada: 2, desde: 1, hasta: 12 },
+    ],
   },
 };
 
@@ -874,6 +888,10 @@ export const SERIE_TVDB = {
   // segunda como temporada 7 de la primera.
   inuyasha: 71361,
   'inuyasha-el-acto-final': 71361,
+  // Sailor Moon y Crystal son series distintas en TVDB, cada una con sus
+  // temporadas y sus especiales.
+  'sailor-moon': 78500,
+  'sailor-moon-crystal': 275039,
 };
 
 /**
@@ -1007,6 +1025,17 @@ export const PELICULA_TVDB = {
   'inuyasha-la-pelicula-3-la-espada-conquistadora': 12898,
   'inuyasha-la-pelicula-4-fuego-en-la-isla-mistica': 21904,
   'inuyasha-la-tessaiga-negra': 140780,
+
+  // Las siete películas de Sailor Moon, del lote de noviembre de 2026.
+  // Las tres clásicas y las dos partes de Eternal y Cosmos tienen ficha
+  // propia en TVDB; los ids están comprobados contra el título y el año.
+  'sailor-moon-r-la-pelicula': 23175,
+  'sailor-moon-s-la-pelicula': 31904,
+  'sailor-moon-supers-la-pelicula': 62905,
+  'sailor-moon-eternal-la-pelicula': 136397,
+  'sailor-moon-eternal-la-pelicula-parte-2': 136398,
+  'sailor-moon-cosmos-la-pelicula': 336871,
+  'sailor-moon-cosmos-la-pelicula-parte-2': 336872,
 };
 
 /**
