@@ -155,6 +155,15 @@ export interface AuthContextType {
   currentUser: User | null;
   usersList: User[];
   loading: boolean;
+  /**
+   * UID cuyo documento `userPrivate` ya se ha leído.
+   *
+   * Las preferencias de accesibilidad viven ahí. El proveedor de
+   * accesibilidad espera a este valor para no confundir «todavía no
+   * ha llegado» con «no hay preferencias guardadas» y pisar las de
+   * otro dispositivo con las de invitado.
+   */
+  privateDataReadyFor: string | null;
   getUserByChatId: (chatId: string) => User | undefined;
   /** Busca por nombre visible, @usuario o ID de chat en el directorio. */
   buscarUsuarios: (consulta: string, limite?: number) => User[];
@@ -417,6 +426,9 @@ export const AuthProvider = ({
   const [usersList, setUsersList] =
     useState<User[]>([]);
 
+  const [privateDataReadyFor, setPrivateDataReadyFor] =
+    useState<string | null>(null);
+
   const [loading, setLoading] =
     useState<boolean>(true);
 
@@ -566,11 +578,17 @@ export const AuthProvider = ({
 
         if (!fbUser) {
           datosPrivadosRef.current = null;
+          setPrivateDataReadyFor(null);
           setIdentitySetup(null);
           setCurrentUser(null);
           setLoading(false);
           return;
         }
+
+        // Hay una cuenta distinta (o la misma tras recargar): hasta
+        // que llegue su documento privado no se puede decidir qué
+        // preferencias aplicar.
+        setPrivateDataReadyFor(null);
 
         const isPasswordUser =
           fbUser.providerData.some(
@@ -629,6 +647,7 @@ export const AuthProvider = ({
               const username = permanente || usernameSugerido(fbUser);
 
               datosPrivadosRef.current = null;
+              setPrivateDataReadyFor(null);
               setCurrentUser(null);
               setIdentitySetup({
                 uid: fbUser.uid,
@@ -706,13 +725,17 @@ export const AuthProvider = ({
     const uid = currentUser?.uid;
     if (!uid) {
       datosPrivadosRef.current = null;
+      setPrivateDataReadyFor(null);
       return;
     }
+
+    setPrivateDataReadyFor(null);
 
     return subscribeUserPrivate(
       uid,
       (privado) => {
         datosPrivadosRef.current = privado;
+        setPrivateDataReadyFor(uid);
 
         setCurrentUser((previo) => {
           if (!previo || previo.uid !== uid) return previo;
@@ -742,6 +765,10 @@ export const AuthProvider = ({
       },
       (error) => {
         console.error('[Auth] No se pudo leer el perfil privado:', error);
+        // Se marca como intentado para no dejar la accesibilidad
+        // bloqueada; el proveedor no subirá nada si hay error de
+        // lectura (ver AccessibilityPrefsContext).
+        setPrivateDataReadyFor(uid);
       },
     );
   }, [currentUser?.uid]);
@@ -1375,6 +1402,7 @@ export const AuthProvider = ({
     currentUser,
     usersList,
     loading,
+    privateDataReadyFor,
     getUserByChatId,
     buscarUsuarios,
     isAdmin: currentUser?.role === 'admin',

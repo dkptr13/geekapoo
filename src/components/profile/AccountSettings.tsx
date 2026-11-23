@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import {
   Settings,
   Shield,
@@ -13,10 +13,13 @@ import {
   Check,
   Eye,
   EyeOff,
+  Accessibility,
 } from 'lucide-react';
 
 import { auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useQueryState } from '../../hooks/useQueryState';
+import { AccessibilityCenter } from '../accessibility/AccessibilityCenter';
 
 import {
   DEFAULT_PRIVACY,
@@ -37,10 +40,11 @@ import type { PrivacySettings } from '../../types';
 // ======================================================
 // CONFIGURACIÓN DE LA CUENTA
 //
-// Tres apartados, como los de cualquier web:
+// Cuatro apartados:
 //
 //   Privacidad        → quién puede encontrarte y hablar contigo
 //   Gestión de cuenta → correo, contraseña y sesión
+//   Accesibilidad     → preferencias de presentación del navegador
 //   Eliminar cuenta   → la zona roja, con su contraseña
 //
 // Vive en su pestaña propia (`?tab=ajustes`) y no al final del
@@ -52,11 +56,12 @@ import type { PrivacySettings } from '../../types';
 // escribiendo su contraseña.
 // ======================================================
 
-type Tab = 'privacidad' | 'cuenta' | 'eliminar';
+type Tab = 'privacidad' | 'cuenta' | 'accesibilidad' | 'eliminar';
 
 const TABS: { id: Tab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
   { id: 'privacidad', label: 'Privacidad', icon: Shield },
   { id: 'cuenta', label: 'Gestión de cuenta', icon: UserCog },
+  { id: 'accesibilidad', label: 'Accesibilidad', icon: Accessibility },
   { id: 'eliminar', label: 'Eliminar cuenta', icon: Trash2 },
 ];
 
@@ -67,17 +72,23 @@ const Toggle: React.FC<{
   label: string;
   hint: string;
   disabled?: boolean;
-}> = ({ checked, onChange, label, hint, disabled }) => (
+}> = ({ checked, onChange, label, hint, disabled }) => {
+  const hintId = useId();
+
+  return (
   <div className="flex items-start justify-between gap-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
     <div className="min-w-0">
       <p className="text-xs font-semibold text-zinc-200">{label}</p>
-      <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">{hint}</p>
+      <p id={hintId} className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+        {hint}
+      </p>
     </div>
     <button
       type="button"
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      aria-describedby={hintId}
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full transition-colors disabled:opacity-40 ${
@@ -91,7 +102,8 @@ const Toggle: React.FC<{
       />
     </button>
   </div>
-);
+  );
+};
 
 const inputClass =
   'w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none';
@@ -100,8 +112,14 @@ const labelClass = 'mb-1 block text-xs font-medium text-zinc-300';
 
 export const AccountSettings: React.FC = () => {
   const { currentUser, updateProfileData, logout } = useAuth();
-
-  const [tab, setTab] = useState<Tab>('privacidad');
+  // La pestaña también vive en la URL para que el Centro de
+  // Accesibilidad se pueda enlazar desde el menú de cuenta y
+  // sobreviva a una recarga (?tab=ajustes&ajustes=accesibilidad).
+  const [tabParam, setTabParam] = useQueryState('ajustes', 'privacidad');
+  const tab: Tab = TABS.some((t) => t.id === tabParam)
+    ? (tabParam as Tab)
+    : 'privacidad';
+  const setTab = (id: Tab) => setTabParam(id);
 
   // ── Privacidad ──────────────────────────────────────
   // Empieza con los valores por defecto; el efecto de abajo los
@@ -304,6 +322,26 @@ export const AccountSettings: React.FC = () => {
     setDeleteBusy(false);
   };
 
+  const moverTab = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const teclas = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
+    if (!teclas.includes(e.key)) return;
+    e.preventDefault();
+
+    const actual = TABS.findIndex((t) => t.id === tab);
+    let siguiente = 0;
+    if (e.key === 'End') siguiente = TABS.length - 1;
+    else if (e.key === 'ArrowRight') siguiente = (actual + 1) % TABS.length;
+    else if (e.key === 'ArrowLeft') siguiente = (actual - 1 + TABS.length) % TABS.length;
+
+    const destino = TABS[siguiente].id;
+    setTab(destino);
+    window.requestAnimationFrame(() =>
+      document
+        .getElementById(`settings-tab-${destino}`)
+        ?.focus({ preventScroll: true }),
+    );
+  };
+
   if (!currentUser) return null;
 
   // ── Aviso de que la cuenta tiene un perfil "oculto" ──
@@ -312,10 +350,10 @@ export const AccountSettings: React.FC = () => {
   return (
     <section className="rounded-3xl border border-white/[0.06] bg-white/[0.03] shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] p-6 sm:px-8">
-        <h3 className="flex items-center gap-2 text-base font-bold text-white">
-          <Settings size={18} className="text-violet-400" />
+        <h1 className="flex items-center gap-2 text-base font-bold text-white">
+          <Settings size={18} aria-hidden="true" className="text-violet-400" />
           <span>Configuración de la cuenta</span>
-        </h3>
+        </h1>
 
         {tab !== 'privacidad' && (
           <button
@@ -329,13 +367,21 @@ export const AccountSettings: React.FC = () => {
       </div>
 
       {/* Pestañas */}
-      <div role="tablist" className="flex flex-wrap gap-1.5 border-b border-white/[0.06] p-4 sm:px-6">
+      <div
+        role="tablist"
+        aria-label="Ajustes de la cuenta"
+        onKeyDown={moverTab}
+        className="flex flex-wrap gap-1.5 border-b border-white/[0.06] p-4 sm:px-6"
+      >
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
+            id={`settings-tab-${id}`}
             type="button"
             role="tab"
             aria-selected={tab === id}
+            aria-controls={`settings-panel-${id}`}
+            tabIndex={tab === id ? 0 : -1}
             onClick={() => setTab(id)}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
               tab === id
@@ -351,7 +397,12 @@ export const AccountSettings: React.FC = () => {
         ))}
       </div>
 
-      <div className="p-6 sm:p-8">
+      <div
+        role="tabpanel"
+        id={`settings-panel-${tab}`}
+        aria-labelledby={`settings-tab-${tab}`}
+        className="p-6 sm:p-8"
+      >
         {/* ══════════════════════════════════════════════
             PRIVACIDAD
         ══════════════════════════════════════════════ */}
@@ -390,6 +441,7 @@ export const AccountSettings: React.FC = () => {
                   <button
                     key={value}
                     type="button"
+                    aria-pressed={privacy.profileVisibility === value}
                     onClick={() =>
                       setPrivacy((p) => ({
                         ...p,
@@ -444,15 +496,23 @@ export const AccountSettings: React.FC = () => {
             )}
 
             {privacyError && (
-              <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-[11px] text-red-300">
+              <p
+                role="alert"
+                aria-live="assertive"
+                className="rounded-xl border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-[11px] text-red-300"
+              >
                 {privacyError}
               </p>
             )}
 
             <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
               {privacySaved && (
-                <span className="flex items-center gap-1 text-xs font-bold text-emerald-400">
-                  <Check size={14} /> ¡Ajustes guardados!
+                <span
+                  role="status"
+                  aria-live="polite"
+                  className="flex items-center gap-1 text-xs font-bold text-emerald-400"
+                >
+                  <Check size={14} aria-hidden="true" /> ¡Ajustes guardados!
                 </span>
               )}
               <button
@@ -561,6 +621,8 @@ export const AccountSettings: React.FC = () => {
 
               {emailMsg && (
                 <p
+                  role={emailMsg.ok ? 'status' : 'alert'}
+                  aria-live={emailMsg.ok ? 'polite' : 'assertive'}
                   className={`rounded-xl border px-3.5 py-2.5 text-[11px] ${
                     emailMsg.ok
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
@@ -649,6 +711,8 @@ export const AccountSettings: React.FC = () => {
 
               {passMsg && (
                 <p
+                  role={passMsg.ok ? 'status' : 'alert'}
+                  aria-live={passMsg.ok ? 'polite' : 'assertive'}
                   className={`rounded-xl border px-3.5 py-2.5 text-[11px] ${
                     passMsg.ok
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
@@ -661,6 +725,8 @@ export const AccountSettings: React.FC = () => {
 
               {resetMsg && (
                 <p
+                  role={resetMsg.ok ? 'status' : 'alert'}
+                  aria-live={resetMsg.ok ? 'polite' : 'assertive'}
                   className={`rounded-xl border px-3.5 py-2.5 text-[11px] ${
                     resetMsg.ok
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
@@ -691,6 +757,8 @@ export const AccountSettings: React.FC = () => {
             </div>
           </div>
         )}
+
+        {tab === 'accesibilidad' && <AccessibilityCenter />}
 
         {/* ══════════════════════════════════════════════
             ELIMINAR CUENTA
@@ -812,6 +880,8 @@ export const AccountSettings: React.FC = () => {
 
             {deleteMsg && (
               <p
+                role={deleteMsg.ok ? 'status' : 'alert'}
+                aria-live={deleteMsg.ok ? 'polite' : 'assertive'}
                 className={`rounded-xl border px-3.5 py-2.5 text-[11px] ${
                   deleteMsg.ok
                     ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'

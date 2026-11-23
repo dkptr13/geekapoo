@@ -689,6 +689,7 @@ const WorkForm: FC<{
                 <input
                   value={buscador}
                   onChange={(e) => setBuscador(e.target.value)}
+                  aria-label="Buscar series por título, estudio o título japonés"
                   placeholder="Buscar por título, estudio o título japonés..."
                   className="mb-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white outline-none transition-colors focus:border-orange-500"
                 />

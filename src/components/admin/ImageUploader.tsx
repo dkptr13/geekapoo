@@ -246,6 +246,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           <input
             type="file"
             accept="image/*"
+            aria-label="Subir una imagen desde el ordenador"
             className="hidden"
             disabled={isBusy}
             onChange={(e) => {
@@ -275,6 +276,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
+            aria-label="URL de la imagen"
             placeholder="URL de la imagen..."
             className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-[11px] text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none transition-colors"
           />

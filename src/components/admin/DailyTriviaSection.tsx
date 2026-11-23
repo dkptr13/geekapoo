@@ -527,6 +527,7 @@ const EditorPregunta: FC<{
         type="text"
         value={pregunta.question}
         onChange={(e) => cambiar({ question: e.target.value })}
+        aria-label="Pregunta de la trivia"
         placeholder="¿Cómo se llama el protagonista de Solo Leveling?"
         className="mb-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none"
       />
@@ -539,6 +540,7 @@ const EditorPregunta: FC<{
               name={`correcta-${pregunta.id}`}
               checked={pregunta.correctIndex === i}
               onChange={() => cambiar({ correctIndex: i })}
+              aria-label={`Marcar la opción ${i + 1} como respuesta correcta`}
               title="Marcar como la correcta"
               className="h-4 w-4 flex-shrink-0 accent-emerald-500"
             />
@@ -546,6 +548,7 @@ const EditorPregunta: FC<{
               type="text"
               value={opcion}
               onChange={(e) => cambiarOpcion(i, e.target.value)}
+              aria-label={`Texto de la opción ${i + 1}`}
               placeholder={`Opción ${i + 1}`}
               className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none"
             />
@@ -557,6 +560,7 @@ const EditorPregunta: FC<{
         type="text"
         value={pregunta.explanation}
         onChange={(e) => cambiar({ explanation: e.target.value })}
+        aria-label="Explicación de la respuesta correcta"
         placeholder="Explicación de por qué es esa (se ve al responder)"
         className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 placeholder-zinc-600 focus:border-amber-500 focus:outline-none"
       />

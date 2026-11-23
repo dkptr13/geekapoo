@@ -953,27 +953,31 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
                         ? 'Silenciar comentarios espontáneos'
                         : 'Activar comentarios espontáneos'
                     }
-                    className="rounded p-1 text-zinc-400 transition-colors hover:text-violet-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                    className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 transition-colors hover:text-violet-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                   >
-                    {preferencias.espontaneos ? <Bell size={12} /> : <BellOff size={12} />}
+                    {preferencias.espontaneos ? (
+                      <Bell size={12} aria-hidden="true" />
+                    ) : (
+                      <BellOff size={12} aria-hidden="true" />
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={minimizar}
                     aria-label="Minimizar a Kapo-chan"
                     title="Minimizar"
-                    className="rounded p-1 text-zinc-400 transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                    className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                   >
-                    <Minus size={12} />
+                    <Minus size={12} aria-hidden="true" />
                   </button>
                   <button
                     type="button"
                     onClick={cerrarBocadillo}
                     aria-label="Cerrar el diálogo de Kapo-chan"
                     title="Cerrar diálogo"
-                    className="rounded p-1 text-zinc-400 transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                    className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                   >
-                    <X size={12} />
+                    <X size={12} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -1070,7 +1074,7 @@ export const OtakuMascot: React.FC<OtakuMascotProps> = ({ currentSection }) => {
       <button
         ref={mascotButtonRef}
         onClick={handlePoke}
-        aria-label="Hablar con Kapo-chan"
+        aria-label="Hablar con Kapo-chan · ¡Tócame!"
         aria-expanded={showBubble}
         className={`group relative flex touch-none cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-2 shadow-2xl backdrop-blur-md transition-all duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
           animacion === 'hype'

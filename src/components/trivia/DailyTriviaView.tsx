@@ -242,7 +242,10 @@ export const DailyTriviaView: FC<Props> = ({ resaltada = false }) => {
   // ── Estados que no son juego ───────────────────────────
   if (cargando) {
     return (
-      <EstadoCargando />
+      <>
+        <h1 className="sr-only">Trivia diaria</h1>
+        <EstadoCargando />
+      </>
     );
   }
 
@@ -293,8 +296,11 @@ export const DailyTriviaView: FC<Props> = ({ resaltada = false }) => {
       />
 
       {error && (
-        <p className="geo-aparece flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300">
-          <AlertCircle size={14} className="flex-shrink-0" />
+        <p
+          role="alert"
+          className="geo-aparece flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300"
+        >
+          <AlertCircle size={14} aria-hidden="true" className="flex-shrink-0" />
           {MENSAJE_ERROR[error]}
         </p>
       )}
@@ -511,7 +517,7 @@ const ResultadoFinal: FC<{
   // llegar a el. Es el mismo motivo que en la pagina de logros.
     <div className="mx-auto w-full max-w-[1600px]">
       <div className="lg:grid lg:grid-cols-[minmax(0,520px)_minmax(0,1fr)] lg:gap-6 xl:grid-cols-[minmax(0,680px)_minmax(0,1fr)]">
-        <aside className="hidden lg:block">
+        <aside aria-label="Ilustración de la trivia" className="hidden lg:block">
           {/* Se queda pegada al scroll: la navbar es sticky de 64px,
               de ahi el margen. Sin esto la ilustracion se sale por
               arriba al bajar por las explicaciones. */}
@@ -530,6 +536,7 @@ const ResultadoFinal: FC<{
         </aside>
 
         <div className="mx-auto w-full max-w-3xl space-y-5 px-3 py-6 sm:px-4 lg:mx-0 lg:pl-0">
+      <h1 className="sr-only">Trivia diaria</h1>
       <section
         className={`rounded-2xl border p-5 text-center sm:p-7 ${
           correct === total && total > 0
@@ -659,7 +666,7 @@ const Aviso: FC<{
   <div className="flex min-h-[320px] items-center justify-center px-4">
     <div className="max-w-sm text-center">
       <div className="mb-3 flex justify-center">{icono}</div>
-      <h2 className="text-sm font-bold text-white">{titulo}</h2>
+      <h1 className="text-sm font-bold text-white">{titulo}</h1>
       <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">{texto}</p>
       {boton && (
         <button

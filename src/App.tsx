@@ -39,6 +39,7 @@ import { SupportView } from './components/support/SupportView';
 import { ExtrasView } from './components/extras/ExtrasView';
 import { ProfileView } from './components/profile/ProfileView';
 import { AccountSettings } from './components/profile/AccountSettings';
+import { AccessibilityCenter } from './components/accessibility/AccessibilityCenter';
 import { OtakuMascot } from './components/mascot/OtakuMascot';
 import { DailyTriviaView } from './components/trivia/DailyTriviaView';
 import { AuthModal } from './components/auth/AuthModal';
@@ -60,6 +61,9 @@ import { useScrollRestoration } from './hooks/useScrollRestoration';
 import { Thread } from './types';
 
 import { Code2 } from 'lucide-react';
+import { A11yProvider, useAnnouncer } from './components/common/LiveAnnouncer';
+import { SoundEffects } from './components/common/SoundEffects';
+import { AccessibilityPrefsProvider } from './context/AccessibilityPrefsContext';
 
 
 // ======================================================
@@ -105,6 +109,11 @@ const {
     setTabParam,
   ] = useQueryState('tab', 'inicio');
 
+  // La pestaña interna de configuración. Solo se usa aquí para
+  // permitir que un invitado abra el Centro de Accesibilidad sin
+  // cuenta; el resto de ajustes sigue exigiendo sesión.
+  const [ajustesParam] = useQueryState('ajustes', '');
+
   /**
    * Cambia de pestaña y limpia lo que colgaba de la anterior.
    *
@@ -124,7 +133,7 @@ const {
   const setCurrentTab = (tab: string) => {
     setHiloEnfocadoApp('');
     startTransition(() => {
-      setUrl({ tab, usuario: null });
+      setUrl({ tab, usuario: null, ajustes: null });
     });
   };
 
@@ -405,6 +414,46 @@ const {
 
   useSeo(seoVista);
 
+  // ====================================================
+  // FOCO Y ANUNCIO AL CAMBIAR DE SECCIÓN
+  // ====================================================
+  //
+  // En una SPA el navegador no recarga ni mueve el foco. Si no se
+  // hace nada, quien navega con teclado se queda en el botón del
+  // menú y el lector de pantalla no sabe que el contenido cambió.
+  //
+  // Se lleva el foco al <main> (que no es un control, por eso no
+  // dibuja el contorno global) y se anuncia el título ya
+  // actualizado. No se hace al abrir un hilo o un comentario
+  // concreto: ahí HomeFeed coloca el foco en el destino.
+  const mainRef = useRef<HTMLElement>(null);
+  const announce = useAnnouncer();
+  // Se guarda la ruta YA pintada, no un booleano de "primera vez":
+  // en StrictMode el efecto se ejecuta dos veces y un booleano haría
+  // que la segunda ejecución moviera el foco al <main> al cargar la
+  // página. Comparando claves, la carga inicial nunca coincide.
+  const rutaAnterior = useRef(`${currentTab}|${pathname}`);
+
+  useEffect(() => {
+    const clave = `${currentTab}|${pathname}`;
+    if (rutaAnterior.current === clave) return;
+    rutaAnterior.current = clave;
+
+    if (hiloParam || comentarioParam) return;
+
+    // Se espera un frame largo para que `useSeo` haya escrito el
+    // <title> de la vista nueva antes de leerlo.
+    const id = window.setTimeout(() => {
+      mainRef.current?.focus({ preventScroll: true });
+      announce(`Nueva sección: ${document.title}`);
+    }, 120);
+
+    return () => window.clearTimeout(id);
+    // `announce` es estable (useCallback). Los parámetros de hilo
+    // se leen en el momento del efecto, no deben relanzarlo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTab, pathname, announce]);
+
 
   // ====================================================
   // SELECCIONAR CATEGORÍA
@@ -523,6 +572,13 @@ const {
   return (
     <div className="min-h-screen bg-[#080810] text-zinc-100 flex flex-col">
 
+      {/* Enlace de salto. Es lo primero que recibe el foco con Tab:
+          evita atravesar toda la cabecera y los menús en cada
+          cambio de página. */}
+      <a href="#contenido-principal" className="skip-link">
+        Saltar al contenido principal
+      </a>
+
       {/* ==================================================
           NAVBAR
       ================================================== */}
@@ -559,7 +615,13 @@ const {
       El Navbar usa exactamente el mismo ancho: si no, el logo
       y el contenido quedarían desalineados.
       ==================================================== */}
-      <main className="flex-1 mx-auto w-full max-w-[1900px] px-4 py-6 sm:px-6">
+      <main
+        id="contenido-principal"
+        ref={mainRef}
+        tabIndex={-1}
+        aria-label="Contenido principal"
+        className="flex-1 mx-auto w-full max-w-[1900px] px-4 py-6 sm:px-6"
+      >
 
         {/* ================================================
             INICIO
@@ -728,9 +790,9 @@ const {
             <div className="flex min-h-[400px] items-center justify-center">
               <div className="text-center">
 
-                <h2 className="text-xl font-bold text-white">
+                <h1 className="text-xl font-bold text-white">
                   Acceso restringido
-                </h2>
+                </h1>
 
                 <p className="mt-2 text-sm text-zinc-400">
                   Debes iniciar sesión para acceder a los chats.
@@ -759,9 +821,9 @@ const {
             <div className="flex min-h-[400px] items-center justify-center">
               <div className="text-center">
 
-                <h2 className="text-xl font-bold text-white">
+                <h1 className="text-xl font-bold text-white">
                   Inicia sesión
-                </h2>
+                </h1>
 
                 <p className="mt-2 text-sm text-zinc-400">
                   Debes iniciar sesión para ver tu perfil.
@@ -785,17 +847,45 @@ const {
             <div className="mx-auto max-w-3xl 2xl:max-w-4xl">
               <AccountSettings />
             </div>
+          ) : ajustesParam === 'accesibilidad' ? (
+            <div className="mx-auto max-w-3xl 2xl:max-w-4xl">
+              <header className="mb-5">
+                <h1 className="text-xl font-black text-white">Accesibilidad</h1>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                  Puedes ajustar el texto, el contraste, el movimiento, los
+                  sonidos y los controles sin crear una cuenta. Las
+                  preferencias se guardan en este navegador y se sincronizarán
+                  con tu perfil cuando inicies sesión.
+                </p>
+              </header>
+              <AccessibilityCenter />
+            </div>
           ) : (
             <div className="flex min-h-[400px] items-center justify-center">
-              <div className="text-center">
+              <div className="max-w-md text-center">
 
-                <h2 className="text-xl font-bold text-white">
+                <h1 className="text-xl font-bold text-white">
                   Inicia sesión
-                </h2>
+                </h1>
 
                 <p className="mt-2 text-sm text-zinc-400">
                   Debes iniciar sesión para ver tu configuración.
                 </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setUrl({
+                      tab: 'ajustes',
+                      usuario: null,
+                      accion: null,
+                      ajustes: 'accesibilidad',
+                    })
+                  }
+                  className="mt-4 rounded-xl border border-violet-400/25 bg-violet-500/10 px-4 py-2.5 text-sm font-semibold text-violet-200 transition-colors hover:bg-violet-500/20"
+                >
+                  Configurar accesibilidad sin cuenta
+                </button>
 
               </div>
             </div>
@@ -836,9 +926,9 @@ const {
 
               <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-8 text-center">
 
-                <h2 className="text-xl font-bold text-red-300">
+                <h1 className="text-xl font-bold text-red-300">
                   Acceso denegado
-                </h2>
+                </h1>
 
                 <p className="mt-2 text-sm text-zinc-400">
                   No tienes permisos para acceder al panel de administración.
@@ -952,29 +1042,51 @@ const {
             <span>•</span>
 
 
-            <button
-              type="button"
-              onClick={() =>
-                setCurrentTab('soporte')
-              }
+            <a
+              href="/?tab=ajustes&ajustes=accesibilidad"
+              onClick={(e) => {
+                e.preventDefault();
+                setUrl({
+                  tab: 'ajustes',
+                  usuario: null,
+                  accion: null,
+                  ajustes: 'accesibilidad',
+                });
+              }}
               className="hover:text-zinc-300 transition-colors"
             >
-              Soporte
-            </button>
+              Accesibilidad
+            </a>
 
 
             <span>•</span>
 
 
-            <button
-              type="button"
-              onClick={() =>
-                setCurrentTab('wiki')
-              }
+            <a
+              href="/?tab=soporte"
+              onClick={(e) => {
+                e.preventDefault();
+                setCurrentTab('soporte');
+              }}
+              className="hover:text-zinc-300 transition-colors"
+            >
+              Soporte
+            </a>
+
+
+            <span>•</span>
+
+
+            <a
+              href="/?tab=wiki"
+              onClick={(e) => {
+                e.preventDefault();
+                setCurrentTab('wiki');
+              }}
               className="hover:text-zinc-300 transition-colors"
             >
               Wiki
-            </button>
+            </a>
 
           </div>
 
@@ -1007,9 +1119,16 @@ const MainAppContent: React.FC = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent" />
-          <p className="text-sm text-zinc-400">Cargando...</p>
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex flex-col items-center gap-4"
+        >
+          <div
+            aria-hidden="true"
+            className="h-10 w-10 animate-spin rounded-full border-4 border-violet-600 border-t-transparent"
+          />
+          <p className="text-sm text-zinc-400">Cargando Geekapoo...</p>
         </div>
       </div>
     );
@@ -1066,27 +1185,32 @@ function FollowingUidProvider({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <RegionPreferenceProvider>
-          <StreamingCatalogProvider>
-            <CommunityProvider>
-              <ChatProvider>
-                <ClubsProvider>
-                  <ProgressionProvider>
-                    <NotificationsProvider>
-                      <SiteContentProvider>
-                        <FollowingUidProvider>
-                          <MainAppContent />
-                        </FollowingUidProvider>
-                      </SiteContentProvider>
-                    </NotificationsProvider>
-                  </ProgressionProvider>
-                </ClubsProvider>
-              </ChatProvider>
-            </CommunityProvider>
-          </StreamingCatalogProvider>
-        </RegionPreferenceProvider>
-      </AuthProvider>
+      <A11yProvider>
+        <AuthProvider>
+          <AccessibilityPrefsProvider>
+            <RegionPreferenceProvider>
+              <StreamingCatalogProvider>
+                <CommunityProvider>
+                  <ChatProvider>
+                    <ClubsProvider>
+                      <ProgressionProvider>
+                        <NotificationsProvider>
+                          <SoundEffects />
+                          <SiteContentProvider>
+                            <FollowingUidProvider>
+                              <MainAppContent />
+                            </FollowingUidProvider>
+                          </SiteContentProvider>
+                        </NotificationsProvider>
+                      </ProgressionProvider>
+                    </ClubsProvider>
+                  </ChatProvider>
+                </CommunityProvider>
+              </StreamingCatalogProvider>
+            </RegionPreferenceProvider>
+          </AccessibilityPrefsProvider>
+        </AuthProvider>
+      </A11yProvider>
     </BrowserRouter>
   );
 }

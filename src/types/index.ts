@@ -8,6 +8,7 @@ import type {
   TipoVitrina,
 } from '../data/profileCustomization';
 import type { AparienciaChat, FondoChat } from '../data/chatApariencia';
+import type { AccessibilityPreferences } from '../data/accessibilityPreferences';
 
 export type UserRole = 'user' | 'moderator' | 'admin';
 
@@ -553,6 +554,15 @@ export interface User {
    * con sus colores. Ausente = tema oscuro de la casa.
    */
   chatApariencia?: AparienciaChat | null;
+  /**
+   * Preferencias del Centro de Accesibilidad.
+   *
+   * Viven en `userPrivate/{uid}`, no en el perfil público: son
+   * ajustes de interfaz y no deben enseñarse a otros usuarios.
+   * El objeto está versionado; la ausencia del campo significa
+   * «valores por defecto».
+   */
+  accessibility?: AccessibilityPreferences;
 }
 
 /**
@@ -572,6 +582,7 @@ export interface User {
 export interface UserPrivateData {
   email?: string;
   privacy?: Partial<PrivacySettings>;
+  accessibility?: AccessibilityPreferences;
   chatApariencia?: AparienciaChat | null;
   regionPreferida?: string;
   updatedAt?: Timestamp;

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import {
   DISPLAY_NAME_MAX,
   errorDisplayName,
@@ -38,6 +39,13 @@ export const IdentitySetupModal: React.FC = () => {
   const [comprobando, setComprobando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
+
+  // Es un modal de configuración obligatoria: no se cierra con
+  // Escape (cerrarlo cerraría la sesión sin querer), pero el foco
+  // sí queda dentro y se puede llegar a «Cancelar» con Tab.
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: Boolean(identitySetup),
+  });
 
   useEffect(() => {
     if (!identitySetup) return;
@@ -141,7 +149,14 @@ export const IdentitySetupModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm">
-      <div className="relative max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-3xl border border-violet-500/30 bg-zinc-900 p-6 shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="identity-title"
+        tabIndex={-1}
+        className="relative max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-3xl border border-violet-500/30 bg-zinc-900 p-6 shadow-2xl"
+      >
         <button
           type="button"
           onClick={() => void cancelIdentitySetup()}
@@ -158,7 +173,7 @@ export const IdentitySetupModal: React.FC = () => {
             className="h-12 w-12 rounded-2xl object-cover ring-2 ring-violet-500/40"
           />
           <div className="min-w-0">
-            <h2 className="text-base font-black text-white">
+            <h2 id="identity-title" className="text-base font-black text-white">
               Completa tu identidad
             </h2>
             <p className="truncate text-[11px] text-zinc-500">
@@ -175,15 +190,21 @@ export const IdentitySetupModal: React.FC = () => {
 
         <form onSubmit={enviar} className="mt-4 space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-300">
-              Nombre de usuario único
+            <label
+              htmlFor="identity-username"
+              className="mb-1 block text-xs font-medium text-zinc-300"
+            >
+              Nombre de usuario único{' '}
+              <span aria-hidden="true" className="text-red-300">*</span>
             </label>
             <div className="relative">
               <AtSign
                 size={16}
+                aria-hidden="true"
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
               />
               <input
+                id="identity-username"
                 type="text"
                 value={username}
                 onChange={(e) => {
@@ -194,19 +215,32 @@ export const IdentitySetupModal: React.FC = () => {
                 placeholder="kapo_25"
                 autoComplete="username"
                 maxLength={20}
+                data-autofocus
                 readOnly={identitySetup.usernameFijo}
+                aria-invalid={
+                  estado?.estado === 'ocupado' ||
+                  estado?.estado === 'invalido' ||
+                  estado?.estado === 'reservado'
+                    ? true
+                    : undefined
+                }
+                aria-describedby="identity-username-status identity-username-help"
                 className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-10 text-base text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400 read-only:cursor-not-allowed read-only:opacity-70 sm:text-xs"
                 required
               />
               {comprobando && (
                 <Loader2
                   size={15}
+                  aria-hidden="true"
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-violet-400"
                 />
               )}
             </div>
 
             <p
+              id="identity-username-status"
+              role="status"
+              aria-live="polite"
               className={`mt-1 flex items-center gap-1 text-[11px] ${
                 comprobando
                   ? 'text-zinc-400'
@@ -221,19 +255,19 @@ export const IdentitySetupModal: React.FC = () => {
             >
               {comprobando ? (
                 <>
-                  <Loader2 size={11} className="animate-spin" />
+                  <Loader2 size={11} aria-hidden="true" className="animate-spin" />
                   Comprobando disponibilidad...
                 </>
               ) : estado?.estado === 'disponible' ? (
                 <>
-                  <CheckCircle2 size={11} />
+                  <CheckCircle2 size={11} aria-hidden="true" />
                   {estado.mensaje}
                 </>
               ) : estado?.estado === 'ocupado' ||
                 estado?.estado === 'invalido' ||
                 estado?.estado === 'reservado' ? (
                 <>
-                  <AlertCircle size={11} />
+                  <AlertCircle size={11} aria-hidden="true" />
                   {estado.mensaje}
                 </>
               ) : (
@@ -241,7 +275,10 @@ export const IdentitySetupModal: React.FC = () => {
               )}
             </p>
 
-            <p className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-[10px] leading-relaxed text-amber-200">
+            <p
+              id="identity-username-help"
+              className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-[10px] leading-relaxed text-amber-200"
+            >
               Será permanente y no podrás cambiarlo. Aparecerá como{' '}
               <strong>@{usernameLimpio || 'usuario'}</strong>.
             </p>
@@ -254,15 +291,21 @@ export const IdentitySetupModal: React.FC = () => {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-300">
-              Nombre visible
+            <label
+              htmlFor="identity-display"
+              className="mb-1 block text-xs font-medium text-zinc-300"
+            >
+              Nombre visible{' '}
+              <span aria-hidden="true" className="text-red-300">*</span>
             </label>
             <div className="relative">
               <Sparkles
                 size={16}
+                aria-hidden="true"
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
               />
               <input
+                id="identity-display"
                 type="text"
                 value={displayName}
                 onChange={(e) => {
@@ -271,19 +314,24 @@ export const IdentitySetupModal: React.FC = () => {
                 }}
                 placeholder="Kapo"
                 maxLength={DISPLAY_NAME_MAX}
+                aria-describedby="identity-display-help"
                 className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400 sm:text-xs"
                 required
               />
             </div>
-            <p className="mt-1 text-[10px] text-zinc-500">
+            <p id="identity-display-help" className="mt-1 text-[10px] text-zinc-500">
               Puede repetirse con otras personas y podrás cambiarlo desde tus
               ajustes.
             </p>
           </div>
 
           {error && (
-            <p className="flex items-center gap-1.5 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">
-              <AlertCircle size={13} className="shrink-0" />
+            <p
+              role="alert"
+              aria-live="assertive"
+              className="flex items-center gap-1.5 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-[11px] text-red-300"
+            >
+              <AlertCircle size={13} aria-hidden="true" className="shrink-0" />
               {error}
             </p>
           )}
@@ -303,12 +351,13 @@ export const IdentitySetupModal: React.FC = () => {
                 comprobando ||
                 estado?.estado !== 'disponible'
               }
+              aria-busy={guardando}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
             >
               {guardando ? (
-                <Loader2 size={14} className="animate-spin" />
+                <Loader2 size={14} aria-hidden="true" className="animate-spin" />
               ) : (
-                <CheckCircle2 size={14} />
+                <CheckCircle2 size={14} aria-hidden="true" />
               )}
               {guardando ? 'Guardando...' : 'Entrar en Geekapoo'}
             </button>

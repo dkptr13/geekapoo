@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   X,
   Save,
@@ -18,6 +18,7 @@ import {
 
 import { useAuth } from '../../context/AuthContext';
 import { useProgression } from '../../context/ProgressionContext';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { uploadCommunityImage, deleteReplacedImage, esGif } from '../../services/imageUpload';
 import { validarEditable } from '../../utils/profile';
 import {
@@ -250,13 +251,12 @@ export const CustomizeProfileModal: React.FC<{
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
 
-  useEffect(() => {
-    const alPulsar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !guardando && !subiendo) onCerrar();
-    };
-    document.addEventListener('keydown', alPulsar);
-    return () => document.removeEventListener('keydown', alPulsar);
-  }, [onCerrar, guardando, subiendo]);
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose: () => {
+      if (!guardando && !subiendo) onCerrar();
+    },
+  });
 
   if (!currentUser) return null;
 
@@ -883,16 +883,21 @@ export const CustomizeProfileModal: React.FC<{
         onClick={guardando || subiendo ? undefined : onCerrar}
       >
         <div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
-          aria-label="Personalizar perfil"
+          aria-labelledby="customize-profile-title"
+          tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
           className="flex h-[100dvh] max-h-none w-full flex-col overflow-hidden border border-white/[0.06] bg-[#0c0c14] shadow-2xl sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-3xl"
         >
           {/* ── Cabecera ─────────────────────────────── */}
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
-            <h2 className="flex items-center gap-2 text-sm font-bold text-white">
-              <Sparkles size={15} className="text-violet-400" />
+            <h2
+              id="customize-profile-title"
+              className="flex items-center gap-2 text-sm font-bold text-white"
+            >
+              <Sparkles size={15} aria-hidden="true" className="text-violet-400" />
               Personalizar perfil
               <span className="rounded-md bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] font-bold text-zinc-400">
                 Nv. {level}
@@ -1092,8 +1097,10 @@ export const CustomizeProfileModal: React.FC<{
                         />
                       </label>
                       <input
+                        id="customize-banner-url"
                         type="url"
                         value={datos.bannerUrl.startsWith(PREFIJO_BANNER) ? '' : datos.bannerUrl}
+                        aria-label="URL de la imagen del banner"
                         onChange={(e) => cambiar('bannerUrl', e.target.value)}
                         placeholder="https://..."
                         className={`min-w-0 flex-1 rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
@@ -1222,10 +1229,14 @@ export const CustomizeProfileModal: React.FC<{
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label
+                    htmlFor="customize-avatar-url"
+                    className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400"
+                  >
                     O pega la URL de una imagen
                   </label>
                   <input
+                    id="customize-avatar-url"
                     type="text"
                     value={datos.avatarUrl}
                     onChange={(e) => cambiar('avatarUrl', e.target.value)}
@@ -1489,8 +1500,10 @@ export const CustomizeProfileModal: React.FC<{
                         />
                       </label>
                       <input
+                        id="customize-background-url"
                         type="url"
                         value={datos.backgroundUrl}
+                        aria-label="URL de la imagen de fondo del perfil"
                         onChange={(e) => {
                           cambiar('backgroundUrl', e.target.value);
                           if (e.target.value.trim()) cambiar('backgroundPreset', '');
@@ -1657,7 +1670,12 @@ export const CustomizeProfileModal: React.FC<{
                             tabIndex={0}
                             aria-label={`Mover decoración ${d.ref}`}
                             onPointerDown={(e) => alAgarrar(e, d.id)}
+                            onFocus={() => setDecoracionSel(d.id)}
                             onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setDecoracionSel(d.id);
+                              }
                               if (e.key === 'ArrowLeft') moverDecoracion(d.id, -2, 0);
                               if (e.key === 'ArrowRight') moverDecoracion(d.id, 2, 0);
                               if (e.key === 'ArrowUp') moverDecoracion(d.id, 0, -2);
@@ -1964,10 +1982,14 @@ export const CustomizeProfileModal: React.FC<{
             {pestana === 'info' && (
               <>
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label
+                    htmlFor="customize-username"
+                    className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400"
+                  >
                     Nombre de usuario
                   </label>
                   <input
+                    id="customize-username"
                     type="text"
                     value={`@${currentUser.username || 'usuario'}`}
                     readOnly
@@ -1981,12 +2003,22 @@ export const CustomizeProfileModal: React.FC<{
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label
+                    htmlFor="customize-display-name"
+                    className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400"
+                  >
                     Nombre visible
                   </label>
                   <input
+                    id="customize-display-name"
                     type="text"
                     value={datos.displayName}
+                    aria-invalid={errores.displayName ? true : undefined}
+                    aria-describedby={
+                      errores.displayName
+                        ? 'customize-display-name-error'
+                        : 'customize-display-name-help'
+                    }
                     onChange={(e) => cambiar('displayName', e.target.value)}
                     maxLength={DISPLAY_NAME_MAX}
                     disabled={!puedeCambiarNombre && currentUser.role !== 'admin'}
@@ -1995,9 +2027,18 @@ export const CustomizeProfileModal: React.FC<{
                     }`}
                   />
                   {errores.displayName ? (
-                    <p className="mt-1 text-[10px] text-red-400">{errores.displayName}</p>
+                    <p
+                      id="customize-display-name-error"
+                      role="alert"
+                      className="mt-1 text-[10px] text-red-400"
+                    >
+                      {errores.displayName}
+                    </p>
                   ) : (
-                    <p className="mt-1 text-[10px] text-zinc-500">
+                    <p
+                      id="customize-display-name-help"
+                      className="mt-1 text-[10px] text-zinc-500"
+                    >
                       Es lo que ven los demás. Puede repetirse con otras personas.
                       {fechaSiguienteNombre
                         ? ` Podrás cambiarlo de nuevo el ${fechaSiguienteNombre}.`
@@ -2007,7 +2048,10 @@ export const CustomizeProfileModal: React.FC<{
                 </div>
 
                 <div>
-                  <label className="mb-1 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label
+                    htmlFor="customize-bio"
+                    className="mb-1 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-zinc-400"
+                  >
                     <span>Biografía</span>
                     <span
                       className={`font-mono normal-case ${
@@ -2018,24 +2062,45 @@ export const CustomizeProfileModal: React.FC<{
                     </span>
                   </label>
                   <textarea
+                    id="customize-bio"
                     rows={3}
                     value={datos.bio}
                     onChange={(e) => cambiar('bio', e.target.value)}
+                    aria-invalid={errores.bio ? true : undefined}
+                    aria-describedby={errores.bio ? 'customize-bio-error' : undefined}
                     placeholder="Manga, anime y cyberpunk."
                     className={`w-full rounded-xl border bg-[#080810] p-3.5 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                       errores.bio ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
                   />
-                  {errores.bio && <p className="mt-1 text-[10px] text-red-400">{errores.bio}</p>}
+                  {errores.bio && (
+                    <p
+                      id="customize-bio-error"
+                      role="alert"
+                      className="mt-1 text-[10px] text-red-400"
+                    >
+                      {errores.bio}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label
+                    htmlFor="customize-favorite-anime"
+                    className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400"
+                  >
                     Anime o serie favorita
                   </label>
                   <input
+                    id="customize-favorite-anime"
                     type="text"
                     value={datos.favoriteAnime}
+                    aria-invalid={errores.favoriteAnime ? true : undefined}
+                    aria-describedby={
+                      errores.favoriteAnime
+                        ? 'customize-favorite-anime-error'
+                        : undefined
+                    }
                     onChange={(e) => cambiar('favoriteAnime', e.target.value)}
                     placeholder="Kaguya-sama: Love is War"
                     className={`w-full rounded-xl border bg-[#080810] px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none ${
@@ -2043,12 +2108,21 @@ export const CustomizeProfileModal: React.FC<{
                     }`}
                   />
                   {errores.favoriteAnime && (
-                    <p className="mt-1 text-[10px] text-red-400">{errores.favoriteAnime}</p>
+                    <p
+                      id="customize-favorite-anime-error"
+                      role="alert"
+                      className="mt-1 text-[10px] text-red-400"
+                    >
+                      {errores.favoriteAnime}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label
+                    htmlFor="customize-favorite-character"
+                    className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-zinc-400"
+                  >
                     Personaje favorito
                   </label>
                   <div className="flex items-center gap-3">
@@ -2066,9 +2140,16 @@ export const CustomizeProfileModal: React.FC<{
                     )}
                     <div className="min-w-0 flex-1 space-y-2">
                       <input
+                        id="customize-favorite-character"
                         type="text"
                         value={datos.favoriteCharacterName}
                         onChange={(e) => cambiar('favoriteCharacterName', e.target.value)}
+                        aria-invalid={errores.favoriteCharacterName ? true : undefined}
+                        aria-describedby={
+                          errores.favoriteCharacterName
+                            ? 'customize-favorite-character-error'
+                            : undefined
+                        }
                         placeholder="Nombre del personaje"
                         className={`w-full rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                           errores.favoriteCharacterName ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
@@ -2100,6 +2181,7 @@ export const CustomizeProfileModal: React.FC<{
                           type="url"
                           value={datos.favoriteCharacterImage}
                           onChange={(e) => cambiar('favoriteCharacterImage', e.target.value)}
+                          aria-label="URL de la imagen del personaje favorito"
                           placeholder="https://..."
                           className={`min-w-0 flex-1 rounded-xl border bg-[#080810] px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                             errores.favoriteCharacterImage ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
@@ -2109,28 +2191,50 @@ export const CustomizeProfileModal: React.FC<{
                     </div>
                   </div>
                   {errores.favoriteCharacterName && (
-                    <p className="mt-1 text-[10px] text-red-400">{errores.favoriteCharacterName}</p>
+                    <p
+                      id="customize-favorite-character-error"
+                      role="alert"
+                      className="mt-1 text-[10px] text-red-400"
+                    >
+                      {errores.favoriteCharacterName}
+                    </p>
                   )}
                   {errores.favoriteCharacterImage && (
                     <p className="mt-1 text-[10px] text-red-400">{errores.favoriteCharacterImage}</p>
                   )}
-                  <label className="mb-1 mt-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label
+                    htmlFor="customize-favorite-character-desc"
+                    className="mb-1 mt-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-zinc-400"
+                  >
                     <span>Por qué es tu favorito</span>
                     <span className="font-mono normal-case text-zinc-600">
                       {datos.favoriteCharacterDesc.length}/{MAX_DESC_PERSONAJE}
                     </span>
                   </label>
                   <textarea
+                    id="customize-favorite-character-desc"
                     rows={2}
                     value={datos.favoriteCharacterDesc}
                     onChange={(e) => cambiar('favoriteCharacterDesc', e.target.value)}
+                    aria-invalid={errores.favoriteCharacterDesc ? true : undefined}
+                    aria-describedby={
+                      errores.favoriteCharacterDesc
+                        ? 'customize-favorite-character-desc-error'
+                        : undefined
+                    }
                     placeholder="Lo que le hace especial para ti."
                     className={`w-full rounded-xl border bg-[#080810] p-3 text-xs text-white placeholder-zinc-600 focus:outline-none ${
                       errores.favoriteCharacterDesc ? 'border-red-500/50' : 'border-white/[0.06] focus:border-violet-500'
                     }`}
                   />
                   {errores.favoriteCharacterDesc && (
-                    <p className="mt-1 text-[10px] text-red-400">{errores.favoriteCharacterDesc}</p>
+                    <p
+                      id="customize-favorite-character-desc-error"
+                      role="alert"
+                      className="mt-1 text-[10px] text-red-400"
+                    >
+                      {errores.favoriteCharacterDesc}
+                    </p>
                   )}
                 </div>
 
@@ -2475,14 +2579,22 @@ export const CustomizeProfileModal: React.FC<{
             )}
 
             {aviso && (
-              <p className="rounded-xl border border-sky-500/20 bg-sky-500/10 px-3 py-2.5 text-[11px] text-sky-300">
+              <p
+                role="status"
+                aria-live="polite"
+                className="rounded-xl border border-sky-500/20 bg-sky-500/10 px-3 py-2.5 text-[11px] text-sky-300"
+              >
                 {aviso}
               </p>
             )}
 
             {errorGeneral && (
-              <p className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-[11px] text-red-400">
-                <AlertCircle size={13} className="mt-0.5 flex-shrink-0" />
+              <p
+                role="alert"
+                aria-live="assertive"
+                className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-[11px] text-red-400"
+              >
+                <AlertCircle size={13} aria-hidden="true" className="mt-0.5 flex-shrink-0" />
                 {errorGeneral}
               </p>
             )}
@@ -2497,7 +2609,7 @@ export const CustomizeProfileModal: React.FC<{
               title="Volver al banner, color y marco por defecto"
               className="flex items-center gap-1.5 rounded-xl border border-white/[0.1] px-3 py-2 text-xs font-bold text-zinc-400 transition-colors hover:text-white disabled:opacity-50"
             >
-              <RotateCcw size={13} />
+              <RotateCcw size={13} aria-hidden="true" />
               Restablecer
             </button>
 

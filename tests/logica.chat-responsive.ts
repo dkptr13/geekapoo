@@ -49,11 +49,23 @@ tiene('env(safe-area-inset-bottom)', 'respeto a la zona segura');
 // Las burbujas y citas largas no rompen el ancho ni el modal.
 tiene('break-words', 'las burbujas cortan palabras largas');
 
-// La fila de conversación no es un <button> con otro dentro
-// (rompe la hidratación y el lector de pantalla): es un div
-// con rol de botón y teclado.
-tiene('role="button"', 'la fila es div con rol');
-tiene('onKeyDown', 'la fila se abre con teclado');
+// La fila de conversación no mete un botón dentro de otro botón
+// ni simula un control con un div: son dos controles hermanos.
+// Abrir la conversación es un <button> nativo; el menú de acciones
+// es otro botón aparte.
+assert.ok(
+  !fuente.includes('role="button"'),
+  'la fila no simula un botón con role="button"',
+);
+tiene(
+  'aria-label={`Abrir la conversación con ${displayName}',
+  'abrir la conversación tiene nombre accesible',
+);
+tiene(
+  'aria-label={`Acciones de la conversación con ${displayName}`}',
+  'el menú de acciones es un control independiente',
+);
+tiene('aria-expanded={menuOpen}', 'el menú comunica si está abierto');
 
 // Iconos sin texto en móvil llevan nombre accesible.
 tiene('aria-label="Nuevo contacto por ID"', 'contactos con nombre');

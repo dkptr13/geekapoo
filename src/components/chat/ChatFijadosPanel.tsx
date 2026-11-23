@@ -3,6 +3,7 @@ import { Image as ImageIcon, Link2, Loader2, MessageSquare, Pin, X } from 'lucid
 
 import { fechaLegible } from '../../data/clubModeracion';
 import { useAuth } from '../../context/AuthContext';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { AvatarUsuario } from '../profile/AvatarUsuario';
 import type { ChatFijado } from '../../services/chatFijados';
 
@@ -49,6 +50,10 @@ export const ChatFijadosPanel: React.FC<ChatFijadosPanelProps> = ({
 }) => {
   const { usersList } = useAuth();
   const [salto, setSalto] = useState<string | null>(null);
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose,
+  });
 
   const nombreDe = (uid: string, respaldo: string): string => {
     const vivo = usersList.find((u) => u.uid === uid);
@@ -67,10 +72,20 @@ export const ChatFijadosPanel: React.FC<ChatFijadosPanelProps> = ({
   }, [salto, onIrA]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="chat-pinned-title"
+      tabIndex={-1}
+      className="flex h-full flex-col"
+    >
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-white">
-          <Pin size={15} className="text-violet-300" />
+        <h3
+          id="chat-pinned-title"
+          className="flex items-center gap-2 text-sm font-bold text-white"
+        >
+          <Pin size={15} aria-hidden="true" className="text-violet-300" />
           Mensajes fijados
           {fijados.length > 0 && (
             <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-1.5 py-px text-[10px] font-bold text-zinc-400">
@@ -90,8 +105,12 @@ export const ChatFijadosPanel: React.FC<ChatFijadosPanelProps> = ({
 
       <div className="flex-1 space-y-2 overflow-y-auto p-4">
         {cargando ? (
-          <p className="flex items-center gap-2 px-1 py-6 text-[11px] text-zinc-500">
-            <Loader2 size={13} className="animate-spin" />
+          <p
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 px-1 py-6 text-[11px] text-zinc-500"
+          >
+            <Loader2 size={13} aria-hidden="true" className="animate-spin" />
             Cargando mensajes fijados…
           </p>
         ) : fijados.length === 0 ? (

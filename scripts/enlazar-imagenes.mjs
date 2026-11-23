@@ -465,6 +465,32 @@ const ANIMES = [
     buscar: 'Bishoujo Senshi Sailor Moon: Cosmos - Kouhen',
     anilist: 160850,
   },
+
+  // Lote de noviembre de 2026: Cardcaptor Sakura completo. La serie de
+  // 1998, Clear Card, las dos películas y el prólogo de Clear Card. Los
+  // ids van fijados porque la franquicia tiene varias fichas del mismo
+  // año y la búsqueda por título puede devolver otra entrega.
+  { id: 'cardcaptor-sakura', buscar: 'Cardcaptor Sakura', anilist: 232 },
+  {
+    id: 'cardcaptor-sakura-clear-card',
+    buscar: 'Cardcaptor Sakura: Clear Card-hen',
+    anilist: 97881,
+  },
+  {
+    id: 'cardcaptor-sakura-la-pelicula',
+    buscar: 'Cardcaptor Sakura Movie',
+    anilist: 371,
+  },
+  {
+    id: 'cardcaptor-sakura-la-pelicula-2-la-carta-sellada',
+    buscar: 'Cardcaptor Sakura Movie: Fuinsareta Card',
+    anilist: 372,
+  },
+  {
+    id: 'cardcaptor-sakura-clear-card-prologo',
+    buscar: 'Cardcaptor Sakura: Clear Card-hen - Prologue Sakura to Futatsu no Kuma',
+    anilist: 98554,
+  },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))

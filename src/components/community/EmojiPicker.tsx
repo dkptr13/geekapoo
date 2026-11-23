@@ -115,6 +115,7 @@ export const EmojiPicker: FC<EmojiPickerProps> = ({
           type="text"
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
+          aria-label="Buscar un emoji"
           placeholder="Buscar emoji: risa, gato, Fired..."
           className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-2 pl-8 pr-8 text-[11px] text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
         />

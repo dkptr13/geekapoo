@@ -5,6 +5,7 @@ import {
   Settings,
   Sparkles,
   User,
+  Accessibility,
 } from 'lucide-react';
 
 import type { User as Usuario } from '../../types';
@@ -36,6 +37,7 @@ export const AccountMenu: React.FC<{
   onMiPerfil: () => void;
   onPersonalizar: () => void;
   onAjustes: () => void;
+  onAccesibilidad: () => void;
   onLogout: () => void;
 }> = ({
   usuario,
@@ -44,10 +46,13 @@ export const AccountMenu: React.FC<{
   onMiPerfil,
   onPersonalizar,
   onAjustes,
+  onAccesibilidad,
   onLogout,
 }) => {
   const [abierto, setAbierto] = useState(false);
   const cajaRef = useRef<HTMLDivElement | null>(null);
+  const botonRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const nombre = usuario.displayName || usuario.username || 'Usuario';
 
@@ -56,6 +61,18 @@ export const AccountMenu: React.FC<{
       ? 'Administrador'
       : usuario.role === 'moderator'
         ? 'Moderador'
+        : usuario.username
+          ? `@${usuario.username}`
+          : 'Usuario';
+
+  // Texto que se ve en el disparador (incluye los corchetes del
+  // rol). El nombre accesible tiene que contenerlo para que el
+  // lector no oiga un nombre distinto del que hay en pantalla.
+  const rolVisual =
+    usuario.role === 'admin'
+      ? '[ADMIN]'
+      : usuario.role === 'moderator'
+        ? '[MODERADOR]'
         : usuario.username
           ? `@${usuario.username}`
           : 'Usuario';
@@ -77,7 +94,10 @@ export const AccountMenu: React.FC<{
       }
     };
     const tecla = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAbierto(false);
+      if (e.key === 'Escape') {
+        setAbierto(false);
+        window.requestAnimationFrame(() => botonRef.current?.focus());
+      }
     };
 
     document.addEventListener('pointerdown', fuera);
@@ -87,6 +107,41 @@ export const AccountMenu: React.FC<{
       document.removeEventListener('keydown', tecla);
     };
   }, [abierto]);
+
+  // Al abrir, el foco entra en la primera opción. Sin esto, un
+  // lector de pantalla anuncia el botón pero no el menú, y Tab
+  // podría seguir por la página en lugar de por las opciones.
+  useEffect(() => {
+    if (!abierto) return;
+    const frame = window.requestAnimationFrame(() => {
+      const primero = menuRef.current?.querySelector<HTMLElement>(
+        '[role="menuitem"]',
+      );
+      primero?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [abierto]);
+
+  /** Flechas, Inicio y Fin dentro del menú (patrón ARIA de menús). */
+  const navegarMenu = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const teclas = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
+    if (!teclas.includes(e.key)) return;
+
+    const items = Array.from(
+      e.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]'),
+    ).filter((el) => !el.hasAttribute('disabled'));
+    if (items.length === 0) return;
+
+    e.preventDefault();
+    const actual = items.indexOf(document.activeElement as HTMLElement);
+    let siguiente = 0;
+
+    if (e.key === 'End') siguiente = items.length - 1;
+    else if (e.key === 'ArrowDown') siguiente = (actual + 1) % items.length;
+    else if (e.key === 'ArrowUp') siguiente = (actual - 1 + items.length) % items.length;
+
+    items[siguiente]?.focus({ preventScroll: true });
+  };
 
   const elegir = (accion: () => void) => {
     setAbierto(false);
@@ -101,11 +156,12 @@ export const AccountMenu: React.FC<{
       {/* Disparador: el avatar y el nombre de siempre. Toda la
           zona es el botón, no solo la foto. */}
       <button
+        ref={botonRef}
         type="button"
         onClick={() => setAbierto((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={abierto}
-        aria-label={abierto ? 'Cerrar el menú de cuenta' : 'Abrir el menú de cuenta'}
+        aria-controls="menu-cuenta"
         title={abierto ? 'Cerrar el menú de cuenta' : 'Abrir el menú de cuenta'}
         className="chat-boton flex items-center gap-2 rounded-xl px-2 py-2 transition-colors hover:bg-white/[0.05]"
       >
@@ -113,7 +169,9 @@ export const AccountMenu: React.FC<{
           <AvatarUsuario
             src={usuario.avatarUrl}
             fallbackSrc="/img/avatar-comunidad.webp"
-            alt={nombre}
+            // El nombre va en el texto del botón; el avatar no debe
+            // repetirlo cuando ya está visible.
+            alt=""
             frame={usuario.avatarFrame}
             color={usuario.profileColor}
             sizeClass="h-8 w-8"
@@ -142,14 +200,27 @@ export const AccountMenu: React.FC<{
 
         <ChevronDown
           size={14}
+          aria-hidden="true"
           className={`hidden text-zinc-500 transition-transform sm:block ${abierto ? 'rotate-180' : ''}`}
         />
+
+        {/* En móvil el nombre y el rol están ocultos con `sm:block`:
+            se recuperan aquí para que el botón no pierda quién es. */}
+        <span className="sr-only sm:hidden">
+          {nombre} {rolVisual}.{' '}
+        </span>
+        <span className="sr-only">
+          {abierto ? 'Cerrar' : 'Abrir'} el menú de cuenta
+        </span>
       </button>
 
       {abierto && (
         <div
+          ref={menuRef}
+          id="menu-cuenta"
           role="menu"
           aria-label="Menú de cuenta"
+          onKeyDown={navegarMenu}
           // Alineado a la derecha del avatar y sin salirse en
           // móvil: el ancho está topado al viewport. La aparición
           // usa `geo-pop-in`, la animación de los paneles
@@ -214,6 +285,16 @@ export const AccountMenu: React.FC<{
             >
               <Settings size={16} className="flex-shrink-0 text-zinc-400" />
               Configuración de cuenta
+            </button>
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => elegir(onAccesibilidad)}
+              className={`${itemClase} text-zinc-200 hover:bg-white/[0.05] hover:text-white`}
+            >
+              <Accessibility size={16} className="flex-shrink-0 text-violet-300" />
+              Accesibilidad
             </button>
 
             <div aria-hidden="true" className="mx-1 my-1 border-t border-white/[0.06]" />

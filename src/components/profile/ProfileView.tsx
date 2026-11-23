@@ -126,7 +126,7 @@ export const ProfileView: React.FC<ProfileViewProps> = (props) => {
     // iniciar sesión y el segundo avisa de que el perfil no está.
     return currentUser ? (
       <div className="mx-auto max-w-3xl rounded-3xl border border-white/[0.06] bg-white/[0.03] p-10 text-center">
-        <p className="text-base font-bold text-white">Este perfil ya no existe</p>
+        <h1 className="text-base font-bold text-white">Este perfil ya no existe</h1>
         <p className="mt-2 text-sm text-zinc-400">
           La cuenta puede haberse borrado, o el enlace estar mal escrito.
         </p>
@@ -171,9 +171,9 @@ export const ProfileView: React.FC<ProfileViewProps> = (props) => {
             shapeClass="rounded-3xl"
           />
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-black text-white">
-              {perfil.displayName || perfil.username || 'Usuario' || 'Usuario'}
-            </h2>
+            <h1 className="truncate text-xl font-black text-white">
+              {perfil.displayName || perfil.username || 'Usuario'}
+            </h1>
             <p className="mt-1 text-xs text-zinc-400">
               {perfil.username
                 ? `@${perfil.username}`

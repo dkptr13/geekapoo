@@ -147,6 +147,7 @@ export const ClubDiscovery: React.FC = () => {
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
+            aria-label="Buscar clubes por nombre, descripción o categoría"
             placeholder="Buscar por nombre, descripción o categoría..."
             className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-3 text-xs text-zinc-200 placeholder-zinc-600 transition-colors focus:border-violet-500 focus:outline-none"
           />

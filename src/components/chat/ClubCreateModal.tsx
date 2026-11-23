@@ -17,6 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useClubs } from '../../context/ClubsContext';
 import { CLUB_LIMITS, slugify, validarSlug, slugDisponible } from '../../services/clubs';
 import { uploadClubImage } from '../../services/clubImages';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 // ======================================================
 // MODAL PARA CREAR UN CLUB
@@ -78,6 +79,10 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
 
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose,
+  });
   // Una vez creado el club, los reintentos ya no pueden volver a
   // crearlo (el identificador está ocupado). Si las imágenes fallan,
   // el modal se queda abierto con el aviso y este estado cambia el
@@ -226,7 +231,14 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm">
-      <div className="flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="club-create-title"
+        tabIndex={-1}
+        className="flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl"
+      >
         {/* Cabecera */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-zinc-800 px-5 py-4">
           <div className="flex items-center gap-2.5">
@@ -234,7 +246,9 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
               <Users size={18} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white">Crear un club</h2>
+              <h2 id="club-create-title" className="text-sm font-bold text-white">
+                Crear un club
+              </h2>
               <p className="text-[11px] text-zinc-500">
                 Serás su propietario y primer administrador.
               </p>
@@ -263,6 +277,7 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => coverInputRef.current?.click()}
+                  aria-label="Elegir la imagen de portada del club"
                   className="relative flex h-28 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-zinc-700 bg-zinc-950 transition-colors hover:border-violet-500"
                 >
                   {portada ? (
@@ -278,6 +293,7 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
                   ref={coverInputRef}
                   type="file"
                   accept="image/*"
+                  aria-label="Imagen de portada del club"
                   className="hidden"
                   onChange={(e) => elegir(e, setPortada)}
                 />
@@ -291,6 +307,7 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => iconInputRef.current?.click()}
+                  aria-label="Elegir el icono del club"
                   className="relative flex h-28 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-zinc-700 bg-zinc-950 transition-colors hover:border-violet-500"
                 >
                   {icono ? (
@@ -306,6 +323,7 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
                   ref={iconInputRef}
                   type="file"
                   accept="image/*"
+                  aria-label="Icono del club"
                   className="hidden"
                   onChange={(e) => elegir(e, setIcono)}
                 />
@@ -404,6 +422,7 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
                   <button
                     key={c.id}
                     type="button"
+                    aria-pressed={category === c.id}
                     onClick={() => setCategory(c.id)}
                     className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold transition-colors ${
                       category === c.id
@@ -470,8 +489,12 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
           {/* ── Pie con error y botón ─────────────────── */}
           <div className="flex-shrink-0 border-t border-zinc-800 p-4">
             {error && (
-              <div className="mb-3 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2">
-                <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-red-400" />
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mb-3 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2"
+              >
+                <AlertCircle size={14} aria-hidden="true" className="mt-0.5 flex-shrink-0 text-red-400" />
                 <p className="text-[11px] text-red-300">{error}</p>
               </div>
             )}
@@ -498,9 +521,12 @@ export const ClubCreateModal: React.FC<Props> = ({ onClose }) => {
                 <button
                   type="submit"
                   disabled={deshabilitado}
+                  aria-busy={enviando}
                   className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-600/20 transition-colors hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {enviando && <Loader2 size={14} className="animate-spin" />}
+                  {enviando && (
+                    <Loader2 size={14} aria-hidden="true" className="animate-spin" />
+                  )}
                   <span>{enviando ? 'Creando...' : 'Crear club'}</span>
                 </button>
               )}
@@ -525,6 +551,7 @@ const OpcionAcceso: React.FC<{
 }> = ({ activo, onClick, icono, titulo, texto }) => (
   <button
     type="button"
+    aria-pressed={activo}
     onClick={onClick}
     className={`flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left transition-colors ${
       activo

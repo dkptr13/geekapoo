@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { FC } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -13,6 +13,7 @@ import {
 import { RANKING_COMPLETO_LIMITE } from '../../services/animeStats';
 import type { RankingMetric } from '../../services/animeStats';
 import { useWikiRanking } from '../../hooks/useWikiRanking';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { formatearNumero } from '../../utils/follows';
 import type { Anime } from '../../types';
 
@@ -238,18 +239,10 @@ const ModalRanking: FC<{
   );
   const maximo = entries.length > 0 ? contadorDe(entries[0], metric) : 0;
 
-  useEffect(() => {
-    const escape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', escape);
-    const antes = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', escape);
-      document.body.style.overflow = antes;
-    };
-  }, [onClose]);
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose,
+  });
 
   return createPortal(
     <div
@@ -259,9 +252,11 @@ const ModalRanking: FC<{
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={meta.titulo}
+        aria-labelledby="wiki-ranking-title"
+        tabIndex={-1}
         className="geo-pop-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/70 sm:rounded-3xl"
       >
         <div className="relative border-b border-white/[0.07] bg-zinc-900/95 px-4 py-3.5">
@@ -276,7 +271,7 @@ const ModalRanking: FC<{
                 <Icono size={17} />
               </span>
               <div className="min-w-0">
-                <h3 className="truncate text-base font-black text-white">
+                <h3 id="wiki-ranking-title" className="truncate text-base font-black text-white">
                   {meta.titulo}
                 </h3>
                 <p className="mt-0.5 text-[11px] text-zinc-500">

@@ -14,6 +14,7 @@ import {
   AtSign,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { comprobarUsername, type ResultadoDisponibilidad } from '../../services/identity';
 import {
   DISPLAY_NAME_MAX,
@@ -52,6 +53,15 @@ export const AuthModal: React.FC = () => {
     type: 'error' | 'success';
     message: string;
   } | null>(null);
+
+  // Foco inicial, Tab atrapado, Escape y devolución del foco al
+  // botón que abrió el modal.
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: authModalOpen,
+    onClose: closeAuth,
+  });
+
+  const errorActivo = feedback?.type === 'error';
 
   // El nombre visible se rellena con el identificador mientras la
   // persona no lo haya tocado. En cuanto lo edita, manda su texto.
@@ -289,8 +299,30 @@ export const AuthModal: React.FC = () => {
     }
   };
 
+  const moverModo = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
+    e.preventDefault();
+    const orden: Array<'login' | 'register'> = ['login', 'register'];
+    const actual = orden.indexOf(authMode === 'register' ? 'register' : 'login');
+    let siguiente = 0;
+    if (e.key === 'End') siguiente = 1;
+    else if (e.key === 'ArrowRight') siguiente = (actual + 1) % 2;
+    else if (e.key === 'ArrowLeft') siguiente = (actual - 1 + 2) % 2;
+    const destino = orden[siguiente];
+    openAuth(destino, returnToAction || undefined);
+    setFeedback(null);
+    window.requestAnimationFrame(() =>
+      document.getElementById(`auth-tab-${destino}`)?.focus({ preventScroll: true }),
+    );
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !loading) closeAuth();
+      }}
+    >
 
       {/* Glow Background Corners */}
       <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-violet-600/20 blur-3xl" />
@@ -321,15 +353,23 @@ export const AuthModal: React.FC = () => {
           y, si aun así no cabe, el formulario se scrolls y
           el botón siempre está a un clic.
       ================================================== */}
-      <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl shadow-violet-950/40 md:max-w-2xl md:flex-row">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
+        tabIndex={-1}
+        className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl shadow-violet-950/40 md:max-w-2xl md:flex-row"
+      >
 
         {/* Close Button */}
         <button
           type="button"
           onClick={closeAuth}
+          aria-label="Cerrar la ventana de acceso"
           className="absolute right-5 top-5 z-10 rounded-full p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
         >
-          <X size={18} />
+          <X size={18} aria-hidden="true" />
         </button>
 
         {/* Ilustración */}
@@ -358,7 +398,10 @@ export const AuthModal: React.FC = () => {
             <Sparkles size={24} />
           </div>
 
-          <h2 className="text-2xl font-black tracking-tight text-white">
+          <h2
+            id="auth-modal-title"
+            className="text-2xl font-black tracking-tight text-white"
+          >
             {authMode === 'login' && 'Iniciar Sesión'}
             {authMode === 'register' && 'Únete a geekapoo'}
             {authMode === 'recover' && 'Recuperar Contraseña'}
@@ -379,10 +422,19 @@ export const AuthModal: React.FC = () => {
         {/* Mode Tabs */}
         {(authMode === 'login' ||
           authMode === 'register') && (
-          <div className="mb-6 grid grid-cols-2 rounded-xl bg-white/[0.03] p-1 border border-white/[0.06]">
+          <div
+            role="tablist"
+            aria-label="Tipo de acceso"
+            onKeyDown={moverModo}
+            className="mb-6 grid grid-cols-2 rounded-xl bg-white/[0.03] p-1 border border-white/[0.06]"
+          >
 
             <button
+              id="auth-tab-login"
               type="button"
+              role="tab"
+              aria-selected={authMode === 'login'}
+              aria-controls="auth-panel-login"
               onClick={() => {
                 openAuth(
                   'login',
@@ -400,7 +452,11 @@ export const AuthModal: React.FC = () => {
             </button>
 
             <button
+              id="auth-tab-register"
               type="button"
+              role="tab"
+              aria-selected={authMode === 'register'}
+              aria-controls="auth-panel-register"
               onClick={() => {
                 openAuth(
                   'register',
@@ -423,6 +479,10 @@ export const AuthModal: React.FC = () => {
         {/* Feedback Alerts */}
         {feedback && (
           <div
+            id="auth-feedback"
+            role={feedback.type === 'error' ? 'alert' : 'status'}
+            aria-live={feedback.type === 'error' ? 'assertive' : 'polite'}
+            aria-atomic="true"
             className={`mb-5 flex items-start gap-2.5 rounded-xl border p-3.5 text-xs ${
               feedback.type === 'error'
                 ? 'border-red-500/30 bg-red-500/10 text-red-300'
@@ -432,11 +492,13 @@ export const AuthModal: React.FC = () => {
             {feedback.type === 'error' ? (
               <AlertCircle
                 size={16}
+                aria-hidden="true"
                 className="shrink-0 mt-0.5"
               />
             ) : (
               <CheckCircle2
                 size={16}
+                aria-hidden="true"
                 className="shrink-0 mt-0.5"
               />
             )}
@@ -450,29 +512,46 @@ export const AuthModal: React.FC = () => {
         {/* LOGIN FORM */}
         {authMode === 'login' && (
           <form
+            id="auth-panel-login"
+            role="tabpanel"
+            aria-labelledby="auth-tab-login"
+            aria-describedby={feedback ? 'auth-feedback' : undefined}
             onSubmit={handleLogin}
             className="space-y-4"
           >
+            <p className="sr-only">
+              Los campos marcados con asterisco son obligatorios.
+            </p>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-300">
-                Correo Electrónico
+              <label
+                htmlFor="auth-login-email"
+                className="mb-1 block text-xs font-medium text-zinc-300"
+              >
+                Correo Electrónico{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
 
               <div className="relative">
 
                 <Mail
                   size={16}
+                  aria-hidden="true"
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
 
                 <input
+                  id="auth-login-email"
                   type="email"
                   value={email}
                   onChange={(e) =>
                     setEmail(e.target.value)
                   }
                   placeholder="ejemplo@geekapoo.es"
+                  autoComplete="email"
+                  data-autofocus
+                  aria-invalid={errorActivo && !email ? true : undefined}
+                  aria-describedby={feedback ? 'auth-feedback' : undefined}
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
@@ -484,8 +563,12 @@ export const AuthModal: React.FC = () => {
 
               <div className="mb-1 flex items-center justify-between">
 
-                <label className="text-xs font-medium text-zinc-300">
-                  Contraseña
+                <label
+                  htmlFor="auth-login-password"
+                  className="text-xs font-medium text-zinc-300"
+                >
+                  Contraseña{' '}
+                  <span aria-hidden="true" className="text-red-300">*</span>
                 </label>
 
                 <button
@@ -508,16 +591,21 @@ export const AuthModal: React.FC = () => {
 
                 <Lock
                   size={16}
+                  aria-hidden="true"
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
 
                 <input
+                  id="auth-login-password"
                   type="password"
                   value={password}
                   onChange={(e) =>
                     setPassword(e.target.value)
                   }
                   placeholder="••••••••"
+                  autoComplete="current-password"
+                  aria-invalid={errorActivo && !password ? true : undefined}
+                  aria-describedby={feedback ? 'auth-feedback' : undefined}
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
@@ -528,6 +616,7 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
+              aria-busy={loading}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
             >
               <span>
@@ -536,7 +625,7 @@ export const AuthModal: React.FC = () => {
                   : 'Iniciar Sesión'}
               </span>
 
-              <ArrowRight size={14} />
+              <ArrowRight size={14} aria-hidden="true" />
             </button>
 
           </form>
@@ -545,24 +634,41 @@ export const AuthModal: React.FC = () => {
         {/* REGISTER FORM */}
         {authMode === 'register' && (
           <form
+            id="auth-panel-register"
+            role="tabpanel"
+            aria-labelledby="auth-tab-register"
+            aria-describedby={feedback ? 'auth-feedback' : undefined}
             onSubmit={handleRegister}
             className="space-y-4"
           >
+            <p className="sr-only">
+              Los campos marcados con asterisco son obligatorios.
+            </p>
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-300">
-                Correo Electrónico
+              <label
+                htmlFor="auth-reg-email"
+                className="mb-1 block text-xs font-medium text-zinc-300"
+              >
+                Correo Electrónico{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
 
               <div className="relative">
                 <Mail
                   size={16}
+                  aria-hidden="true"
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
                 <input
+                  id="auth-reg-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu_email@dominio.com"
+                  autoComplete="email"
+                  data-autofocus
+                  aria-invalid={errorActivo && !email ? true : undefined}
+                  aria-describedby={feedback ? 'auth-feedback' : undefined}
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
@@ -570,16 +676,22 @@ export const AuthModal: React.FC = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-300">
-                Nombre de usuario único
+              <label
+                htmlFor="auth-reg-username"
+                className="mb-1 block text-xs font-medium text-zinc-300"
+              >
+                Nombre de usuario único{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
 
               <div className="relative">
                 <AtSign
                   size={16}
+                  aria-hidden="true"
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
                 <input
+                  id="auth-reg-username"
                   type="text"
                   value={username}
                   onChange={(e) => {
@@ -589,18 +701,30 @@ export const AuthModal: React.FC = () => {
                   placeholder="kapo_25"
                   autoComplete="username"
                   maxLength={20}
+                  aria-invalid={
+                    usernameState?.estado === 'ocupado' ||
+                    usernameState?.estado === 'invalido' ||
+                    usernameState?.estado === 'reservado'
+                      ? true
+                      : undefined
+                  }
+                  aria-describedby="auth-username-status auth-username-help"
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-10 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
                 {checkingUsername && (
                   <Loader2
                     size={15}
+                    aria-hidden="true"
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-violet-400"
                   />
                 )}
               </div>
 
               <p
+                id="auth-username-status"
+                role="status"
+                aria-live="polite"
                 className={`mt-1 flex items-center gap-1 text-[11px] ${
                   checkingUsername
                     ? 'text-zinc-400'
@@ -615,19 +739,19 @@ export const AuthModal: React.FC = () => {
               >
                 {checkingUsername ? (
                   <>
-                    <Loader2 size={11} className="animate-spin" />
+                    <Loader2 size={11} aria-hidden="true" className="animate-spin" />
                     Comprobando disponibilidad...
                   </>
                 ) : usernameState?.estado === 'disponible' ? (
                   <>
-                    <CheckCircle2 size={11} />
+                    <CheckCircle2 size={11} aria-hidden="true" />
                     {usernameState.mensaje}
                   </>
                 ) : usernameState?.estado === 'ocupado' ||
                   usernameState?.estado === 'invalido' ||
                   usernameState?.estado === 'reservado' ? (
                   <>
-                    <AlertCircle size={11} />
+                    <AlertCircle size={11} aria-hidden="true" />
                     {usernameState.mensaje}
                   </>
                 ) : (
@@ -635,23 +759,32 @@ export const AuthModal: React.FC = () => {
                 )}
               </p>
 
-              <p className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-[10px] leading-relaxed text-amber-200">
+              <p
+                id="auth-username-help"
+                className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-[10px] leading-relaxed text-amber-200"
+              >
                 Tu nombre de usuario será permanente y no podrás cambiarlo
                 después. Aparecerá como <strong>@{normalizarUsername(username) || 'usuario'}</strong>.
               </p>
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-300">
-                Nombre visible
+              <label
+                htmlFor="auth-reg-display"
+                className="mb-1 block text-xs font-medium text-zinc-300"
+              >
+                Nombre visible{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
 
               <div className="relative">
                 <Sparkles
                   size={16}
+                  aria-hidden="true"
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
                 <input
+                  id="auth-reg-display"
                   type="text"
                   value={displayName}
                   onChange={(e) => {
@@ -661,49 +794,67 @@ export const AuthModal: React.FC = () => {
                   placeholder="Kapo"
                   autoComplete="nickname"
                   maxLength={DISPLAY_NAME_MAX}
+                  aria-describedby="auth-display-help"
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
               </div>
-              <p className="mt-1 text-[10px] text-zinc-500">
+              <p id="auth-display-help" className="mt-1 text-[10px] text-zinc-500">
                 Este es el nombre que verá la comunidad. Puede repetirse y
                 podrás cambiarlo más adelante.
               </p>
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-300">
-                Contraseña Segura
+              <label
+                htmlFor="auth-reg-password"
+                className="mb-1 block text-xs font-medium text-zinc-300"
+              >
+                Contraseña Segura{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
 
               <div className="relative">
                 <Lock
                   size={16}
+                  aria-hidden="true"
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
                 <input
+                  id="auth-reg-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
                   autoComplete="new-password"
+                  minLength={6}
+                  aria-describedby="auth-password-help"
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
               </div>
+              <p id="auth-password-help" className="mt-1 text-[10px] text-zinc-500">
+                Debe tener al menos 6 caracteres.
+              </p>
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-300">
-                Confirmar contraseña
+              <label
+                htmlFor="auth-reg-confirm"
+                className="mb-1 block text-xs font-medium text-zinc-300"
+              >
+                Confirmar contraseña{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
 
               <div className="relative">
                 <Lock
                   size={16}
+                  aria-hidden="true"
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
                 <input
+                  id="auth-reg-confirm"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -718,6 +869,7 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading || usernameState?.estado !== 'disponible'}
+              aria-busy={loading}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
             >
               <span>
@@ -726,7 +878,7 @@ export const AuthModal: React.FC = () => {
                   : 'Crear Cuenta y Unirme'}
               </span>
 
-              <Sparkles size={14} />
+              <Sparkles size={14} aria-hidden="true" />
             </button>
 
           </form>
@@ -735,6 +887,9 @@ export const AuthModal: React.FC = () => {
         {/* RECOVER PASSWORD (FIREBASE ENLACE SEGURO) */}
         {authMode === 'recover' && (
           <form
+            id="auth-panel-recover"
+            aria-labelledby="auth-modal-title"
+            aria-describedby={feedback ? 'auth-feedback' : undefined}
             onSubmit={handleSendResetEmail}
             className="space-y-4"
           >
@@ -746,24 +901,34 @@ export const AuthModal: React.FC = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-300">
-                Correo Electrónico Registrado
+              <label
+                htmlFor="auth-recover-email"
+                className="mb-1 block text-xs font-medium text-zinc-300"
+              >
+                Correo Electrónico Registrado{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
 
               <div className="relative">
 
                 <Mail
                   size={16}
+                  aria-hidden="true"
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500"
                 />
 
                 <input
+                  id="auth-recover-email"
                   type="email"
                   value={email}
                   onChange={(e) =>
                     setEmail(e.target.value)
                   }
                   placeholder="ejemplo: kaguya.fan@geekapoo.es"
+                  autoComplete="email"
+                  data-autofocus
+                  aria-invalid={errorActivo && !email ? true : undefined}
+                  aria-describedby={feedback ? 'auth-feedback' : undefined}
                   className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 pl-10 pr-4 text-base sm:text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400"
                   required
                 />
@@ -774,6 +939,7 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
+              aria-busy={loading}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 transition-all hover:brightness-110 disabled:opacity-50"
             >
               <span>
@@ -782,7 +948,7 @@ export const AuthModal: React.FC = () => {
                   : 'Enviar Enlace de Recuperación'}
               </span>
 
-              <KeyRound size={14} />
+              <KeyRound size={14} aria-hidden="true" />
             </button>
 
             <button

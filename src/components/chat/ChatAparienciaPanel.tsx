@@ -9,6 +9,7 @@ import {
   resolverApariencia,
   type AparienciaChat,
 } from '../../data/chatApariencia';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 // ======================================================
 // PANEL DE PERSONALIZACIÓN DEL CHAT
@@ -149,6 +150,11 @@ export const ChatAparienciaPanel: React.FC<ChatAparienciaPanelProps> = ({
   const fondoHayImagen = Boolean(fondo?.url);
   const inputFondoRef = useRef<HTMLInputElement>(null);
 
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose: onCancelar,
+  });
+
   const ocupado = guardando || subiendoFondo;
 
   return (
@@ -157,16 +163,21 @@ export const ChatAparienciaPanel: React.FC<ChatAparienciaPanelProps> = ({
       onClick={ocupado ? undefined : onCancelar}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Personalizar el chat"
+        aria-labelledby="chat-appearance-title"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-zinc-800 bg-zinc-900 shadow-2xl sm:max-w-2xl sm:rounded-3xl"
       >
         {/* ── Cabecera ─────────────────────────────── */}
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-800 px-5 py-4">
-          <h2 className="flex items-center gap-2 text-sm font-bold text-white">
-            <Palette size={15} className="text-violet-400" />
+          <h2
+            id="chat-appearance-title"
+            className="flex items-center gap-2 text-sm font-bold text-white"
+          >
+            <Palette size={15} aria-hidden="true" className="text-violet-400" />
             Personalizar el chat
           </h2>
           <button
@@ -267,6 +278,7 @@ export const ChatAparienciaPanel: React.FC<ChatAparienciaPanelProps> = ({
                 ref={inputFondoRef}
                 type="file"
                 accept="image/*"
+                aria-label="Subir una imagen de fondo para el chat"
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
@@ -346,6 +358,7 @@ export const ChatAparienciaPanel: React.FC<ChatAparienciaPanelProps> = ({
                     max={80}
                     step={5}
                     value={fondo.dim ?? 0}
+                    aria-label="Oscurecer la imagen de fondo del chat"
                     onChange={(e) => pon({ fondo: { ...fondo, dim: Number(e.target.value) } })}
                     className="w-full accent-violet-500"
                   />

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { useClubs } from '../../context/ClubsContext';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import {
   CANAL_LIMITS,
   canalSlugify,
@@ -64,6 +65,10 @@ export const ClubChannelModal: React.FC<Props> = ({
 
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose,
+  });
 
   const manejarNombre = (valor: string) => {
     setName(valor.slice(0, CANAL_LIMITS.name.max));
@@ -132,14 +137,21 @@ export const ClubChannelModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm">
-      <div className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="club-channel-title"
+        tabIndex={-1}
+        className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl"
+      >
         <div className="flex flex-shrink-0 items-center justify-between border-b border-zinc-800 px-5 py-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-600/20 text-violet-400">
-              <Hash size={18} />
+              <Hash size={18} aria-hidden="true" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white">
+              <h2 id="club-channel-title" className="text-sm font-bold text-white">
                 {editando ? `Editar #${channel?.name}` : `Nuevo canal en ${club.name}`}
               </h2>
               <p className="text-[11px] text-zinc-500">
@@ -326,8 +338,12 @@ export const ClubChannelModal: React.FC<Props> = ({
 
           <div className="flex-shrink-0 border-t border-zinc-800 p-4">
             {error && (
-              <div className="mb-3 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2">
-                <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-red-400" />
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mb-3 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2"
+              >
+                <AlertCircle size={14} aria-hidden="true" className="mt-0.5 flex-shrink-0 text-red-400" />
                 <p className="text-[11px] text-red-300">{error}</p>
               </div>
             )}
@@ -343,9 +359,12 @@ export const ClubChannelModal: React.FC<Props> = ({
               <button
                 type="submit"
                 disabled={deshabilitado}
+                aria-busy={enviando}
                 className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-600/20 transition-colors hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {enviando && <Loader2 size={14} className="animate-spin" />}
+                {enviando && (
+                  <Loader2 size={14} aria-hidden="true" className="animate-spin" />
+                )}
                 <span>{enviando ? 'Guardando...' : editando ? 'Guardar cambios' : 'Crear canal'}</span>
               </button>
             </div>

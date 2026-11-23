@@ -40,7 +40,9 @@ const FieldBody: FC<FieldShellProps> = ({ label, error, hint, children }) => (
     <span className="mb-1 block text-[11px] font-semibold text-zinc-300">{label}</span>
     {children}
     {error ? (
-      <span className="mt-1 block text-[10px] text-red-400">{error}</span>
+      <span role="alert" className="mt-1 block text-[10px] text-red-400">
+        {error}
+      </span>
     ) : hint ? (
       <span className="mt-1 block text-[10px] text-zinc-600">{hint}</span>
     ) : null}

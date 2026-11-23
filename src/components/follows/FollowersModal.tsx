@@ -3,6 +3,7 @@ import { X, Loader2, UserRound } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
 import { useFollows } from '../../context/FollowsContext';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { useGoToProfile } from '../../hooks/useGoToProfile';
 import { cargarPagina, errorDeFollow, type ListaSeguidos } from '../../services/follows';
 import { nivelDesdeXp } from '../../utils/progression';
@@ -78,6 +79,11 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
   const [cursor, setCursor] = useState<Parameters<typeof cargarPagina>[2]>(null);
   const [hayMas, setHayMas] = useState(false);
 
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose: onCerrar,
+  });
+
   // ── Cargar ─────────────────────────────────────────
   //
   // La primera página se pide al montar y cada vez que cambia de
@@ -103,20 +109,6 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
   useEffect(() => {
     void cargarPrimera();
   }, [cargarPrimera]);
-
-  // ── Cerrar con Escape ──────────────────────────────
-  //
-  // Sin esto, un modal que se abre con el botón del perfil no se
-  // puede cerrar con el teclado. Es un detalle pequeño pero de los
-  // que se notan: el usuario que ya sabe que Escape cierra las
-  // cosas (porque en el resto de la app lo hace) prueba y nada.
-  useEffect(() => {
-    const alPulsar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCerrar();
-    };
-    document.addEventListener('keydown', alPulsar);
-    return () => document.removeEventListener('keydown', alPulsar);
-  }, [onCerrar]);
 
   const cargarMas = async () => {
     if (!cursor || cargandoMas) return;
@@ -206,16 +198,18 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
         hacer scroll, y el modal se salía por abajo.
       */}
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={nombreLista}
+        aria-labelledby="followers-title"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[80dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:max-w-md sm:rounded-3xl"
       >
         {/* ── Cabecera ─────────────────────────────────── */}
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-bold text-white">
+            <h2 id="followers-title" className="truncate text-sm font-bold text-white">
               {titulo ? `${nombreLista} de ${titulo}` : nombreLista}
             </h2>
             {/* El total sale del contador del documento, no de las
@@ -239,15 +233,19 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
         {/* ── Cuerpo ───────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto overscroll-contain p-3">
           {cargando && (
-            <div className="flex items-center justify-center gap-2 py-10">
-              <Loader2 size={16} className="animate-spin text-violet-400" />
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex items-center justify-center gap-2 py-10"
+            >
+              <Loader2 size={16} aria-hidden="true" className="animate-spin text-violet-400" />
               <span className="text-xs text-zinc-400">Cargando...</span>
             </div>
           )}
 
           {!cargando && error && (
             <div className="py-8 text-center">
-              <p className="text-xs text-rose-400">{error}</p>
+              <p role="alert" className="text-xs text-rose-400">{error}</p>
               <button
                 type="button"
                 onClick={() => void cargarPrimera()}
@@ -300,6 +298,11 @@ export const FollowersModal: React.FC<FollowersModalProps> = ({
                           onCerrar();
                         }}
                         className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                        aria-label={`Ver el perfil de ${
+                          perfil?.displayName ||
+                          perfil?.username ||
+                          'esta persona'
+                        }`}
                         title={`Ver el perfil de ${perfil?.username ?? 'esta persona'}`}
                       >
                         {perfil?.avatarUrl ? (

@@ -55,6 +55,7 @@ import {
 import { MentionText } from '../community/MentionText';
 import { StableImage } from '../common/StableImage';
 import { AutoGrowTextarea } from '../common/AutoGrowTextarea';
+import { useAnnouncer } from '../common/LiveAnnouncer';
 import { useFanartFeed } from '../../hooks/useFanartFeed';
 import { useFavoriteFanarts } from '../../hooks/useFavoriteFanarts';
 import {
@@ -325,15 +326,17 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
    * (o desaparecería de golpe, si mountsmany).
    */
   const avisoTimer = useRef<number | null>(null);
+  const announce = useAnnouncer();
 
   const avisar = useCallback((texto: string, ms = 3500) => {
     if (avisoTimer.current !== null) window.clearTimeout(avisoTimer.current);
     setAvisoModeracion(texto);
+    announce(texto);
     avisoTimer.current = window.setTimeout(() => {
       avisoTimer.current = null;
       setAvisoModeracion('');
     }, ms);
-  }, []);
+  }, [announce]);
 
   useEffect(
     () => () => {
@@ -695,7 +698,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     if (!title.trim()) return;
     if (!esFanart && !body.trim()) return;
     if (esFanart && fanartImages.length === 0) {
-      setErrorFanart('Añade al menos una imagen para publicar el fanart.');
+      const mensaje = 'Añade al menos una imagen para publicar el fanart.';
+      setErrorFanart(mensaje);
+      announce(mensaje, 'assertive');
       return;
     }
     setErrorFanart('');
@@ -730,9 +735,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
         normalizarPoll(poll);
         setErrorEncuesta('');
       } catch (e) {
-        setErrorEncuesta(
-          e instanceof Error ? e.message : 'Revisa la encuesta antes de publicar.',
-        );
+        const mensaje =
+          e instanceof Error ? e.message : 'Revisa la encuesta antes de publicar.';
+        setErrorEncuesta(mensaje);
+        announce(mensaje, 'assertive');
         return;
       }
     }
@@ -778,6 +784,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       setErrorFanart('');
       setTipoPublicacion('hilo');
       setShowCreateThread(false);
+      announce(
+        esFanart
+          ? 'Fanart publicado correctamente.'
+          : 'Hilo publicado correctamente.',
+      );
 
       if (esFanart) {
         // La consulta de Fanarts no tiene listener: se recarga la
@@ -830,6 +841,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       setCommentImageUrl('');
       setCommentImageDims(null);
       setCommentGif(null);
+      announce('Comentario publicado.');
     }
   };
 
@@ -841,6 +853,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       setReplyText('');
       setReplyGif(null);
       setReplyingToCommentId(null);
+      announce('Respuesta publicada.');
     }
   };
 
@@ -851,6 +864,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
     const base = `${window.location.origin}${window.location.pathname}`;
     navigator.clipboard.writeText(`${base}?tab=inicio&hilo=${thread.id}`);
     setCopiedShareId(thread.id);
+    announce('Enlace del hilo copiado al portapapeles.');
     setTimeout(() => setCopiedShareId(null), 2000);
   };
 
@@ -1042,9 +1056,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
       {/* 2. FEED TOOLBAR & CATEGORY BANNER */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
+            type="button"
             onClick={() => setFeedSort('recent')}
+            aria-pressed={feedSort === 'recent'}
             className={`chat-boton flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
               feedSort === 'recent'
                 ? 'border border-violet-400/25 bg-violet-500/15 text-violet-200'
@@ -1055,7 +1071,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             <span>Recientes</span>
           </button>
           <button
+            type="button"
             onClick={() => setFeedSort('popular')}
+            aria-pressed={feedSort === 'popular'}
             className={`chat-boton flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
               feedSort === 'popular'
                 ? 'border border-violet-400/25 bg-violet-500/15 text-violet-200'
@@ -1066,6 +1084,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             <span>Más Populares</span>
           </button>
           <button
+            type="button"
+            aria-pressed={feedSort === 'fanarts'}
             onClick={() => {
               if (selectedCategoryFilter) {
                 categoriaFanartIgnoradaRef.current = selectedCategoryFilter;
@@ -1089,7 +1109,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           <div className="flex items-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-1 text-xs text-violet-200">
             <span>Filtrado por categoría activa</span>
             <button
+              type="button"
               onClick={onClearCategoryFilter}
+              aria-label="Quitar el filtro de categoría"
               className="text-violet-400 hover:text-white font-bold ml-1"
             >
               ✕ Quitar
@@ -1130,6 +1152,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             <div className="flex items-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
               <button
                 type="button"
+                aria-pressed={fanartSort === 'recent'}
                 onClick={() => setFanartSort('recent')}
                 className={`chat-boton flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
                   fanartSort === 'recent'
@@ -1142,6 +1165,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={fanartSort === 'popular'}
                 onClick={() => setFanartSort('popular')}
                 className={`chat-boton flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
                   fanartSort === 'popular'
@@ -1158,6 +1182,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
           <div className="mt-3 flex flex-wrap gap-1.5">
             <button
               type="button"
+              aria-pressed={!fanartGuardados && !fanartTag}
               onClick={() => {
                 setFanartGuardados(false);
                 setFanartTag(null);
@@ -1177,6 +1202,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 <button
                   key={etiqueta.id}
                   type="button"
+                  aria-pressed={activa}
                   onClick={() => {
                     setFanartGuardados(false);
                     setFanartTag(activa ? null : etiqueta.tag);
@@ -1198,6 +1224,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 <button
                   key={`extra-${etiqueta}`}
                   type="button"
+                  aria-pressed={activa}
                   onClick={() => {
                     setFanartGuardados(false);
                     setFanartTag(activa ? null : etiqueta);
@@ -1215,6 +1242,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
             <button
               type="button"
+              aria-pressed={fanartGuardados}
               onClick={() => {
                 if (!currentUser) {
                   requireAuth('guardar fanarts en favoritos');
@@ -1282,6 +1310,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               <div className="inline-flex rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
                 <button
                   type="button"
+                  aria-pressed={tipoPublicacion === 'hilo'}
                   onClick={() => setTipoPublicacion('hilo')}
                   className={`chat-boton flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
                     tipoPublicacion === 'hilo'
@@ -1294,6 +1323,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 </button>
                 <button
                   type="button"
+                  aria-pressed={tipoPublicacion === 'fanart'}
                   onClick={() => {
                     setTipoPublicacion('fanart');
                     setThreadGif(null);
@@ -1311,12 +1341,17 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">
+              <label
+                htmlFor="thread-title"
+                className="block text-xs font-medium text-zinc-300 mb-1"
+              >
                 {tipoPublicacion === 'fanart'
                   ? 'Título de la obra'
-                  : 'Título del Hilo o Debate'}
+                  : 'Título del Hilo o Debate'}{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
               <input
+                id="thread-title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -1334,10 +1369,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               <div>
                 {tipoPublicacion === 'fanart' ? (
                   <>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">
+                    <label
+                      htmlFor="thread-fanart-source"
+                      className="block text-xs font-medium text-zinc-300 mb-1"
+                    >
                       Obra o personaje relacionado (opcional)
                     </label>
                     <input
+                      id="thread-fanart-source"
                       type="text"
                       value={fanartSource}
                       onChange={(e) => setFanartSource(e.target.value)}
@@ -1348,10 +1387,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   </>
                 ) : (
                   <>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">
+                    <label
+                      htmlFor="thread-category"
+                      className="block text-xs font-medium text-zinc-300 mb-1"
+                    >
                       Categoría
                     </label>
                     <select
+                      id="thread-category"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                       className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-base sm:text-xs text-white focus:border-violet-500 focus:outline-none"
@@ -1367,10 +1410,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">
+                <label
+                  htmlFor="thread-tags"
+                  className="block text-xs font-medium text-zinc-300 mb-1"
+                >
                   Etiquetas Personalizadas (separadas por comas)
                 </label>
                 <input
+                  id="thread-tags"
                   type="text"
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
@@ -1395,6 +1442,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       <button
                         key={opcion.id}
                         type="button"
+                        aria-pressed={fanartMedium === opcion.id}
                         onClick={() => setFanartMedium(opcion.id)}
                         className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
                           fanartMedium === opcion.id
@@ -1415,6 +1463,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                   <div className="flex flex-wrap gap-1.5">
                     <button
                       type="button"
+                      aria-pressed={fanartOriginal}
                       onClick={() => setFanartOriginal(true)}
                       className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
                         fanartOriginal
@@ -1426,6 +1475,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     </button>
                     <button
                       type="button"
+                      aria-pressed={!fanartOriginal}
                       onClick={() => setFanartOriginal(false)}
                       className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
                         !fanartOriginal
@@ -1449,6 +1499,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                         <button
                           key={etiqueta.id}
                           type="button"
+                          aria-pressed={activa}
                           onClick={() =>
                             setFanartQuickTags((prev) =>
                               activa
@@ -1476,13 +1527,20 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             )}
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">
+              <label
+                htmlFor="thread-body"
+                className="block text-xs font-medium text-zinc-300 mb-1"
+              >
                 {tipoPublicacion === 'fanart'
                   ? 'Descripción (opcional)'
-                  : 'Contenido / Argumentación'}
+                  : 'Contenido / Argumentación'}{' '}
+                {tipoPublicacion !== 'fanart' && (
+                  <span aria-hidden="true" className="text-red-300">*</span>
+                )}
               </label>
               <div className="relative">
                 <AutoGrowTextarea
+                  id="thread-body"
                   inputRef={threadBodyRef}
                   rows={4}
                   maxHeight={320}
@@ -1554,7 +1612,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             )}
 
             {errorFanart && (
-              <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">
+              <p
+                id="thread-error"
+                role="alert"
+                aria-live="assertive"
+                className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-300"
+              >
                 {errorFanart}
               </p>
             )}
@@ -1785,7 +1848,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 ) : thread.imageUrl && !thread.gif ? (
                   <StableImage
                     src={thread.imageUrl}
-                    alt="Imagen adjunta al hilo"
+                    alt={`Imagen adjunta al hilo «${thread.title}»`}
                     width={thread.imageWidth}
                     height={thread.imageHeight}
                     unknownRatio="16 / 9"
@@ -1883,7 +1946,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 <div className="flex items-center gap-2 sm:gap-4">
                   {/* Like Button */}
                   <button
+                    type="button"
                     onClick={() => toggleThreadLike(thread.id, isLiked)}
+                    aria-pressed={isLiked}
                     className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                       isLiked
                         ? 'border border-pink-400/25 bg-pink-500/15 text-pink-300'
@@ -1896,10 +1961,17 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     />
                     <span className="font-mono">{thread.likesCount}</span>
                     <span className="hidden sm:inline">Me gusta</span>
+                    <span className="sr-only">
+                      : {isLiked ? 'quitar me gusta' : 'dar me gusta'} al hilo
+                      «{thread.title}»
+                    </span>
                   </button>
 
                   {/* Comments Trigger */}
                   <button
+                    type="button"
+                    aria-expanded={isExpanded}
+                    aria-controls={`comentarios-${thread.id}`}
                     onClick={() => setExpandedThreadId(isExpanded ? null : thread.id)}
                     className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                       isExpanded
@@ -1912,6 +1984,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       {Math.max(thread.commentsCount ?? 0, threadComments.length)}
                     </span>
                     <span className="hidden sm:inline">Comentarios</span>
+                    <span className="sr-only">
+                      {' '}
+                      del hilo «{thread.title}»:{' '}
+                      {isExpanded ? 'ocultar' : 'mostrar'} comentarios
+                    </span>
                   </button>
 
                   {/* Reacciones. Van al lado del "Me gusta", que
@@ -1956,6 +2033,12 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             avisar('No se pudo actualizar tus favoritos.', 4000),
                           );
                       }}
+                      aria-pressed={fanartGuardado}
+                      aria-label={
+                        fanartGuardado
+                          ? 'Quitar este fanart de tus guardados'
+                          : 'Guardar este fanart'
+                      }
                       className={`flex items-center gap-1.5 text-xs transition-colors ${
                         fanartGuardado
                           ? 'text-violet-300'
@@ -1980,10 +2063,11 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
                   {/* Share Button */}
                   <button
+                    type="button"
                     onClick={() => handleShare(thread)}
-                  className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-violet-300 transition-colors"
-                  title="Copiar enlace del hilo"
-                >
+                    className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-violet-300 transition-colors"
+                    title="Copiar enlace del hilo"
+                  >
                   {copiedShareId === thread.id ? (
                     <>
                       <Check size={14} className="text-emerald-400" />
@@ -1995,6 +2079,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       <span className="hidden sm:inline">Compartir</span>
                     </>
                   )}
+                  <span className="sr-only">
+                    {' '}
+                    el enlace del hilo «{thread.title}»
+                  </span>
                 </button>
 
                 {/* Delete Button: solo para el autor del hilo o un admin */}
@@ -2021,7 +2109,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       </>
                     ) : (
                       <button
+                        type="button"
                         onClick={() => setConfirmingDeleteId(thread.id)}
+                        aria-label={`Eliminar el hilo «${thread.title}»`}
                         className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-red-400 transition-colors"
                         title="Eliminar hilo"
                       >
@@ -2051,18 +2141,25 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
               {/* EXPANDED COMMENTS SECTION */}
               {isExpanded && (
-                <div className="mt-5 border-t border-white/[0.06] pt-5 space-y-4 animate-in fade-in duration-200">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <div
+                  id={`comentarios-${thread.id}`}
+                  className="mt-5 border-t border-white/[0.06] pt-5 space-y-4 animate-in fade-in duration-200"
+                >
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                     Comentarios del hilo ({threadComments.length})
-                  </h4>
+                  </h3>
 
                   {/* Add top-level comment input */}
                   <form
                     onSubmit={(e) => handleCommentSubmit(thread.id, e)}
                     className="space-y-2"
                   >
+                    <label htmlFor="nuevo-comentario" className="sr-only">
+                      Escribe un comentario en el hilo
+                    </label>
                     <div className="relative flex items-end gap-2">
                       <AutoGrowTextarea
+                        id="nuevo-comentario"
                         inputRef={commentInputRef}
                         rows={1}
                         maxHeight={160}
@@ -2231,7 +2328,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                               {comment.imageUrl && (
                                 <StableImage
                                   src={comment.imageUrl}
-                                  alt="Imagen adjunta al comentario"
+                                  alt={`Imagen adjunta al comentario de ${nombreDe(comment.authorId, comment.authorName)}`}
                                   width={comment.imageWidth}
                                   height={comment.imageHeight}
                                   unknownRatio="4 / 3"
@@ -2247,7 +2344,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
 
                             <div className="flex flex-wrap items-center gap-3 pl-8 pt-1 text-[11px]">
                               <button
+                                type="button"
                                 onClick={() => alternarLikeComentario(comment)}
+                                aria-pressed={commentLiked}
+                                aria-label={`${commentLiked ? 'Quitar me gusta' : 'Dar me gusta'} al comentario de ${nombreDe(comment.authorId, comment.authorName)} · ${comment.likesCount} Me gusta`}
                                 className={`chat-boton flex items-center gap-1 font-mono transition-colors ${
                                   commentLiked ? 'text-pink-300 font-bold' : 'text-zinc-500 hover:text-zinc-300'
                                 }`}
@@ -2354,8 +2454,16 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                                 onSubmit={(e) => handleReplySubmit(thread.id, comment.id, e)}
                                 className="mt-2 space-y-2 pl-8 animate-in fade-in duration-150"
                               >
+                                <label
+                                  htmlFor={`respuesta-${comment.id}`}
+                                  className="sr-only"
+                                >
+                                  Escribe una respuesta al comentario de{' '}
+                                  {nombreDe(comment.authorId, comment.authorName)}
+                                </label>
                                 <div className="flex items-end gap-2">
                                   <AutoGrowTextarea
+                                    id={`respuesta-${comment.id}`}
                                     inputRef={replyInputRef}
                                     rows={1}
                                     maxHeight={160}
@@ -2566,7 +2674,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
         )}
 
         {esFanarts && !feedFanarts.loading && feedFanarts.error && (
-          <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-xs text-red-300">
+          <p
+            role="alert"
+            className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-xs text-red-300"
+          >
             {feedFanarts.error}
           </p>
         )}

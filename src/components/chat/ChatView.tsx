@@ -56,6 +56,7 @@ import {
   ocultarMensajeParaMi,
 } from '../../services/chats';
 import { useAuth } from '../../context/AuthContext';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { doc, getDocFromServer } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -1267,6 +1268,31 @@ export const ChatView: React.FC = () => {
 
   // Create Group modal / state
   const [showCreateGroup, setShowCreateGroup] = useState(false);
+
+  // Diálogos de la vista. Todos comparten el mismo tratamiento:
+  // foco inicial, Tab atrapado, Escape y vuelta al botón de origen.
+  const addContactDialogRef = useDialogA11y<HTMLDivElement>({
+    open: showAddContact,
+    onClose: () => {
+      setShowAddContact(false);
+      setAddFeedback(null);
+      setTargetIdInput('');
+    },
+  });
+  const createGroupDialogRef = useDialogA11y<HTMLFormElement>({
+    open: showCreateGroup,
+    onClose: () => setShowCreateGroup(false),
+  });
+  const joinGroupDialogRef = useDialogA11y<HTMLDivElement>({
+    open: showGroups,
+    onClose: () => setShowGroups(false),
+  });
+  const deleteMessageDialogRef = useDialogA11y<HTMLDivElement>({
+    open: Boolean(borrandoMsg),
+    onClose: () => {
+      if (!borrandoBusy) setBorrandoMsg(null);
+    },
+  });
   const [groupNameInput, setGroupNameInput] = useState('');
 
   // Avisa al contexto de que la conversación se está viendo de
@@ -2197,6 +2223,33 @@ export const ChatView: React.FC = () => {
   const chatEnfocado =
     Boolean(activeRoomId && activeRoom) && tabChats !== 'descubrir';
 
+  /** Flechas Inicio/Fin para las tres vistas del chat. */
+  const moverTabChats = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const teclas = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
+    if (!teclas.includes(e.key)) return;
+    e.preventDefault();
+
+    const orden: Array<'privados' | 'clubes' | 'descubrir'> = [
+      'privados',
+      'clubes',
+      'descubrir',
+    ];
+    const actual = orden.indexOf(tabChats);
+    let siguiente = 0;
+    if (e.key === 'End') siguiente = orden.length - 1;
+    else if (e.key === 'ArrowRight') siguiente = (actual + 1) % orden.length;
+    else if (e.key === 'ArrowLeft') siguiente = (actual - 1 + orden.length) % orden.length;
+
+    const destino = orden[siguiente];
+    setTabChats(destino);
+    setActiveRoomId(null);
+    window.requestAnimationFrame(() =>
+      document
+        .getElementById(`chat-tab-${destino}`)
+        ?.focus({ preventScroll: true }),
+    );
+  };
+
   return (
     // ======================================================
     // ALTURA FIJA PARA QUE LA VENTANA NO SE MUEVA
@@ -2236,6 +2289,7 @@ export const ChatView: React.FC = () => {
         chatEnfocado ? 'chat-pantalla' : ''
       }`}
     >
+      <h1 className="sr-only">Chats de la comunidad</h1>
       {/* Cabecera de la sección: identidad contenida, sin saturar.
           Degradado oscuro con un velo violeta/azul muy tenue;
           el color fuerte queda solo en el icono y el primario. */}
@@ -2319,8 +2373,11 @@ export const ChatView: React.FC = () => {
 
       {/* ERROR DE FIRESTORE */}
       {chatsError && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3">
-          <AlertCircle size={15} className="mt-0.5 flex-shrink-0 text-red-400" />
+        <div
+          role="alert"
+          className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3"
+        >
+          <AlertCircle size={15} aria-hidden="true" className="mt-0.5 flex-shrink-0 text-red-400" />
           <div className="min-w-0">
             <p className="text-xs font-bold text-red-300">
               No se pudieron cargar los chats
@@ -2423,14 +2480,22 @@ export const ChatView: React.FC = () => {
                 parte de «Chats», no una sección nueva de la web.
                 La tabla de búsqueda de abajo se mantiene dentro
                 de cada vista, no de forma global. */}
-            <div className="flex rounded-xl bg-black/40 p-1 border border-white/[0.06] text-[11px] font-semibold" role="tablist" aria-label="Vistas del chat">
+            <div
+              className="flex rounded-xl bg-black/40 p-1 border border-white/[0.06] text-[11px] font-semibold"
+              role="tablist"
+              aria-label="Vistas del chat"
+              onKeyDown={moverTabChats}
+            >
               <button
+                id="chat-tab-privados"
+                type="button"
                 onClick={() => {
                   setTabChats('privados');
                   setActiveRoomId(null);
                 }}
                 role="tab"
                 aria-selected={tabChats === 'privados'}
+                tabIndex={tabChats === 'privados' ? 0 : -1}
                 className={`chat-boton flex-1 rounded-lg py-2 transition-all ${
                   tabChats === 'privados'
                     ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-950/40'
@@ -2443,12 +2508,15 @@ export const ChatView: React.FC = () => {
                 </span>
               </button>
               <button
+                id="chat-tab-clubes"
+                type="button"
                 onClick={() => {
                   setTabChats('clubes');
                   setActiveRoomId(null);
                 }}
                 role="tab"
                 aria-selected={tabChats === 'clubes'}
+                tabIndex={tabChats === 'clubes' ? 0 : -1}
                 className={`chat-boton flex-1 rounded-lg py-2 transition-all ${
                   tabChats === 'clubes'
                     ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-950/40'
@@ -2461,6 +2529,8 @@ export const ChatView: React.FC = () => {
                 </span>
               </button>
               <button
+                id="chat-tab-descubrir"
+                type="button"
                 onClick={() => {
                   // Como las otras pestañas: al entrar en la galería
                   // no hay chat abierto. Sin esto, si había una
@@ -2474,6 +2544,7 @@ export const ChatView: React.FC = () => {
                 }}
                 role="tab"
                 aria-selected={tabChats === 'descubrir'}
+                tabIndex={tabChats === 'descubrir' ? 0 : -1}
                 className={`chat-boton flex-1 rounded-lg py-2 transition-all ${
                   tabChats === 'descubrir'
                     ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-950/40'
@@ -2578,17 +2649,20 @@ export const ChatView: React.FC = () => {
           {showRequests && (
             <div className="max-h-[26rem] space-y-3 overflow-y-auto border-b border-white/[0.06] bg-black/30 p-3">
               {actionFeedback && (
-                <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-400">
+                <p
+                  role="alert"
+                  className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-400"
+                >
                   {actionFeedback}
                 </p>
               )}
 
               {/* Recibidas */}
               <section>
-                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  <Mail size={12} />
+                <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <Mail size={12} aria-hidden="true" />
                   <span>Recibidas ({incomingRequests.length})</span>
-                </h4>
+                </h3>
 
                 {incomingRequests.length === 0 ? (
                   <p className="px-1 text-[11px] text-zinc-600">
@@ -2661,10 +2735,10 @@ export const ChatView: React.FC = () => {
 
               {/* Enviadas */}
               <section>
-                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  <Clock3 size={12} />
+                <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  <Clock3 size={12} aria-hidden="true" />
                   <span>Enviadas ({outgoingRequests.length})</span>
-                </h4>
+                </h3>
 
                 {outgoingRequests.length === 0 ? (
                   <p className="px-1 text-[11px] text-zinc-600">
@@ -2711,10 +2785,10 @@ export const ChatView: React.FC = () => {
 
               {blockedIds.length > 0 && (
                 <section>
-                  <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    <UserX size={12} />
+                  <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                    <UserX size={12} aria-hidden="true" />
                     <span>Usuarios eliminados ({blockedIds.length})</span>
-                  </h4>
+                  </h3>
                   <ul className="space-y-1.5">
                     {blockedIds.map((id) => {
                       const u = usersList.find((x) => x.uid === id);
@@ -2876,36 +2950,33 @@ export const ChatView: React.FC = () => {
                   ? otherParty!.avatarUrl || room.avatar
                   : room.avatar;
 
-                // La fila NO es un <button> aunque lo parezca: dentro
-                // lleva el botón de acciones y un botón dentro de
-                // otro botón no funciona (y React lo avisa en
-                // consola). Es un div con rol de botón y teclado.
+                // Dos controles hermanos, no uno dentro de otro:
+                // abrir la conversación y abrir su menú son acciones
+                // distintas. El contenedor es solo presentación.
                 return (
                   <div
                     key={room.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Abrir la conversación con ${displayName}`}
-                    onClick={() => setActiveRoomId(room.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setActiveRoomId(room.id);
-                      }
-                    }}
-                    className={`chat-transicion group w-full flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-left focus-visible:outline-2 focus-visible:outline-violet-400 ${
+                    className={`chat-transicion group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left ${
                       isActive
                         ? 'border-violet-400/25 bg-gradient-to-r from-violet-600/[0.18] to-indigo-600/[0.08] shadow-[0_8px_24px_-12px_rgba(124,58,237,0.5)]'
                         : 'border-transparent hover:border-white/[0.06] hover:bg-white/[0.04]'
                     }`}
                   >
+                    <button
+                      type="button"
+                      onClick={() => setActiveRoomId(room.id)}
+                      aria-label={`Abrir la conversación con ${displayName}${
+                        isUnread ? ', tiene mensajes sin leer' : ''
+                      }`}
+                      className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus-visible:outline-2 focus-visible:outline-violet-400"
+                    >
                     <div className="relative flex-shrink-0">
                       {roomAvatar ? (
                         isDirect ? (
                           <AvatarUsuario
                             src={roomAvatar}
                             fallbackSrc="/img/avatar-comunidad.webp"
-                            alt={displayName}
+                            alt=""
                             frame={otherParty?.avatarFrame}
                             color={otherParty?.profileColor}
                             sizeClass="h-11 w-11"
@@ -2914,7 +2985,7 @@ export const ChatView: React.FC = () => {
                         ) : (
                           <img
                             src={roomAvatar}
-                            alt={displayName}
+                            alt=""
                             className="h-11 w-11 rounded-xl object-cover ring-1 ring-white/10"
                           />
                         )
@@ -2924,11 +2995,15 @@ export const ChatView: React.FC = () => {
                         </div>
                       )}
                       {room.type === 'group' ? (
-                        <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-violet-600 text-[9px] text-white">
+                        <span
+                          aria-hidden="true"
+                          className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-violet-600 text-[9px] text-white"
+                        >
                           <Users size={9} />
                         </span>
                       ) : (
                         <span
+                          aria-hidden="true"
                           title={estadoContacto?.label}
                           className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-zinc-950 ${
                             estadoContacto?.online ? 'bg-emerald-500' : 'bg-zinc-600'
@@ -2971,12 +3046,20 @@ export const ChatView: React.FC = () => {
                           {otherPartyChatId ? ` · ${otherPartyChatId}` : ''}
                         </p>
                       )}
+
+                      {estadoContacto && (
+                        <span className="sr-only">
+                          Estado: {estadoContacto.label}
+                        </span>
+                      )}
                     </div>
+                    </button>
 
                     {/* Punto de sin leer + menú de acciones */}
                     <div className="relative ml-1 flex flex-shrink-0 items-center gap-1.5">
                       {isUnread && (
                         <span
+                          aria-hidden="true"
                           className="h-2 w-2 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 shadow-[0_0_8px_rgba(236,72,153,0.8)]"
                           title="Mensajes sin leer"
                         />
@@ -2984,7 +3067,9 @@ export const ChatView: React.FC = () => {
 
                       <button
                         type="button"
-                        aria-label={`Acciones de ${displayName}`}
+                        aria-label={`Acciones de la conversación con ${displayName}`}
+                        aria-expanded={menuOpen}
+                        aria-haspopup="menu"
                         onClick={(e) => {
                           e.stopPropagation();
                           setOpenMenuFor(menuOpen ? null : room.id);
@@ -2996,6 +3081,8 @@ export const ChatView: React.FC = () => {
 
                       {menuOpen && (
                         <div
+                          role="group"
+                          aria-label={`Acciones de la conversación con ${displayName}`}
                           onClick={(e) => e.stopPropagation()}
                           // `max-h` + scroll propio: si la lista de
                           // acciones es más alta que el hueco, se
@@ -3244,6 +3331,7 @@ export const ChatView: React.FC = () => {
                           ref={groupPhotoInputRef}
                           type="file"
                           accept="image/*"
+                          aria-label="Elegir una nueva foto para el grupo"
                           onChange={handlePickGroupPhoto}
                           className="hidden"
                         />
@@ -3558,7 +3646,9 @@ export const ChatView: React.FC = () => {
                     )}
                   </button>
                   {codeError && (
-                    <span className="text-[10px] text-red-400">{codeError}</span>
+                    <span role="alert" className="text-[10px] text-red-400">
+                      {codeError}
+                    </span>
                   )}
                 </div>
               )}
@@ -3620,6 +3710,10 @@ export const ChatView: React.FC = () => {
               <div
                 ref={listaRef}
                 onScroll={alDesplazar}
+                role="log"
+                aria-label={`Mensajes de la conversación con ${activeRoomName}`}
+                aria-live="polite"
+                aria-relevant="additions"
                 className="chat-hilo min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-6 sm:py-6 lg:px-10 flex flex-col"
                 style={{ ...aparienciaVista.fondoLista, ...aparienciaVista.gapLista }}
               >
@@ -3898,6 +3992,7 @@ export const ChatView: React.FC = () => {
                               href={msg.imageUrl}
                               target="_blank"
                               rel="noopener noreferrer"
+                              aria-label={`Abrir en una pestaña nueva la foto enviada por ${senderNameOf(msg)}`}
                               className="mt-1.5 block overflow-hidden rounded-xl border border-zinc-700 transition-opacity hover:opacity-90"
                             >
                               {/* `object-contain` y sin `w-full` forzado: con `w-full object-cover`
@@ -4097,13 +4192,18 @@ export const ChatView: React.FC = () => {
                   }}
                 >
                   <div
+                    ref={deleteMessageDialogRef}
                     role="dialog"
                     aria-modal="true"
-                    aria-label="Eliminar mensaje"
+                    aria-labelledby="chat-delete-message-title"
+                    tabIndex={-1}
                     onClick={(e) => e.stopPropagation()}
                     className="max-h-[90dvh] w-full max-w-xs overflow-y-auto rounded-3xl border border-zinc-700 bg-zinc-900 p-5 shadow-2xl"
                   >
-                    <h3 className="text-center text-sm font-black text-white">
+                    <h3
+                      id="chat-delete-message-title"
+                      className="text-center text-sm font-black text-white"
+                    >
                       Eliminar mensaje
                     </h3>
                     <p className="mt-1 text-center text-[11px] text-zinc-400">
@@ -4296,7 +4396,11 @@ export const ChatView: React.FC = () => {
 
                   {isGroupOwner && (
                     <div className="flex gap-2">
+                      <label htmlFor="chat-add-member" className="sr-only">
+                        ID del usuario que quieres invitar al grupo
+                      </label>
                       <input
+                        id="chat-add-member"
                         type="text"
                         value={addMemberInput}
                         onChange={(e) => setAddMemberInput(e.target.value)}
@@ -4321,12 +4425,20 @@ export const ChatView: React.FC = () => {
                   )}
 
                   {memberFeedback?.success && (
-                    <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-400">
+                    <p
+                      role="status"
+                      aria-live="polite"
+                      className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-400"
+                    >
                       {memberFeedback.success}
                     </p>
                   )}
                   {memberFeedback?.error && (
-                    <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-400">
+                    <p
+                      role="alert"
+                      aria-live="assertive"
+                      className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-400"
+                    >
                       {memberFeedback.error}
                     </p>
                   )}
@@ -4516,10 +4628,16 @@ export const ChatView: React.FC = () => {
             escritorio salen todas en fila. */}
         <div className="relative flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.06] bg-black/30 p-2 transition-colors focus-within:border-violet-400/40 focus-within:ring-2 focus-within:ring-violet-500/10">
                   <AutoGrowTextarea
+                    id="chat-message-input"
                     inputRef={inputRef}
                     rows={1}
                     maxHeight={128}
                     value={inputText}
+                    aria-label={
+                      editando
+                        ? 'Editar el mensaje'
+                        : `Escribir un mensaje a ${activeRoomName}`
+                    }
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
@@ -4692,6 +4810,7 @@ export const ChatView: React.FC = () => {
                   type="file"
                   accept="image/*"
                   onChange={handlePickImage}
+                  aria-label="Adjuntar una foto al mensaje"
                   className="hidden"
                 />
 
@@ -4729,7 +4848,7 @@ export const ChatView: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <img
                         src={chatImageUrl}
-                        alt="Foto adjunta"
+                        alt="Vista previa de la foto que vas a adjuntar al mensaje"
                         className="h-16 w-24 rounded-lg object-cover"
                       />
                       <span className="text-[11px] text-zinc-400">Foto del ordenador</span>
@@ -5068,17 +5187,35 @@ export const ChatView: React.FC = () => {
 
       {/* MODAL: NUEVO CONTACTO POR ID */}
       {showAddContact && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !creatingChat) {
+              setShowAddContact(false);
+              setAddFeedback(null);
+              setTargetIdInput('');
+            }
+          }}
+        >
+          <div
+            ref={addContactDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="chat-add-contact-title"
+            tabIndex={-1}
+            className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl"
+          >
             <button
+              type="button"
               onClick={() => {
                 setShowAddContact(false);
                 setAddFeedback(null);
                 setTargetIdInput('');
               }}
+              aria-label="Cerrar la ventana de nuevo contacto"
               className="absolute right-5 top-5 text-zinc-400 hover:text-white"
             >
-              <X size={18} />
+              <X size={18} aria-hidden="true" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
@@ -5086,7 +5223,9 @@ export const ChatView: React.FC = () => {
                 <UserPlus size={18} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Añadir Nuevo Contacto</h3>
+                <h3 id="chat-add-contact-title" className="text-base font-bold text-white">
+                  Añadir Nuevo Contacto
+                </h3>
                 <p className="text-xs text-zinc-400">Nombre visible, @usuario o ID de chat</p>
               </div>
             </div>
@@ -5094,11 +5233,15 @@ export const ChatView: React.FC = () => {
             {/* Input form */}
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                <label
+                  htmlFor="chat-contact-search"
+                  className="block text-xs font-medium text-zinc-300 mb-1.5"
+                >
                   Nombre visible, @usuario o ID de chat
                 </label>
                 <div className="flex gap-2">
                   <input
+                    id="chat-contact-search"
                     type="text"
                     value={targetIdInput}
                     onChange={(e) => setTargetIdInput(e.target.value)}
@@ -5106,6 +5249,7 @@ export const ChatView: React.FC = () => {
                     className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                   />
                   <button
+                    type="button"
                     onClick={handleSearchContact}
                     className="rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-violet-500 transition-all"
                   >
@@ -5116,8 +5260,12 @@ export const ChatView: React.FC = () => {
 
               {/* Feedback / Found User Card */}
               {addFeedback?.error && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300 flex items-center gap-2">
-                  <AlertCircle size={15} className="shrink-0" />
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300 flex items-center gap-2"
+                >
+                  <AlertCircle size={15} aria-hidden="true" className="shrink-0" />
                   <span>{addFeedback.error}</span>
                 </div>
               )}
@@ -5215,15 +5363,21 @@ export const ChatView: React.FC = () => {
       {showCreateGroup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
           <form
+            ref={createGroupDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="chat-create-group-title"
+            tabIndex={-1}
             onSubmit={handleCreateGroupSubmit}
             className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl space-y-4"
           >
             <button
               type="button"
               onClick={() => setShowCreateGroup(false)}
+              aria-label="Cerrar la ventana de crear grupo"
               className="absolute right-5 top-5 text-zinc-400 hover:text-white"
             >
-              <X size={18} />
+              <X size={18} aria-hidden="true" />
             </button>
 
             <div className="flex items-center gap-3">
@@ -5231,7 +5385,9 @@ export const ChatView: React.FC = () => {
                 <Users size={18} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Crear Nuevo Grupo</h3>
+                <h3 id="chat-create-group-title" className="text-base font-bold text-white">
+                  Crear Nuevo Grupo
+                </h3>
                 <p className="text-xs text-zinc-400">Reúne a otakus y geeks en una misma sala</p>
               </div>
             </div>
@@ -5241,17 +5397,26 @@ export const ChatView: React.FC = () => {
                 pasado sin perder el texto que ya se había escrito
                 en el nombre del grupo. */}
             {actionFeedback && (
-              <p className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-[11px] leading-relaxed text-red-400">
-                <AlertCircle size={13} className="mt-0.5 flex-shrink-0" />
+              <p
+                role="alert"
+                aria-live="assertive"
+                className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-[11px] leading-relaxed text-red-400"
+              >
+                <AlertCircle size={13} aria-hidden="true" className="mt-0.5 flex-shrink-0" />
                 <span className="break-words">{actionFeedback}</span>
               </p>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">
-                Nombre de la Sala / Grupo
+              <label
+                htmlFor="chat-group-name"
+                className="block text-xs font-medium text-zinc-300 mb-1"
+              >
+                Nombre de la Sala / Grupo{' '}
+                <span aria-hidden="true" className="text-red-300">*</span>
               </label>
               <input
+                id="chat-group-name"
                 type="text"
                 value={groupNameInput}
                 onChange={(e) => setGroupNameInput(e.target.value)}
@@ -5281,6 +5446,7 @@ export const ChatView: React.FC = () => {
               <button
                 type="submit"
                 disabled={creatingChat}
+                aria-busy={creatingChat}
                 className="rounded-xl bg-violet-600 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-violet-600/30 hover:bg-violet-500 disabled:opacity-50"
               >
                 {creatingChat ? 'Creando...' : 'Crear Grupo'}
@@ -5293,14 +5459,21 @@ export const ChatView: React.FC = () => {
       {/* MODAL: UNIRSE A UN GRUPO */}
       {showGroups && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+          <div
+            ref={joinGroupDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="chat-join-group-title"
+            tabIndex={-1}
+            className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl"
+          >
             <button
               type="button"
               onClick={() => setShowGroups(false)}
               className="absolute right-5 top-5 text-zinc-400 hover:text-white"
-              aria-label="Cerrar"
+              aria-label="Cerrar la ventana de unirse a un grupo"
             >
-              <X size={18} />
+              <X size={18} aria-hidden="true" />
             </button>
 
             <div className="mb-4 flex items-center gap-3">
@@ -5308,7 +5481,9 @@ export const ChatView: React.FC = () => {
                 <Hash size={18} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Unirse a un grupo</h3>
+                <h3 id="chat-join-group-title" className="text-base font-bold text-white">
+                  Unirse a un grupo
+                </h3>
                 <p className="text-xs text-zinc-400">
                   Escribe el código que te hayan pasado
                 </p>
@@ -5316,7 +5491,10 @@ export const ChatView: React.FC = () => {
             </div>
 
             {actionFeedback && (
-              <p className="mb-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-400">
+              <p
+                role="alert"
+                className="mb-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-[11px] text-red-400"
+              >
                 {actionFeedback}
               </p>
             )}
@@ -5328,7 +5506,11 @@ export const ChatView: React.FC = () => {
               }}
               className="space-y-3"
             >
+              <label htmlFor="chat-group-code" className="sr-only">
+                Código del grupo al que quieres unirte
+              </label>
               <input
+                id="chat-group-code"
                 type="text"
                 value={groupCodeInput}
                 onChange={(e) => setGroupCodeInput(e.target.value.toUpperCase())}
@@ -5339,6 +5521,7 @@ export const ChatView: React.FC = () => {
               <button
                 type="submit"
                 disabled={busyAction || !groupCodeInput.trim()}
+                aria-busy={busyAction}
                 className="w-full rounded-xl bg-violet-600 py-2.5 text-xs font-bold text-white transition-colors hover:bg-violet-500 disabled:opacity-50"
               >
                 {busyAction ? 'Enviando solicitud...' : 'Pedir entrar al grupo'}

@@ -25,16 +25,43 @@ import { fileURLToPath } from 'node:url';
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fuente = readFileSync(join(raiz, 'src', 'components', 'home', 'HomeFeed.tsx'), 'utf8');
 
-/** El `className` del `<img>` con ese `alt`. */
+/**
+ * El `className` del `<img>` cuyo `alt` contiene ese texto.
+ *
+ * El alt del hilo incluye ahora el título de la publicación
+ * («Imagen adjunta al hilo «...»»), así que se busca por prefijo
+ * en lugar de por igualdad exacta.
+ */
 function clasesDe(alt: string): string {
-  const re = new RegExp(
-    `<(?:img|StableImage)[\\s\\S]*?alt="${alt}"[\\s\\S]*?className="([^"]+)"`,
+  const escapado = alt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Admite alt literal y alt con template (incluye el título del hilo).
+  const patrones = [
+    new RegExp(`alt="[^"]*${escapado}[^"]*"`),
+    new RegExp('alt=\\{`[^`]*' + escapado + '[^`]*`\\}'),
+  ];
+  const encontrado = patrones
+    .map((re) => re.exec(fuente))
+    .find((m): m is RegExpExecArray => Boolean(m));
+
+  assert.ok(
+    encontrado,
+    `no se encontró la imagen con alt que contiene "${alt}" en HomeFeed`,
   );
-  const m = fuente.match(re);
 
-  assert.ok(m, `no se encontró la imagen con alt="${alt}" en HomeFeed`);
+  const posicion = encontrado.index;
+  const apertura = Math.max(
+    fuente.lastIndexOf('<StableImage', posicion),
+    fuente.lastIndexOf('<img', posicion),
+  );
+  assert.ok(apertura >= 0, `no se encontró la etiqueta de imagen para "${alt}"`);
 
-  return m![1];
+  const cierre = fuente.indexOf('>', posicion);
+  const etiqueta = fuente.slice(apertura, cierre);
+  const clase = etiqueta.match(/className="([^"]+)"/);
+
+  assert.ok(clase, `la imagen con alt "${alt}" no tiene className estático`);
+
+  return clase![1];
 }
 
 // ═══════════════════════════════════════════════════════════

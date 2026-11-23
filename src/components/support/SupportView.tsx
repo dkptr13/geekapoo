@@ -3,6 +3,7 @@ import { LifeBuoy, Send, CheckCircle2, AlertCircle, HelpCircle, ShieldAlert, Spa
 import { useAuth } from '../../context/AuthContext';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { createSupportTicket, type TicketCategory } from '../../services/support';
+import { useAnnouncer } from '../common/LiveAnnouncer';
 
 export const SupportView: React.FC = () => {
   const { currentUser } = useAuth();
@@ -14,6 +15,7 @@ export const SupportView: React.FC = () => {
   const [ticketResult, setTicketResult] = useState<{ id: string; category: string } | null>(null);
   const [sending, setSending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const announce = useAnnouncer();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +23,7 @@ export const SupportView: React.FC = () => {
 
     if (!currentUser) {
       setErrorMsg('Inicia sesión para poder enviar un ticket.');
+      announce('Inicia sesión para poder enviar un ticket.', 'assertive');
       return;
     }
 
@@ -40,8 +43,12 @@ export const SupportView: React.FC = () => {
       setTicketResult({ id: trackingId, category });
       setSubject('');
       setMessage('');
+      announce(`Ticket enviado. Tu código de seguimiento es ${trackingId}.`);
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'No se pudo enviar el ticket.');
+      const mensaje =
+        err instanceof Error ? err.message : 'No se pudo enviar el ticket.';
+      setErrorMsg(mensaje);
+      announce(mensaje, 'assertive');
     } finally {
       setSending(false);
     }
@@ -74,7 +81,7 @@ export const SupportView: React.FC = () => {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-600/25 to-sky-500/15 text-violet-300 shadow-inner">
           <LifeBuoy size={24} />
         </div>
-        <h2 className="text-2xl font-black tracking-tight text-white">Soporte Técnico y Ayuda Geekapoo</h2>
+        <h1 className="text-2xl font-black tracking-tight text-white">Soporte Técnico y Ayuda Geekapoo</h1>
         <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto">
           ¿Has detectado un error técnico, tienes una duda sobre las normas de respeto mutuo o quieres sugerir una mejora para la plataforma? Nuestro equipo técnico te responderá con la mayor brevedad.
         </p>
@@ -82,12 +89,16 @@ export const SupportView: React.FC = () => {
 
       {/* Success Ticket Confirmation */}
       {ticketResult ? (
-        <div className="rounded-3xl border border-emerald-400/25 bg-white/[0.03] p-8 text-center space-y-4 animate-in fade-in duration-200 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]">
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-3xl border border-emerald-400/25 bg-white/[0.03] p-8 text-center space-y-4 animate-in fade-in duration-200 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]"
+        >
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-            <CheckCircle2 size={36} />
+            <CheckCircle2 size={36} aria-hidden="true" />
           </div>
           <div>
-            <h3 className="text-xl font-black text-white">¡Ticket Generado con Éxito!</h3>
+            <h2 className="text-xl font-black text-white">¡Ticket Generado con Éxito!</h2>
             <p className="mt-1 text-xs text-zinc-300">
               Hemos registrado tu mensaje en la base de datos de soporte técnico de Geekapoo.
             </p>
@@ -103,6 +114,7 @@ export const SupportView: React.FC = () => {
           </p>
 
           <button
+            type="button"
             onClick={() => setTicketResult(null)}
             className="chat-boton rounded-xl bg-white/[0.04] px-5 py-2.5 text-xs font-bold text-zinc-200 hover:bg-white/[0.08] transition-all"
           >
@@ -115,14 +127,19 @@ export const SupportView: React.FC = () => {
           onSubmit={handleSubmit}
           className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-6 sm:p-8 space-y-5 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.8)]"
         >
+          <p className="sr-only">
+            Los campos marcados con asterisco son obligatorios.
+          </p>
+
           {/* Category selection */}
-          <div>
-            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">
+          <fieldset>
+            <legend className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">
               Tipo de Consulta o Reporte
-            </label>
+            </legend>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
+                aria-pressed={category === 'bug'}
                 onClick={() => setCategory('bug')}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all ${
                   category === 'bug'
@@ -130,12 +147,13 @@ export const SupportView: React.FC = () => {
                     : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                 }`}
               >
-                <AlertCircle size={18} className="mb-1 text-red-400" />
+                <AlertCircle size={18} aria-hidden="true" className="mb-1 text-red-400" />
                 <span>Error / Bug</span>
               </button>
 
               <button
                 type="button"
+                aria-pressed={category === 'suggestion'}
                 onClick={() => setCategory('suggestion')}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all ${
                   category === 'suggestion'
@@ -143,12 +161,13 @@ export const SupportView: React.FC = () => {
                     : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                 }`}
               >
-                <Sparkles size={18} className="mb-1 text-amber-400" />
+                <Sparkles size={18} aria-hidden="true" className="mb-1 text-amber-400" />
                 <span>Sugerencia</span>
               </button>
 
               <button
                 type="button"
+                aria-pressed={category === 'account'}
                 onClick={() => setCategory('account')}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all ${
                   category === 'account'
@@ -156,12 +175,13 @@ export const SupportView: React.FC = () => {
                     : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                 }`}
               >
-                <HelpCircle size={18} className="mb-1 text-sky-400" />
+                <HelpCircle size={18} aria-hidden="true" className="mb-1 text-sky-400" />
                 <span>Mi Cuenta</span>
               </button>
 
               <button
                 type="button"
+                aria-pressed={category === 'report'}
                 onClick={() => setCategory('report')}
                 className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all ${
                   category === 'report'
@@ -169,57 +189,81 @@ export const SupportView: React.FC = () => {
                     : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                 }`}
               >
-                <ShieldAlert size={18} className="mb-1 text-fuchsia-400" />
+                <ShieldAlert size={18} aria-hidden="true" className="mb-1 text-fuchsia-400" />
                 <span>Moderación</span>
               </button>
             </div>
-          </div>
+          </fieldset>
 
           <div>
-            <label className="block text-xs font-medium text-zinc-300 mb-1">
-              Tu Correo Electrónico de Contacto
+            <label
+              htmlFor="support-email"
+              className="block text-xs font-medium text-zinc-300 mb-1"
+            >
+              Tu Correo Electrónico de Contacto{' '}
+              <span aria-hidden="true" className="text-red-300">*</span>
             </label>
             <input
+              id="support-email"
               type="email"
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
               placeholder="tu_email@ejemplo.com"
+              autoComplete="email"
+              aria-describedby={errorMsg ? 'support-error' : undefined}
               className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-zinc-300 mb-1">
-              Asunto
+            <label
+              htmlFor="support-subject"
+              className="block text-xs font-medium text-zinc-300 mb-1"
+            >
+              Asunto{' '}
+              <span aria-hidden="true" className="text-red-300">*</span>
             </label>
             <input
+              id="support-subject"
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Ej: Fallo al cargar comentarios del capítulo 3 de Kaguya-sama"
+              aria-describedby={errorMsg ? 'support-error' : undefined}
               className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-zinc-300 mb-1">
-              Descripción Detallada
+            <label
+              htmlFor="support-message"
+              className="block text-xs font-medium text-zinc-300 mb-1"
+            >
+              Descripción Detallada{' '}
+              <span aria-hidden="true" className="text-red-300">*</span>
             </label>
             <textarea
+              id="support-message"
               rows={5}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe lo ocurrido con el mayor detalle posible (dispositivo, pasos para reproducir el problema)..."
+              aria-describedby={errorMsg ? 'support-error' : undefined}
               className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-xs text-white placeholder-zinc-600 focus:border-violet-400 focus:outline-none leading-relaxed"
               required
             />
           </div>
 
           {errorMsg && (
-            <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-300">
-              <AlertCircle size={14} className="flex-shrink-0" />
+            <div
+              id="support-error"
+              role="alert"
+              aria-live="assertive"
+              className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-300"
+            >
+              <AlertCircle size={14} aria-hidden="true" className="flex-shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
@@ -228,9 +272,10 @@ export const SupportView: React.FC = () => {
             <button
               type="submit"
               disabled={sending}
+              aria-busy={sending}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-950/40 hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send size={14} />
+              <Send size={14} aria-hidden="true" />
               <span>
                 {sending ? 'Enviando...' : 'Enviar Reporte al Equipo Técnico'}
               </span>

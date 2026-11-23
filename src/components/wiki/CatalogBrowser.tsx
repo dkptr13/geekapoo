@@ -271,7 +271,10 @@ const CatalogBrowser: FC<CatalogBrowserProps> = ({
           la página, no un panel. Con el borde y el degradado
           parecía un recuadro más del panel, y tapaba hueco
           además de Dani. */}
-      <aside className="order-1 min-w-0 lg:order-none">
+      <aside
+        aria-label="Recomendación de la comunidad"
+        className="order-1 min-w-0 lg:order-none"
+      >
         <div className="lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1">
           <div className="relative flex justify-center">
             <img

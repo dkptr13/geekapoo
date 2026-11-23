@@ -3,16 +3,19 @@ import { Gift, Heart, Sparkles, Film, Music, Mic, BookOpen, Share2, Check } from
 import { useAuth } from '../../context/AuthContext';
 import { useCommunity } from '../../context/CommunityContext';
 import { TriviaExtra } from '../../types';
+import { useAnnouncer } from '../common/LiveAnnouncer';
 
 export const ExtrasView: React.FC = () => {
   const { currentUser } = useAuth();
   const { triviaExtras, toggleTriviaLike } = useCommunity();
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const announce = useAnnouncer();
 
   const handleShare = (trivia: TriviaExtra) => {
     navigator.clipboard.writeText(`Curiosidad geekapoo: ${trivia.title} - ${trivia.fact}`);
     setCopiedId(trivia.id);
+    announce('Curiosidad copiada al portapapeles.');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -24,9 +27,9 @@ export const ExtrasView: React.FC = () => {
           <Sparkles size={13} className="text-violet-300" />
           <span>Contenido Especial de la Comunidad</span>
         </div>
-        <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-          Extras, Curiosidades & Galería
-        </h2>
+        <h1 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
+          Extras, Curiosidades &amp; Galería
+        </h1>
         <p className="mt-2 text-xs sm:text-sm text-zinc-300 max-w-2xl leading-relaxed">
           Secretos de producción, curiosidades de doblaje, récords históricos y anécdotas fascinantes de tus series y personajes favoritos seleccionados por el equipo de geekapoo.
         </p>
@@ -45,7 +48,9 @@ export const ExtrasView: React.FC = () => {
                 <div className="relative h-48 w-full overflow-hidden">
                   <img
                     src={item.imageUrl}
-                    alt={item.title}
+                    // Ilustración decorativa: el título de la
+                    // curiosidad está justo debajo.
+                    alt=""
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#080810] via-[#080810]/30 to-transparent" />
@@ -58,7 +63,7 @@ export const ExtrasView: React.FC = () => {
                 </div>
 
                 <div className="p-5">
-                  <h3 className="text-base font-black tracking-tight text-white">{item.title}</h3>
+                  <h2 className="text-base font-black tracking-tight text-white">{item.title}</h2>
                   <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-zinc-300">
                     {item.fact}
                   </p>
@@ -67,30 +72,42 @@ export const ExtrasView: React.FC = () => {
 
               <div className="flex items-center justify-between border-t border-white/[0.06] bg-white/[0.02] p-4">
                 <button
+                  type="button"
                   onClick={() => toggleTriviaLike(item.id)}
+                  aria-pressed={isLiked}
                   className={`chat-boton flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
                     isLiked
                       ? 'border-pink-400/25 bg-pink-500/15 text-pink-300'
                       : 'border-white/[0.06] bg-white/[0.03] text-zinc-400 hover:text-zinc-100'
                   }`}
                 >
-                  <Heart size={14} className={isLiked ? 'fill-pink-500 text-pink-500' : ''} />
+                  <Heart
+                    size={14}
+                    aria-hidden="true"
+                    className={isLiked ? 'fill-pink-500 text-pink-500' : ''}
+                  />
                   <span>{isLiked ? '¡Me encanta!' : 'Curioso'}</span>
                   <span className="font-mono text-zinc-500 ml-1">({item.likes})</span>
+                  <span className="sr-only">
+                    : {isLiked ? 'quitar me gusta' : 'dar me gusta'} a la
+                    curiosidad «{item.title}»
+                  </span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => handleShare(item)}
+                  aria-label={`Compartir dato: copiar la curiosidad «${item.title}»`}
                   className="chat-boton flex items-center gap-1.5 text-xs text-zinc-400 hover:text-violet-200 transition-colors"
                 >
                   {copiedId === item.id ? (
                     <>
-                      <Check size={14} className="text-emerald-400" />
+                      <Check size={14} aria-hidden="true" className="text-emerald-400" />
                       <span className="text-emerald-400">Copiado</span>
                     </>
                   ) : (
                     <>
-                      <Share2 size={14} />
+                      <Share2 size={14} aria-hidden="true" />
                       <span>Compartir dato</span>
                     </>
                   )}

@@ -64,7 +64,16 @@ tiene(css, '.chat-boton', 'tokens de botón en CSS');
 // importante y el móvil sigue agrupando herramientas.
 tiene(vista, 'chat-foco', 'foco visible unificado');
 tiene(vista, 'showHerramientas', 'herramientas agrupadas en móvil');
-tiene(vista, 'role="button"', 'filas accesibles');
+tiene(
+  vista,
+  'aria-label={`Abrir la conversación con ${displayName}',
+  'filas accesibles con botón nativo',
+);
+tiene(
+  vista,
+  'aria-label={`Acciones de la conversación con ${displayName}`}',
+  'menú de acciones independiente',
+);
 tiene(vista, 'break-words', 'texto largo sin romper');
 
 console.log('  chat diseño: OK');

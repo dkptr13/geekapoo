@@ -93,7 +93,7 @@ export const AchievementsView: React.FC = () => {
 
             En movil no sale: es alta y taparia el catalogo entero
             antes de llegar a el. */}
-        <aside className="hidden lg:block">
+        <aside aria-label="Ilustración de logros" className="hidden lg:block">
           <div className="sticky top-24">
             <img
               src="/img/logros-trofeo.webp"

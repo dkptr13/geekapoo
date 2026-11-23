@@ -19,6 +19,7 @@ import {
 } from '../../services/gifs';
 import { useFavorites } from '../../hooks/useFavorites';
 import { FavoriteStar } from './FavoriteStar';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import type { GifAttachment } from '../../types';
 
 // ======================================================
@@ -86,6 +87,11 @@ export const GifPicker: FC<GifPickerProps> = ({ value, onChange, disabled = fals
     setVerFavoritos(false);
   }, []);
 
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: abierto,
+    onClose: cerrar,
+  });
+
   // ── Búsqueda con retardo ───────────────────────────────
   //
   // Se escribe en un temporizador de 350 ms para no lanzar una
@@ -150,25 +156,7 @@ export const GifPicker: FC<GifPickerProps> = ({ value, onChange, disabled = fals
     }
   }, [abierto, cfg.listo, verFavoritos]);
 
-  // Escape cierra, y el scroll de detrás se bloquea mientras el
-  // panel está abierto (si no, en móvil se mueve el foro entero
-  // al arrastrar sobre el modal).
-  useEffect(() => {
-    if (!abierto) return;
 
-    const escape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') cerrar();
-    };
-    document.addEventListener('keydown', escape);
-
-    const antes = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', escape);
-      document.body.style.overflow = antes;
-    };
-  }, [abierto, cerrar]);
 
   /**
    * Inserta el GIF de una celda (de la búsqueda o de favoritos).
@@ -250,14 +238,18 @@ export const GifPicker: FC<GifPickerProps> = ({ value, onChange, disabled = fals
           }}
         >
           <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Buscar un GIF"
+            aria-labelledby="gif-picker-title"
+            tabIndex={-1}
             className="geo-pop-in flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-violet-500/30 bg-zinc-900 shadow-2xl shadow-violet-950/60 sm:rounded-3xl"
           >
             {/* ── Cabecera ─────────────────────────────── */}
             <div className="flex items-center justify-between gap-2 border-b border-zinc-800 px-4 py-3">
-              <h3 className="text-sm font-bold text-white">Insertar GIF</h3>
+              <h3 id="gif-picker-title" className="text-sm font-bold text-white">
+                Insertar GIF
+              </h3>
               <span className="flex items-center gap-1">
                 {/* Pestaña de favoritos. Se puede abrir SIN
                     proveedor configurado: los GIFs guardados
@@ -308,6 +300,7 @@ export const GifPicker: FC<GifPickerProps> = ({ value, onChange, disabled = fals
                     type="text"
                     value={texto}
                     onChange={(e) => setTexto(e.target.value)}
+                    aria-label="Buscar un GIF"
                     placeholder="Busca un GIF: sonreír, llorar, wtf..."
                     className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-2.5 pl-9 pr-3 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                   />

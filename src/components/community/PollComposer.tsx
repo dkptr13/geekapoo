@@ -81,6 +81,7 @@ export const PollComposer: FC<PollComposerProps> = ({ value, onChange, error, ay
         type="text"
         value={value.question}
         onChange={(e) => cambiar({ question: e.target.value })}
+        aria-label="Pregunta de la encuesta"
         placeholder="¿Quién gana este combate?"
         maxLength={LIMITS.question}
         className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
@@ -96,6 +97,7 @@ export const PollComposer: FC<PollComposerProps> = ({ value, onChange, error, ay
               type="text"
               value={opcion}
               onChange={(e) => cambiarOpcion(i, e.target.value)}
+              aria-label={`Opción ${i + 1} de la encuesta`}
               placeholder={`Opción ${i + 1}`}
               maxLength={LIMITS.option}
               className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"

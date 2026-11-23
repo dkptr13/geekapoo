@@ -33,6 +33,7 @@ import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { ClubModerationPanel } from './ClubModerationPanel';
 import { ClubPermisosPanel } from './ClubPermisosPanel';
 import { ClubRoleBadge } from './ClubRoleBadge';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { SancionDialog } from './ClubSancionDialog';
 import { uploadClubImage } from '../../services/clubImages';
 import {
@@ -275,6 +276,13 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
       ? ([['config', 'Configuración']] as [Vista, string][])
       : []),
   ];
+
+  const warningDialogRef = useDialogA11y<HTMLDivElement>({
+    open: Boolean(advertenciaPara),
+    onClose: () => {
+      if (!advertenciaGuardando) setAdvertenciaPara(null);
+    },
+  });
 
   return (
     <div className="absolute inset-0 z-30 flex flex-col overflow-hidden border-l border-zinc-800 bg-zinc-950/98 backdrop-blur-sm">
@@ -824,6 +832,7 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                 ref={coverInputRef}
                 type="file"
                 accept="image/*"
+                aria-label="Elegir la portada del club"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -867,6 +876,7 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
                 ref={iconInputRef}
                 type="file"
                 accept="image/*"
+                aria-label="Elegir el icono del club"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -886,10 +896,14 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
             )}
 
             <div>
-              <label className="mb-1.5 block text-[11px] font-bold text-zinc-300">
+              <label
+                htmlFor="club-edit-name"
+                className="mb-1.5 block text-[11px] font-bold text-zinc-300"
+              >
                 Nombre del club
               </label>
               <input
+                id="club-edit-name"
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
@@ -1003,13 +1017,15 @@ export const ClubDetail: React.FC<Props> = ({ club, onClose }) => {
           onClick={advertenciaGuardando ? undefined : () => setAdvertenciaPara(null)}
         >
           <div
+            ref={warningDialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Advertir a un miembro"
+            aria-labelledby="club-warning-title"
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-sm space-y-4 rounded-2xl border border-white/[0.08] bg-[#0c0c14] p-5 shadow-2xl"
           >
-            <h4 className="flex items-center gap-2 text-sm font-bold text-white">
+            <h4 id="club-warning-title" className="flex items-center gap-2 text-sm font-bold text-white">
               <AlertCircle size={15} className="text-amber-300" />
               Advertir a {advertenciaPara.nombre}
             </h4>

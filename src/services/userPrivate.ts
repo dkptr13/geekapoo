@@ -48,6 +48,7 @@ export const PRIVATE_PROFILE_FIELDS = [
   'showActivity',
   'regionPreferida',
   'chatApariencia',
+  'accessibility',
 ] as const;
 
 export type PrivateProfileField = (typeof PRIVATE_PROFILE_FIELDS)[number];
@@ -114,6 +115,7 @@ export function privateFieldsOf(
     showActivity: privacy.showActivity,
     chatApariencia: data.chatApariencia ?? null,
     regionPreferida: data.regionPreferida,
+    accessibility: data.accessibility,
   };
 }
 

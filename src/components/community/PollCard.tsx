@@ -258,9 +258,9 @@ export const PollCard: FC<PollCardProps> = ({
       </div>
 
       {/* ── Pregunta ─────────────────────────────────── */}
-      <h4 className="px-4 pt-3.5 text-sm font-bold leading-snug text-white">
+      <h3 className="px-4 pt-3.5 text-sm font-bold leading-snug text-white">
         {resultado.question}
-      </h4>
+      </h3>
 
       {/* ── Opciones ─────────────────────────────────── */}
       <ul className="space-y-2 px-4 pt-3">

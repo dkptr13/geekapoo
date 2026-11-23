@@ -892,6 +892,11 @@ export const SERIE_TVDB = {
   // temporadas y sus especiales.
   'sailor-moon': 78500,
   'sailor-moon-crystal': 275039,
+  // Cardcaptor Sakura: la serie de 1998 usa las temporadas 1 a 3 de TVDB;
+  // su temporada 4 duplica Clear Card y la 0 son los especiales. Clear
+  // Card es una serie aparte (454838), con el prologo tambien en la 0.
+  'cardcaptor-sakura': 70668,
+  'cardcaptor-sakura-clear-card': 454838,
 };
 
 /**
@@ -1036,6 +1041,13 @@ export const PELICULA_TVDB = {
   'sailor-moon-eternal-la-pelicula-parte-2': 136398,
   'sailor-moon-cosmos-la-pelicula': 336871,
   'sailor-moon-cosmos-la-pelicula-parte-2': 336872,
+
+  // Las dos películas de Cardcaptor Sakura y su OVA, del lote de
+  // noviembre de 2026. TVDB guarda las tres como fichas de película; el
+  // prólogo de Clear Card es la 149865.
+  'cardcaptor-sakura-la-pelicula': 29022,
+  'cardcaptor-sakura-la-pelicula-2-la-carta-sellada': 20225,
+  'cardcaptor-sakura-clear-card-prologo': 149865,
 };
 
 /**

@@ -21,6 +21,7 @@ import {
 import { levantarSancion, subscribeHistorial } from '../../services/clubModeracion';
 import { useAuth } from '../../context/AuthContext';
 import { ClubRoleBadge } from './ClubRoleBadge';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import type { Club, ClubSancion, SancionEstado } from '../../types';
 
 // ======================================================
@@ -118,6 +119,13 @@ export const ClubModerationPanel: React.FC<{
     setPedidoLevantar(null);
     setMotivoRetirada('');
   };
+
+  const confirmDialogRef = useDialogA11y<HTMLDivElement>({
+    open: Boolean(pedidoLevantar),
+    onClose: () => {
+      if (!levantando) setPedidoLevantar(null);
+    },
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -306,13 +314,15 @@ export const ClubModerationPanel: React.FC<{
           onClick={levantando ? undefined : () => setPedidoLevantar(null)}
         >
           <div
+            ref={confirmDialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Levantar sanción"
+            aria-labelledby="lift-sanction-title"
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-sm space-y-4 rounded-2xl border border-white/[0.08] bg-[#0c0c14] p-5 shadow-2xl"
           >
-            <h4 className="flex items-center gap-2 text-sm font-bold text-white">
+            <h4 id="lift-sanction-title" className="flex items-center gap-2 text-sm font-bold text-white">
               <Clock3 size={14} className="text-violet-300" />
               Levantar sanción
             </h4>

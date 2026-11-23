@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { DragEvent, FC, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { Camera, Check, HardDrive, Image as ImageIcon, Link2, Loader2, Trash2, Upload, X } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -138,13 +139,10 @@ const ImageChangeDialog: FC<ImageChangeDialogProps> = ({
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose,
+  });
 
   const save = async (value: string) => {
     setBusy('saving');
@@ -200,15 +198,19 @@ const ImageChangeDialog: FC<ImageChangeDialogProps> = ({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={label}
+        aria-labelledby="quick-image-title"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 shadow-2xl"
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-bold text-white">{label}</h3>
+            <h3 id="quick-image-title" className="text-sm font-bold text-white">
+              {label}
+            </h3>
             <p className="mt-0.5 text-[11px] text-zinc-500">
               Elige el archivo de tu PC y se cambia al momento en toda la web.
             </p>
@@ -228,7 +230,7 @@ const ImageChangeDialog: FC<ImageChangeDialogProps> = ({
           {url ? (
             <img
               src={url}
-              alt={label}
+              alt={`Vista previa de ${label}`}
               className="h-full w-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = PLACEHOLDER;
@@ -274,6 +276,7 @@ const ImageChangeDialog: FC<ImageChangeDialogProps> = ({
             <input
               type="file"
               accept="image/*"
+              aria-label="Subir una imagen desde el ordenador"
               className="hidden"
               disabled={!idle}
               onChange={(e) => {
@@ -345,6 +348,7 @@ const ImageChangeDialog: FC<ImageChangeDialogProps> = ({
                 type="text"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
+                aria-label="URL de la imagen"
                 placeholder="https://..."
                 className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-[11px] text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
               />

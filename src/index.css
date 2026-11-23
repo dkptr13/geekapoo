@@ -1,15 +1,86 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    /* El zoom del navegador y el texto ampliado no deben recortar
+       contenido ni provocar scroll horizontal. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* El Navbar es sticky: los anclajes y el foco no deben quedar
+       escondidos debajo de él. */
+    scroll-padding-top: 5.5rem;
+  }
   body {
     font-family: 'Outfit', sans-serif;
-    overflow-x: clip;
+    /* `auto` y no `clip`: con texto ampliado al 200 % hay
+       contenido que necesita más ancho. Con `clip` se recortaba
+       sin forma de llegar a él; con `auto` aparece scroll
+       horizontal solo cuando de verdad hace falta. A 320 px el
+       contenido refluye y no hay scroll. */
+    overflow-x: auto;
     background: #080810;
     color: #e4e4e7;
   }
   code, pre {
     font-family: 'JetBrains Mono', monospace;
   }
+}
+
+/* ======================================================
+   FOCO VISIBLE GLOBAL (WCAG 2.4.7 y 2.4.11)
+   ======================================================
+   Muchos componentes usan `focus:outline-none` y sustituyen el
+   contorno por un borde de color. Eso deja sin indicador a quien
+   navega con teclado y no distingue bien los colores. Esta regla
+   devuelve un contorno consistente, grueso y con contraste alto
+   sobre el fondo morado/oscuro.
+
+   Se usa `!important` a propósito: tiene que ganar a las utilidades
+   `focus:outline-none` que ya existen en los componentes, sin
+   obligar a tocar cientos de clases una por una.
+
+   Los contenedores con tabindex="-1" (main, diálogos que reciben
+   foco por código) no son controles: no necesitan este contorno. */
+:focus-visible:not([tabindex='-1']) {
+  outline: 3px solid #c4b5fd !important;
+  outline-offset: 3px !important;
+}
+
+/* Controles dentro de contenedores con overflow pueden recortar
+   el contorno. Un halo oscuro separa el morado claro del fondo
+   cuando el elemento está sobre un color parecido. */
+:focus-visible:not([tabindex='-1']) {
+  box-shadow: 0 0 0 6px rgba(8, 8, 16, 0.9);
+}
+
+/* El foco programático de <main> no debe dibujar un marco. */
+main[tabindex='-1']:focus {
+  outline: none;
+}
+
+/* Enlace de salto: invisible hasta que recibe foco con teclado. */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 200;
+  transform: translateY(-200%);
+  border-radius: 0.75rem;
+  border: 2px solid #c4b5fd;
+  background: #0c0c14;
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* Sin transición: el enlace tiene que estar visible en el mismo
+   instante en que recibe el foco, incluso si el navegador pausa
+   animaciones en segundo plano o el usuario reduce el movimiento. */
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
 }
 
 /* Tokens globales del sistema visual. */
@@ -1014,4 +1085,477 @@
   .geo-kapo-salto {
     animation: none !important;
   }
+}
+
+/* ======================================================
+   CONTRASTE DE TEXTOS SECUNDARIOS Y CAMPOS
+   ======================================================
+   Medido sobre #080810 / #0c0c14:
+     zinc-500 (#71717a) ≈ 4,1:1 → no llega a 4,5:1.
+     zinc-600 (#52525b) ≈ 2,5:1 → falla claramente.
+   Se elevan solo esos dos niveles, manteniendo la jerarquía
+   (500 sigue siendo más claro que 600) y sin tocar fondos,
+   botones ni la identidad morada. Se aplican como CSS sin capa
+   para ganar a las utilidades de Tailwind, que sí van en capas. */
+.text-zinc-500 {
+  color: #9a9aa6;
+}
+.text-zinc-600 {
+  color: #8a8a96;
+}
+.text-gray-500 {
+  color: #9a9aa6;
+}
+.text-gray-600 {
+  color: #8a8a96;
+}
+
+/* Los placeholders no son etiquetas, pero también tienen que
+   poder leerse. Se igualan al nivel de texto secundario. */
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: #a1a1aa;
+  opacity: 1;
+}
+
+/* Los bordes de los campos (#27272a/#3f3f46) no llegaban a 3:1
+   frente al fondo y el campo se confundía con la superficie.
+   #6b6b78 da al menos 3,3:1 sobre las superficies oscuras. */
+input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
+textarea,
+select {
+  border-color: #6b6b78;
+}
+
+/* Un campo con error conserva el borde rojo, que es información
+   además del mensaje textual. */
+input[aria-invalid='true'],
+textarea[aria-invalid='true'],
+select[aria-invalid='true'] {
+  border-color: #f87171 !important;
+}
+
+/* Los mensajes con iconos no dependen solo del color: los que
+   llevan `role="alert"` se fuerzan a mantener el contraste. */
+[role='alert'] {
+  color: inherit;
+}
+
+/* Movimiento reducido global: las animaciones decorativas que no
+   estaban cubiertas por las clases anteriores no deben marear. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ======================================================
+   CENTRO DE ACCESIBILIDAD
+   ======================================================
+   Todos los ajustes se aplican desde un único punto en <html>:
+
+     data-text-size   escala del texto
+     data-spacing     espaciado de lectura
+     data-contrast    normal / enhanced / high
+     data-motion      system / reduced / none
+     data-controls    normal / large
+     data-borders     normal / strong
+     data-selection   normal / strong
+     data-transparency normal / reduced
+     data-underline   true / false
+     data-simplified  true / false
+
+   El proveedor escribe estos atributos; los componentes no
+   necesitan condiciones individuales. */
+
+/* ── Tamaño del texto ─────────────────────────────────
+   La escala se aplica al tamaño base (rem); los iconos y las
+   imágenes con medidas propias no se deforman. `--spacing` se
+   mantiene en píxeles para que las cajas no crezcan en la misma
+   proporción que las letras y el contenido siga cabiendo. */
+html[data-text-size='custom'] {
+  font-size: calc(100% * var(--a11y-text-scale, 1));
+  --spacing: 4px;
+  --container-3xs: 256px;
+  --container-2xs: 288px;
+  --container-xs: 320px;
+  --container-sm: 384px;
+  --container-md: 448px;
+  --container-lg: 512px;
+  --container-xl: 576px;
+  --container-2xl: 672px;
+  --container-3xl: 768px;
+  --container-4xl: 896px;
+  --container-5xl: 1024px;
+  --container-6xl: 1152px;
+  --container-7xl: 1280px;
+}
+
+/* Tamaños fijos usados por etiquetas pequeñas. Los tamaños
+   estándar (text-xs, text-sm...) ya son rem y escalan solos. */
+html[data-text-size='custom'] .text-\[8px\] {
+  font-size: calc(8px * var(--a11y-text-scale)) !important;
+}
+html[data-text-size='custom'] .text-\[9px\] {
+  font-size: calc(9px * var(--a11y-text-scale)) !important;
+}
+html[data-text-size='custom'] .text-\[10px\] {
+  font-size: calc(10px * var(--a11y-text-scale)) !important;
+}
+html[data-text-size='custom'] .text-\[11px\] {
+  font-size: calc(11px * var(--a11y-text-scale)) !important;
+}
+html[data-text-size='custom'] .text-\[13px\] {
+  font-size: calc(13px * var(--a11y-text-scale)) !important;
+}
+html[data-text-size='custom'] .text-\[14px\] {
+  font-size: calc(14px * var(--a11y-text-scale)) !important;
+}
+html[data-text-size='custom'] .text-\[15px\] {
+  font-size: calc(15px * var(--a11y-text-scale)) !important;
+}
+
+/* Los nombres y metadatos largos van dentro de botones que, sin
+   esto, crecían más que su columna y empujaban el ancho de la
+   página. Se limitan al ancho disponible y el texto ya truncado
+   sigue recortándose con puntos suspensivos. */
+html[data-text-size='custom'] main :is(button, a) {
+  max-width: 100%;
+}
+
+html[data-text-size='custom'] main :is(button, a) > .truncate {
+  min-width: 0;
+}
+
+/* Las rejillas de una columna no deben adoptar el ancho mínimo de
+   una tarjeta concreta: con el texto grande, una insignia ancha
+   ensanchaba toda la columna. */
+html[data-text-size='custom'] main .grid > * {
+  min-width: 0;
+}
+
+/* Palabras largas (títulos, nombres de usuario, URLs) se parten
+   solo cuando de verdad no caben; así nunca empujan la página. */
+html[data-text-size='custom'] main :is(h1, h2, h3, h4, p, li, dd, dt, blockquote) {
+  overflow-wrap: break-word;
+}
+
+/* Las barras de acciones (me gusta, comentar, compartir, reportar)
+   se reparten a los lados. Con letras grandes no caben en una fila:
+   se permite que el grupo de acciones baje debajo. */
+html[data-text-size='custom'] main .justify-between {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+
+/* En pantallas estrechas la cabecera no cabe en una sola fila con
+   el texto ampliado. Se permite que la zona de cuenta baje a la
+   fila siguiente en vez de salirse por la derecha. */
+@media (max-width: 639px) {
+  html[data-text-size='custom'] header > div {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 4rem;
+    padding-block: 0.5rem;
+    row-gap: 0.25rem;
+  }
+
+  html[data-text-size='custom'] header > div > :last-child {
+    margin-left: auto;
+  }
+}
+
+/* El pie tiene dos bloques en fila; con el texto ampliado en un
+   móvil se salían por la derecha. Se permite que sus piezas bajen
+   de línea y se centren. */
+html[data-text-size='custom'] footer .flex {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ── Espaciado de lectura ─────────────────────────────
+   Solo se aplica a contenido de lectura y campos largos; no a
+   botones, menús ni etiquetas compactas. */
+html[data-spacing='comfortable'] :is(p, li, blockquote, dd, figcaption, textarea),
+html[data-spacing='wide'] :is(p, li, blockquote, dd, figcaption, textarea),
+html[data-spacing='wcag'] :is(p, li, blockquote, dd, figcaption, textarea),
+html[data-spacing='custom'] :is(p, li, blockquote, dd, figcaption, textarea) {
+  line-height: var(--a11y-line-height, 1.5);
+  letter-spacing: var(--a11y-letter-spacing, 0);
+  word-spacing: var(--a11y-word-spacing, 0);
+}
+
+html[data-spacing='comfortable'] :is(p, blockquote) + :is(p, blockquote),
+html[data-spacing='wide'] :is(p, blockquote) + :is(p, blockquote),
+html[data-spacing='wcag'] :is(p, blockquote) + :is(p, blockquote),
+html[data-spacing='custom'] :is(p, blockquote) + :is(p, blockquote) {
+  margin-top: var(--a11y-paragraph-spacing, 0);
+}
+
+/* ── Contraste mejorado ─────────────────────────────── */
+html[data-contrast='enhanced'] {
+  --geo-border: rgba(255, 255, 255, 0.12);
+  --geo-border-strong: rgba(255, 255, 255, 0.2);
+}
+
+html[data-contrast='enhanced'] .text-zinc-500,
+html[data-contrast='enhanced'] .text-gray-500 {
+  color: #b8b8c2;
+}
+
+html[data-contrast='enhanced'] .text-zinc-600,
+html[data-contrast='enhanced'] .text-gray-600 {
+  color: #a8a8b3;
+}
+
+html[data-contrast='enhanced'] input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
+html[data-contrast='enhanced'] textarea,
+html[data-contrast='enhanced'] select {
+  border-color: #8a8a96 !important;
+}
+
+html[data-contrast='enhanced'] :focus-visible:not([tabindex='-1']) {
+  outline-color: #ddd6fe !important;
+}
+
+/* ── Alto contraste ─────────────────────────────────── */
+html[data-contrast='high'] body {
+  color: #ffffff;
+}
+
+html[data-contrast='high'] .text-zinc-300,
+html[data-contrast='high'] .text-gray-300 {
+  color: #f4f4f5;
+}
+
+html[data-contrast='high'] .text-zinc-400,
+html[data-contrast='high'] .text-gray-400 {
+  color: #f4f4f5;
+}
+
+html[data-contrast='high'] .text-zinc-500,
+html[data-contrast='high'] .text-gray-500 {
+  color: #e4e4e7;
+}
+
+html[data-contrast='high'] .text-zinc-600,
+html[data-contrast='high'] .text-gray-600 {
+  color: #d4d4d8;
+}
+
+html[data-contrast='high'] input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
+html[data-contrast='high'] textarea,
+html[data-contrast='high'] select {
+  border-color: #d4d4d8 !important;
+}
+
+html[data-contrast='high'] :focus-visible:not([tabindex='-1']) {
+  outline: 4px solid #ffffff !important;
+  outline-offset: 3px !important;
+}
+
+html[data-contrast='high'] {
+  --geo-border: rgba(255, 255, 255, 0.22);
+  --geo-border-strong: rgba(255, 255, 255, 0.36);
+  --geo-surface: rgba(255, 255, 255, 0.06);
+  --geo-surface-2: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Enlaces subrayados ─────────────────────────────── */
+html[data-underline='true'] main a[href],
+html[data-underline='true'] footer a[href],
+html[data-underline='true'] nav a[href] {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* ── Bordes reforzados ──────────────────────────────── */
+html[data-borders='strong'] main [class*='border-white'],
+html[data-borders='strong'] main [class*='border-zinc'],
+html[data-borders='strong'] main input,
+html[data-borders='strong'] main textarea,
+html[data-borders='strong'] main select,
+html[data-borders='strong'] [role='dialog'] [class*='border-white'],
+html[data-borders='strong'] [role='dialog'] [class*='border-zinc'] {
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+/* ── Estados seleccionados más visibles ─────────────── */
+/* Las tarjetas de opción usan un radio nativo oculto: el foco
+   tiene que verse en la tarjeta, no en un input invisible. */
+.a11y-radio:has(input[type='radio']:focus-visible) {
+  outline: 3px solid #c4b5fd;
+  outline-offset: 3px;
+}
+
+html[data-selection='strong'] [aria-pressed='true'],
+html[data-selection='strong'] [aria-selected='true'],
+html[data-selection='strong'] [aria-checked='true'],
+html[data-selection='strong'] [aria-current='page'] {
+  box-shadow: inset 0 0 0 2px #c4b5fd !important;
+}
+
+/* ── Reducir transparencias ─────────────────────────── */
+html[data-transparency='reduced'] [class*='backdrop-blur'] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-transparency='reduced'] header {
+  background-color: #080810 !important;
+}
+
+html[data-transparency='reduced'] [role='dialog'] {
+  background-color: #0c0c14 !important;
+}
+
+/* ── Movimiento ─────────────────────────────────────── */
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  animation-duration: 0.12s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.12s !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-motion='reduced'] :is(
+    .geo-pop-in,
+    .geo-pop-in-arriba,
+    .geo-latido,
+    .geo-barra,
+    .geo-kapo-habla,
+    .geo-kapo-brillo,
+    .geo-kapo-salto,
+    .animate-pulse,
+    .animate-ping,
+    .animate-bounce
+  ) {
+  animation: none !important;
+}
+
+/* El spinner es información de estado, no decoración: se mantiene
+   legible aunque se reduzcan las animaciones. */
+html[data-motion='reduced'] .animate-spin {
+  animation: spin 1s linear infinite !important;
+}
+
+html[data-motion='none'] *,
+html[data-motion='none'] *::before,
+html[data-motion='none'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* El spinner es información de estado, no decoración. */
+html[data-motion='none'] .animate-spin {
+  animation: spin 1s linear infinite !important;
+}
+
+/* La preferencia del sistema operativo manda aunque el usuario
+   tenga seleccionado «Normal»: si el sistema pide menos movimiento,
+   no se le obliga a ver animaciones largas. Las opciones propias
+   siguen pudiendo endurecerlo (reduced/none). */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion='none']) *,
+  html:not([data-motion='none']) *::before,
+  html:not([data-motion='none']) *::after {
+    animation-duration: 0.12s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.12s !important;
+    scroll-behavior: auto !important;
+  }
+
+  html:not([data-motion='none']) :is(
+      .geo-pop-in,
+      .geo-pop-in-arriba,
+      .geo-latido,
+      .geo-barra,
+      .geo-kapo-habla,
+      .geo-kapo-brillo,
+      .geo-kapo-salto,
+      .animate-pulse,
+      .animate-ping,
+      .animate-bounce
+    ) {
+    animation: none !important;
+  }
+
+  html:not([data-motion='none']) .animate-spin {
+    animation: spin 1s linear infinite !important;
+  }
+}
+
+/* ── Controles grandes ──────────────────────────────── */
+html[data-controls='large'] button,
+html[data-controls='large'] [role='button'],
+html[data-controls='large'] [role='switch'],
+html[data-controls='large'] [role='tab'],
+html[data-controls='large'] [role='menuitem'] {
+  min-height: 44px;
+}
+
+html[data-controls='large'] button[aria-label],
+html[data-controls='large'] [role='button'][aria-label] {
+  min-width: 44px;
+}
+
+html[data-controls='large'] input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
+html[data-controls='large'] select,
+html[data-controls='large'] textarea {
+  min-height: 44px;
+}
+
+html[data-controls='large'] input[type='checkbox'],
+html[data-controls='large'] input[type='radio'] {
+  width: 22px;
+  height: 22px;
+}
+
+html[data-controls='large'] [role='switch'] {
+  min-width: 52px;
+}
+
+/* ── Interfaz simplificada ──────────────────────────── */
+html[data-simplified='true'] .geo-panel {
+  background: #0e0e17 !important;
+  box-shadow: none !important;
+}
+
+html[data-simplified='true'] [class*='backdrop-blur'] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-simplified='true'] [class*='blur-3xl'],
+html[data-simplified='true'] [class*='blur-2xl'] {
+  display: none !important;
+}
+
+html[data-simplified='true'] .avatar-marco::before,
+html[data-simplified='true'] .avatar-marco::after,
+html[data-simplified='true'] .avatar-deco {
+  display: none !important;
+}
+
+html[data-simplified='true'] :is(
+    .animate-pulse,
+    .animate-ping,
+    .animate-bounce,
+    .geo-kapo-habla,
+    .geo-kapo-brillo,
+    .geo-kapo-salto,
+    .geo-latido,
+    .geo-barra
+  ) {
+  animation: none !important;
+}
+
+html[data-simplified='true'] .chat-hilo {
+  background-image: none;
 }

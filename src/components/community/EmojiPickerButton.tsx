@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { FC } from 'react';
 import { createPortal } from 'react-dom';
 import { Smile, X } from 'lucide-react';
 
 import { EmojiPicker } from './EmojiPicker';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 // ======================================================
 // BOTÓN + VENTANA DE EMOJIS
@@ -30,22 +31,10 @@ export const EmojiPickerButton: FC<EmojiPickerButtonProps> = ({
 }) => {
   const [abierto, setAbierto] = useState(false);
 
-  useEffect(() => {
-    if (!abierto) return;
-
-    const escape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAbierto(false);
-    };
-    document.addEventListener('keydown', escape);
-
-    const antes = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', escape);
-      document.body.style.overflow = antes;
-    };
-  }, [abierto]);
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: abierto,
+    onClose: () => setAbierto(false),
+  });
 
   const elegir = (emoji: string) => {
     onElegir(emoji);
@@ -75,13 +64,17 @@ export const EmojiPickerButton: FC<EmojiPickerButtonProps> = ({
             }}
           >
             <div
+              ref={dialogRef}
               role="dialog"
               aria-modal="true"
-              aria-label="Elegir un emoji"
+              aria-labelledby="emoji-picker-title"
+              tabIndex={-1}
               className="geo-pop-in flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border border-violet-500/30 bg-zinc-900 shadow-2xl shadow-violet-950/60 sm:rounded-3xl"
             >
               <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-                <h3 className="text-sm font-bold text-white">Emojis</h3>
+                <h3 id="emoji-picker-title" className="text-sm font-bold text-white">
+                  Emojis
+                </h3>
                 <button
                   type="button"
                   onClick={() => setAbierto(false)}

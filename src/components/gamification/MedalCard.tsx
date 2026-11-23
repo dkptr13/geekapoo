@@ -112,7 +112,11 @@ export const MedalCard: React.FC<{
       className={`flex flex-col gap-2.5 rounded-2xl border p-4 transition-all ${
         desbloqueada
           ? `${estilo.borde} ${estilo.fondo} ${estilo.glow}`
-          : 'border-zinc-800/80 bg-zinc-900/50 opacity-70'
+          // Sin `opacity-70`: atenuar toda la tarjeta dejaba el
+          // nombre y el requisito por debajo de 4,5:1. El estado
+          // bloqueado se sigue viendo por el borde, el fondo y el
+          // icono en escala de grises.
+          : 'border-zinc-800/80 bg-zinc-900/50'
       }`}
       title={descripcionVisible}
     >

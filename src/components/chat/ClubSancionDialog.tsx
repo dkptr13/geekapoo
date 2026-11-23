@@ -10,6 +10,7 @@ import {
   fechaLegible,
 } from '../../data/clubModeracion';
 import { ClubRoleBadge } from './ClubRoleBadge';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import type { Club, SancionTipo } from '../../types';
 
 // ======================================================
@@ -91,6 +92,11 @@ export const SancionDialog: React.FC<SancionDialogProps> = ({
       ? 'Escribe un número de minutos válido (de 1 a 525.600).'
       : null;
 
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose,
+  });
+
   const aplicar = async () => {
     if (!puedeEnviar || duracionMs === undefined) return;
     await onAplicar({ tipo, duracionMs, motivo: motivoLimpio });
@@ -107,16 +113,21 @@ export const SancionDialog: React.FC<SancionDialogProps> = ({
       onClick={guardando ? undefined : onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Aplicar sanción"
+        aria-labelledby="club-sanction-title"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/[0.08] bg-[#0c0c14] shadow-2xl sm:max-w-lg sm:rounded-3xl"
       >
         {/* ── Cabecera ─────────────────────────────── */}
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
-          <h2 className="flex items-center gap-2 text-sm font-bold text-white">
-            <ShieldAlert size={15} className="text-violet-300" />
+          <h2
+            id="club-sanction-title"
+            className="flex items-center gap-2 text-sm font-bold text-white"
+          >
+            <ShieldAlert size={15} aria-hidden="true" className="text-violet-300" />
             Sancionar en el club
           </h2>
           <button
@@ -258,7 +269,9 @@ export const SancionDialog: React.FC<SancionDialogProps> = ({
                   className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white focus:border-violet-400 focus:outline-none"
                 />
                 {errorDuracion && (
-                  <p className="text-[10px] text-red-300">{errorDuracion}</p>
+                  <p role="alert" className="text-[10px] text-red-300">
+                    {errorDuracion}
+                  </p>
                 )}
               </div>
             )}
@@ -340,7 +353,7 @@ export const SancionDialog: React.FC<SancionDialogProps> = ({
           </section>
 
           {!permiso.ok && (
-            <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">
+            <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">
               {permiso.motivo}
             </p>
           )}

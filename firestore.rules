@@ -1498,17 +1498,67 @@ service cloud.firestore {
               || p.showActivity is bool);
     }
 
+    // Preferencias del Centro de Accesibilidad. Solo valores de
+    // presentación: no hay campos de salud ni clasificación de
+    // personas. Se guardan en el documento privado para que no las
+    // lea el resto de la comunidad.
+    function accesibilidadValida() {
+      let a = request.resource.data.accessibility;
+      return a is map
+          && a.keys().hasOnly(
+               ['version', 'textScale', 'spacingPreset', 'lineHeight',
+                'letterSpacing', 'wordSpacing', 'paragraphSpacing',
+                'contrast', 'underlineLinks', 'strongBorders',
+                'highlightSelection', 'reduceTransparency', 'motion',
+                'soundEnabled', 'soundInterface', 'soundNotifications',
+                'soundMessages', 'soundVolume', 'largeControls',
+                'simplified'])
+          && (!('version' in a) || (a.version is number
+              && a.version >= 1 && a.version <= 10))
+          && (!('textScale' in a) || (a.textScale is number
+              && a.textScale >= 0.9 && a.textScale <= 2))
+          && (!('spacingPreset' in a)
+              || a.spacingPreset in ['normal', 'comfortable', 'wide', 'wcag', 'custom'])
+          && (!('lineHeight' in a) || (a.lineHeight is number
+              && a.lineHeight >= 1.1 && a.lineHeight <= 2.4))
+          && (!('letterSpacing' in a) || (a.letterSpacing is number
+              && a.letterSpacing >= 0 && a.letterSpacing <= 0.3))
+          && (!('wordSpacing' in a) || (a.wordSpacing is number
+              && a.wordSpacing >= 0 && a.wordSpacing <= 0.5))
+          && (!('paragraphSpacing' in a) || (a.paragraphSpacing is number
+              && a.paragraphSpacing >= 0 && a.paragraphSpacing <= 3))
+          && (!('contrast' in a)
+              || a.contrast in ['normal', 'enhanced', 'high'])
+          && (!('underlineLinks' in a) || a.underlineLinks is bool)
+          && (!('strongBorders' in a) || a.strongBorders is bool)
+          && (!('highlightSelection' in a) || a.highlightSelection is bool)
+          && (!('reduceTransparency' in a) || a.reduceTransparency is bool)
+          && (!('motion' in a)
+              || a.motion in ['system', 'reduced', 'none'])
+          && (!('soundEnabled' in a) || a.soundEnabled is bool)
+          && (!('soundInterface' in a) || a.soundInterface is bool)
+          && (!('soundNotifications' in a) || a.soundNotifications is bool)
+          && (!('soundMessages' in a) || a.soundMessages is bool)
+          && (!('soundVolume' in a) || (a.soundVolume is number
+              && a.soundVolume >= 0 && a.soundVolume <= 1))
+          && (!('largeControls' in a) || a.largeControls is bool)
+          && (!('simplified' in a) || a.simplified is bool);
+    }
+
     function datosPrivadosValidos() {
       let d = request.resource.data;
       return d.keys().hasOnly(
                ['email', 'privacy', 'chatApariencia',
-                'regionPreferida', 'updatedAt'])
+                'regionPreferida', 'accessibility', 'updatedAt'])
           && (!('email' in d)
               || (d.email is string && d.email.size() <= 320))
           && (!('privacy' in d) || privacidadValida())
           && (!('chatApariencia' in d)
               || d.chatApariencia == null
               || chatAparienciaValida())
+          && (!('accessibility' in d)
+              || d.accessibility == null
+              || accesibilidadValida())
           && (!('regionPreferida' in d)
               || (d.regionPreferida is string
                   && d.regionPreferida.size() >= 2

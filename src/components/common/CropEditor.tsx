@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import type { FC, PointerEvent as ReactPointerEvent } from 'react';
 import { Loader2, Maximize2, RotateCcw, X, Check, Crop, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -392,8 +393,15 @@ export const CropEditor: FC<CropEditorProps> = ({
   const etiquetaProporcion =
     aspectRatio === 1 ? 'Cuadrada' : `${aspectRatio.toFixed(2)} : 1`;
 
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose: onCancelar,
+  });
+
   return (
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       // `z-[200]`, por encima del modal de perfil (`z-[100]`).
       //
       // El editor se abre DESDE el modal de perfil: el fichero se

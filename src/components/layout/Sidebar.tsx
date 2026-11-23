@@ -93,7 +93,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // flex-1. App.tsx pone esa altura como definitiva; aquí solo
   // se copia.
   return (
-    <aside className="flex h-full flex-col gap-6">
+    <aside
+      aria-label="Barra lateral de la comunidad"
+      className="flex h-full flex-col gap-6"
+    >
 
       {/* Community Manifest / Respeto Mutuo. Fijo, sin scroll. */}
       <section className="relative shrink-0 overflow-hidden rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-500/10 via-[#0e0e17] to-[#0c0c14] p-5 shadow-[0_16px_48px_-20px_rgba(0,0,0,0.8)]">
@@ -101,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Shield size={15} />
           <span>Comunidad Geekapoo</span>
         </div>
-        <h3 className="text-base font-black text-white">Espacio Seguro &amp; Libre</h3>
+        <h2 className="text-base font-black text-white">Espacio Seguro &amp; Libre</h2>
         <p className="mt-2 text-xs leading-relaxed text-zinc-300">
           Un rincón sin censura para el debate honesto sobre anime, videojuegos y cultura
           geek. La única condición: el <strong>respeto mutuo</strong> entre usuarios.
@@ -156,7 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="text-[10px] text-zinc-600">hilos</span>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <nav aria-label="Filtrar hilos por categoría" className="flex flex-wrap gap-2">
             {categories.map((cat) => {
               // Las categorías fijas no tienen documento en
               // Firestore, así que no llevan contador del servidor.
@@ -199,7 +202,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               );
             })}
-          </div>
+          </nav>
         </section>
 
         {/* Hilos destacados del día */}
@@ -225,25 +228,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={thread.id}
                   type="button"
                   onClick={() => onSelectThread && onSelectThread(thread)}
+                  aria-label={`Abrir el hilo «${thread.title}», de ${
+                    usersList.find((u) => u.uid === thread.authorId)?.displayName ||
+                    thread.authorName
+                  }, ${thread.likesCount} me gusta`}
                   className="chat-boton group w-full cursor-pointer rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-left transition-all hover:border-violet-400/40 hover:bg-white/[0.05]"
                 >
-                  <h4 className="line-clamp-3 text-xs font-bold text-zinc-200 transition-colors group-hover:text-violet-300">
+                  {/* Un <h4> dentro de un <button> no es HTML válido:
+                      los encabezados no son contenido de botón. El
+                      título se mantiene visualmente igual y el nombre
+                      accesible del botón ya lo incluye. */}
+                  <span className="line-clamp-3 block text-xs font-bold text-zinc-200 transition-colors group-hover:text-violet-300">
                     {thread.title}
-                  </h4>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-500">
+                  </span>
+                  <span className="mt-2 flex items-center justify-between text-[11px] text-zinc-500">
                     <span className="max-w-[120px] truncate">
                       {usersList.find((u) => u.uid === thread.authorId)?.displayName ||
                         thread.authorName}
                     </span>
                     <span className="flex items-center gap-1 font-mono font-semibold text-pink-400">
-                      <Heart size={11} className="fill-pink-500 text-pink-500" />
+                      <Heart
+                        size={11}
+                        aria-hidden="true"
+                        className="fill-pink-500 text-pink-500"
+                      />
                       {thread.likesCount}
                     </span>
-                  </div>
-                  <div className="mt-2 flex items-center gap-1 text-[10px] font-bold text-violet-400 opacity-0 transition-opacity group-hover:opacity-100">
+                  </span>
+                  <span className="mt-2 flex items-center gap-1 text-[10px] font-bold text-violet-400 opacity-0 transition-opacity group-hover:opacity-100">
                     <span>Ver hilo completo</span>
-                    <ArrowRight size={11} />
-                  </div>
+                    <ArrowRight size={11} aria-hidden="true" />
+                  </span>
                 </button>
               ))}
             </div>
@@ -279,17 +294,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
             <div className="p-4">
-              <h4 className="text-sm font-bold text-white">{featuredAnime.title}</h4>
+              <h2 className="text-sm font-bold text-white">{featuredAnime.title}</h2>
               <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-400">
                 {featuredAnime.synopsis}
               </p>
               <div className="mt-3 flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => onGoToAnime && onGoToAnime(featuredAnime.slug)}
                   className="flex items-center gap-1.5 text-xs font-bold text-violet-400 transition-colors hover:text-violet-300"
                 >
                   <span>Ver ficha y capítulos</span>
-                  <ArrowRight size={13} />
+                  <ArrowRight size={13} aria-hidden="true" />
+                  <span className="sr-only"> de {featuredAnime.title}</span>
                 </button>
               </div>
             </div>
@@ -313,7 +330,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="mb-2 aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03]">
                     <img
                       src={work.imageUrl}
-                      alt={work.title}
+                      // El título está justo debajo: la portada es
+                      // decorativa y repetirlo solo alarga la lectura.
+                      alt=""
                       className="h-full w-full object-cover"
                       loading="lazy"
                     />
@@ -322,9 +341,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h4 className="truncate text-xs font-bold text-zinc-200">
+                      <h3 className="truncate text-xs font-bold text-zinc-200">
                         {work.title}
-                      </h4>
+                      </h3>
                       {work.author && (
                         <p className="truncate text-[10px] text-zinc-500">{work.author}</p>
                       )}
@@ -358,11 +377,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500/15 text-violet-300">
             <Sparkles size={16} />
           </div>
-          <h4 className="text-xs font-bold text-violet-200">Curiosidades &amp; Extras</h4>
+          <h2 className="text-xs font-bold text-violet-200">Curiosidades &amp; Extras</h2>
           <p className="mt-1 text-[11px] text-zinc-400">
             Descubre trivias, datos de seiyuus y curiosidades de producción anime.
           </p>
           <button
+            type="button"
             onClick={onGoToExtras}
             className="chat-boton mt-3 inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-violet-950/40 hover:brightness-110"
           >

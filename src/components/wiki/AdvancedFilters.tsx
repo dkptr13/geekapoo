@@ -146,13 +146,18 @@ export const AdvancedFilters: FC<AdvancedFiltersProps> = ({
            se salía por el borde izquierdo en móvil, donde el botón
            está pegado al principio de la fila. El ancho máximo deja
            siempre un margen dentro de la pantalla. */
-        <div className="absolute left-0 top-full z-50 mt-2 max-h-[70vh] w-80 max-w-[calc(100vw-3rem)] space-y-5 overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-2xl shadow-black/60">
+        <div
+          role="dialog"
+          aria-label="Filtros avanzados de la wiki"
+          className="absolute left-0 top-full z-50 mt-2 max-h-[70vh] w-80 max-w-[calc(100vw-3rem)] space-y-5 overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-2xl shadow-black/60"
+        >
+          <h2 className="sr-only">Filtros de búsqueda</h2>
           {/* CATEGORÍA DEL HILO */}
           {conCategoriaForo && (
             <section>
-              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
                 Categoría
-              </h4>
+              </h3>
               <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
                 {ALL_ANIME_CATEGORIES.map((c) => {
                   const marcado = filtros.categorias.includes(c.name);
@@ -178,9 +183,9 @@ export const AdvancedFilters: FC<AdvancedFiltersProps> = ({
           {/* GÉNERO */}
           {esAnime && generos.length > 0 && (
             <section>
-              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
                 Género
-              </h4>
+              </h3>
               <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
                 {generos.map((g) => {
                   const marcado = filtros.generos.includes(g);
@@ -206,9 +211,9 @@ export const AdvancedFilters: FC<AdvancedFiltersProps> = ({
           {/* AÑO */}
           {esAnime && anios.length > 0 && (
             <section>
-              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
                 Año
-              </h4>
+              </h3>
               <div className="grid grid-cols-3 gap-2">
                 <label className="space-y-1">
                   <span className="block text-[10px] text-zinc-500">Concreto</span>
@@ -279,9 +284,9 @@ export const AdvancedFilters: FC<AdvancedFiltersProps> = ({
           {/* ESTADO */}
           {esAnime && (
             <section>
-              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
                 Estado
-              </h4>
+              </h3>
               <div className="flex flex-wrap gap-1.5">
                 {estadosVisibles.map((e) => {
                   const marcado = filtros.estados.includes(e);
@@ -307,9 +312,9 @@ export const AdvancedFilters: FC<AdvancedFiltersProps> = ({
           {/* VALORACIÓN */}
           {conNota && (
             <section>
-              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
                 Valoración mínima
-              </h4>
+              </h3>
               <div className="flex flex-wrap gap-1.5">
                 {NOTAS.map((n) => {
                   const marcado = filtros.notaMin === n;
@@ -334,9 +339,9 @@ export const AdvancedFilters: FC<AdvancedFiltersProps> = ({
 
           {/* ORDENACIÓN */}
           <section>
-            <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+            <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
               Ordenación
-            </h4>
+            </h3>
             <div className="space-y-1">
               {ordenesVisibles.map((o) => {
                 const marcado = filtros.orden === o.id;

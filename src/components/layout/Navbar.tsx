@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Link,
   useNavigate,
@@ -22,6 +22,7 @@ import {
   Brain,
   Sparkles,
   Settings,
+  Accessibility,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -120,7 +121,17 @@ export default function Navbar({
 
   /** Va al apartado propio de configuración de la cuenta. */
   const irAAjustes = () => {
-    setUrl({ tab: 'ajustes', usuario: null, accion: null });
+    setUrl({ tab: 'ajustes', usuario: null, accion: null, ajustes: null });
+  };
+
+  /** Abre directamente el Centro de Accesibilidad. */
+  const irAAccesibilidad = () => {
+    setUrl({
+      tab: 'ajustes',
+      usuario: null,
+      accion: null,
+      ajustes: 'accesibilidad',
+    });
   };
 
 
@@ -132,6 +143,7 @@ export default function Navbar({
   // detalle: sin él la web en un teléfono no tenía forma de llegar
   // a la wiki, los chats ni el soporte.
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Cambiar de vista lo cierra siempre. Se hace con un efecto y no
   // dentro de goToTab porque no todos los caminos pasan por ahí:
@@ -145,7 +157,12 @@ export default function Navbar({
   useEffect(() => {
     if (!menuAbierto) return;
     const alPulsar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuAbierto(false);
+      if (e.key === 'Escape') {
+        setMenuAbierto(false);
+        // El menú desaparece del DOM: sin devolver el foco, el
+        // usuario de teclado se queda sin punto de referencia.
+        window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+      }
     };
     window.addEventListener('keydown', alPulsar);
     return () => window.removeEventListener('keydown', alPulsar);
@@ -373,7 +390,9 @@ export default function Navbar({
                   sólido detrás. */}
               <img
                 src={settings.logoUrl}
-                alt="Logo de geekapoo"
+                // El nombre «geekapoo.es» ya está al lado: repetirlo
+                // haría que el enlace se anunciara dos veces.
+                alt=""
                 className="h-full w-full object-contain"
               />
             </div>
@@ -407,30 +426,71 @@ export default function Navbar({
         A partir de md (768px) van en la barra. Por debajo están
         escondidos y su sitio lo ocupa el menú del final: en una
         pantalla de 375px no caben ni de lejos. */}
-        <nav className="hidden items-center gap-1 text-sm font-medium md:flex">
-          {destinos.map((d) => (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => (d.accion ? d.accion() : d.tab && goToTab(d.tab))}
-              className={classBar(d)}
-              title={d.titulo}
-            >
-              <d.icono size={16} />
-              <span>{d.etiqueta}</span>
+        <nav
+          aria-label="Navegación principal"
+          className="hidden items-center gap-1 text-sm font-medium md:flex"
+        >
+          {destinos.map((d) => {
+            const contenido = (
+              <>
+                <d.icono size={16} aria-hidden="true" />
+                <span>{d.etiqueta}</span>
 
-              {/* Punto de mensajes sin leer */}
-              {d.aviso && (
-                <span
-                  aria-label={`${unreadCount} conversaciones sin leer`}
-                  className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5"
+                {/* Punto de mensajes sin leer. El texto alternativo
+                    va dentro del enlace para que el lector no pierda
+                    el aviso; el punto visual queda oculto a lectores. */}
+                {d.aviso && (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5"
+                    >
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-500 opacity-75" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-pink-500 ring-2 ring-zinc-950" />
+                    </span>
+                    <span className="sr-only">
+                      {unreadCount}{' '}
+                      {unreadCount === 1
+                        ? 'conversación sin leer'
+                        : 'conversaciones sin leer'}
+                    </span>
+                  </>
+                )}
+              </>
+            );
+
+            if (d.tab) {
+              return (
+                <a
+                  key={d.id}
+                  href={`/?tab=${encodeURIComponent(d.tab)}`}
+                  onClick={(e) => {
+                    // Se mantiene el enlace real (se puede copiar,
+                    // abrir en otra pestaña) y la SPA evita la recarga.
+                    e.preventDefault();
+                    goToTab(d.tab!);
+                  }}
+                  aria-current={activo(d) ? 'page' : undefined}
+                  className={classBar(d)}
+                  title={d.titulo}
                 >
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-500 opacity-75" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-pink-500 ring-2 ring-zinc-950" />
-                </span>
-              )}
-            </button>
-          ))}
+                  {contenido}
+                </a>
+              );
+            }
+
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => d.accion?.()}
+                className={classBar(d)}
+                title={d.titulo}
+              >
+                {contenido}
+              </button>
+            );
+          })}
         </nav>
 
 
@@ -467,6 +527,7 @@ export default function Navbar({
                 onMiPerfil={() => irAPerfil()}
                 onPersonalizar={() => irAPerfil(true)}
                 onAjustes={irAAjustes}
+                onAccesibilidad={irAAccesibilidad}
                 onLogout={() => void handleLogout()}
               />
 
@@ -513,14 +574,20 @@ export default function Navbar({
         abre una vez y se cierra al elegir. */}
 
         <button
+          ref={menuButtonRef}
           type="button"
           onClick={() => setMenuAbierto((v) => !v)}
           aria-expanded={menuAbierto}
-          aria-label={menuAbierto ? 'Cerrar el menú' : 'Abrir el menú'}
+          aria-controls="menu-principal-movil"
+          aria-label={menuAbierto ? 'Cerrar el menú principal' : 'Abrir el menú principal'}
           title={menuAbierto ? 'Cerrar el menú' : 'Abrir el menú'}
           className="-mr-2 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white md:hidden"
         >
-          {menuAbierto ? <X size={20} /> : <Menu size={20} />}
+          {menuAbierto ? (
+            <X size={20} aria-hidden="true" />
+          ) : (
+            <Menu size={20} aria-hidden="true" />
+          )}
         </button>
 
       </div>
@@ -540,27 +607,63 @@ export default function Navbar({
       en ese momento. */}
 
       {menuAbierto && (
-        <div className="absolute inset-x-0 top-full z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-white/[0.06] bg-[#080810]/98 shadow-2xl backdrop-blur-xl md:hidden">
+        <div
+          id="menu-principal-movil"
+          className="absolute inset-x-0 top-full z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-white/[0.06] bg-[#080810]/98 shadow-2xl backdrop-blur-xl md:hidden"
+        >
 
-          <nav className="space-y-1 p-3">
-            {destinos.map((d) => (
-              <button
-                key={d.id}
-                type="button"
-                onClick={() => elegir(d)}
-                className={classMenu(d)}
-              >
-                <d.icono size={17} className="flex-shrink-0" />
-                <span className="flex-1">{d.etiqueta}</span>
+          <nav aria-label="Navegación principal móvil" className="space-y-1 p-3">
+            {destinos.map((d) => {
+              const contenido = (
+                <>
+                  <d.icono size={17} className="flex-shrink-0" aria-hidden="true" />
+                  <span className="flex-1">{d.etiqueta}</span>
 
-                {d.aviso && (
-                  <span
-                    aria-label={`${unreadCount} conversaciones sin leer`}
-                    className="flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-pink-500 ring-2 ring-zinc-950"
-                  />
-                )}
-              </button>
-            ))}
+                  {d.aviso && (
+                    <>
+                      <span
+                        aria-hidden="true"
+                        className="flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-pink-500 ring-2 ring-zinc-950"
+                      />
+                      <span className="sr-only">
+                        {unreadCount}{' '}
+                        {unreadCount === 1
+                          ? 'conversación sin leer'
+                          : 'conversaciones sin leer'}
+                      </span>
+                    </>
+                  )}
+                </>
+              );
+
+              if (d.tab) {
+                return (
+                  <a
+                    key={d.id}
+                    href={`/?tab=${encodeURIComponent(d.tab)}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      elegir(d);
+                    }}
+                    aria-current={activo(d) ? 'page' : undefined}
+                    className={classMenu(d)}
+                  >
+                    {contenido}
+                  </a>
+                );
+              }
+
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => elegir(d)}
+                  className={classMenu(d)}
+                >
+                  {contenido}
+                </button>
+              );
+            })}
           </nav>
 
           {/* CUENTA. El sitio donde el avatar deja de caber en la
@@ -639,6 +742,18 @@ export default function Navbar({
                   type="button"
                   onClick={() => {
                     setMenuAbierto(false);
+                    irAAccesibilidad();
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
+                >
+                  <Accessibility size={17} className="flex-shrink-0 text-violet-300" />
+                  Accesibilidad
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuAbierto(false);
                     void handleLogout();
                   }}
                   className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:bg-red-500/10 hover:text-red-300"
@@ -648,17 +763,31 @@ export default function Navbar({
                 </button>
               </>
             ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuAbierto(false);
-                  openAuth('login');
-                }}
-                className="flex w-full items-center gap-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:brightness-110"
-              >
-                <User size={17} className="flex-shrink-0" />
-                Iniciar sesión
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuAbierto(false);
+                    irAAccesibilidad();
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
+                >
+                  <Accessibility size={17} className="flex-shrink-0 text-violet-300" />
+                  Accesibilidad
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuAbierto(false);
+                    openAuth('login');
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:brightness-110"
+                >
+                  <User size={17} className="flex-shrink-0" />
+                  Iniciar sesión
+                </button>
+              </>
             )}
           </div>
 

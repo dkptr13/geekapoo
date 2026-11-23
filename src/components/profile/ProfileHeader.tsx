@@ -301,7 +301,8 @@ export const ProfileHeader: React.FC<{
               {personaje.imageUrl ? (
                 <img
                   src={personaje.imageUrl}
-                  alt={personaje.name}
+                  // El nombre está justo al lado en el texto.
+                  alt=""
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
@@ -342,7 +343,19 @@ export const ProfileHeader: React.FC<{
               </span>
             </div>
 
-            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-white/[0.06] bg-white/[0.02]">
+            <div
+              role="progressbar"
+              aria-label={`Progreso de nivel de ${nombre}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progreso * 100)}
+              aria-valuetext={
+                enTope
+                  ? 'Nivel máximo alcanzado'
+                  : `${Math.round(progreso * 100)} % para el nivel ${level + 1}`
+              }
+              className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-white/[0.06] bg-white/[0.02]"
+            >
               <div
                 className="h-full rounded-full transition-[width] duration-700 ease-out"
                 style={{

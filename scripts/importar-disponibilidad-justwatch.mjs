@@ -973,6 +973,36 @@ const FICHAS = {
     titulo: 'Sailor Moon Cosmos: La película - Parte 2',
     anio: 2023,
   },
+
+  // Lote de noviembre de 2026: Cardcaptor Sakura. La serie original está
+  // en Rakuten TV y CanalSurMás (ambas con anuncios); Clear Card y las
+  // dos películas no tienen ofertas en España. El prólogo no tiene ficha
+  // propia en JustWatch.
+  'cardcaptor-sakura': {
+    id: 'ts22286',
+    titulo: 'Cardcaptor Sakura',
+    anio: 1998,
+  },
+  'cardcaptor-sakura-clear-card': {
+    id: 'ts75632',
+    titulo: 'Cardcaptor Sakura: Clear Card',
+    anio: 2018,
+  },
+  'cardcaptor-sakura-la-pelicula': {
+    id: 'tm61092',
+    titulo: 'Cardcaptor Sakura: La película',
+    anio: 1999,
+  },
+  'cardcaptor-sakura-la-pelicula-2-la-carta-sellada': {
+    id: 'tm24847',
+    titulo: 'Cardcaptor Sakura: La película 2, la carta sellada',
+    anio: 2000,
+  },
+  'cardcaptor-sakura-clear-card-prologo': {
+    id: null,
+    titulo: 'Cardcaptor Sakura: Clear Card - Prólogo',
+    anio: 2017,
+  },
 };
 
 /**

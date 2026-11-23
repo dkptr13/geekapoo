@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { AvatarUsuario } from '../profile/AvatarUsuario';
 import { tiempoRelativo, iconoDe, textoDe, esNotificacionImportante } from '../../utils/notificaciones';
 import { useGoToNotification } from '../../hooks/useGoToNotification';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 // ======================================================
 // NOTIFICATION BELL
@@ -36,6 +37,8 @@ export const NotificationBell: React.FC = () => {
 
   const [tiempoRefresh, setTiempoRefresh] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
+  const panelContenidoRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   /** Posición calculada para que el panel quepa siempre en el viewport. */
   const [panelBox, setPanelBox] = useState<{ left: number; width: number } | null>(null);
   const [confirmarBorrarTodas, setConfirmarBorrarTodas] = useState(false);
@@ -80,6 +83,7 @@ export const NotificationBell: React.FC = () => {
         return;
       }
       setOpenPanel(false);
+      window.requestAnimationFrame(() => triggerRef.current?.focus());
     };
 
     document.addEventListener('mousedown', cerrarFuera);
@@ -91,10 +95,29 @@ export const NotificationBell: React.FC = () => {
     };
   }, [openPanel, setOpenPanel, confirmarBorrarTodas, borrandoTodas]);
 
-  // Al abrir el panel se limpia el error de la acción anterior.
+  // Al abrir el panel se limpia el error de la acción anterior y el
+  // foco entra en el panel para que Tab recorra sus controles, no la
+  // página que hay detrás.
   useEffect(() => {
-    if (openPanel) setErrorAccion('');
+    if (!openPanel) return;
+    setErrorAccion('');
+    const frame = window.requestAnimationFrame(() => {
+      const primero = panelContenidoRef.current?.querySelector<HTMLElement>(
+        'button, [tabindex="0"]',
+      );
+      (primero ?? panelContenidoRef.current)?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [openPanel]);
+
+  // El diálogo de confirmación necesita el mismo tratamiento que el
+  // resto de modales: foco inicial, Tab atrapado y Escape.
+  const confirmDialogRef = useDialogA11y<HTMLDivElement>({
+    open: confirmarBorrarTodas,
+    onClose: () => {
+      if (!borrandoTodas) setConfirmarBorrarTodas(false);
+    },
+  });
 
   // Si el panel se cierra por cualquier vía, el diálogo no debe
   // quedarse flotando por encima de la página.
@@ -216,10 +239,19 @@ export const NotificationBell: React.FC = () => {
       ================================================ */}
 
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpenPanel(!openPanel)}
-        aria-label={openPanel ? 'Cerrar notificaciones' : 'Abrir notificaciones'}
+        aria-label={
+          openPanel
+            ? 'Cerrar notificaciones'
+            : unreadCount > 0
+              ? `Abrir notificaciones, ${unreadCount} sin leer`
+              : 'Abrir notificaciones'
+        }
         aria-expanded={openPanel}
+        aria-controls="panel-notificaciones"
+        aria-haspopup="dialog"
         title={openPanel ? 'Cerrar notificaciones' : 'Notificaciones'}
         className="relative flex h-9 w-9 items-center justify-center rounded-xl text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
       >
@@ -243,6 +275,12 @@ export const NotificationBell: React.FC = () => {
 
       {openPanel && (
         <div
+          ref={panelContenidoRef}
+          id="panel-notificaciones"
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="titulo-notificaciones"
+          tabIndex={-1}
           className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-[calc(100vw-2rem)] max-w-[380px] overflow-y-auto overscroll-contain rounded-xl border border-white/[0.06] bg-[#0c0c14]/95 shadow-2xl backdrop-blur-xl"
           style={
             panelBox
@@ -257,7 +295,9 @@ export const NotificationBell: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] px-4 py-3">
             <div className="flex items-center gap-2">
               <Bell size={15} className="text-violet-300" />
-              <h3 className="text-sm font-bold text-white">Notificaciones</h3>
+              <h3 id="titulo-notificaciones" className="text-sm font-bold text-white">
+                Notificaciones
+              </h3>
 
               {unreadCount > 0 && (
                 <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-2 py-0.5 text-[11px] font-semibold text-violet-200">
@@ -295,7 +335,10 @@ export const NotificationBell: React.FC = () => {
           </div>
 
           {errorAccion && (
-            <div className="border-b border-rose-500/15 bg-rose-500/10 px-4 py-2 text-[11px] font-semibold text-rose-200">
+            <div
+              role="alert"
+              className="border-b border-rose-500/15 bg-rose-500/10 px-4 py-2 text-[11px] font-semibold text-rose-200"
+            >
               {errorAccion}
             </div>
           )}
@@ -306,8 +349,16 @@ export const NotificationBell: React.FC = () => {
 
           <div className="max-h-[60vh] overflow-y-auto overscroll-contain">
             {loading && (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet-600 border-t-transparent" />
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center justify-center gap-2 py-8 text-xs text-zinc-400"
+              >
+                <div
+                  aria-hidden="true"
+                  className="h-6 w-6 animate-spin rounded-full border-2 border-violet-600 border-t-transparent"
+                />
+                Cargando notificaciones...
               </div>
             )}
 
@@ -359,7 +410,8 @@ export const NotificationBell: React.FC = () => {
                         <AvatarUsuario
                           src={aviso.actorAvatar}
                           fallbackSrc="/img/avatar-comunidad.webp"
-                          alt={aviso.actorName}
+                          // El nombre del actor está justo al lado.
+                          alt=""
                           frame={actor?.avatarFrame}
                           color={actor?.profileColor}
                           sizeClass="h-9 w-9"
@@ -416,7 +468,7 @@ export const NotificationBell: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => void borrarUna(n.id)}
-                      aria-label="Eliminar notificación"
+                      aria-label={`Eliminar notificación de ${aviso.actorName}`}
                       title="Eliminar notificación"
                       className="chat-boton mr-2 mt-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-rose-500/10 hover:text-rose-300 focus-visible:outline-2 focus-visible:outline-rose-400"
                     >
@@ -450,6 +502,8 @@ export const NotificationBell: React.FC = () => {
         typeof document !== 'undefined' &&
         createPortal(
           <div
+            ref={confirmDialogRef}
+            tabIndex={-1}
             className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
@@ -477,7 +531,10 @@ export const NotificationBell: React.FC = () => {
               </div>
 
               {errorAccion && (
-                <p className="mt-3 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-[11px] font-semibold text-rose-200">
+                <p
+                  role="alert"
+                  className="mt-3 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-[11px] font-semibold text-rose-200"
+                >
                   {errorAccion}
                 </p>
               )}
@@ -511,7 +568,11 @@ export const NotificationBell: React.FC = () => {
           Fuera del desplegable a propósito: el panel se cierra al
           navegar, así que un mensaje dentro de él no se vería. */}
       {aviso && (
-        <p className="pointer-events-none fixed bottom-6 left-1/2 z-[95] -translate-x-1/2 rounded-xl border border-amber-400/25 bg-[#0c0c14]/95 px-4 py-2.5 text-xs font-semibold text-amber-200 shadow-2xl backdrop-blur">
+        <p
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed bottom-6 left-1/2 z-[95] -translate-x-1/2 rounded-xl border border-amber-400/25 bg-[#0c0c14]/95 px-4 py-2.5 text-xs font-semibold text-amber-200 shadow-2xl backdrop-blur"
+        >
           {aviso}
         </p>
       )}

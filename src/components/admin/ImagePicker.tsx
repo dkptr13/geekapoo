@@ -115,6 +115,7 @@ export const ImagePicker: FC<ImagePickerProps> = ({
               type="text"
               value={value}
               onChange={(e) => onChange(e.target.value)}
+              aria-label="URL de la imagen"
               placeholder="https://..."
               className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-[11px] text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
             />
@@ -140,6 +141,7 @@ export const ImagePicker: FC<ImagePickerProps> = ({
               <input
                 type="file"
                 accept="image/*"
+                aria-label="Subir una imagen desde el ordenador"
                 className="hidden"
                 disabled={uploading}
                 onChange={(e) => {

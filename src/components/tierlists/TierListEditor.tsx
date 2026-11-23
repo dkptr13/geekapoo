@@ -744,6 +744,7 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
                         type="text"
                         value={nombreSubida}
                         onChange={(e) => setNombreSubida(e.target.value)}
+                        aria-label="Nombre del elemento que quieres añadir"
                         placeholder="Nombre del elemento"
                         maxLength={TIER_LIMITS.itemName}
                         className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
@@ -773,6 +774,7 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
                         type="text"
                         value={busqueda}
                         onChange={(e) => setBusqueda(e.target.value)}
+                        aria-label={`Buscar ${pestana === 'anime' ? 'un anime' : 'un personaje'} para añadir`}
                         placeholder={`Buscar ${pestana === 'anime' ? 'anime' : 'personaje'}...`}
                         className="w-full rounded-xl border border-zinc-800 bg-zinc-900 py-2 pl-9 pr-3 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
                       />
@@ -835,12 +837,14 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
                         type="color"
                         value={t.color}
                         onChange={(e) => cambiarNivel(t.id, { color: e.target.value })}
+                        aria-label={`Color del nivel ${t.label}`}
                         title={`Color de ${t.label}`}
                         className="h-8 w-8 flex-shrink-0 cursor-pointer rounded-lg border border-zinc-700 bg-transparent p-0.5"
                       />
                       <input
                         type="text"
                         value={t.label}
+                        aria-label={`Nombre del nivel ${i + 1}`}
                         onChange={(e) =>
                           cambiarNivel(t.id, {
                             label: e.target.value.slice(0, TIER_LIMITS.tierLabel),
@@ -856,6 +860,7 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
                         type="button"
                         onClick={() => subirNivel(t.id, -1)}
                         disabled={i === 0}
+                        aria-label={`Subir el nivel ${t.label}`}
                         title="Subir nivel"
                         className="rounded-md p-1 text-zinc-500 hover:bg-zinc-800 hover:text-white disabled:opacity-25"
                       >
@@ -865,6 +870,7 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
                         type="button"
                         onClick={() => subirNivel(t.id, 1)}
                         disabled={i === niveles.length - 1}
+                        aria-label={`Bajar el nivel ${t.label}`}
                         title="Bajar nivel"
                         className="rounded-md p-1 text-zinc-500 hover:bg-zinc-800 hover:text-white disabled:opacity-25"
                       >
@@ -874,6 +880,7 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
                         type="button"
                         onClick={() => borrarNivel(t.id)}
                         disabled={draft.tiers.length <= TIER_LIMITS.minTiers}
+                        aria-label={`Eliminar el nivel ${t.label}`}
                         title="Eliminar nivel (sus elementos vuelven al pool)"
                         className="rounded-md p-1 text-zinc-500 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-25"
                       >
@@ -887,6 +894,7 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
                     type="text"
                     value={nuevoNivel}
                     onChange={(e) => setNuevoNivel(e.target.value)}
+                    aria-label="Nombre del nuevo nivel de la tier list"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -912,10 +920,14 @@ export const TierListEditor: React.FC<TierListEditorProps> = ({
               <section className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4">
                 <h3 className="text-xs font-bold text-white">Ajustes</h3>
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold text-zinc-300">
+                  <label
+                    htmlFor="tier-list-title"
+                    className="mb-1 block text-[11px] font-bold text-zinc-300"
+                  >
                     Título
                   </label>
                   <input
+                    id="tier-list-title"
                     type="text"
                     value={draft.title}
                     onChange={(e) =>

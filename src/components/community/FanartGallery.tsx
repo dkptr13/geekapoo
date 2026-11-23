@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Maximize2, X } from 'lucide-react';
 
 import type { FanartImage } from '../../types';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 // ======================================================
 // GALERÍA DE UN FANART
@@ -35,6 +36,14 @@ export const FanartGallery: FC<FanartGalleryProps> = ({
   );
   const [indice, setIndice] = useState(0);
   const [abierta, setAbierta] = useState(false);
+
+  // El scroll lo gestiona el efecto de abajo: aquí solo se
+  // atrapa el foco y Escape devuelve al botón de ampliar.
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: abierta,
+    onClose: () => setAbierta(false),
+    lockScroll: false,
+  });
 
   useEffect(() => {
     if (indice >= validas.length) setIndice(0);
@@ -152,6 +161,8 @@ export const FanartGallery: FC<FanartGalleryProps> = ({
       {abierta &&
         createPortal(
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             className="fixed inset-0 z-[200] flex flex-col bg-black/95 p-3 sm:p-6"
             role="dialog"
             aria-modal="true"

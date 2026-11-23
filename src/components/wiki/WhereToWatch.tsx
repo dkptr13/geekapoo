@@ -60,6 +60,24 @@ function iniciales(name: string): string {
     .slice(0, 2);
 }
 
+/**
+ * El color de la insignia lo pone cada plataforma y no siempre
+ * contrasta con blanco (Disney+, por ejemplo, queda en 2,7:1).
+ * Se elige negro o blanco según la luminancia del fondo.
+ */
+function colorTextoLegible(fondo: string): string {
+  const match = /^#?([0-9a-f]{6})$/i.exec(fondo.trim());
+  if (!match) return '#ffffff';
+  const n = parseInt(match[1], 16);
+  const canales = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  const luminancia =
+    0.2126 * canales[0] + 0.7152 * canales[1] + 0.0722 * canales[2];
+  return luminancia > 0.179 ? '#09090b' : '#ffffff';
+}
+
 const PlatformLogo: React.FC<{ card: StreamingCard }> = ({ card }) => {
   if (card.logoUrl && esUrlHttp(card.logoUrl)) {
     return (
@@ -74,8 +92,11 @@ const PlatformLogo: React.FC<{ card: StreamingCard }> = ({ card }) => {
 
   return (
     <span
-      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-xs font-black text-white"
-      style={{ backgroundColor: card.badgeColor }}
+      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-xs font-black"
+      style={{
+        backgroundColor: card.badgeColor,
+        color: colorTextoLegible(card.badgeColor),
+      }}
       aria-hidden="true"
     >
       {iniciales(card.name)}

@@ -265,9 +265,9 @@ export const NewsWidget: FC = () => {
                   )}
                 </div>
 
-                <h4 className="mt-1.5 line-clamp-3 text-xs font-bold leading-snug text-zinc-200 transition-colors group-hover:text-violet-300">
+                <h3 className="mt-1.5 line-clamp-3 text-xs font-bold leading-snug text-zinc-200 transition-colors group-hover:text-violet-300">
                   {noticia.title}
-                </h4>
+                </h3>
 
                 {noticia.snippet && (
                   <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-zinc-500">

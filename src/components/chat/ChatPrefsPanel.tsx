@@ -6,6 +6,7 @@ import {
   CHAT_PREFS_NOTIFY,
 } from '../../data/chatPrefs';
 import { getChatPrefs, saveChatPrefs } from '../../services/chatPrefs';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import type { ChatPrefs } from '../../types';
 
 // ======================================================
@@ -46,6 +47,10 @@ export const ChatPrefsPanel: React.FC<ChatPrefsPanelProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const baseRef = useRef<ChatPrefs>({});
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose,
+  });
 
   useEffect(() => {
     let alive = true;
@@ -84,15 +89,20 @@ export const ChatPrefsPanel: React.FC<ChatPrefsPanelProps> = ({
       onClick={saving ? undefined : onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Personalizar conversación"
+        aria-labelledby="chat-prefs-title"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/[0.08] bg-[#0c0c14] shadow-2xl sm:max-w-md sm:rounded-3xl"
       >
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
-          <h2 className="flex items-center gap-2 text-sm font-bold text-white">
-            <Palette size={15} className="text-violet-300" />
+          <h2
+            id="chat-prefs-title"
+            className="flex items-center gap-2 text-sm font-bold text-white"
+          >
+            <Palette size={15} aria-hidden="true" className="text-violet-300" />
             Personalizar conversación
           </h2>
           <button
@@ -128,7 +138,11 @@ export const ChatPrefsPanel: React.FC<ChatPrefsPanelProps> = ({
           </div>
 
           <Seccion titulo="Apodo local">
+            <label htmlFor="chat-prefs-nickname" className="sr-only">
+              Apodo local para esta conversación
+            </label>
             <input
+              id="chat-prefs-nickname"
               type="text"
               value={borrador.nickname ?? ''}
               onChange={(e) => pon({ nickname: e.target.value })}

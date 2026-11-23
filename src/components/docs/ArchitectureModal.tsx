@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Code2, Database, Shield, Server, FolderTree, Copy, Check } from 'lucide-react';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 interface ArchitectureModalProps {
   isOpen: boolean;
@@ -9,6 +10,11 @@ interface ArchitectureModalProps {
 export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'schema' | 'rules' | 'api' | 'tree'>('overview');
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: isOpen,
+    onClose,
+  });
 
   if (!isOpen) return null;
 
@@ -815,7 +821,14 @@ service cloud.firestore {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="architecture-title"
+        tabIndex={-1}
+        className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl"
+      >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-zinc-800 p-5 bg-zinc-900/90">
           <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -823,7 +836,10 @@ service cloud.firestore {
               <Code2 size={20} />
             </div>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-black text-white flex flex-wrap items-center gap-2">
+              <h2
+                id="architecture-title"
+                className="text-base sm:text-lg font-black text-white flex flex-wrap items-center gap-2"
+              >
                 <span>Arquitectura & Base de Datos</span>
                 <span className="rounded-md bg-violet-600/20 border border-violet-500/30 px-2 py-0.5 text-[10px] font-bold text-violet-300">
                   geekapoo.es
@@ -836,17 +852,20 @@ service cloud.firestore {
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            aria-label="Cerrar arquitectura"
+            aria-label="Cerrar la especificación técnica"
             className="shrink-0 rounded-full p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
           >
-            <X size={18} />
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
         {/* Tab Buttons */}
         <div className="flex shrink-0 border-b border-zinc-800 bg-zinc-900/50 px-4 sm:px-6 overflow-x-auto text-xs font-semibold">
           <button
+            type="button"
+            aria-pressed={activeTab === 'overview'}
             onClick={() => setActiveTab('overview')}
             className={`flex items-center gap-2 border-b-2 py-3 px-3 whitespace-nowrap transition-all ${
               activeTab === 'overview'
@@ -859,6 +878,8 @@ service cloud.firestore {
           </button>
 
           <button
+            type="button"
+            aria-pressed={activeTab === 'schema'}
             onClick={() => setActiveTab('schema')}
             className={`flex items-center gap-2 border-b-2 py-3 px-3 whitespace-nowrap transition-all ${
               activeTab === 'schema'
@@ -871,6 +892,8 @@ service cloud.firestore {
           </button>
 
           <button
+            type="button"
+            aria-pressed={activeTab === 'rules'}
             onClick={() => setActiveTab('rules')}
             className={`flex items-center gap-2 border-b-2 py-3 px-3 whitespace-nowrap transition-all ${
               activeTab === 'rules'
@@ -883,6 +906,8 @@ service cloud.firestore {
           </button>
 
           <button
+            type="button"
+            aria-pressed={activeTab === 'api'}
             onClick={() => setActiveTab('api')}
             className={`flex items-center gap-2 border-b-2 py-3 px-3 whitespace-nowrap transition-all ${
               activeTab === 'api'
@@ -895,6 +920,8 @@ service cloud.firestore {
           </button>
 
           <button
+            type="button"
+            aria-pressed={activeTab === 'tree'}
             onClick={() => setActiveTab('tree')}
             className={`flex items-center gap-2 border-b-2 py-3 px-3 whitespace-nowrap transition-all ${
               activeTab === 'tree'

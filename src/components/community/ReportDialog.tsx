@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { FC } from 'react';
 import { AlertTriangle, Loader2, X } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import {
   MOTIVOS,
   reportContent,
@@ -81,30 +82,13 @@ export const ReportDialog: FC<ReportDialogProps> = ({
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
 
-  const primerBoton = useRef<HTMLButtonElement>(null);
-
-  // Sin esto el diálogo se abre sin foco en ninguna parte y con
-  // el teclado hay que tabular desde el principio de la página.
-  useEffect(() => {
-    primerBoton.current?.focus();
-  }, []);
-
-  // Escape cierra, y el scroll de detrás se bloquea (en móvil,
-  // si no, se mueve el foro entero al arrastrar sobre la ventana).
-  useEffect(() => {
-    const escape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCerrar();
-    };
-    document.addEventListener('keydown', escape);
-
-    const antes = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', escape);
-      document.body.style.overflow = antes;
-    };
-  }, [onCerrar]);
+  // El hook se encarga del foco inicial, de que Tab no se escape,
+  // de Escape, del scroll de detrás y de devolver el foco al botón
+  // «Reportar» al cerrar.
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose: onCerrar,
+  });
 
   const enviar = async () => {
     setError('');
@@ -142,15 +126,17 @@ export const ReportDialog: FC<ReportDialogProps> = ({
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Reportar contenido"
+        aria-labelledby="report-title"
+        tabIndex={-1}
         className="geo-pop-in w-full max-w-md overflow-hidden rounded-t-3xl border border-rose-500/30 bg-zinc-900 shadow-2xl shadow-rose-950/50 sm:rounded-3xl"
       >
         {/* ── Cabecera ─────────────────────────────── */}
         <div className="flex items-start justify-between gap-2 border-b border-zinc-800 px-4 py-3">
           <div>
-            <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+            <h3 id="report-title" className="flex items-center gap-2 text-sm font-bold text-white">
               <AlertTriangle size={15} className="text-rose-400" />
               Reportar {que}
             </h3>
@@ -159,10 +145,9 @@ export const ReportDialog: FC<ReportDialogProps> = ({
             </p>
           </div>
           <button
-            ref={primerBoton}
             type="button"
             onClick={onCerrar}
-            aria-label="Cerrar"
+            aria-label="Cerrar la ventana de reporte"
             className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
           >
             <X size={15} />
@@ -170,11 +155,16 @@ export const ReportDialog: FC<ReportDialogProps> = ({
         </div>
 
         {/* ── Motivos ──────────────────────────────── */}
-        <ul className="space-y-1.5 px-4 py-3">
+        <ul
+          className="space-y-1.5 px-4 py-3"
+          role="group"
+          aria-label="Motivo del reporte"
+        >
           {MOTIVOS.map((m) => (
             <li key={m.id}>
               <button
                 type="button"
+                aria-pressed={motivo === m.id}
                 onClick={() => setMotivo(m.id)}
                 className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-xs transition-all ${
                   motivo === m.id
@@ -182,9 +172,13 @@ export const ReportDialog: FC<ReportDialogProps> = ({
                     : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700'
                 }`}
               >
-                <span className="text-base leading-none">{m.emoji}</span>
+                <span aria-hidden="true" className="text-base leading-none">
+                  {m.emoji}
+                </span>
                 <span className="flex-1 font-semibold">{m.label}</span>
-                {motivo === m.id && <span className="text-rose-300">✓</span>}
+                {motivo === m.id && (
+                  <span aria-hidden="true" className="text-rose-300">✓</span>
+                )}
               </button>
             </li>
           ))}
@@ -210,8 +204,13 @@ export const ReportDialog: FC<ReportDialogProps> = ({
         </div>
 
         {error && (
-          <p className="mx-4 mt-3 flex items-center gap-1.5 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">
-            <AlertTriangle size={12} className="flex-shrink-0" />
+          <p
+            id="report-error"
+            role="alert"
+            aria-live="assertive"
+            className="mx-4 mt-3 flex items-center gap-1.5 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-[11px] text-red-300"
+          >
+            <AlertTriangle size={12} aria-hidden="true" className="flex-shrink-0" />
             {error}
           </p>
         )}
@@ -229,9 +228,12 @@ export const ReportDialog: FC<ReportDialogProps> = ({
             type="button"
             onClick={enviar}
             disabled={enviando}
+            aria-busy={enviando}
             className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-[11px] font-bold text-white transition-colors hover:bg-rose-500 disabled:opacity-50"
           >
-            {enviando && <Loader2 size={12} className="animate-spin" />}
+            {enviando && (
+              <Loader2 size={12} aria-hidden="true" className="animate-spin" />
+            )}
             Enviar reporte
           </button>
         </div>

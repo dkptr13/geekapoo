@@ -1067,9 +1067,9 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             ) : (
               <>
                 <Tv size={18} className="flex-shrink-0 text-violet-400" />
-                <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+                <h1 className="text-sm font-bold uppercase tracking-wider text-white">
                   Wiki de Anime &amp; Series
-                </h2>
+                </h1>
               </>
             )}
           </div>
@@ -1089,13 +1089,18 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
             {/* El buscador */}
             <div className="relative flex-1 sm:w-80 sm:flex-none">
+              <label htmlFor="wiki-search" className="sr-only">
+                Buscar series, capítulos o personajes en la wiki
+              </label>
               <Search
                 size={16}
+                aria-hidden="true"
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
               />
               <input
+                id="wiki-search"
                 ref={searchInputRef}
-                type="text"
+                type="search"
                 value={searchQuery}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -1110,11 +1115,12 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
               />
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery('')}
-                  aria-label="Limpiar búsqueda"
+                  aria-label="Limpiar el texto de búsqueda"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
                 >
-                  <X size={14} />
+                  <X size={14} aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -1236,6 +1242,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             return (
               <button
                 key={s.id}
+                type="button"
+                aria-pressed={seasonOfView?.id === s.id}
                 onClick={() => setSeasonFilter(s.id)}
                 className={`flex flex-shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
                   seasonOfView?.id === s.id
@@ -1419,8 +1427,10 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
             </div>
 
             <button
+              type="button"
               onClick={() => void alternarLikeAnime()}
-              aria-label={`Dar Me gusta a ${currentAnime.title}`}
+              aria-pressed={animeLikeLiked}
+              aria-label={`${animeLikeLiked ? 'Quitar' : 'Dar'} Me gusta a ${currentAnime.title} · ${animeLikeCount} Me gusta`}
               className="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-pink-500/30 bg-zinc-900/80 px-3.5 py-1.5 text-xs font-bold text-pink-300 backdrop-blur-md hover:bg-pink-500/20 transition-all"
             >
               <Heart
@@ -1518,8 +1528,17 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
            entero, que es lo que se pidió. El "snap" hace que al
            deslizar se paren en cada pestaña en lugar de dejarlas a
            medias. */}
-        <div className="flex snap-x snap-mandatory overflow-x-auto border-t border-zinc-800 bg-zinc-950/60 px-4 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
+        <div
+          role="tablist"
+          aria-label="Secciones de la ficha"
+          className="flex snap-x snap-mandatory overflow-x-auto border-t border-zinc-800 bg-zinc-950/60 px-4 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden"
+        >
           <button
+            type="button"
+            role="tab"
+            id="anime-tab-info"
+            aria-selected={activeTab === 'info'}
+            aria-controls="anime-panel-info"
             onClick={() => setActiveTab('info')}
             className={`flex shrink-0 snap-start items-center gap-2 whitespace-nowrap border-b-2 py-4 px-4 text-xs font-bold transition-all sm:text-sm ${
               activeTab === 'info'
@@ -1532,6 +1551,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           </button>
 
           <button
+            type="button"
+            role="tab"
+            id="anime-tab-episodes"
+            aria-selected={activeTab === 'episodes'}
+            aria-controls="anime-panel-episodes"
             onClick={() => setActiveTab('episodes')}
             className={`flex shrink-0 snap-start items-center gap-2 whitespace-nowrap border-b-2 py-4 px-4 text-xs font-bold transition-all sm:text-sm ${
               activeTab === 'episodes'
@@ -1551,6 +1575,11 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
           </button>
 
           <button
+            type="button"
+            role="tab"
+            id="anime-tab-characters"
+            aria-selected={activeTab === 'characters'}
+            aria-controls="anime-panel-characters"
             onClick={() => setActiveTab('characters')}
             className={`flex shrink-0 snap-start items-center gap-2 whitespace-nowrap border-b-2 py-4 px-4 text-xs font-bold transition-all sm:text-sm ${
               activeTab === 'characters'
@@ -1576,7 +1605,13 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
         // En pantallas anchas la ficha técnica pasa a 1/4 y el
         // contenido a 3/4. Con 1/3 la columna de datos quedaba
         // desproporcionada al ensanchar el contenedor.
-        <div className="grid grid-cols-1 gap-6 animate-in fade-in duration-200 lg:grid-cols-12">
+        <div
+          role="tabpanel"
+          id="anime-panel-info"
+          aria-labelledby="anime-tab-info"
+          tabIndex={0}
+          className="grid grid-cols-1 gap-6 animate-in fade-in duration-200 lg:grid-cols-12"
+        >
           <div className="min-w-0 lg:col-span-8 2xl:col-span-9 space-y-6">
             {/* Sinopsis */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/90 p-6">
@@ -1676,11 +1711,17 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
       {/* PESTAÑA B: EPISODIOS */}
       {activeTab === 'episodes' && (
-        <div className="space-y-4 animate-in fade-in duration-200">
+        <div
+          role="tabpanel"
+          id="anime-panel-episodes"
+          aria-labelledby="anime-tab-episodes"
+          tabIndex={0}
+          className="space-y-4 animate-in fade-in duration-200"
+        >
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Lista de Capítulos ({totalEpisodiosTemporada ?? animeEpisodes.length})
-            </h3>
+            </h2>
             <span className="text-xs text-zinc-400">Comentarios individuales por capítulo</span>
           </div>
 
@@ -1722,7 +1763,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                     {ep.thumbnailUrl ? (
                       <img
                         src={ep.thumbnailUrl}
-                        alt={ep.title}
+                        // El título del episodio está justo al lado.
+                        alt=""
                         className="h-full w-full object-cover"
                         style={encuadre(ep.thumbnailFocus)}
                       />
@@ -1758,7 +1800,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                       </span>
                     </div>
 
-                    <h4 className="mt-1 text-base font-bold text-white">{ep.title}</h4>
+                    <h3 className="mt-1 text-base font-bold text-white">{ep.title}</h3>
                     {ep.romajiTitle && (
                       <span className="text-[11px] text-zinc-500 italic block">
                         {ep.romajiTitle}
@@ -1771,7 +1813,10 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
                     <div className="mt-4 flex items-center gap-3">
                       <button
+                        type="button"
                         onClick={() => void alternarLikeDelEpisodio(ep)}
+                        aria-pressed={isLiked}
+                        aria-label={`${isLiked ? 'Quitar me gusta' : 'Dar me gusta'} al episodio ${ep.number}: ${ep.title} (${ep.likesCount} me gusta)`}
                         className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
                           isLiked
                             ? 'border-pink-500/40 bg-pink-500/10 text-pink-400'
@@ -1783,6 +1828,14 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                       </button>
 
                       <button
+                        type="button"
+                        aria-expanded={isExpanded}
+                        aria-controls={`episodio-comentarios-${ep.id}`}
+                        aria-label={`Ver comentarios del episodio ${ep.number}: ${ep.title}${
+                          isExpanded
+                            ? ` (${epComments.length}${hayEpisodioAnteriores ? '+' : ''})`
+                            : ''
+                        }`}
                         onClick={() => setExpandedEpisodeId(isExpanded ? null : ep.id)}
                         className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
                           isExpanded
@@ -1804,18 +1857,25 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
                 {/* Comentarios del episodio */}
                 {isExpanded && (
-                  <div className="border-t border-zinc-800 bg-zinc-950/60 p-5 space-y-4 animate-in fade-in duration-150">
-                    <h5 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <div
+                    id={`episodio-comentarios-${ep.id}`}
+                    className="border-t border-zinc-800 bg-zinc-950/60 p-5 space-y-4 animate-in fade-in duration-150"
+                  >
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                       Debate sobre el Episodio {ep.number}
-                    </h5>
+                    </h4>
 
                     {/* Input */}
                     <form
                       onSubmit={(e) => handleEpisodeComment(ep.id, e)}
                       className="space-y-2"
                     >
+                      <label htmlFor={`comentario-episodio-${ep.id}`} className="sr-only">
+                        Escribe un comentario sobre el episodio {ep.number}
+                      </label>
                       <div className="flex items-end gap-2">
                         <AutoGrowTextarea
+                          id={`comentario-episodio-${ep.id}`}
                           inputRef={episodeCommentRef}
                           rows={1}
                           maxHeight={160}
@@ -1971,11 +2031,20 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
       {/* PESTAÑA C: PERSONAJES */}
       {activeTab === 'characters' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
+        <div
+          role="tabpanel"
+          id="anime-panel-characters"
+          aria-labelledby="anime-tab-characters"
+          tabIndex={0}
+          className="space-y-6 animate-in fade-in duration-200"
+        >
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+            Personajes
+          </h2>
           {/* Character Filters: "Destacados", "Más Me gusta", "Relacionados" */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Filter size={15} className="text-violet-400" />
+              <Filter size={15} aria-hidden="true" className="text-violet-400" />
               <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                 Filtrar personajes:
               </span>
@@ -1983,6 +2052,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
 
             <div className="flex flex-wrap gap-2">
               <button
+                type="button"
+                aria-pressed={characterFilter === 'all'}
                 onClick={() => setCharacterFilter('all')}
                 className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                   characterFilter === 'all'
@@ -1993,6 +2064,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                 Todos
               </button>
               <button
+                type="button"
+                aria-pressed={characterFilter === 'destacados'}
                 onClick={() => setCharacterFilter('destacados')}
                 className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                   characterFilter === 'destacados'
@@ -2003,6 +2076,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                 Destacados
               </button>
               <button
+                type="button"
+                aria-pressed={characterFilter === 'likes'}
                 onClick={() => setCharacterFilter('likes')}
                 className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                   characterFilter === 'likes'
@@ -2013,6 +2088,8 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                 Más "Me gusta"
               </button>
               <button
+                type="button"
+                aria-pressed={characterFilter === 'related'}
                 onClick={() => setCharacterFilter('related')}
                 className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
                   characterFilter === 'related'
@@ -2066,13 +2143,18 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                           rellena lo que sobra segun la proporcion. */}
                       <img
                         src={char.imageUrl}
-                        alt={char.name}
+                        // El nombre del personaje está en la ficha,
+                        // justo debajo, como encabezado.
+                        alt=""
                         className="h-full w-full object-contain"
                         style={encuadre(char.imageFocus)}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
                       <div className="absolute top-3 right-3">
                         <button
+                          type="button"
+                          aria-pressed={isLiked}
+                          aria-label={`${isLiked ? 'Quitar me gusta' : 'Dar me gusta'} a ${char.name} (${char.likesCount} me gusta)`}
                           onClick={() => void alternarLikeDelPersonaje(char)}
                           className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold backdrop-blur-md transition-all ${
                             isLiked
@@ -2097,7 +2179,7 @@ export const AnimeWiki: React.FC<AnimeWikiProps> = ({
                     </div>
 
                     <div className="p-4">
-                      <h4 className="text-lg font-bold text-white">{char.name}</h4>
+                      <h3 className="text-lg font-bold text-white">{char.name}</h3>
                       {char.japaneseName && (
                         <span className="text-xs text-violet-400 font-mono block">
                           {char.japaneseName}

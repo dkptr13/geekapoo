@@ -224,6 +224,7 @@ export const AnimesSection: FC<{
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              aria-label="Buscar animes por título, estudio, género o categoría"
               placeholder="Buscar por título, estudio, género o categoría..."
               className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-3 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
             />
@@ -790,6 +791,7 @@ export const ThreadsSection: FC<{ threads: RawDoc[] }> = ({ threads }) => {
         type="text"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
+        aria-label="Buscar curiosidades por título o autor"
         placeholder="Buscar por título o autor..."
         className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-600 focus:border-violet-500 focus:outline-none"
       />

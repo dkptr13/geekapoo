@@ -188,6 +188,7 @@ const UserPicker: React.FC<{
           <input
             value={buscador}
             onChange={(e) => setBuscador(e.target.value)}
+            aria-label="Buscar usuarios por @usuario, nombre o ID de chat"
             placeholder="Buscar por @usuario, nombre o ID de chat..."
             className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white outline-none transition-colors focus:border-violet-500"
           />

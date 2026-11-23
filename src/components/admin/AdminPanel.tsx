@@ -425,7 +425,10 @@ export function AdminPanel() {
 
       {/* ERROR */}
       {catalog.error && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-400">
+        <div
+          role="alert"
+          className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-400"
+        >
           {catalog.error}
         </div>
       )}
@@ -448,6 +451,7 @@ export function AdminPanel() {
           <div className="flex gap-2">
             <button
               type="button"
+              aria-pressed={provider === 'storage'}
               onClick={() => setProvider('storage')}
               className={`chat-boton rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
                 provider === 'storage'
@@ -459,6 +463,7 @@ export function AdminPanel() {
             </button>
             <button
               type="button"
+              aria-pressed={provider === 'imgbb'}
               onClick={() => setProvider('imgbb')}
               className={`chat-boton rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
                 provider === 'imgbb'
@@ -485,6 +490,7 @@ export function AdminPanel() {
             <button
               key={id}
               type="button"
+              aria-pressed={isActive}
               onClick={() => setActiveSection(id)}
               className={`flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-xs font-semibold transition-all ${
                 isActive
@@ -520,8 +526,12 @@ export function AdminPanel() {
         </div>
 
         {catalog.loading ? (
-          <div className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-zinc-500">
-            <Loader2 size={16} className="animate-spin" />
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-zinc-500"
+          >
+            <Loader2 size={16} aria-hidden="true" className="animate-spin" />
             <span className="text-xs">Cargando desde Firestore...</span>
           </div>
         ) : activeSection === 'users' ? (

@@ -262,6 +262,10 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
 
   return (
     <div className="space-y-6">
+      <h2 className="sr-only">
+        Resultados de búsqueda para «{query.trim()}»
+      </h2>
+
       {/* Pestañas principales, con el recuento de esta búsqueda */}
       <MainTabs
         active={filter}
@@ -275,8 +279,17 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
         }}
         onChange={onFilterChange}
       />
+      <p
+        role="status"
+        aria-live="polite"
+        className="text-[11px] text-zinc-400"
+      >
+        {buscando
+          ? 'Buscando…'
+          : `${total} ${total === 1 ? 'resultado' : 'resultados'} para «${query.trim()}»`}
+      </p>
       {buscando && (
-        <p className="flex items-center gap-1.5 text-[11px] text-zinc-500" aria-live="polite">
+        <p className="flex items-center gap-1.5 text-[11px] text-zinc-500" aria-hidden="true">
           <Loader2 size={12} className="animate-spin" />
           Buscando…
         </p>
@@ -299,6 +312,7 @@ const CatalogSearch: FC<CatalogSearchProps> = ({
             </p>
             {contarFiltrosActivos(filtros) > 0 && (
               <button
+                type="button"
                 onClick={onLimpiarFiltros}
                 className="mx-auto mt-4 block rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 transition-colors hover:border-violet-500/50 hover:text-white"
               >

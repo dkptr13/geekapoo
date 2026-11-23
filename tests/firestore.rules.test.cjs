@@ -557,6 +557,72 @@ describe('gamificacion: XP y medallas', () => {
       );
     });
 
+    it('puede guardar sus preferencias de accesibilidad', async () => {
+      await assertSucceeds(
+        setDoc(doc(db(ALICE), 'userPrivate', ALICE), {
+          updatedAt: new Date(),
+          accessibility: {
+            version: 2,
+            textScale: 1.25,
+            spacingPreset: 'comfortable',
+            lineHeight: 1.7,
+            letterSpacing: 0.01,
+            wordSpacing: 0.04,
+            paragraphSpacing: 1,
+            contrast: 'high',
+            underlineLinks: true,
+            strongBorders: true,
+            highlightSelection: true,
+            reduceTransparency: true,
+            motion: 'reduced',
+            soundEnabled: true,
+            soundInterface: true,
+            soundNotifications: true,
+            soundMessages: false,
+            soundVolume: 0.4,
+            largeControls: true,
+            simplified: true,
+          },
+        }),
+      );
+    });
+
+    it('NO puede guardar preferencias de accesibilidad inventadas', async () => {
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), {
+          accessibility: { contrast: 'invertido' },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), {
+          accessibility: { textScale: 9 },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), {
+          accessibility: { motion: 'ninguno' },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), {
+          accessibility: { soundVolume: 2 },
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(db(ALICE), 'userPrivate', ALICE), {
+          accessibility: { discapacidad: 'visual' },
+        }),
+      );
+    });
+
+    it('NO puede guardar preferencias de accesibilidad en el perfil de otro', async () => {
+      await assertFails(
+        updateDoc(doc(db(BOB), 'userPrivate', ALICE), {
+          accessibility: { contrast: 'high' },
+        }),
+      );
+    });
+
     it('un visibleBadgeIds en null no bloquea otros guardados', async () => {
       await assertSucceeds(
         updateDoc(doc(db(ALICE), 'users', ALICE), { visibleBadgeIds: null }),

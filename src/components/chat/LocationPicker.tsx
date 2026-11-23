@@ -12,6 +12,7 @@
 import 'leaflet/dist/leaflet.css';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 import type { FC } from 'react';
 import { AlertCircle, Crosshair, Loader2, MapPin, Search, X } from 'lucide-react';
 import type * as Leaflet from 'leaflet';
@@ -574,6 +575,11 @@ export const LocationPicker: FC<Props> = ({ inicial = null, onConfirmar, onCance
 
   const quedan = texto.trim().length >= MINIMO_BUSQUEDA;
 
+  const dialogRef = useDialogA11y<HTMLDivElement>({
+    open: true,
+    onClose: onCancelar,
+  });
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
@@ -582,15 +588,20 @@ export const LocationPicker: FC<Props> = ({ inicial = null, onConfirmar, onCance
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Compartir una ubicación"
+        aria-labelledby="location-picker-title"
+        tabIndex={-1}
         className="geo-pop-in flex h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-violet-500/30 bg-zinc-900 shadow-2xl shadow-violet-950/60 sm:h-auto sm:max-h-[88vh] sm:rounded-3xl"
       >
         {/* ── Cabecera ────────────────────────────────── */}
         <div className="flex items-center justify-between gap-2 border-b border-zinc-800 px-4 py-3">
-          <h3 className="flex items-center gap-2 text-sm font-bold text-white">
-            <MapPin size={16} className="text-violet-400" />
+          <h3
+            id="location-picker-title"
+            className="flex items-center gap-2 text-sm font-bold text-white"
+          >
+            <MapPin size={16} aria-hidden="true" className="text-violet-400" />
             Compartir ubicación
           </h3>
 
