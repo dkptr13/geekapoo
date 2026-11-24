@@ -915,6 +915,11 @@ export const POR_NUMERO_TVDB = new Set([
   // Los dos episodios de la OVA de Yu Yu Hakusho (S0E17 y S0E18) no
   // tienen titulo en TVDB: se emparejan por temporada y numero.
   'yu-yu-hakusho-dos-disparos',
+  // Clear Card: TVDB guarda los titulos romanizados ("Sakura to Tomei na
+  // Kado"), no en japones, asi que no hay nada que comparar con la
+  // tercera columna. La temporada y el numero coinciden, y las fechas
+  // sirven de comprobacion.
+  'cardcaptor-sakura-clear-card',
 ]);
 
 /**

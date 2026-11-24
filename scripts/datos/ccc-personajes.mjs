@@ -19,7 +19,7 @@ export const PERSONAJES = [
   ['Akiho Shinomoto', '', 'main', '詩之本秋穂', 'Minori Suzuki',
    'Una alumna nueva llegada del extranjero que se hace muy amiga de Sakura. Es dulce, le encanta leer y posee una biblioteca enorme. Lee un libro en un idioma misterioso y comparte con Sakura unos sueños que parecen reflejar los de ambas.'],
 
-  ['Yuna D. Kaito', '', 'antagonist', '海渡ユナD', 'Natsuki Hanae',
+  ['Yuna D. Kaito', '', 'antagonist', 'ユナ・D・海渡', 'Natsuki Hanae',
    'El mayordomo de Akiho y un mago muy poderoso. Controla el tiempo y el espacio para borrar los recuerdos de quienes descubren sus secretos. Perteneció a una sociedad de magos ingleses y quiere hacerse con las Cartas Transparentes.'],
 
   ['Momo', '', 'supporting', 'モモ', 'Minako Kotobuki',

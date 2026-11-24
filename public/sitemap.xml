@@ -304,6 +304,51 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/cardcaptor-sakura</loc>
+    <lastmod>2026-11-24</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx232-ERyKCNNPJJeh.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/cardcaptor-sakura-clear-card</loc>
+    <lastmod>2026-11-24</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx97881-QGpBWNtdCxrZ.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/cardcaptor-sakura-clear-card-prologo</loc>
+    <lastmod>2026-11-24</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx98554-8MrEGrmSI7qu.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/cardcaptor-sakura-la-pelicula</loc>
+    <lastmod>2026-11-24</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx371-sdrIzrI5qXl3.jpg</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/cardcaptor-sakura-la-pelicula-2-la-carta-sellada</loc>
+    <lastmod>2026-11-24</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx372-fTXJwelrAAC6.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/carnival-phantasm</loc>
     <lastmod>2026-11-07</lastmod>
     <image:image>

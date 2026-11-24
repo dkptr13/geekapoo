@@ -82,6 +82,6 @@ export const PERSONAJES = [
   ['Shouko Tsujitani', '1', 'supporting', '辻谷彰子', 'Michiko Neya',
    'La profesora de música del colegio de Sakura. Dirige el coro y los festivales, y ayuda a Tomoyo con su solo. No tiene poderes, pero está cerca de Sakura en los episodios de la carta Canción.'],
 
-  ['Carta Espejo', '1', 'supporting', 'ミラー', 'Aya Hisakawa',
+  ['Carta Espejo', '1,3', 'supporting', 'ミラー', 'Aya Hisakawa',
    'Una Carta Clow que adopta la apariencia de Sakura y ocupa su lugar para poder vivir experiencias humanas. Su parecido provoca malentendidos, pero termina arrepintiéndose y pide perdón a Sakura. Toya le regala un lazo verde.'],
 ];
