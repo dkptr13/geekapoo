@@ -864,7 +864,13 @@ export const SIN_COMPROBAR_NUMERO = new Set([
  *
  * @type {Set<string>}
  */
-export const SIN_TITULO_JAPONES = new Set(['gintama']);
+export const SIN_TITULO_JAPONES = new Set([
+  'gintama',
+  // La OVA de Magic Knight Rayearth no tiene titulos oficiales por
+  // episodio, ni en japones ni en espanol: sus tres episodios se
+  // emparejan por temporada y numero.
+  'magic-knight-rayearth-ova',
+]);
 
 /**
  * Series de TVDB con el id fijado a mano.
@@ -897,6 +903,11 @@ export const SERIE_TVDB = {
   // Card es una serie aparte (454838), con el prologo tambien en la 0.
   'cardcaptor-sakura': 70668,
   'cardcaptor-sakura-clear-card': 454838,
+  // Magic Knight Rayearth: la serie de 1994 y la OVA de 1997 son series
+  // distintas en TVDB. La serie usa las temporadas 1 y 2 (la 0 son los
+  // especiales); la OVA tiene sus tres episodios en la temporada 1.
+  'magic-knight-rayearth': 71634,
+  'magic-knight-rayearth-ova': 358557,
 };
 
 /**
@@ -920,6 +931,10 @@ export const POR_NUMERO_TVDB = new Set([
   // tercera columna. La temporada y el numero coinciden, y las fechas
   // sirven de comprobacion.
   'cardcaptor-sakura-clear-card',
+  // La OVA de Magic Knight Rayearth no tiene titulos en TVDB (name: null),
+  // ni en japones ni en espanol. Se empareja por temporada y numero, y
+  // las fechas sirven de comprobacion.
+  'magic-knight-rayearth-ova',
 ]);
 
 /**

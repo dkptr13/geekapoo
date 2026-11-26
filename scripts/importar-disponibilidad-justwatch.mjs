@@ -1003,6 +1003,22 @@ const FICHAS = {
     titulo: 'Cardcaptor Sakura: Clear Card - Prólogo',
     anio: 2017,
   },
+
+  // Lote de noviembre de 2026: Magic Knight Rayearth. La serie de 1994
+  // está en Crunchyroll (incluido su canal de Amazon); la ficha de
+  // JustWatch se llama "Luchadoras de leyenda" aunque la URL use
+  // "las-guerreras-magicas". El OVA no tiene ficha propia en JustWatch
+  // España: se deja sin id y sin filas, con la nota del meta.
+  'magic-knight-rayearth': {
+    id: 'ts25996',
+    titulo: 'Luchadoras de leyenda',
+    anio: 1994,
+  },
+  'magic-knight-rayearth-ova': {
+    id: null,
+    titulo: 'Magic Knight Rayearth OVA',
+    anio: 1997,
+  },
 };
 
 /**

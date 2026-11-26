@@ -1834,6 +1834,24 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.geekapoo.es/anime/magic-knight-rayearth</loc>
+    <lastmod>2026-11-26</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx435-WO3USrR2jB5u.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.geekapoo.es/anime/magic-knight-rayearth-ova</loc>
+    <lastmod>2026-11-26</lastmod>
+    <image:image>
+      <image:loc>https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1954-TMATUw0dInbZ.png</image:loc>
+    </image:image>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.geekapoo.es/anime/makeine-too-many-losing-heroines</loc>
     <lastmod>2026-11-07</lastmod>
     <image:image>

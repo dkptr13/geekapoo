@@ -1,0 +1,41 @@
+// ETIQUETAS - mkr
+//
+// Formato: 'nombre del personaje': ['etiqueta', ...]
+// Maximo 40 caracteres por etiqueta.
+
+export const TAGS = {
+  'Hikaru Shidou': ['Protagonista', 'Magia de fuego', 'Guerrera Mágica'],
+  'Umi Ryuuzaki': ['Guerrera Mágica', 'Magia de agua', 'Esgrima'],
+  'Fuu Hououji': ['Guerrera Mágica', 'Magia de viento', 'Tiro con arco'],
+  'Mokona': ['Guía', 'Céfiro', 'Criatura mágica'],
+  'Zagato': ['Antagonista', 'Sumo sacerdote', 'Emeraude'],
+  'Alcyone': ['Antagonista', 'Magia de hielo', 'Discípula de Clef'],
+  'Ascot': ['Invocador', 'Monstruos', 'Umi'],
+  'Caldina': ['Hechicera', 'Danza', 'Lafarga'],
+  'Lafarga': ['Capitán de la guardia', 'Esgrima', 'Caldina'],
+  'Inouva': ['Antagonista', 'Lugarteniente', 'Forma bestial'],
+  'Nova': ['Antagonista', 'Sombra de Hikaru', 'Regalia'],
+  'Debonair': ['Antagonista', 'Oscuridad', 'Miedo'],
+  'Eagle Vision': ['Antagonista', 'Autozam', 'NSX'],
+  'Aska': ['Antagonista', 'Fahren', 'Princesa'],
+  'Tatra': ['Antagonista', 'Chizeta', 'Rasheen'],
+  'Tarta': ['Antagonista', 'Chizeta', 'Bravada'],
+  'Clef': ['Mago', 'Maestro', 'Céfiro'],
+  'Ferio': ['Espadachín', 'Hermano de Emeraude', 'Fuu'],
+  'Presea': ['Forjadora', 'Bosque del Silencio', 'Armas'],
+  'Sierra': ['Gemela de Presea', 'Forjadora', 'Temporada 2'],
+  'Emeraude': ['Princesa', 'Pilar', 'Zagato'],
+  'Lantis': ['Caballero', 'Hermano de Zagato', 'Hikaru'],
+  'Sang Yung': ['Fahren', 'Consejero', 'Aska'],
+  'Primera': ['Hada', 'Lantis', 'Celos'],
+  'Mira': ['Niña', 'Céfiro', 'Esperanza'],
+  'Zazu Torque': ['Mecánico', 'NSX', 'FTO'],
+  'Geo Metro': ['Autozam', 'NSX', 'GTO'],
+  'Chang Ang': ['Fahren', 'Canciller', 'Aska'],
+  'Kuu Hououji': ['Hermana de Fuu', 'Tokio', 'Familia'],
+  'Satoru Shidou': ['Hermano de Hikaru', 'Kendo', 'Dojo'],
+  'Masaru Shidou': ['Hermano de Hikaru', 'Familia', 'Dojo'],
+  'Kakeru Shidou': ['Hermano de Hikaru', 'Familia', 'Tokio'],
+  'Madre de Umi': ['Familia', 'Tokio', 'Umi'],
+  'Padre de Umi': ['Familia', 'Tokio', 'Umi'],
+};

@@ -491,6 +491,16 @@ const ANIMES = [
     buscar: 'Cardcaptor Sakura: Clear Card-hen - Prologue Sakura to Futatsu no Kuma',
     anilist: 98554,
   },
+
+  // Lote de noviembre de 2026: Magic Knight Rayearth. La serie de 1994
+  // usa la ficha 435 de AniList, que enlaza por relaciones con la segunda
+  // temporada (1563); la OVA de 1997 va aparte, con la ficha 1954.
+  { id: 'magic-knight-rayearth', buscar: 'Magic Knight Rayearth', anilist: 435 },
+  {
+    id: 'magic-knight-rayearth-ova',
+    buscar: 'Magic Knight Rayearth OVA',
+    anilist: 1954,
+  },
 ];
 const soloAnimes = argv
   .flatMap((arg, i) => (arg === '--anime' ? (argv[i + 1] ?? '').split(',') : []))
@@ -566,6 +576,11 @@ const TITULOS_EN_ANILIST = {
     1: 'Bishoujo Senshi Sailor Moon: Crystal',
     2: 'Bishoujo Senshi Sailor Moon: Crystal - Death Busters-hen',
   },
+  // Magic Knight Rayearth: la segunda temporada es una media aparte en
+  // AniList ("Magic Knight Rayearth II"), de 1995. Sin el titulo, el
+  // emparejador solo tendria el año y podria coger otro media de la
+  // franquicia.
+  'magic-knight-rayearth': { 2: 'Magic Knight Rayearth II' },
 };
 
 /**
